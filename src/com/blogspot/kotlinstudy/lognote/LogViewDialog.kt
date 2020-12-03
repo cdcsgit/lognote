@@ -8,12 +8,13 @@ import javax.swing.*
 class LogViewDialog (parent: JFrame, log:String) : JDialog(parent, "Log", false) {
 
     val textArea = JTextArea()
+    val mMainUI = parent as MainUI
     init {
         isUndecorated = true
         textArea.isEditable = false
         textArea.lineWrap = true
         textArea.background = Color(0xFF, 0xFA, 0xE3)
-//        textArea.font = Font(textArea.font.deriveFont(Font.BOLD))
+        textArea.font = mMainUI.mFont
         textArea.addKeyListener(KeyHandler())
         textArea.addMouseListener(MouseHandler())
         textArea.addFocusListener(FocusHandler())
