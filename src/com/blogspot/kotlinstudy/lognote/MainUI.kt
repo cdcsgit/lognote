@@ -1,6 +1,8 @@
 package com.blogspot.kotlinstudy.lognote
 
 import java.awt.*
+import java.awt.datatransfer.Clipboard
+import java.awt.datatransfer.StringSelection
 import java.awt.event.*
 import java.io.File
 import java.io.FileInputStream
@@ -9,12 +11,11 @@ import java.io.IOException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
-import javax.accessibility.Accessible
 import javax.swing.*
 import javax.swing.event.PopupMenuEvent
 import javax.swing.event.PopupMenuListener
 import javax.swing.plaf.basic.BasicScrollBarUI
-import javax.swing.plaf.basic.ComboPopup
+import javax.swing.text.JTextComponent
 
 
 class MainUI(title: String) : JFrame() {
@@ -396,6 +397,7 @@ class MainUI(title: String) : JFrame() {
         mShowLogCombo.editor.editorComponent.addKeyListener(mKeyHandler)
         mShowLogCombo.addItemListener(mItemHandler)
         mShowLogCombo.addPopupMenuListener(mPopupMenuHandler)
+        mShowLogCombo.editor.editorComponent.addMouseListener(mMouseHandler)
         mShowLogCheck = JCheckBox("", true)
         mShowLogCheck.addItemListener(mItemHandler)
         mBoldLogPanel = JPanel()
@@ -406,6 +408,7 @@ class MainUI(title: String) : JFrame() {
         mBoldLogCombo.renderer = ColorComboBox.ComboBoxRenderer()
         mBoldLogCombo.editor.editorComponent.addKeyListener(mKeyHandler)
         mBoldLogCombo.addItemListener(mItemHandler)
+        mBoldLogCombo.editor.editorComponent.addMouseListener(mMouseHandler)
         mBoldLogCheck = JCheckBox("", true)
         mBoldLogCheck.addItemListener(mItemHandler)
 
@@ -419,6 +422,7 @@ class MainUI(title: String) : JFrame() {
         mShowTagCombo.renderer = ColorComboBox.ComboBoxRenderer()
         mShowTagCombo.editor.editorComponent.addKeyListener(mKeyHandler)
         mShowTagCombo.addItemListener(mItemHandler)
+        mShowTagCombo.editor.editorComponent.addMouseListener(mMouseHandler)
         mShowTagCheck = JCheckBox("", true)
         mShowTagCheck.addItemListener(mItemHandler)
 
@@ -432,6 +436,7 @@ class MainUI(title: String) : JFrame() {
         mShowPidCombo.renderer = ColorComboBox.ComboBoxRenderer()
         mShowPidCombo.editor.editorComponent.addKeyListener(mKeyHandler)
         mShowPidCombo.addItemListener(mItemHandler)
+        mShowPidCombo.editor.editorComponent.addMouseListener(mMouseHandler)
         mShowPidCheck = JCheckBox("", true)
         mShowPidCheck.addItemListener(mItemHandler)
 
@@ -445,6 +450,7 @@ class MainUI(title: String) : JFrame() {
         mShowTidCombo.renderer = ColorComboBox.ComboBoxRenderer()
         mShowTidCombo.editor.editorComponent.addKeyListener(mKeyHandler)
         mShowTidCombo.addItemListener(mItemHandler)
+        mShowTidCombo.editor.editorComponent.addMouseListener(mMouseHandler)
         mShowTidCheck = JCheckBox("", true)
         mShowTidCheck.addItemListener(mItemHandler)
 
@@ -455,6 +461,7 @@ class MainUI(title: String) : JFrame() {
         mDeviceCombo.renderer = ColorComboBox.ComboBoxRenderer()
         mDeviceCombo.editor.editorComponent.addKeyListener(mKeyHandler)
         mDeviceCombo.addItemListener(mItemHandler)
+        mDeviceCombo.editor.editorComponent.addMouseListener(mMouseHandler)
         mAdbConnectBtn = ColorButton("Connect")
         mAdbConnectBtn.addActionListener(mActionHandler)
         mAdbRefreshBtn = ColorButton("Refresh")
@@ -1174,6 +1181,49 @@ class MainUI(title: String) : JFrame() {
         }
     }
 
+    internal inner class PopUpCombobox(combo: JComboBox<String>?) : JPopupMenu() {
+        var mSelectAllItem: JMenuItem
+        var mCopyItem: JMenuItem
+        var mPasteItem: JMenuItem
+        var mReconnectItem: JMenuItem
+        var mCombo: JComboBox<String>?
+        val mActionHandler = ActionHandler()
+
+        init {
+            mSelectAllItem = JMenuItem("Select All")
+            mSelectAllItem.addActionListener(mActionHandler)
+            add(mSelectAllItem)
+            mCopyItem = JMenuItem("Copy")
+            mCopyItem.addActionListener(mActionHandler)
+            add(mCopyItem)
+            mPasteItem = JMenuItem("Paste")
+            mPasteItem.addActionListener(mActionHandler)
+            add(mPasteItem)
+            mReconnectItem = JMenuItem("Reconnect " + mDeviceCombo.selectedItem?.toString())
+            mReconnectItem.addActionListener(mActionHandler)
+            add(mReconnectItem)
+            mCombo = combo
+        }
+        internal inner class ActionHandler() : ActionListener {
+            override fun actionPerformed(p0: ActionEvent?) {
+                if (p0?.source == mSelectAllItem) {
+                    mCombo?.editor?.selectAll()
+                } else if (p0?.source == mCopyItem) {
+                    val editorCom: JTextComponent = mCombo?.editor?.editorComponent as JTextField
+                    editorCom.selectedText
+                    val stringSelection = StringSelection(editorCom.selectedText)
+                    val clipboard: Clipboard = Toolkit.getDefaultToolkit().systemClipboard
+                    clipboard.setContents(stringSelection, null)
+                } else if (p0?.source == mPasteItem) {
+                    val editorCom: JTextComponent = mCombo?.editor?.editorComponent as JTextField
+                    editorCom.paste()
+                } else if (p0?.source == mReconnectItem) {
+                    reconnectAdb()
+                }
+            }
+        }
+    }
+
     internal inner class MouseHandler : MouseAdapter() {
         override fun mouseClicked(p0: MouseEvent?) {
             if (p0?.source == mShowLogLabel) {
@@ -1189,6 +1239,50 @@ class MainUI(title: String) : JFrame() {
             }
 
             super.mouseClicked(p0)
+        }
+
+        var popupMenu: JPopupMenu? = null
+        override fun mouseReleased(p0: MouseEvent?) {
+            if (p0 == null) {
+                super.mouseReleased(p0)
+                return
+            }
+            if (p0.isPopupTrigger) {
+//                if (p0.source == mShowLogLabel
+//                        || p0.source == mBoldLogLabel
+//                        || p0.source == mShowTagLabel
+//                        || p0.source == mShowPidLabel
+//                        || p0.source == mShowTidLabel) {
+//                }
+                if (p0.source == mDeviceCombo.editor.editorComponent
+                        || p0.source == mShowLogCombo.editor.editorComponent
+                        || p0.source == mBoldLogCombo.editor.editorComponent
+                        || p0.source == mShowTagCombo.editor.editorComponent
+                        || p0.source == mShowPidCombo.editor.editorComponent
+                        || p0.source == mShowTidCombo.editor.editorComponent) {
+                    var combo: JComboBox<String>? = null
+                    if (p0.source == mDeviceCombo.editor.editorComponent) {
+                        combo = mDeviceCombo
+                    } else if (p0.source == mShowLogCombo.editor.editorComponent) {
+                        combo = mShowLogCombo
+                    } else if (p0.source == mBoldLogCombo.editor.editorComponent) {
+                        combo = mBoldLogCombo
+                    } else if (p0.source == mShowTagCombo.editor.editorComponent) {
+                        combo = mShowTagCombo
+                    } else if (p0.source == mShowPidCombo.editor.editorComponent) {
+                        combo = mShowPidCombo
+                    } else if (p0.source == mShowTidCombo.editor.editorComponent) {
+                        combo = mShowTidCombo
+                    }
+                    popupMenu = PopUpCombobox(combo)
+                    popupMenu?.show(p0.component, p0.x, p0.y)
+                }
+            }
+            else {
+                popupMenu?.isVisible = false
+            }
+
+            super.mouseReleased(p0)
         }
     }
 
