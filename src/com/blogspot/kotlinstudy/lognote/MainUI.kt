@@ -1247,7 +1247,8 @@ class MainUI(title: String) : JFrame() {
                 super.mouseReleased(p0)
                 return
             }
-            if (p0.isPopupTrigger) {
+//            if (p0.isPopupTrigger) {
+            if (SwingUtilities.isRightMouseButton(p0)) {
 //                if (p0.source == mShowLogLabel
 //                        || p0.source == mBoldLogLabel
 //                        || p0.source == mShowTagLabel
