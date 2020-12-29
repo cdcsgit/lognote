@@ -858,6 +858,7 @@ class LogTableModel() : AbstractTableModel() {
                         mFileWriter?.close()
                         mFileWriter = null
                         currLogFile = mLogFile
+                        saveNum = 0
                     }
 
                     if (mFileWriter == null) {
@@ -950,7 +951,6 @@ class LogTableModel() : AbstractTableModel() {
 
                     if (mScrollbackSplitFile && mScrollback > 0 && saveNum >= mScrollback) {
                         mMainUI?.setSaveLogFile()
-                        saveNum = 0
 
                         println("Change save file : " + mLogFile?.absolutePath)
                     }
