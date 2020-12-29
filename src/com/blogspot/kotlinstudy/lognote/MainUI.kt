@@ -46,6 +46,7 @@ class MainUI(title: String) : JFrame() {
     private lateinit var mStopBtn: ColorButton
     private lateinit var mPauseBtn: ColorButton
     private lateinit var mClearBtn: ColorButton
+    private lateinit var mClearSaveBtn: ColorButton
     private lateinit var mRotationBtn: ColorButton
     private val SPLIT_WEIGHT = 0.7
 
@@ -383,6 +384,8 @@ class MainUI(title: String) : JFrame() {
         mPauseBtn.addActionListener(mActionHandler)
         mClearBtn = ColorButton(Strings.CLEAR)
         mClearBtn.addActionListener(mActionHandler)
+        mClearSaveBtn = ColorButton(Strings.CLEAR_SAVE)
+        mClearSaveBtn.addActionListener(mActionHandler)
         mRotationBtn = ColorButton(Strings.ROTATION)
         mRotationBtn.addActionListener(mActionHandler)
 
@@ -552,6 +555,7 @@ class MainUI(title: String) : JFrame() {
         mLogToolBar.add(mStartBtn)
         mLogToolBar.add(mStopBtn)
         mLogToolBar.add(mClearBtn)
+        mLogToolBar.add(mClearSaveBtn)
 
         addVSeparator(mLogToolBar)
 
@@ -1124,6 +1128,10 @@ class MainUI(title: String) : JFrame() {
 //            } else if (p0?.source == mPauseBtn) {
             } else if (p0?.source == mClearBtn) {
                 mFilteredTableModel.clearItems()
+                repaint()
+            } else if (p0?.source == mClearSaveBtn) {
+                mFilteredTableModel.clearItems()
+                setSaveLogFile()
                 repaint()
             } else if (p0?.source == mRotationBtn) {
                 mRotationStatus++

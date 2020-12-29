@@ -275,13 +275,17 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
             endIdx = rowCount
         }
 
+        var caretPos = 0
         for (idx in startIdx until endIdx) {
+            if (idx == selectedRow) {
+                caretPos = log.length
+            }
             value = mTableModel.getValueAt(idx, 1).toString() + "\n"
             log.append(value)
         }
 
         val frame = SwingUtilities.windowForComponent(this@LogTable) as JFrame
-        val logViewDialog = LogViewDialog(frame, log.toString().trim())
+        val logViewDialog = LogViewDialog(frame, log.toString().trim(), caretPos)
         logViewDialog.setLocationRelativeTo(frame)
         logViewDialog.isVisible = true
     }

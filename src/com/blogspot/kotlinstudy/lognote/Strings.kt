@@ -51,6 +51,7 @@ class Strings private constructor() {
         private val IDX_HIGHLIGHT = idx++
         private val IDX_LOGLEVEL = idx++
         private val IDX_SCROLLBACK = idx++
+        private val IDX_CLEAR_SAVE = idx++
 //        private val IDX_ = idx++
 
         val FILE: String
@@ -119,5 +120,7 @@ class Strings private constructor() {
             get() { return currStrings[IDX_LOGLEVEL] }
         val SCROLLBACK: String
             get() { return currStrings[IDX_SCROLLBACK] }
+        val CLEAR_SAVE: String
+            get() { return currStrings[IDX_CLEAR_SAVE] }
     }
 }

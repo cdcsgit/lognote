@@ -36,6 +36,7 @@ class StringsKo private constructor() {
             , "Highlight"
             , "LogLevel"
             , "Scrollback"
+            , "Clear/Save"
         )
     }
 }
