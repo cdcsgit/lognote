@@ -100,7 +100,7 @@ class MainUI(title: String) : JFrame() {
     private lateinit var mStatusBar: JPanel
     private lateinit var mStatusTextField: JTextField
 
-    private val mFrameDragListener = FrameDragListener(this)
+    private val mFrameMouseListener = FrameMouseListener(this)
     private val mKeyHandler = KeyHandler()
     private val mItemHandler = ItemHandler()
     private val mLevelItemHandler = LevelItemHandler()
@@ -312,8 +312,9 @@ class MainUI(title: String) : JFrame() {
 
         jMenuBar = mMenuBar
 
-        addMouseListener(mFrameDragListener)
-        addMouseMotionListener(mFrameDragListener)
+        addMouseListener(mFrameMouseListener)
+        addMouseMotionListener(mFrameMouseListener)
+        contentPane.addMouseListener(mFrameMouseListener)
 
         addWindowListener(object : WindowAdapter() {
             override fun windowClosing(e: WindowEvent?) {
@@ -374,20 +375,28 @@ class MainUI(title: String) : JFrame() {
 
         mLogToolBar = JPanel(FlowLayout(FlowLayout.LEFT, 0, 0))
         mLogToolBar.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
+        mLogToolBar.addMouseListener(mMouseHandler)
+
 //        mLogToolBar = JPanel()
 //        mLogToolBar.background = Color(0xE5, 0xE5, 0xE5)
         mStartBtn = ColorButton(Strings.START)
         mStartBtn.addActionListener(mActionHandler)
+        mStartBtn.addMouseListener(mMouseHandler)
         mStopBtn = ColorButton(Strings.STOP)
         mStopBtn.addActionListener(mActionHandler)
+        mStopBtn.addMouseListener(mMouseHandler)
         mPauseBtn = ColorButton(Strings.PAUSE)
         mPauseBtn.addActionListener(mActionHandler)
+        mPauseBtn.addMouseListener(mMouseHandler)
         mClearBtn = ColorButton(Strings.CLEAR)
         mClearBtn.addActionListener(mActionHandler)
+        mClearBtn.addMouseListener(mMouseHandler)
         mClearSaveBtn = ColorButton(Strings.CLEAR_SAVE)
         mClearSaveBtn.addActionListener(mActionHandler)
+        mClearSaveBtn.addMouseListener(mMouseHandler)
         mRotationBtn = ColorButton(Strings.ROTATION)
         mRotationBtn.addActionListener(mActionHandler)
+        mRotationBtn.addMouseListener(mMouseHandler)
 
         mLogPanel = JPanel()
         mShowLogPanel = JPanel()
@@ -551,6 +560,7 @@ class MainUI(title: String) : JFrame() {
         mFilterPanel.layout = BorderLayout()
         mFilterPanel.add(mFilterLeftPanel, BorderLayout.CENTER)
         mFilterPanel.add(mBoldLogPanel, BorderLayout.EAST)
+        mFilterPanel.addMouseListener(mMouseHandler)
 
         mLogToolBar.add(mStartBtn)
         mLogToolBar.add(mStopBtn)
@@ -576,7 +586,7 @@ class MainUI(title: String) : JFrame() {
         mLogToolBar.add(mRotationBtn)
 
         val toolBarPanel = JPanel(FlowLayout(FlowLayout.LEFT, 0, 0))
-
+        toolBarPanel.addMouseListener(mMouseHandler)
         toolBarPanel.add(mLogToolBar)
 
         mFilterPanel.add(toolBarPanel, BorderLayout.NORTH)
@@ -1172,11 +1182,39 @@ class MainUI(title: String) : JFrame() {
         }
     }
 
-    internal inner class FrameDragListener(private val frame: JFrame) : MouseAdapter() {
+    internal inner class FramePopUp() : JPopupMenu() {
+        var mReconnectItem: JMenuItem
+        val mActionHandler = ActionHandler()
+
+        init {
+            mReconnectItem = JMenuItem("Reconnect " + mDeviceCombo.selectedItem?.toString())
+            mReconnectItem.addActionListener(mActionHandler)
+            add(mReconnectItem)
+        }
+        internal inner class ActionHandler() : ActionListener {
+            override fun actionPerformed(p0: ActionEvent?) {
+                if (p0?.source == mReconnectItem) {
+                    reconnectAdb()
+                }
+            }
+        }
+    }
+    internal inner class FrameMouseListener(private val frame: JFrame) : MouseAdapter() {
         private var mouseDownCompCoords: Point? = null
 
+        var popupMenu: JPopupMenu? = null
         override fun mouseReleased(e: MouseEvent) {
             mouseDownCompCoords = null
+
+            if (SwingUtilities.isRightMouseButton(e)) {
+                if (e.source == this@MainUI.contentPane) {
+                    popupMenu = FramePopUp()
+                    popupMenu?.show(e.component, e.x, e.y)
+                }
+            }
+            else {
+                popupMenu?.isVisible = false
+            }
         }
 
         override fun mousePressed(e: MouseEvent) {
@@ -1255,14 +1293,8 @@ class MainUI(title: String) : JFrame() {
                 super.mouseReleased(p0)
                 return
             }
-//            if (p0.isPopupTrigger) {
+
             if (SwingUtilities.isRightMouseButton(p0)) {
-//                if (p0.source == mShowLogLabel
-//                        || p0.source == mBoldLogLabel
-//                        || p0.source == mShowTagLabel
-//                        || p0.source == mShowPidLabel
-//                        || p0.source == mShowTidLabel) {
-//                }
                 if (p0.source == mDeviceCombo.editor.editorComponent
                         || p0.source == mShowLogCombo.editor.editorComponent
                         || p0.source == mBoldLogCombo.editor.editorComponent
@@ -1285,6 +1317,12 @@ class MainUI(title: String) : JFrame() {
                     }
                     popupMenu = PopUpCombobox(combo)
                     popupMenu?.show(p0.component, p0.x, p0.y)
+                }
+                else {
+                    val compo = p0.source as JComponent
+                    val event = MouseEvent(compo.parent, p0.id, p0.`when`, p0.modifiers, p0.x + compo.x, p0.y + compo.y, p0.clickCount, p0.isPopupTrigger)
+
+                    compo.parent.dispatchEvent(event)
                 }
             }
             else {
