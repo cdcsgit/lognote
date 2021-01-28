@@ -158,7 +158,7 @@ class LogTableModel() : AbstractTableModel() {
         set(value) {
             val patterns = parsePattern(value)
             mFilterShowPid = patterns[0]
-            mFilterShowPid = patterns[1]
+            mFilterHidePid = patterns[1]
         }
 
     var mFilterShowPid: String = ""
@@ -767,28 +767,18 @@ class LogTableModel() : AbstractTableModel() {
                         if (item.mLevel != LEVEL_NONE && item.mLevel < mFilterLevel) {
                             isShow = false
                         }
-                        if (isShow
-                            && (!mFilterHideLog.isEmpty() && mPatternHideLog.matcher(item.mLogLine).find())
-                            || (!mFilterShowLog.isEmpty() && !mPatternShowLog.matcher(item.mLogLine).find())
-                        ) {
+                        else if ((!mFilterHideLog.isEmpty() && mPatternHideLog.matcher(item.mLogLine).find())
+                                || (!mFilterHideTag.isEmpty() && mPatternHideTag.matcher(item.mTag).find())
+                                || (!mFilterHidePid.isEmpty() && mPatternHidePid.matcher(item.mPid).find())
+                                || (!mFilterHideTid.isEmpty() && mPatternHideTid.matcher(item.mTid).find())) {
                             isShow = false
                         }
-                        if (isShow
-                            && ((!mFilterHideTag.isEmpty() && mPatternHideTag.matcher(item.mTag).find())
-                                    || (!mFilterShowTag.isEmpty() && !mPatternShowTag.matcher(item.mTag).find()))
-                        ) {
+                        else if (!mFilterShowLog.isEmpty() && !mPatternShowLog.matcher(item.mLogLine).find()) {
                             isShow = false
                         }
-                        if (isShow
-                            && ((!mFilterHidePid.isEmpty() && mPatternHidePid.matcher(item.mPid).find())
-                                    || (!mFilterShowPid.isEmpty() && !mPatternShowPid.matcher(item.mPid).find()))
-                        ) {
-                            isShow = false
-                        }
-                        if (isShow
-                            && ((!mFilterHideTid.isEmpty() && mPatternHideTid.matcher(item.mTid).find())
-                                    || (!mFilterShowTid.isEmpty() && !mPatternShowTid.matcher(item.mTid).find()))
-                        ) {
+                        else if ((!mFilterShowTag.isEmpty() && !mPatternShowTag.matcher(item.mTag).find())
+                                || (!mFilterShowPid.isEmpty() && !mPatternShowPid.matcher(item.mPid).find())
+                                || (!mFilterShowTid.isEmpty() && !mPatternShowTid.matcher(item.mTid).find())) {
                             isShow = false
                         }
                     }
