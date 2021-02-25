@@ -96,6 +96,7 @@ class MainUI(title: String) : JFrame() {
 
     private lateinit var mFilteredLogPanel: LogPanel
     private lateinit var mFullLogPanel: LogPanel
+    private var mSelectedLine = 0
 
     private lateinit var mStatusBar: JPanel
     private lateinit var mStatusTextField: JTextField
@@ -341,26 +342,7 @@ class MainUI(title: String) : JFrame() {
                     goToDialog.setLocationRelativeTo(this@MainUI)
                     goToDialog.setVisible(true)
                     if (goToDialog.line != -1) {
-                        val line = goToDialog.line
-                        println("Line : " + goToDialog.line)
-                        var num = 0
-                        for (idx in 0 until mFilteredTableModel.rowCount) {
-                            num = mFilteredTableModel.getValueAt(idx, 0).toString().trim().toInt()
-                            if (line <= num) {
-                                mFilteredLogPanel.goToRow(idx, 0)
-                                break
-                            }
-                        }
-
-                        if (line != num) {
-                            for (idx in 0 until mFullTableModel.rowCount) {
-                                num = mFullTableModel.getValueAt(idx, 0).toString().trim().toInt()
-                                if (line <= num) {
-                                    mFullLogPanel.goToRow(idx, 0)
-                                    break
-                                }
-                            }
-                        }
+                        goToLine(goToDialog.line)
                     } else {
                         println("Cancel Goto Line")
                     }
@@ -1638,6 +1620,42 @@ class MainUI(title: String) : JFrame() {
         combo.insertItemAt(item, 0)
         combo.selectedIndex = 0
         return
+    }
+
+    fun goToLine(line: Int) {
+        println("Line : " + line)
+        var num = 0
+        for (idx in 0 until mFilteredTableModel.rowCount) {
+            num = mFilteredTableModel.getValueAt(idx, 0).toString().trim().toInt()
+            if (line <= num) {
+                mFilteredLogPanel.goToRow(idx, 0)
+                break
+            }
+        }
+
+        if (line != num) {
+            for (idx in 0 until mFullTableModel.rowCount) {
+                num = mFullTableModel.getValueAt(idx, 0).toString().trim().toInt()
+                if (line <= num) {
+                    mFullLogPanel.goToRow(idx, 0)
+                    break
+                }
+            }
+        }
+    }
+
+    fun markLine() {
+        if (mIsCreatingUI) {
+            return
+        }
+        mSelectedLine = mFilteredLogPanel.getSelectedLine()
+    }
+
+    fun goToMarkedLine() {
+        if (mIsCreatingUI) {
+            return
+        }
+        goToLine(mSelectedLine)
     }
 }
 

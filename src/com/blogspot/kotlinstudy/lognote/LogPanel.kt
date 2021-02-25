@@ -176,6 +176,10 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
         mTable.updateUI()
     }
 
+    fun getSelectedLine() : Int {
+        return mTable.getValueAt(mTable.selectedRow, 0).toString().trim().toInt()
+    }
+
     internal inner class AdjustmentHandler : AdjustmentListener {
         override fun adjustmentValueChanged(p0: AdjustmentEvent?) {
             if (p0?.source == mScrollPane.verticalScrollBar) {
