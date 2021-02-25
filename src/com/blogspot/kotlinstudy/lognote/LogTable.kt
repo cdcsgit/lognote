@@ -296,6 +296,7 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
     internal inner class PopUpTable() : JPopupMenu() {
         var mCopyItem: JMenuItem = JMenuItem("Copy")
         var mShowEntireItem = JMenuItem("Show entire line")
+        var mBookmarkItem = JMenuItem("Bookmark")
         var mReconnectItem = JMenuItem("Reconnect adb")
         var mStartItem = JMenuItem("Start")
         var mStopItem = JMenuItem("Stop")
@@ -308,6 +309,8 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
             add(mCopyItem)
             mShowEntireItem.addActionListener(mActionHandler)
             add(mShowEntireItem)
+            mBookmarkItem.addActionListener(mActionHandler)
+            add(mBookmarkItem)
             addSeparator()
             mReconnectItem.addActionListener(mActionHandler)
             add(mReconnectItem)
@@ -326,6 +329,8 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
                     this@LogTable.processKeyEvent(KeyEvent(this@LogTable, KeyEvent.KEY_PRESSED, p0.`when`, KeyEvent.CTRL_MASK, KeyEvent.VK_C, 'C'))
                 } else if (p0?.source == mShowEntireItem) {
                     showSelected()
+                } else if (p0?.source == mBookmarkItem) {
+                    updateBookmark()
                 } else if (p0?.source == mReconnectItem) {
                     val frame = SwingUtilities.windowForComponent(this@LogTable) as MainUI
                     frame.reconnectAdb()
