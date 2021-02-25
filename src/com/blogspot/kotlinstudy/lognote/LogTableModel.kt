@@ -379,7 +379,9 @@ class LogTableModel() : AbstractTableModel() {
                     run {
                         while (true) {
                             if (mIsFilterUpdated) {
+                                mMainUI?.markLine()
                                 makeFilteredItems()
+                                mMainUI?.goToMarkedLine()
                             }
                             Thread.sleep(100)
                         }
@@ -455,7 +457,7 @@ class LogTableModel() : AbstractTableModel() {
             return
         }
 
-        val bufferedReader = BufferedReader(FileReader(mLogFile))
+        val bufferedReader = BufferedReader(FileReader(mLogFile!!))
         var line: String?
         var num = 0
         var level:Int
