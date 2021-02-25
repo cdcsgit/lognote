@@ -14,15 +14,15 @@ import javax.swing.plaf.basic.BasicScrollBarUI
 
 class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
     private val mBasePanel = basePanel
-    private val mCtrlPanel:JPanel
-    private var mFirstBtn:ColorButton
-    private var mLastBtn:ColorButton
-    private var mTagBtn:ColorToggleButton
-    private var mPidBtn:ColorToggleButton
-    private var mTidBtn:ColorToggleButton
-    private var mWindowedModeBtn:ColorButton
-    private var mBookmarksBtn:ColorToggleButton
-    private var mFullBtn:ColorToggleButton
+    private val mCtrlPanel: JPanel
+    private var mFirstBtn: ColorButton
+    private var mLastBtn: ColorButton
+    private var mTagBtn: ColorToggleButton
+    private var mPidBtn: ColorToggleButton
+    private var mTidBtn: ColorToggleButton
+    private var mWindowedModeBtn: ColorButton
+    private var mBookmarksBtn: ColorToggleButton
+    private var mFullBtn: ColorToggleButton
 
     private val mScrollPane: JScrollPane
     private val mVStatusPanel: VStatusPanel
@@ -41,14 +41,11 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
     private var mIsCreatingUI = true
 
     var mIsWindowedMode = false
-    set(value){
-        field = value
-        if (value) {
-            mWindowedModeBtn.isEnabled = false
-        } else {
-            mWindowedModeBtn.isEnabled = true
+        set(value) {
+            field = value
+            mWindowedModeBtn.isEnabled = !value
         }
-    }
+
     init {
         layout = BorderLayout()
         mCtrlPanel = JPanel(FlowLayout(FlowLayout.LEFT, 0, 0))
@@ -104,6 +101,7 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
 
         mScrollPane.verticalScrollBar.addAdjustmentListener(mAdjustmentHandler)
         mScrollPane.horizontalScrollBar.addAdjustmentListener(mAdjustmentHandler)
+        mScrollPane.addMouseListener(MouseHandler())
 
         add(mCtrlPanel, BorderLayout.NORTH)
         add(mVStatusPanel, BorderLayout.WEST)
@@ -114,6 +112,7 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
 
         mIsCreatingUI = false
     }
+
     var mFont: Font = Font("Dialog", Font.PLAIN, 12)
         set(value) {
             field = value
@@ -122,24 +121,23 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
             repaint()
         }
 
-    fun goToRow(idx:Int, column:Int) {
+    fun goToRow(idx: Int, column: Int) {
         if (idx < 0 || idx >= mTable.rowCount) {
             println("goToRow : invalid idx")
             return
         }
         mTable.setRowSelectionInterval(idx, idx)
-        val viewRect:Rectangle
+        val viewRect: Rectangle
         if (column < 0) {
             viewRect = mTable.getCellRect(idx, 0, true)
             viewRect.x = mTable.visibleRect.x
-        }
-        else {
+        } else {
             viewRect = mTable.getCellRect(idx, column, true)
         }
         mTable.scrollRectToVisible(viewRect)
     }
 
-    fun goToRowByNum(num:Int, column:Int) {
+    fun goToRowByNum(num: Int, column: Int) {
         val firstNum = mTable.getValueAt(0, 0).toString().trim().toInt()
         var idx = num - firstNum
         if (idx < 0) {
@@ -149,11 +147,11 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
         goToRow(idx, column)
     }
 
-    fun setGoToLast(value:Boolean) {
+    fun setGoToLast(value: Boolean) {
         mTable.mTableModel.mGoToLast = value
     }
 
-    fun getGoToLast() : Boolean {
+    fun getGoToLast(): Boolean {
         return mTable.mTableModel.mGoToLast
     }
 
@@ -186,8 +184,8 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
                     if (vPos < mOldLogVPos && getGoToLast()) {
                         setGoToLast(false)
                     } else if (vPos > mOldLogVPos
-                        && !getGoToLast()
-                        && (vPos + mScrollPane.verticalScrollBar.size.height) == mScrollPane.verticalScrollBar.maximum) {
+                            && !getGoToLast()
+                            && (vPos + mScrollPane.verticalScrollBar.size.height) == mScrollPane.verticalScrollBar.maximum) {
                         setGoToLast(true)
                     }
                     mOldLogVPos = vPos
@@ -250,7 +248,7 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
                     setGoToLast(true)
                 }
             }
-            
+
             return
         }
     }
@@ -268,11 +266,11 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
                 val selected = mTagBtn.model.isSelected
                 mTable.mTableModel.mBoldTag = selected
                 mTable.repaint()
-            }  else if (p0?.source == mPidBtn) {
+            } else if (p0?.source == mPidBtn) {
                 val selected = mPidBtn.model.isSelected
                 mTable.mTableModel.mBoldPid = selected
                 mTable.repaint()
-            }  else if (p0?.source == mTidBtn) {
+            } else if (p0?.source == mTidBtn) {
                 val selected = mTidBtn.model.isSelected
                 mTable.mTableModel.mBoldTid = selected
                 mTable.repaint()
@@ -322,7 +320,7 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
                 return false
             }
 
-            var file:File? = null
+            var file: File? = null
 
             if (info.isDataFlavorSupported(DataFlavor.stringFlavor)) {
                 val data: String
@@ -364,5 +362,72 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
             }
             super.componentResized(e)
         }
+    }
+
+    internal inner class PopUpLogPanel() : JPopupMenu() {
+        var mReconnectItem = JMenuItem("Reconnect adb")
+        var mStartItem = JMenuItem("Start")
+        var mStopItem = JMenuItem("Stop")
+        var mClearItem = JMenuItem("Clear")
+        var mClearSaveItem = JMenuItem("Clear/Save")
+        val mActionHandler = ActionHandler()
+
+        init {
+            mReconnectItem.addActionListener(mActionHandler)
+            add(mReconnectItem)
+            mStartItem.addActionListener(mActionHandler)
+            add(mStartItem)
+            mStopItem.addActionListener(mActionHandler)
+            add(mStopItem)
+            mClearItem.addActionListener(mActionHandler)
+            add(mClearItem)
+            mClearSaveItem.addActionListener(mActionHandler)
+            add(mClearSaveItem)
+        }
+
+        internal inner class ActionHandler() : ActionListener {
+            override fun actionPerformed(p0: ActionEvent?) {
+                if (p0?.source == mReconnectItem) {
+                    val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
+                    frame.reconnectAdb()
+                } else if (p0?.source == mStartItem) {
+                    val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
+                    frame.startAdbLog()
+                } else if (p0?.source == mStopItem) {
+                    val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
+                    frame.stopAdbLog()
+                } else if (p0?.source == mClearItem) {
+                    val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
+                    frame.clearAdbLog()
+                } else if (p0?.source == mClearSaveItem) {
+                    val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
+                    frame.clearSaveAdbLog()
+                }
+            }
+        }
+    }
+
+    internal inner class MouseHandler : MouseAdapter() {
+        override fun mousePressed(p0: MouseEvent?) {
+            super.mousePressed(p0)
+        }
+
+        var popupMenu: JPopupMenu? = null
+        override fun mouseReleased(p0: MouseEvent?) {
+            if (p0 == null) {
+                super.mouseReleased(p0)
+                return
+            }
+
+            if (SwingUtilities.isRightMouseButton(p0)) {
+                popupMenu = PopUpLogPanel()
+                popupMenu?.show(p0.component, p0.x, p0.y)
+            } else {
+                popupMenu?.isVisible = false
+            }
+
+            super.mouseReleased(p0)
+        }
+
     }
 }

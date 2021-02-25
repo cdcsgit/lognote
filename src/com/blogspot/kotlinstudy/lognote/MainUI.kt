@@ -1348,6 +1348,48 @@ class MainUI(title: String) : JFrame() {
         }
     }
 
+    fun startAdbLog() {
+        Thread(Runnable {
+            run {
+                mStartBtn.doClick()
+            }
+        }).start()
+    }
+
+    fun stopAdbLog() {
+        mStopBtn.doClick()
+    }
+
+    fun clearAdbLog() {
+        Thread(Runnable {
+            run {
+                mClearBtn.doClick()
+            }
+        }).start()
+    }
+
+    fun clearSaveAdbLog() {
+        Thread(Runnable {
+            run {
+                mClearSaveBtn.doClick()
+            }
+        }).start()
+    }
+
+    fun getTextShowLogCombo() : String {
+        return mShowLogCombo.selectedItem!!.toString()
+    }
+
+    fun setTextShowLogCombo(text : String) {
+        mShowLogCombo.selectedItem = text
+    }
+
+    fun applyShowLogCombo() {
+        val item = mShowLogCombo.selectedItem!!.toString()
+        resetComboItem(mShowLogCombo, item)
+        mFilteredTableModel.mFilterLog = item
+    }
+
     internal inner class KeyHandler : KeyAdapter() {
         override fun keyReleased(p0: KeyEvent?) {
             if (KeyEvent.VK_ENTER == p0?.keyCode) {
