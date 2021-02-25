@@ -1,15 +1,12 @@
 package com.blogspot.kotlinstudy.lognote
 
-import java.awt.*
-import java.awt.event.KeyAdapter
-import java.awt.event.KeyEvent
-import java.awt.event.MouseAdapter
-import java.awt.event.MouseEvent
-import java.lang.StringBuilder
+import com.sun.xml.internal.fastinfoset.alphabet.BuiltInRestrictedAlphabets.table
+import java.awt.Color
+import java.awt.Component
+import java.awt.event.*
 import javax.swing.*
-import javax.swing.table.*
-import javax.swing.SwingUtilities
-import javax.swing.JFrame
+import javax.swing.table.DefaultTableCellRenderer
+
 
 class LogTable(tableModel:LogTableModel) : JTable(tableModel){
     var mTableModel = tableModel
@@ -296,23 +293,97 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         mBookmarkManager.updateBookmark(bookmark)
     }
 
+    internal inner class PopUpTable() : JPopupMenu() {
+        var mCopyItem: JMenuItem = JMenuItem("Copy")
+        var mShowEntireItem = JMenuItem("Show entire line")
+        var mReconnectItem = JMenuItem("Reconnect adb")
+        var mStartItem = JMenuItem("Start")
+        var mStopItem = JMenuItem("Stop")
+        var mClearItem = JMenuItem("Clear")
+        var mClearSaveItem = JMenuItem("Clear/Save")
+        val mActionHandler = ActionHandler()
+
+        init {
+            mCopyItem.addActionListener(mActionHandler)
+            add(mCopyItem)
+            mShowEntireItem.addActionListener(mActionHandler)
+            add(mShowEntireItem)
+            addSeparator()
+            mReconnectItem.addActionListener(mActionHandler)
+            add(mReconnectItem)
+            mStartItem.addActionListener(mActionHandler)
+            add(mStartItem)
+            mStopItem.addActionListener(mActionHandler)
+            add(mStopItem)
+            mClearItem.addActionListener(mActionHandler)
+            add(mClearItem)
+            mClearSaveItem.addActionListener(mActionHandler)
+            add(mClearSaveItem)
+        }
+        internal inner class ActionHandler() : ActionListener {
+            override fun actionPerformed(p0: ActionEvent?) {
+                if (p0?.source == mCopyItem) {
+                    this@LogTable.processKeyEvent(KeyEvent(this@LogTable, KeyEvent.KEY_PRESSED, p0.`when`, KeyEvent.CTRL_MASK, KeyEvent.VK_C, 'C'))
+                } else if (p0?.source == mShowEntireItem) {
+                    showSelected()
+                } else if (p0?.source == mReconnectItem) {
+                    val frame = SwingUtilities.windowForComponent(this@LogTable) as MainUI
+                    frame.reconnectAdb()
+                } else if (p0?.source == mStartItem) {
+                    val frame = SwingUtilities.windowForComponent(this@LogTable) as MainUI
+                    frame.startAdbLog()
+                } else if (p0?.source == mStopItem) {
+                    val frame = SwingUtilities.windowForComponent(this@LogTable) as MainUI
+                    frame.stopAdbLog()
+                } else if (p0?.source == mClearItem) {
+                    val frame = SwingUtilities.windowForComponent(this@LogTable) as MainUI
+                    frame.clearAdbLog()
+                } else if (p0?.source == mClearSaveItem) {
+                    val frame = SwingUtilities.windowForComponent(this@LogTable) as MainUI
+                    frame.clearSaveAdbLog()
+                }
+            }
+        }
+    }
+
     internal inner class MouseHandler : MouseAdapter() {
         override fun mousePressed(p0: MouseEvent?) {
             super.mousePressed(p0)
         }
 
+        var popupMenu: JPopupMenu? = null
         override fun mouseReleased(p0: MouseEvent?) {
+            if (p0 == null) {
+                super.mouseReleased(p0)
+                return
+            }
+
+            if (SwingUtilities.isRightMouseButton(p0)) {
+                popupMenu = PopUpTable()
+                popupMenu?.show(p0.component, p0.x, p0.y)
+            }
+            else {
+                popupMenu?.isVisible = false
+            }
+
             super.mouseReleased(p0)
         }
 
         override fun mouseClicked(p0: MouseEvent?) {
-            if (p0?.clickCount == 2) {
-                if (columnAtPoint(p0.point) == 0) {
-                    updateBookmark()
-                } else {
-                    showSelected()
+            if (SwingUtilities.isLeftMouseButton(p0)) {
+                if (p0?.clickCount == 2) {
+                    if (columnAtPoint(p0.point) == 0) {
+                        updateBookmark()
+                    } else {
+                        showSelected()
+                    }
                 }
             }
+//            else if (SwingUtilities.isRightMouseButton(p0)) {
+//                if (p0?.clickCount == 1) {
+//                }
+//            }
+
             super.mouseClicked(p0)
         }
     }

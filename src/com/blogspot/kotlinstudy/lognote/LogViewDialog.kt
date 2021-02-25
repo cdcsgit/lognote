@@ -2,37 +2,36 @@ package com.blogspot.kotlinstudy.lognote
 
 import java.awt.Color
 import java.awt.event.*
-import javax.swing.BorderFactory
-import javax.swing.JDialog
-import javax.swing.JFrame
-import javax.swing.JTextArea
+import javax.swing.*
 
 
 class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent, "Log", false) {
 
-    val textArea = JTextArea()
+    val mTextArea = JTextArea()
     val mMainUI = parent as MainUI
+    private val mPopupMenu = PopUpLogViewDialog()
+
     init {
         isUndecorated = true
-        textArea.isEditable = false
-        textArea.caret.isVisible = true
-        textArea.lineWrap = true
-        textArea.background = Color(0xFF, 0xFA, 0xE3)
-        textArea.font = mMainUI.mFont
+        mTextArea.isEditable = false
+        mTextArea.caret.isVisible = true
+        mTextArea.lineWrap = true
+        mTextArea.background = Color(0xFF, 0xFA, 0xE3)
+        mTextArea.font = mMainUI.mFont
 
-        textArea.addKeyListener(KeyHandler())
-        textArea.addMouseListener(MouseHandler())
-        textArea.addFocusListener(FocusHandler())
-        textArea.text = log
-        textArea.caretPosition = caretPos
+        mTextArea.addKeyListener(KeyHandler())
+        mTextArea.addMouseListener(MouseHandler())
+        mTextArea.addFocusListener(FocusHandler())
+        mTextArea.text = log
+        mTextArea.caretPosition = caretPos
         var width = parent.width - 100
         if (width < 960) {
             width = 960
         }
-        textArea.setSize(width, 100)
-        textArea.border = BorderFactory.createEmptyBorder(7, 7, 7, 7)
+        mTextArea.setSize(width, 100)
+        mTextArea.border = BorderFactory.createEmptyBorder(7, 7, 7, 7)
 
-        contentPane.add(textArea)
+        contentPane.add(mTextArea)
         pack()
     }
 
@@ -51,16 +50,8 @@ class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent
                 dispose()
             }
             else if (p0?.keyCode == KeyEvent.VK_ENTER && pressedKeyCode == KeyEvent.VK_ENTER) {
-                textArea.copy()
+                mTextArea.copy()
                 dispose()
-            }
-        }
-    }
-
-    internal inner class MouseHandler: MouseAdapter() {
-        override fun mouseClicked(p0: MouseEvent?) {
-            if (p0?.button == MouseEvent.BUTTON3) {
-                textArea.copy()
             }
         }
     }
@@ -68,7 +59,82 @@ class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent
     internal inner class FocusHandler: FocusAdapter() {
         override fun focusLost(p0: FocusEvent?) {
             super.focusLost(p0)
-            dispose()
+            if (!mPopupMenu.isVisible) {
+                dispose()
+            }
         }
+    }
+
+    internal inner class PopUpLogViewDialog() : JPopupMenu() {
+        var mIncludeItem = JMenuItem("Add Include")
+        var mExcludeItem = JMenuItem("Add Exclude")
+        var mCopyItem = JMenuItem("Copy")
+        var mCloseItem = JMenuItem("Close")
+        val mActionHandler = ActionHandler()
+
+        init {
+            mIncludeItem.addActionListener(mActionHandler)
+            add(mIncludeItem)
+            mExcludeItem.addActionListener(mActionHandler)
+            add(mExcludeItem)
+            mCopyItem.addActionListener(mActionHandler)
+            add(mCopyItem)
+            mCloseItem.addActionListener(mActionHandler)
+            add(mCloseItem)
+            addFocusListener(FocusHandler())
+        }
+
+        internal inner class ActionHandler() : ActionListener {
+            override fun actionPerformed(p0: ActionEvent?) {
+                if (p0?.source == mIncludeItem) {
+                    val frame = SwingUtilities.windowForComponent(this@LogViewDialog) as MainUI
+                    var text = frame.getTextShowLogCombo()
+                    text += "|" + mTextArea.selectedText
+                    frame.setTextShowLogCombo(text)
+                    frame.applyShowLogCombo()
+                } else if (p0?.source == mExcludeItem) {
+                    val frame = SwingUtilities.windowForComponent(this@LogViewDialog) as MainUI
+                    var text = frame.getTextShowLogCombo()
+                    text += "|-" + mTextArea.selectedText
+                    frame.setTextShowLogCombo(text)
+                    frame.applyShowLogCombo()
+                } else if (p0?.source == mCopyItem) {
+                    mTextArea.copy()
+                } else if (p0?.source == mCloseItem) {
+                    dispose()
+                }
+            }
+        }
+
+        internal inner class FocusHandler: FocusAdapter() {
+            override fun focusLost(p0: FocusEvent?) {
+                super.focusLost(p0)
+                if (!this@LogViewDialog.hasFocus()) {
+                    dispose()
+                }
+            }
+        }
+    }
+
+    internal inner class MouseHandler : MouseAdapter() {
+        override fun mousePressed(p0: MouseEvent?) {
+            super.mousePressed(p0)
+        }
+
+        override fun mouseReleased(p0: MouseEvent?) {
+            if (p0 == null) {
+                super.mouseReleased(p0)
+                return
+            }
+
+            if (SwingUtilities.isRightMouseButton(p0)) {
+                mPopupMenu.show(p0.component, p0.x, p0.y)
+            } else {
+                mPopupMenu.isVisible = false
+            }
+
+            super.mouseReleased(p0)
+        }
+
     }
 }
