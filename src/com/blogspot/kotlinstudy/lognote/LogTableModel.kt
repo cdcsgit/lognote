@@ -88,7 +88,7 @@ class LogTableModel() : AbstractTableModel() {
     var mFilterShowLog: String = ""
         set(value) {
             try {
-                mPatternShowLog = Pattern.compile(value, Pattern.CASE_INSENSITIVE)
+                mPatternShowLog = Pattern.compile(value, mPatternCase)
                 if (field != value) {
                     mIsFilterUpdated = true
                 }
@@ -100,7 +100,7 @@ class LogTableModel() : AbstractTableModel() {
     var mFilterHideLog: String = ""
         set(value) {
             try {
-                mPatternHideLog = Pattern.compile(value, Pattern.CASE_INSENSITIVE)
+                mPatternHideLog = Pattern.compile(value, mPatternCase)
                 if (field != value) {
                     mIsFilterUpdated = true
                 }
@@ -112,7 +112,7 @@ class LogTableModel() : AbstractTableModel() {
     var mFilterHighlightLog: String = ""
         set(value) {
             try {
-                mPatternHighlightLog = Pattern.compile(value, Pattern.CASE_INSENSITIVE)
+                mPatternHighlightLog = Pattern.compile(value, mPatternCase)
                 if (field != value) {
                     mIsFilterUpdated = true
                 }
@@ -132,7 +132,7 @@ class LogTableModel() : AbstractTableModel() {
     var mFilterShowTag: String = ""
         set(value) {
             try {
-                mPatternShowTag = Pattern.compile(value, Pattern.CASE_INSENSITIVE)
+                mPatternShowTag = Pattern.compile(value, mPatternCase)
                 if (field != value) {
                     mIsFilterUpdated = true
                 }
@@ -144,7 +144,7 @@ class LogTableModel() : AbstractTableModel() {
     var mFilterHideTag: String = ""
         set(value) {
             try {
-                mPatternHideTag = Pattern.compile(value, Pattern.CASE_INSENSITIVE)
+                mPatternHideTag = Pattern.compile(value, mPatternCase)
                 if (field != value) {
                     mIsFilterUpdated = true
                 }
@@ -164,7 +164,7 @@ class LogTableModel() : AbstractTableModel() {
     var mFilterShowPid: String = ""
         set(value) {
             try {
-                mPatternShowPid = Pattern.compile(value, Pattern.CASE_INSENSITIVE)
+                mPatternShowPid = Pattern.compile(value, mPatternCase)
                 if (field != value) {
                     mIsFilterUpdated = true
                 }
@@ -173,10 +173,11 @@ class LogTableModel() : AbstractTableModel() {
                 ex.printStackTrace()
             }
         }
+
     var mFilterHidePid: String = ""
         set(value) {
             try {
-                mPatternHidePid = Pattern.compile(value, Pattern.CASE_INSENSITIVE)
+                mPatternHidePid = Pattern.compile(value, mPatternCase)
                 if (field != value) {
                     mIsFilterUpdated = true
                 }
@@ -196,7 +197,7 @@ class LogTableModel() : AbstractTableModel() {
     var mFilterShowTid: String = ""
         set(value) {
             try {
-                mPatternShowTid = Pattern.compile(value, Pattern.CASE_INSENSITIVE)
+                mPatternShowTid = Pattern.compile(value, mPatternCase)
                 if (field != value) {
                     mIsFilterUpdated = true
                 }
@@ -208,13 +209,39 @@ class LogTableModel() : AbstractTableModel() {
     var mFilterHideTid: String = ""
         set(value) {
             try {
-                mPatternHideTid = Pattern.compile(value, Pattern.CASE_INSENSITIVE)
+                mPatternHideTid = Pattern.compile(value, mPatternCase)
                 if (field != value) {
                     mIsFilterUpdated = true
                 }
                 field = value
             } catch(ex: java.util.regex.PatternSyntaxException) {
                 ex.printStackTrace()
+            }
+        }
+
+    private var mPatternCase = Pattern.CASE_INSENSITIVE
+    var mMatchCase: Boolean = false
+        set(value) {
+            if (field != value) {
+                if (value == false) {
+                    mPatternCase = Pattern.CASE_INSENSITIVE
+                } else {
+                    mPatternCase = 0
+                }
+
+                mPatternShowLog = Pattern.compile(mFilterShowLog, mPatternCase)
+                mPatternHideLog = Pattern.compile(mFilterHideLog, mPatternCase)
+                mPatternHighlightLog = Pattern.compile(mFilterHighlightLog, mPatternCase)
+                mPatternShowTag = Pattern.compile(mFilterShowTag, mPatternCase)
+                mPatternHideTag = Pattern.compile(mFilterHideTag, mPatternCase)
+                mPatternShowPid = Pattern.compile(mFilterShowPid, mPatternCase)
+                mPatternHidePid = Pattern.compile(mFilterHidePid, mPatternCase)
+                mPatternShowTid = Pattern.compile(mFilterShowTid, mPatternCase)
+                mPatternHideTid = Pattern.compile(mFilterHideTid, mPatternCase)
+
+                mIsFilterUpdated = true
+
+                field = value
             }
         }
 
@@ -270,15 +297,15 @@ class LogTableModel() : AbstractTableModel() {
             field = value
         }
 
-    var mPatternShowLog = Pattern.compile(mFilterShowLog, Pattern.CASE_INSENSITIVE)
-    var mPatternHideLog = Pattern.compile(mFilterHideLog, Pattern.CASE_INSENSITIVE)
-    var mPatternHighlightLog = Pattern.compile(mFilterHighlightLog, Pattern.CASE_INSENSITIVE)
-    var mPatternShowTag = Pattern.compile(mFilterShowTag, Pattern.CASE_INSENSITIVE)
-    var mPatternHideTag = Pattern.compile(mFilterHideTag, Pattern.CASE_INSENSITIVE)
-    var mPatternShowPid = Pattern.compile(mFilterShowPid, Pattern.CASE_INSENSITIVE)
-    var mPatternHidePid = Pattern.compile(mFilterHidePid, Pattern.CASE_INSENSITIVE)
-    var mPatternShowTid = Pattern.compile(mFilterShowTid, Pattern.CASE_INSENSITIVE)
-    var mPatternHideTid = Pattern.compile(mFilterHideTid, Pattern.CASE_INSENSITIVE)
+    var mPatternShowLog = Pattern.compile(mFilterShowLog, mPatternCase)
+    var mPatternHideLog = Pattern.compile(mFilterHideLog, mPatternCase)
+    var mPatternHighlightLog = Pattern.compile(mFilterHighlightLog, mPatternCase)
+    var mPatternShowTag = Pattern.compile(mFilterShowTag, mPatternCase)
+    var mPatternHideTag = Pattern.compile(mFilterHideTag, mPatternCase)
+    var mPatternShowPid = Pattern.compile(mFilterShowPid, mPatternCase)
+    var mPatternHidePid = Pattern.compile(mFilterHidePid, mPatternCase)
+    var mPatternShowTid = Pattern.compile(mFilterShowTid, mPatternCase)
+    var mPatternHideTid = Pattern.compile(mFilterHideTid, mPatternCase)
 
     private val COLOR_NONE = Color(0x00, 0x00, 0x00)
     private val COLOR_VERBOSE = Color(0x00, 0x00, 0x00)
@@ -378,12 +405,16 @@ class LogTableModel() : AbstractTableModel() {
                 mFilteredItemsThread = Thread(Runnable {
                     run {
                         while (true) {
-                            if (mIsFilterUpdated) {
-                                mMainUI?.markLine()
-                                makeFilteredItems()
-                                mMainUI?.goToMarkedLine()
+                            try {
+                                if (mIsFilterUpdated) {
+                                    mMainUI?.markLine()
+                                    makeFilteredItems()
+                                    mMainUI?.goToMarkedLine()
+                                }
+                                Thread.sleep(100)
+                            } catch (e:Exception) {
+                                println("loadItems thread e : $e")
                             }
-                            Thread.sleep(100)
                         }
                     }
                 })
@@ -729,7 +760,7 @@ class LogTableModel() : AbstractTableModel() {
             }
 
             if (!skip) {
-                mPatternPrintValue = Pattern.compile(filterPrintValue, Pattern.CASE_INSENSITIVE)
+                mPatternPrintValue = Pattern.compile(filterPrintValue, mPatternCase)
                 mBaseModel?.mPatternPrintValue = mPatternPrintValue
             }
         }

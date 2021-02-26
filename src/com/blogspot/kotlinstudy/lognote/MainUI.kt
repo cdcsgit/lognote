@@ -52,6 +52,7 @@ class MainUI(title: String) : JFrame() {
 
     private lateinit var mLogPanel: JPanel
     private lateinit var mShowLogPanel: JPanel
+    private lateinit var mMatchCaseBtn: ColorToggleButton
     private lateinit var mShowLogLabel: JLabel
     private lateinit var mShowLogCombo: ColorComboBox<String>
     private lateinit var mShowLogCheck: JCheckBox
@@ -463,6 +464,9 @@ class MainUI(title: String) : JFrame() {
         mAdbDisconnectBtn = ColorButton("Disconnect")
         mAdbDisconnectBtn.addActionListener(mActionHandler)
 
+        mMatchCaseBtn = ColorToggleButton("Aa")
+        mMatchCaseBtn.addItemListener(mItemHandler)
+
         mShowLogPanel.layout = BorderLayout()
         mShowLogPanel.add(mShowLogLabel, BorderLayout.WEST)
         mShowLogCombo.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
@@ -566,6 +570,9 @@ class MainUI(title: String) : JFrame() {
 
         addVSeparator(mLogToolBar)
         mLogToolBar.add(mRotationBtn)
+
+        addVSeparator(mLogToolBar)
+        mLogToolBar.add(mMatchCaseBtn)
 
         val toolBarPanel = JPanel(FlowLayout(FlowLayout.LEFT, 0, 0))
         toolBarPanel.addMouseListener(mMouseHandler)
@@ -778,6 +785,13 @@ class MainUI(title: String) : JFrame() {
         }
         mFilteredTableModel.mScrollbackSplitFile = mScrollbackSplitFileCheck.isSelected
 
+        check = mConfigManager.mProperties.get(mConfigManager.ITEM_MATCH_CASE) as? String
+        if (!check.isNullOrEmpty()) {
+            mMatchCaseBtn.isSelected = check.toBoolean()
+        } else {
+            mMatchCaseBtn.isSelected = false
+        }
+        mFilteredTableModel.mMatchCase = mMatchCaseBtn.isSelected
 
         add(mFilterPanel, BorderLayout.NORTH)
         add(mLogSplitPane, BorderLayout.CENTER)
@@ -839,6 +853,7 @@ class MainUI(title: String) : JFrame() {
 
         val ITEM_SCROLLBACK = "SCROLLBACK"
         val ITEM_SCROLLBACK_SPLIT_FILE = "SCROLLBACK_SPLIT_FILE"
+        val ITEM_MATCH_CASE = "MATCH_CASE"
 
         private fun setDefaultConfig() {
             mProperties.put(ITEM_LOG_LEVEL, VERBOSE)
@@ -965,6 +980,7 @@ class MainUI(title: String) : JFrame() {
 
             mProperties.put(ITEM_SCROLLBACK, mScrollbackTextField.text)
             mProperties.put(ITEM_SCROLLBACK_SPLIT_FILE, mScrollbackSplitFileCheck.isSelected.toString())
+            mProperties.put(ITEM_MATCH_CASE, mMatchCaseBtn.isSelected.toString())
 
             try {
                 fileOutput = FileOutputStream("config.xml")
@@ -1472,6 +1488,8 @@ class MainUI(title: String) : JFrame() {
                 } else {
                     mFilteredTableModel.mFilterTid = ""
                 }
+            } else if (p0?.source == mMatchCaseBtn) {
+                mFilteredTableModel.mMatchCase = mMatchCaseBtn.isSelected
             }
         }
     }
