@@ -413,7 +413,7 @@ class LogTableModel() : AbstractTableModel() {
                                 }
                                 Thread.sleep(100)
                             } catch (e:Exception) {
-                                println("loadItems thread e : $e")
+                                e.printStackTrace()
                             }
                         }
                     }
@@ -565,7 +565,7 @@ class LogTableModel() : AbstractTableModel() {
 
     override fun getValueAt(rowIndex: Int, columnIndex: Int): Any {
         try {
-            if (mLogItems.size > rowIndex) {
+            if (rowIndex >= 0 && mLogItems.size > rowIndex) {
                 val logItem = mLogItems[rowIndex]
                 if (columnIndex == COLUMN_NUM) {
                     return logItem.mNum + " "
@@ -574,7 +574,7 @@ class LogTableModel() : AbstractTableModel() {
                 }
             }
         } catch (e:ArrayIndexOutOfBoundsException) {
-            System.out.println("e : "  + e.toString())
+            e.printStackTrace()
         }
 
         return -1
