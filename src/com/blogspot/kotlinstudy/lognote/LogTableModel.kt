@@ -534,11 +534,13 @@ class LogTableModel() : AbstractTableModel() {
 
     override fun getValueAt(rowIndex: Int, columnIndex: Int): Any {
         try {
-            val logItem = mLogItems[rowIndex]
-            if (columnIndex == COLUMN_NUM) {
-                return logItem.mNum + " "
-            } else if (columnIndex == COLUMN_LOGLINE) {
-                return logItem.mLogLine
+            if (mLogItems.size > rowIndex) {
+                val logItem = mLogItems[rowIndex]
+                if (columnIndex == COLUMN_NUM) {
+                    return logItem.mNum + " "
+                } else if (columnIndex == COLUMN_LOGLINE) {
+                    return logItem.mLogLine
+                }
             }
         } catch (e:ArrayIndexOutOfBoundsException) {
             System.out.println("e : "  + e.toString())

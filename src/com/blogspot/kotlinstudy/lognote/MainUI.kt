@@ -1624,6 +1624,9 @@ class MainUI(title: String) : JFrame() {
 
     fun goToLine(line: Int) {
         println("Line : " + line)
+        if (line < 0) {
+            return
+        }
         var num = 0
         for (idx in 0 until mFilteredTableModel.rowCount) {
             num = mFilteredTableModel.getValueAt(idx, 0).toString().trim().toInt()
