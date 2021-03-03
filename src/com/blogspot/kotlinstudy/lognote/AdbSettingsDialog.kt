@@ -18,6 +18,7 @@ class AdbSettingsDialog(parent: JFrame) :JDialog(parent, "ADB settings", true), 
     private var mAdbCmdLabel: JLabel
     private var mAdbSaveLabel: JLabel
     private var mPrefixLabel: JLabel
+    private var mPrefixLabel2: JLabel
 
     private var mAdbCmdTextField: JTextField
     private var mAdbSaveTextField: JTextField
@@ -37,12 +38,13 @@ class AdbSettingsDialog(parent: JFrame) :JDialog(parent, "ADB settings", true), 
 
         mAdbCmdLabel = JLabel("Adb path")
         mAdbSaveLabel = JLabel("Log path")
-        mPrefixLabel = JLabel("Prefix(default : device)")
+        mPrefixLabel = JLabel("Prefix")
+        mPrefixLabel2 = JLabel("Default : device, Do not use \\ / : * ? \" < > |")
 
         mAdbCmdTextField = JTextField(mAdbManager.mAdbCmd)
-        mAdbCmdTextField.preferredSize = Dimension(300, 30)
+        mAdbCmdTextField.preferredSize = Dimension(488, 30)
         mAdbSaveTextField = JTextField(mAdbManager.mLogSavePath)
-        mAdbSaveTextField.preferredSize = Dimension(300, 30)
+        mAdbSaveTextField.preferredSize = Dimension(488, 30)
         mPrefixTextField = JTextField(mAdbManager.mPrefix)
         mPrefixTextField.preferredSize = Dimension(300, 30)
 
@@ -59,6 +61,7 @@ class AdbSettingsDialog(parent: JFrame) :JDialog(parent, "ADB settings", true), 
         val prefixPanel = JPanel()
         prefixPanel.add(mPrefixLabel)
         prefixPanel.add(mPrefixTextField)
+        prefixPanel.add(mPrefixLabel2)
 
         val confirmPanel = JPanel(FlowLayout(FlowLayout.RIGHT))
         confirmPanel.preferredSize = Dimension(400, 30)
@@ -66,10 +69,11 @@ class AdbSettingsDialog(parent: JFrame) :JDialog(parent, "ADB settings", true), 
         confirmPanel.add(mOkBtn)
         confirmPanel.add(mCancelBtn)
 
-        val panel = JPanel(GridLayout(4, 1))
+        val panel = JPanel(GridLayout(5, 1))
         panel.add(cmdPanel)
         panel.add(savePanel)
         panel.add(prefixPanel)
+//        panel.add(mPrefixLabel2)
         panel.add(confirmPanel)
 
         contentPane.add(panel)
