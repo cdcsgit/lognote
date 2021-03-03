@@ -37,6 +37,7 @@ class StringsEn private constructor() {
             , "LogLevel"
             , "Scrollback"
             , "Clear/Save"
+            , "Log file"
 //            , ""
         )
     }

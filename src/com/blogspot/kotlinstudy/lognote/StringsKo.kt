@@ -37,6 +37,7 @@ class StringsKo private constructor() {
             , "LogLevel"
             , "Scrollback"
             , "Clear/Save"
+            , "로그 파일"
         )
     }
 }

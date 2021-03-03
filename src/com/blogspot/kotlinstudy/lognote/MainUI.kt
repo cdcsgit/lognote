@@ -29,6 +29,7 @@ class MainUI(title: String) : JFrame() {
     private lateinit var mItemFull: JCheckBoxMenuItem
     private lateinit var mMenuSettings: JMenu
     private lateinit var mItemAdb: JMenuItem
+    private lateinit var mItemLogFile: JMenuItem
     private lateinit var mItemFont: JMenuItem
     private lateinit var mItemFilterIncremental: JCheckBoxMenuItem
     private lateinit var mMenuLogLevel: JMenu
@@ -252,6 +253,9 @@ class MainUI(title: String) : JFrame() {
         mItemAdb = JMenuItem(Strings.ADB)
         mItemAdb.addActionListener(mActionHandler)
         mMenuSettings.add(mItemAdb)
+        mItemLogFile = JMenuItem(Strings.LOGFILE)
+        mItemLogFile.addActionListener(mActionHandler)
+        mMenuSettings.add(mItemLogFile)
         mItemFont = JMenuItem(Strings.FONT)
         mItemFont.addActionListener(mActionHandler)
         mMenuSettings.add(mItemFont)
@@ -1058,9 +1062,11 @@ class MainUI(title: String) : JFrame() {
     fun setSaveLogFile() {
         val dtf = DateTimeFormatter.ofPattern("yyyyMMdd_HH.mm.ss")
         var prefix = mDeviceCombo.selectedItem!!.toString()
+        prefix = prefix.substringBefore(":")
         if (mAdbManager.mPrefix.length > 0) {
             prefix = mAdbManager.mPrefix
         }
+
         val filePath = mAdbManager.mLogSavePath + "/" + prefix + "_" + dtf.format(LocalDateTime.now()) + ".txt"
         mFilteredTableModel.setLogFile(filePath)
         mStatusTextField.text = filePath
@@ -1089,7 +1095,7 @@ class MainUI(title: String) : JFrame() {
                 }
             } else if (p0?.source == mItemFileExit) {
                 exit()
-            } else if (p0?.source == mItemAdb) {
+            } else if (p0?.source == mItemAdb || p0?.source == mItemLogFile) {
                 val settingsDialog = AdbSettingsDialog(this@MainUI)
                 settingsDialog.setLocationRelativeTo(this@MainUI)
                 settingsDialog.setVisible(true)
