@@ -408,8 +408,7 @@ class LogTableModel() : AbstractTableModel() {
                             try {
                                 if (mIsFilterUpdated) {
                                     mMainUI?.markLine()
-                                    makeFilteredItems()
-                                    mMainUI?.goToMarkedLine()
+                                    makeFilteredItems(true)
                                 }
                                 Thread.sleep(100)
                             } catch (e:Exception) {
@@ -768,7 +767,7 @@ class LogTableModel() : AbstractTableModel() {
         return
     }
 
-    private fun makeFilteredItems() {
+    private fun makeFilteredItems(isRedraw: Boolean) {
         if (mBaseModel == null || !mIsFilterUpdated) {
             println("skip makeFilteredItems " + mBaseModel + ", " + mIsFilterUpdated)
             return
@@ -824,7 +823,7 @@ class LogTableModel() : AbstractTableModel() {
                 }
             }
         }
-        if (!mIsFilterUpdated) {
+        if (!mIsFilterUpdated && isRedraw) {
             fireLogTableDataFiltered()
             mBaseModel?.fireLogTableDataFiltered()
         }

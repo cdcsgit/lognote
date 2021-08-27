@@ -20,6 +20,7 @@ import javax.swing.text.JTextComponent
 
 class MainUI(title: String) : JFrame() {
     val VERSION: String = "0.0.1"
+    val CONFIG_FILE = "lognote.xml"
     private lateinit var mMenuBar: JMenuBar
     private lateinit var mMenuFile: JMenu
     private lateinit var mItemFileOpen: JMenuItem
@@ -869,7 +870,7 @@ class MainUI(title: String) : JFrame() {
             var fileInput: FileInputStream? = null
 
             try {
-                fileInput = FileInputStream("config.xml")
+                fileInput = FileInputStream(CONFIG_FILE)
                 mProperties.loadFromXML(fileInput)
             } catch (ex: Exception) {
                 ex.printStackTrace()
@@ -987,7 +988,7 @@ class MainUI(title: String) : JFrame() {
             mProperties.put(ITEM_MATCH_CASE, mMatchCaseBtn.isSelected.toString())
 
             try {
-                fileOutput = FileOutputStream("config.xml")
+                fileOutput = FileOutputStream(CONFIG_FILE)
                 mProperties.storeToXML(fileOutput, "")
             } finally {
                 if (null != fileOutput) {
@@ -1676,6 +1677,10 @@ class MainUI(title: String) : JFrame() {
             return
         }
         mSelectedLine = mFilteredLogPanel.getSelectedLine()
+    }
+
+    fun getMarkLine(): Int {
+        return mSelectedLine
     }
 
     fun goToMarkedLine() {

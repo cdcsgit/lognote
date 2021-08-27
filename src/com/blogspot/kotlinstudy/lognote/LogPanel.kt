@@ -220,14 +220,30 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
                             viewRect.x = mTable.visibleRect.x
                             mTable.scrollRectToVisible(viewRect)
                         }
-//                    } else if (event?.mDataChange == LogTableModelEvent.FILTERED) {
-//                        if (mFilteredSelectedRow >= 0) {
-//                            mFilteredTable.setRowSelectionInterval(mFilteredSelectedRow, mFilteredSelectedRow)
-//                            val viewRect = mFilteredTable.getCellRect(mFilteredSelectedRow, 0, true)
-//                            viewRect.x = mFilteredTable.visibleRect.x
-//                            mFilteredTable.scrollRectToVisible(viewRect)
-//                        }
-//                    }
+                    } else if (event?.mDataChange == LogTableModelEvent.FILTERED) {
+                        if (mBasePanel != null) {
+                            val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
+                            val selectedLine = frame.getMarkLine()
+                            if (selectedLine >= 0) {
+                                var num = 0
+                                for (idx in 0 until mTable.rowCount) {
+                                    num = mTable.getValueAt(idx, 0).toString().trim().toInt()
+                                    if (selectedLine <= num) {
+                                        println("tableChanged Tid = " + Thread.currentThread().getId() + ", num = " + num + ", selectedLine = " + selectedLine)
+                                        mTable.setRowSelectionInterval(idx, idx)
+                                        val viewRect: Rectangle
+                                        viewRect = mTable.getCellRect(idx, 0, true)
+                                        println(
+                                            "tableChanged Tid = " + Thread.currentThread()
+                                                .getId() + ", viewRect = " + viewRect.toString() + ", rowCount = " + mTable.rowCount + ", idx " + idx
+                                        )
+                                        mTable.scrollRectToVisible(viewRect)
+                                        mTable.scrollRectToVisible(viewRect) // somtimes not work
+                                        break
+                                    }
+                                }
+                            }
+                        }
                     }
 
                 }
@@ -237,19 +253,22 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
 
     internal inner class ListSelectionHandler : ListSelectionListener {
         override fun valueChanged(p0: ListSelectionEvent?) {
-            if (mBasePanel != null) {
-                setGoToLast(false)
-                mBasePanel.setGoToLast(false)
-                val value = mTable.mTableModel.getValueAt(mTable.selectedRow, 0)
-                val baseSelectedRow = value.toString().trim().toInt()
-                mBasePanel.goToRowByNum(baseSelectedRow, -1)
+            if (p0?.valueIsAdjusting == true) {
+                if (mBasePanel != null) {
+                    setGoToLast(false)
+                    mBasePanel.setGoToLast(false)
+                    val value = mTable.mTableModel.getValueAt(mTable.selectedRow, 0)
+                    val baseSelectedRow = value.toString().trim().toInt()
+                    println("valueChanged Tid = " + Thread.currentThread().getId())
+                    mBasePanel.goToRowByNum(baseSelectedRow, -1)
 
-                if (mTable.selectedRow == mTable.rowCount - 1) {
-                    setGoToLast(true)
-                }
-            } else {
-                if (mTable.selectedRow == mTable.rowCount - 1) {
-                    setGoToLast(true)
+                    if (mTable.selectedRow == mTable.rowCount - 1) {
+                        setGoToLast(true)
+                    }
+                } else {
+                    if (mTable.selectedRow == mTable.rowCount - 1) {
+                        setGoToLast(true)
+                    }
                 }
             }
 
