@@ -35,7 +35,6 @@ class MainUI(title: String) : JFrame() {
     private lateinit var mItemFilterIncremental: JCheckBoxMenuItem
     private lateinit var mMenuLogLevel: JMenu
     private lateinit var mLogLevelGroup: ButtonGroup
-//    private lateinit var mItemScrollback: JMenuItem
     private lateinit var mMenuHelp: JMenu
     private lateinit var mItemHelp: JMenuItem
     private lateinit var mItemAbout: JMenuItem
@@ -55,31 +54,32 @@ class MainUI(title: String) : JFrame() {
     private lateinit var mLogPanel: JPanel
     private lateinit var mShowLogPanel: JPanel
     private lateinit var mMatchCaseBtn: ColorToggleButton
-    private lateinit var mShowLogLabel: JLabel
     private lateinit var mShowLogCombo: ColorComboBox<String>
-    private lateinit var mShowLogCheck: JCheckBox
+    private lateinit var mShowLogToggle: ColorToggleButton
+    private lateinit var mShowLogTogglePanel: JPanel
+    private lateinit var mBoldPanel: JPanel
     private lateinit var mBoldLogPanel: JPanel
-    private lateinit var mBoldLogLabel: JLabel
     private lateinit var mBoldLogCombo: ColorComboBox<String>
-    private lateinit var mBoldLogCheck: JCheckBox
+    private lateinit var mBoldLogToggle: ColorToggleButton
+    private lateinit var mBoldLogTogglePanel: JPanel
 
     private lateinit var mTagPanel: JPanel
     private lateinit var mShowTagPanel: JPanel
-    private lateinit var mShowTagLabel: JLabel
     private lateinit var mShowTagCombo: ColorComboBox<String>
-    private lateinit var mShowTagCheck: JCheckBox
+    private lateinit var mShowTagToggle: ColorToggleButton
+    private lateinit var mShowTagTogglePanel: JPanel
 
     private lateinit var mPidPanel: JPanel
     private lateinit var mShowPidPanel: JPanel
-    private lateinit var mShowPidLabel: JLabel
     private lateinit var mShowPidCombo: ColorComboBox<String>
-    private lateinit var mShowPidCheck: JCheckBox
+    private lateinit var mShowPidToggle: ColorToggleButton
+    private lateinit var mShowPidTogglePanel: JPanel
 
     private lateinit var mTidPanel: JPanel
     private lateinit var mShowTidPanel: JPanel
-    private lateinit var mShowTidLabel: JLabel
     private lateinit var mShowTidCombo: ColorComboBox<String>
-    private lateinit var mShowTidCheck: JCheckBox
+    private lateinit var mShowTidToggle: ColorToggleButton
+    private lateinit var mShowTidTogglePanel: JPanel
 
     private lateinit var mDeviceCombo: ColorComboBox<String>
     private lateinit var mDeviceStatus: JLabel
@@ -112,9 +112,6 @@ class MainUI(title: String) : JFrame() {
     private val mPopupMenuHandler = PopupMenuHandler()
     private val mMouseHandler = MouseHandler()
     private val mComponentHandler = ComponentHandler()
-
-    private val ITEM_TITLE_WIDTH = 40
-    private val ITEM_TITLE_COLOR = Color(80, 140, 200)
 
     private val mConfigManager = ConfigManager()
     private var mIsCreatingUI = true
@@ -300,10 +297,6 @@ class MainUI(title: String) : JFrame() {
         mMenuLogLevel.add(menuItem)
         menuItem.addItemListener(mLevelItemHandler)
 
-//        mItemScrollback = JMenuItem(Strings.SCROLLBACK)
-//        mItemScrollback.addActionListener(mActionHandler)
-//        mMenuSettings.add(mItemScrollback)
-
         mMenuBar.add(mMenuSettings)
 
         mMenuHelp = JMenu(Strings.HELP)
@@ -388,9 +381,6 @@ class MainUI(title: String) : JFrame() {
 
         mLogPanel = JPanel()
         mShowLogPanel = JPanel()
-        mShowLogLabel = JLabel(Strings.LOG, JLabel.RIGHT)
-        mShowLogLabel.foreground = ITEM_TITLE_COLOR
-        mShowLogLabel.addMouseListener(mMouseHandler)
         mShowLogCombo = ColorComboBox<String>()
         mShowLogCombo.isEditable = true
         mShowLogCombo.renderer = ColorComboBox.ComboBoxRenderer()
@@ -398,61 +388,72 @@ class MainUI(title: String) : JFrame() {
         mShowLogCombo.addItemListener(mItemHandler)
         mShowLogCombo.addPopupMenuListener(mPopupMenuHandler)
         mShowLogCombo.editor.editorComponent.addMouseListener(mMouseHandler)
-        mShowLogCheck = JCheckBox("", true)
-        mShowLogCheck.addItemListener(mItemHandler)
+        mShowLogToggle = ColorToggleButton(Strings.LOG)
+        mShowLogToggle.margin = Insets(0, 0, 0, 0)
+        mShowLogTogglePanel = JPanel(GridLayout(1, 1))
+        mShowLogTogglePanel.add(mShowLogToggle)
+        mShowLogTogglePanel.border = BorderFactory.createEmptyBorder(3,3,3,3)
+        mShowLogToggle.addItemListener(mItemHandler)
+
+        mBoldPanel = JPanel(GridLayout(1, 2))
         mBoldLogPanel = JPanel()
-        mBoldLogLabel = JLabel(Strings.BOLD, JLabel.RIGHT)
-        mBoldLogLabel.addMouseListener(mMouseHandler)
         mBoldLogCombo = ColorComboBox<String>()
         mBoldLogCombo.isEditable = true
         mBoldLogCombo.renderer = ColorComboBox.ComboBoxRenderer()
         mBoldLogCombo.editor.editorComponent.addKeyListener(mKeyHandler)
         mBoldLogCombo.addItemListener(mItemHandler)
         mBoldLogCombo.editor.editorComponent.addMouseListener(mMouseHandler)
-        mBoldLogCheck = JCheckBox("", true)
-        mBoldLogCheck.addItemListener(mItemHandler)
+        mBoldLogToggle = ColorToggleButton(Strings.BOLD)
+        mBoldLogToggle.margin = Insets(0, 0, 0, 0)
+        mBoldLogTogglePanel = JPanel(GridLayout(1, 1))
+        mBoldLogTogglePanel.add(mBoldLogToggle)
+        mBoldLogTogglePanel.border = BorderFactory.createEmptyBorder(3,3,3,3)
+        mBoldLogToggle.addItemListener(mItemHandler)
 
         mTagPanel = JPanel(GridLayout(1, 2))
         mShowTagPanel = JPanel()
-        mShowTagLabel = JLabel(Strings.TAG, JLabel.RIGHT)
-        mShowTagLabel.foreground = ITEM_TITLE_COLOR
-        mShowTagLabel.addMouseListener(mMouseHandler)
         mShowTagCombo = ColorComboBox<String>()
         mShowTagCombo.isEditable = true
         mShowTagCombo.renderer = ColorComboBox.ComboBoxRenderer()
         mShowTagCombo.editor.editorComponent.addKeyListener(mKeyHandler)
         mShowTagCombo.addItemListener(mItemHandler)
         mShowTagCombo.editor.editorComponent.addMouseListener(mMouseHandler)
-        mShowTagCheck = JCheckBox("", true)
-        mShowTagCheck.addItemListener(mItemHandler)
+        mShowTagToggle = ColorToggleButton(Strings.TAG)
+        mShowTagToggle.margin = Insets(0, 0, 0, 0)
+        mShowTagTogglePanel = JPanel(GridLayout(1, 1))
+        mShowTagTogglePanel.add(mShowTagToggle)
+        mShowTagTogglePanel.border = BorderFactory.createEmptyBorder(3,3,3,3)
+        mShowTagToggle.addItemListener(mItemHandler)
 
         mPidPanel = JPanel(GridLayout(1, 2))
         mShowPidPanel = JPanel()
-        mShowPidLabel = JLabel(Strings.PID, JLabel.RIGHT)
-        mShowPidLabel.foreground = ITEM_TITLE_COLOR
-        mShowPidLabel.addMouseListener(mMouseHandler)
         mShowPidCombo = ColorComboBox<String>()
         mShowPidCombo.isEditable = true
         mShowPidCombo.renderer = ColorComboBox.ComboBoxRenderer()
         mShowPidCombo.editor.editorComponent.addKeyListener(mKeyHandler)
         mShowPidCombo.addItemListener(mItemHandler)
         mShowPidCombo.editor.editorComponent.addMouseListener(mMouseHandler)
-        mShowPidCheck = JCheckBox("", true)
-        mShowPidCheck.addItemListener(mItemHandler)
+        mShowPidToggle = ColorToggleButton(Strings.PID)
+        mShowPidToggle.margin = Insets(0, 0, 0, 0)
+        mShowPidTogglePanel = JPanel(GridLayout(1, 1))
+        mShowPidTogglePanel.add(mShowPidToggle)
+        mShowPidTogglePanel.border = BorderFactory.createEmptyBorder(3,3,3,3)
+        mShowPidToggle.addItemListener(mItemHandler)
 
         mTidPanel = JPanel(GridLayout(1, 2))
         mShowTidPanel = JPanel()
-        mShowTidLabel = JLabel(Strings.TID, JLabel.RIGHT)
-        mShowTidLabel.foreground = ITEM_TITLE_COLOR
-        mShowTidLabel.addMouseListener(mMouseHandler)
         mShowTidCombo = ColorComboBox<String>()
         mShowTidCombo.isEditable = true
         mShowTidCombo.renderer = ColorComboBox.ComboBoxRenderer()
         mShowTidCombo.editor.editorComponent.addKeyListener(mKeyHandler)
         mShowTidCombo.addItemListener(mItemHandler)
         mShowTidCombo.editor.editorComponent.addMouseListener(mMouseHandler)
-        mShowTidCheck = JCheckBox("", true)
-        mShowTidCheck.addItemListener(mItemHandler)
+        mShowTidToggle = ColorToggleButton(Strings.TID)
+        mShowTidToggle.margin = Insets(0, 0, 0, 0)
+        mShowTidTogglePanel = JPanel(GridLayout(1, 1))
+        mShowTidTogglePanel.add(mShowTidToggle)
+        mShowTidTogglePanel.border = BorderFactory.createEmptyBorder(3,3,3,3)
+        mShowTidToggle.addItemListener(mItemHandler)
 
         mDeviceStatus = JLabel("None", JLabel.LEFT)
         mDeviceStatus.isEnabled = false
@@ -462,56 +463,47 @@ class MainUI(title: String) : JFrame() {
         mDeviceCombo.editor.editorComponent.addKeyListener(mKeyHandler)
         mDeviceCombo.addItemListener(mItemHandler)
         mDeviceCombo.editor.editorComponent.addMouseListener(mMouseHandler)
-        mAdbConnectBtn = ColorButton("Connect")
+        mAdbConnectBtn = ColorButton(Strings.CONNECT)
         mAdbConnectBtn.addActionListener(mActionHandler)
-        mAdbRefreshBtn = ColorButton("Refresh")
+        mAdbRefreshBtn = ColorButton(Strings.REFRESH)
         mAdbRefreshBtn.addActionListener(mActionHandler)
-        mAdbDisconnectBtn = ColorButton("Disconnect")
+        mAdbDisconnectBtn = ColorButton(Strings.DISCONNECT)
         mAdbDisconnectBtn.addActionListener(mActionHandler)
 
         mMatchCaseBtn = ColorToggleButton("Aa")
         mMatchCaseBtn.addItemListener(mItemHandler)
 
         mShowLogPanel.layout = BorderLayout()
-        mShowLogPanel.add(mShowLogLabel, BorderLayout.WEST)
-        mShowLogCombo.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
+        mShowLogPanel.add(mShowLogTogglePanel, BorderLayout.WEST)
+        mShowLogCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 3)
         mShowLogPanel.add(mShowLogCombo, BorderLayout.CENTER)
-        mShowLogPanel.add(mShowLogCheck, BorderLayout.EAST)
 
         mBoldLogPanel.layout = BorderLayout()
-        var dimension = mBoldLogLabel.preferredSize
-        mBoldLogLabel.preferredSize = Dimension(ITEM_TITLE_WIDTH, dimension.height)
-        mBoldLogPanel.add(mBoldLogLabel, BorderLayout.WEST)
-        mBoldLogCombo.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
+        mBoldLogPanel.add(mBoldLogTogglePanel, BorderLayout.WEST)
+        mBoldLogCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 3)
         mBoldLogPanel.add(mBoldLogCombo, BorderLayout.CENTER)
-        mBoldLogPanel.add(mBoldLogCheck, BorderLayout.EAST)
+        mBoldPanel.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
+        mBoldPanel.add(mBoldLogPanel)
         mBoldLogPanel.preferredSize = Dimension(200, mBoldLogPanel.preferredSize.height)
 
         mShowTagPanel.layout = BorderLayout()
-        mShowTagPanel.add(mShowTagLabel, BorderLayout.WEST)
-        mShowTagCombo.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
+        mShowTagPanel.add(mShowTagTogglePanel, BorderLayout.WEST)
+        mShowTagCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 3)
         mShowTagPanel.add(mShowTagCombo, BorderLayout.CENTER)
-        mShowTagPanel.add(mShowTagCheck, BorderLayout.EAST)
         mTagPanel.add(mShowTagPanel)
         mShowTagPanel.preferredSize = Dimension(200, mShowTagPanel.preferredSize.height)
 
         mShowPidPanel.layout = BorderLayout()
-        dimension = mShowPidLabel.preferredSize
-        mShowPidLabel.preferredSize = (Dimension(ITEM_TITLE_WIDTH, dimension.height))
-        mShowPidPanel.add(mShowPidLabel, BorderLayout.WEST)
-        mShowPidCombo.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
+        mShowPidPanel.add(mShowPidTogglePanel, BorderLayout.WEST)
+        mShowPidCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 3)
         mShowPidPanel.add(mShowPidCombo, BorderLayout.CENTER)
-        mShowPidPanel.add(mShowPidCheck, BorderLayout.EAST)
         mPidPanel.add(mShowPidPanel)
         mShowPidPanel.preferredSize = Dimension(200, mShowPidPanel.preferredSize.height)
 
         mShowTidPanel.layout = BorderLayout()
-        dimension = mShowTidLabel.preferredSize
-        mShowTidLabel.preferredSize = (Dimension(ITEM_TITLE_WIDTH, dimension.height))
-        mShowTidPanel.add(mShowTidLabel, BorderLayout.WEST)
-        mShowTidCombo.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
+        mShowTidPanel.add(mShowTidTogglePanel, BorderLayout.WEST)
+        mShowTidCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 3)
         mShowTidPanel.add(mShowTidCombo, BorderLayout.CENTER)
-        mShowTidPanel.add(mShowTidCheck, BorderLayout.EAST)
         mTidPanel.add(mShowTidPanel)
         mShowTidPanel.preferredSize = Dimension(200, mShowTidPanel.preferredSize.height)
 
@@ -521,23 +513,20 @@ class MainUI(title: String) : JFrame() {
         mDeviceStatus.border = BorderFactory.createEmptyBorder(3, 0, 3, 0)
         mDeviceStatus.horizontalAlignment = JLabel.CENTER
 
-        mScrollbackApplyBtn = ColorButton("Apply")
+        mScrollbackApplyBtn = ColorButton(Strings.APPLY)
         mScrollbackApplyBtn.addActionListener(mActionHandler)
 
-        mScrollbackLabel = JLabel("Scrollback(lines)")
+        mScrollbackLabel = JLabel(Strings.SCROLLBACK_LINES)
 
         mScrollbackTextField = JTextField()
         mScrollbackTextField.preferredSize = Dimension(80, 25)
-        mScrollbackSplitFileCheck = JCheckBox("Split File", false)
+        mScrollbackSplitFileCheck = JCheckBox(Strings.SPLIT_FILE, false)
 
 
         val tagPidTidPanel = JPanel(GridLayout(1, 3))
         tagPidTidPanel.add(mTagPanel)
         tagPidTidPanel.add(mPidPanel)
         tagPidTidPanel.add(mTidPanel)
-
-        val logBelowPanel = JPanel(BorderLayout())
-        logBelowPanel.add(mBoldLogPanel, BorderLayout.CENTER)
 
         mLogPanel.layout = BorderLayout()
         mLogPanel.add(mShowLogPanel, BorderLayout.CENTER)
@@ -550,7 +539,7 @@ class MainUI(title: String) : JFrame() {
 
         mFilterPanel.layout = BorderLayout()
         mFilterPanel.add(mFilterLeftPanel, BorderLayout.CENTER)
-        mFilterPanel.add(mBoldLogPanel, BorderLayout.EAST)
+        mFilterPanel.add(mBoldPanel, BorderLayout.EAST)
         mFilterPanel.addMouseListener(mMouseHandler)
 
         mLogToolBar.add(mStartBtn)
@@ -649,10 +638,12 @@ class MainUI(title: String) : JFrame() {
 
         var check = mConfigManager.mProperties.get(mConfigManager.ITEM_SHOW_LOG_CHECK) as? String
         if (!check.isNullOrEmpty()) {
-            mShowLogCheck.isSelected = check.toBoolean()
+            mShowLogToggle.isSelected = check.toBoolean()
         } else {
-            mShowLogCheck.isSelected = true
+            mShowLogToggle.isSelected = true
         }
+        mShowLogCombo.isEnabled = mShowLogToggle.isSelected 
+        
         for (i in 0 until mConfigManager.COUNT_SHOW_TAG) {
             item = mConfigManager.mProperties.get(mConfigManager.ITEM_SHOW_TAG + i) as? String
             if (item == null) {
@@ -665,10 +656,27 @@ class MainUI(title: String) : JFrame() {
         }
         check = mConfigManager.mProperties.get(mConfigManager.ITEM_SHOW_TAG_CHECK) as? String
         if (!check.isNullOrEmpty()) {
-            mShowTagCheck.isSelected = check.toBoolean()
+            mShowTagToggle.isSelected = check.toBoolean()
         } else {
-            mShowTagCheck.isSelected = true
+            mShowTagToggle.isSelected = true
         }
+        mShowTagCombo.isEnabled = mShowTagToggle.isSelected
+
+        check = mConfigManager.mProperties.get(mConfigManager.ITEM_SHOW_PID_CHECK) as? String
+        if (!check.isNullOrEmpty()) {
+            mShowPidToggle.isSelected = check.toBoolean()
+        } else {
+            mShowPidToggle.isSelected = true
+        }
+        mShowPidCombo.isEnabled = mShowPidToggle.isSelected
+
+        check = mConfigManager.mProperties.get(mConfigManager.ITEM_SHOW_TID_CHECK) as? String
+        if (!check.isNullOrEmpty()) {
+            mShowTidToggle.isSelected = check.toBoolean()
+        } else {
+            mShowTidToggle.isSelected = true
+        }
+        mShowTidCombo.isEnabled = mShowTidToggle.isSelected
 
         for (i in 0 until mConfigManager.COUNT_HIGHLIGHT_LOG) {
             item = mConfigManager.mProperties.get(mConfigManager.ITEM_HIGHLIGHT_LOG + i) as? String
@@ -682,10 +690,11 @@ class MainUI(title: String) : JFrame() {
         }
         check = mConfigManager.mProperties.get(mConfigManager.ITEM_HIGHLIGHT_LOG_CHECK) as? String
         if (!check.isNullOrEmpty()) {
-            mBoldLogCheck.isSelected = check.toBoolean()
+            mBoldLogToggle.isSelected = check.toBoolean()
         } else {
-            mBoldLogCheck.isSelected = true
+            mBoldLogToggle.isSelected = true
         }
+        mBoldLogCombo.isEnabled = mBoldLogToggle.isSelected
 
         val targetDevice = mConfigManager.mProperties.get(mConfigManager.ITEM_ADB_DEVICE) as? String
         mDeviceCombo.insertItemAt(targetDevice, 0)
@@ -731,27 +740,27 @@ class MainUI(title: String) : JFrame() {
             ASSERT->mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_ASSERT
         }
 
-        if (mShowLogCheck.isSelected && mShowLogCombo.selectedItem != null) {
+        if (mShowLogToggle.isSelected && mShowLogCombo.selectedItem != null) {
             mFilteredTableModel.mFilterLog = mShowLogCombo.selectedItem!!.toString()
         } else {
             mFilteredTableModel.mFilterLog = ""
         }
-        if (mBoldLogCheck.isSelected && mBoldLogCombo.selectedItem != null) {
+        if (mBoldLogToggle.isSelected && mBoldLogCombo.selectedItem != null) {
             mFilteredTableModel.mFilterHighlightLog = mBoldLogCombo.selectedItem!!.toString()
         } else {
             mFilteredTableModel.mFilterHighlightLog = ""
         }
-        if (mShowTagCheck.isSelected && mShowTagCombo.selectedItem != null) {
+        if (mShowTagToggle.isSelected && mShowTagCombo.selectedItem != null) {
             mFilteredTableModel.mFilterTag = mShowTagCombo.selectedItem!!.toString()
         } else {
             mFilteredTableModel.mFilterTag = ""
         }
-        if (mShowPidCheck.isSelected && mShowPidCombo.selectedItem != null) {
+        if (mShowPidToggle.isSelected && mShowPidCombo.selectedItem != null) {
             mFilteredTableModel.mFilterPid = mShowPidCombo.selectedItem!!.toString()
         } else {
             mFilteredTableModel.mFilterPid = ""
         }
-        if (mShowTidCheck.isSelected && mShowTidCombo.selectedItem != null) {
+        if (mShowTidToggle.isSelected && mShowTidCombo.selectedItem != null) {
             mFilteredTableModel.mFilterTid = mShowTidCombo.selectedItem!!.toString()
         } else {
             mFilteredTableModel.mFilterTid = ""
@@ -841,6 +850,8 @@ class MainUI(title: String) : JFrame() {
 
         val ITEM_SHOW_LOG_CHECK = "SHOW_LOG_CHECK"
         val ITEM_SHOW_TAG_CHECK = "SHOW_TAG_CHECK"
+        val ITEM_SHOW_PID_CHECK = "SHOW_PID_CHECK"
+        val ITEM_SHOW_TID_CHECK = "SHOW_TID_CHECK"
 
         val ITEM_HIGHLIGHT_LOG_CHECK = "HIGHLIGHT_LOG_CHECK"
 
@@ -864,6 +875,9 @@ class MainUI(title: String) : JFrame() {
             mProperties.put(ITEM_LOG_LEVEL, VERBOSE)
             mProperties.put(ITEM_SHOW_LOG_CHECK, "true")
             mProperties.put(ITEM_SHOW_TAG_CHECK, "true")
+            mProperties.put(ITEM_SHOW_PID_CHECK, "true")
+            mProperties.put(ITEM_SHOW_TID_CHECK, "true")
+            mProperties.put(ITEM_HIGHLIGHT_LOG_CHECK, "true")
         }
 
         fun loadConfig() {
@@ -938,7 +952,7 @@ class MainUI(title: String) : JFrame() {
             for (i in nCount until COUNT_SHOW_LOG) {
                 mProperties.remove(ITEM_SHOW_LOG + i)
             }
-            mProperties.put(ITEM_SHOW_LOG_CHECK, mShowLogCheck.isSelected.toString())
+            mProperties.put(ITEM_SHOW_LOG_CHECK, mShowLogToggle.isSelected.toString())
             nCount = mShowTagCombo.itemCount
             if (nCount > COUNT_SHOW_TAG) {
                 nCount = COUNT_SHOW_TAG
@@ -949,7 +963,11 @@ class MainUI(title: String) : JFrame() {
             for (i in nCount until COUNT_SHOW_TAG) {
                 mProperties.remove(ITEM_SHOW_TAG + i)
             }
-            mProperties.put(ITEM_SHOW_TAG_CHECK, mShowTagCheck.isSelected.toString())
+            mProperties.put(ITEM_SHOW_TAG_CHECK, mShowTagToggle.isSelected.toString())
+
+            mProperties.put(ITEM_SHOW_PID_CHECK, mShowPidToggle.isSelected.toString())
+            mProperties.put(ITEM_SHOW_TID_CHECK, mShowTidToggle.isSelected.toString())
+
             nCount = mBoldLogCombo.itemCount
             if (nCount > COUNT_HIGHLIGHT_LOG) {
                 nCount = COUNT_HIGHLIGHT_LOG
@@ -960,7 +978,7 @@ class MainUI(title: String) : JFrame() {
             for (i in nCount until COUNT_HIGHLIGHT_LOG) {
                 mProperties.remove(ITEM_HIGHLIGHT_LOG + i)
             }
-            mProperties.put(ITEM_HIGHLIGHT_LOG_CHECK, mBoldLogCheck.isSelected.toString())
+            mProperties.put(ITEM_HIGHLIGHT_LOG_CHECK, mBoldLogToggle.isSelected.toString())
             try {
                 mProperties.put(ITEM_ADB_DEVICE, mDeviceCombo.getItemAt(0).toString())
             } catch (e: NullPointerException) {
@@ -1277,18 +1295,6 @@ class MainUI(title: String) : JFrame() {
 
     internal inner class MouseHandler : MouseAdapter() {
         override fun mouseClicked(p0: MouseEvent?) {
-            if (p0?.source == mShowLogLabel) {
-                mShowLogCombo.editor.selectAll()
-            } else if (p0?.source == mBoldLogLabel) {
-                mBoldLogCombo.editor.selectAll()
-            } else if (p0?.source == mShowTagLabel) {
-                mShowTagCombo.editor.selectAll()
-            } else if (p0?.source == mShowPidLabel) {
-                mShowPidCombo.editor.selectAll()
-            } else if (p0?.source == mShowTidLabel) {
-                mShowTidCombo.editor.selectAll()
-            }
-
             super.mouseClicked(p0)
         }
 
@@ -1398,27 +1404,27 @@ class MainUI(title: String) : JFrame() {
     internal inner class KeyHandler : KeyAdapter() {
         override fun keyReleased(p0: KeyEvent?) {
             if (KeyEvent.VK_ENTER == p0?.keyCode) {
-                if (p0.source == mShowLogCombo.editor.editorComponent && mShowLogCheck.isSelected) {
+                if (p0.source == mShowLogCombo.editor.editorComponent && mShowLogToggle.isSelected) {
                     val combo = mShowLogCombo
                     val item = combo.selectedItem!!.toString()
                     resetComboItem(combo, item)
                     mFilteredTableModel.mFilterLog = item
-                } else if (p0.source == mBoldLogCombo.editor.editorComponent && mBoldLogCheck.isSelected) {
+                } else if (p0.source == mBoldLogCombo.editor.editorComponent && mBoldLogToggle.isSelected) {
                     val combo = mBoldLogCombo
                     val item = combo.selectedItem!!.toString()
                     resetComboItem(combo, item)
                     mFilteredTableModel.mFilterHighlightLog = item
-                } else if (p0.source == mShowTagCombo.editor.editorComponent && mShowTagCheck.isSelected) {
+                } else if (p0.source == mShowTagCombo.editor.editorComponent && mShowTagToggle.isSelected) {
                     val combo = mShowTagCombo
                     val item = combo.selectedItem!!.toString()
                     resetComboItem(combo, item)
                     mFilteredTableModel.mFilterTag = item
-                } else if (p0.source == mShowPidCombo.editor.editorComponent && mShowPidCheck.isSelected) {
+                } else if (p0.source == mShowPidCombo.editor.editorComponent && mShowPidToggle.isSelected) {
                     val combo = mShowPidCombo
                     val item = combo.selectedItem!!.toString()
                     resetComboItem(combo, item)
                     mFilteredTableModel.mFilterPid = item
-                } else if (p0.source == mShowTidCombo.editor.editorComponent && mShowTidCheck.isSelected) {
+                } else if (p0.source == mShowTidCombo.editor.editorComponent && mShowTidToggle.isSelected) {
                     val combo = mShowTidCombo
                     val item = combo.selectedItem!!.toString()
                     resetComboItem(combo, item)
@@ -1427,19 +1433,19 @@ class MainUI(title: String) : JFrame() {
                     reconnectAdb()
                 }
             } else if (p0 != null && mItemFilterIncremental.state) {
-                if (p0.source == mShowLogCombo.editor.editorComponent && mShowLogCheck.isSelected) {
+                if (p0.source == mShowLogCombo.editor.editorComponent && mShowLogToggle.isSelected) {
                     val item = mShowLogCombo.editor.item.toString()
                     mFilteredTableModel.mFilterLog = item
-                } else if (p0.source == mBoldLogCombo.editor.editorComponent && mBoldLogCheck.isSelected) {
+                } else if (p0.source == mBoldLogCombo.editor.editorComponent && mBoldLogToggle.isSelected) {
                     val item = mBoldLogCombo.editor.item.toString()
                     mFilteredTableModel.mFilterHighlightLog = item
-                } else if (p0.source == mShowTagCombo.editor.editorComponent && mShowTagCheck.isSelected) {
+                } else if (p0.source == mShowTagCombo.editor.editorComponent && mShowTagToggle.isSelected) {
                     val item = mShowTagCombo.editor.item.toString()
                     mFilteredTableModel.mFilterTag = item
-                } else if (p0.source == mShowPidCombo.editor.editorComponent && mShowPidCheck.isSelected) {
+                } else if (p0.source == mShowPidCombo.editor.editorComponent && mShowPidToggle.isSelected) {
                     val item = mShowPidCombo.editor.item.toString()
                     mFilteredTableModel.mFilterPid = item
-                } else if (p0.source == mShowTidCombo.editor.editorComponent && mShowTidCheck.isSelected) {
+                } else if (p0.source == mShowTidCombo.editor.editorComponent && mShowTidToggle.isSelected) {
                     val item = mShowTidCombo.editor.item.toString()
                     mFilteredTableModel.mFilterTid = item
                 }
@@ -1450,47 +1456,47 @@ class MainUI(title: String) : JFrame() {
 
     internal inner class ItemHandler : ItemListener {
         override fun itemStateChanged(p0: ItemEvent?) {
-            if (p0?.source == mShowLogCheck) {
-                mShowLogCombo.isEnabled = mShowLogCheck.isSelected
-            } else if (p0?.source == mBoldLogCheck) {
-                mBoldLogCombo.isEnabled = mBoldLogCheck.isSelected
-            } else if (p0?.source == mShowTagCheck) {
-                mShowTagCombo.isEnabled = mShowTagCheck.isSelected
-            } else if (p0?.source == mShowPidCheck) {
-                mShowPidCombo.isEnabled = mShowPidCheck.isSelected
-            } else if (p0?.source == mShowTidCheck) {
-                mShowTidCombo.isEnabled = mShowTidCheck.isSelected
+            if (p0?.source == mShowLogToggle) {
+                mShowLogCombo.isEnabled = mShowLogToggle.isSelected
+            } else if (p0?.source == mBoldLogToggle) {
+                mBoldLogCombo.isEnabled = mBoldLogToggle.isSelected
+            } else if (p0?.source == mShowTagToggle) {
+                mShowTagCombo.isEnabled = mShowTagToggle.isSelected
+            } else if (p0?.source == mShowPidToggle) {
+                mShowPidCombo.isEnabled = mShowPidToggle.isSelected
+            } else if (p0?.source == mShowTidToggle) {
+                mShowTidCombo.isEnabled = mShowTidToggle.isSelected
             }
 
             if (mIsCreatingUI) {
                 return
             }
-            if (p0?.source == mShowLogCheck) {
-                if (mShowLogCheck.isSelected && mShowLogCombo.selectedItem != null) {
+            if (p0?.source == mShowLogToggle) {
+                if (mShowLogToggle.isSelected && mShowLogCombo.selectedItem != null) {
                     mFilteredTableModel.mFilterLog = mShowLogCombo.selectedItem!!.toString()
                 } else {
                     mFilteredTableModel.mFilterLog = ""
                 }
-            } else if (p0?.source == mBoldLogCheck) {
-                if (mBoldLogCheck.isSelected && mBoldLogCombo.selectedItem != null) {
+            } else if (p0?.source == mBoldLogToggle) {
+                if (mBoldLogToggle.isSelected && mBoldLogCombo.selectedItem != null) {
                     mFilteredTableModel.mFilterHighlightLog = mBoldLogCombo.selectedItem!!.toString()
                 } else {
                     mFilteredTableModel.mFilterHighlightLog = ""
                 }
-            } else if (p0?.source == mShowTagCheck) {
-                if (mShowTagCheck.isSelected && mShowTagCombo.selectedItem != null) {
+            } else if (p0?.source == mShowTagToggle) {
+                if (mShowTagToggle.isSelected && mShowTagCombo.selectedItem != null) {
                     mFilteredTableModel.mFilterTag = mShowTagCombo.selectedItem!!.toString()
                 } else {
                     mFilteredTableModel.mFilterTag = ""
                 }
-            } else if (p0?.source == mShowPidCheck) {
-                if (mShowPidCheck.isSelected && mShowPidCombo.selectedItem != null) {
+            } else if (p0?.source == mShowPidToggle) {
+                if (mShowPidToggle.isSelected && mShowPidCombo.selectedItem != null) {
                     mFilteredTableModel.mFilterPid = mShowPidCombo.selectedItem!!.toString()
                 } else {
                     mFilteredTableModel.mFilterPid = ""
                 }
-            } else if (p0?.source == mShowTidCheck) {
-                if (mShowTidCheck.isSelected && mShowTidCombo.selectedItem != null) {
+            } else if (p0?.source == mShowTidToggle) {
+                if (mShowTidToggle.isSelected && mShowTidCombo.selectedItem != null) {
                     mFilteredTableModel.mFilterTid = mShowTidCombo.selectedItem!!.toString()
                 } else {
                     mFilteredTableModel.mFilterTid = ""

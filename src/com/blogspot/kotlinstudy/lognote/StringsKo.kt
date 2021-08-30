@@ -38,6 +38,12 @@ class StringsKo private constructor() {
             , "Scrollback"
             , "Clear/Save"
             , "로그 파일"
+            , "Connect"
+            , "Refresh"
+            , "Disconnect"
+            , "Apply"
+            , "Scrollback(lines)"
+            , "Split File"
         )
     }
 }

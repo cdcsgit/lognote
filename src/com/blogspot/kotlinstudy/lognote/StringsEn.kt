@@ -38,6 +38,12 @@ class StringsEn private constructor() {
             , "Scrollback"
             , "Clear/Save"
             , "Log file"
+            , "Connect"
+            , "Refresh"
+            , "Disconnect"
+            , "Apply"
+            , "Scrollback(lines)"
+            , "Split File"
 //            , ""
         )
     }

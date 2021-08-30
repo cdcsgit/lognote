@@ -53,6 +53,12 @@ class Strings private constructor() {
         private val IDX_SCROLLBACK = idx++
         private val IDX_CLEAR_SAVE = idx++
         private val IDX_LOGFILE = idx++
+        private val IDX_CONNECT = idx++
+        private val IDX_REFRESH = idx++
+        private val IDX_DISCONNECT = idx++
+        private val IDX_APPLY = idx++
+        private val IDX_SCROLLBACK_LINES = idx++
+        private val IDX_SPLIT_FILE = idx++
 //        private val IDX_ = idx++
 
         val FILE: String
@@ -125,5 +131,17 @@ class Strings private constructor() {
             get() { return currStrings[IDX_CLEAR_SAVE] }
         val LOGFILE: String
             get() { return currStrings[IDX_LOGFILE] }
+        val CONNECT: String
+            get() { return currStrings[IDX_CONNECT] }
+        val REFRESH: String
+            get() { return currStrings[IDX_REFRESH] }
+        val DISCONNECT: String
+            get() { return currStrings[IDX_DISCONNECT] }
+        val APPLY: String
+            get() { return currStrings[IDX_APPLY] }
+        val SCROLLBACK_LINES: String
+            get() { return currStrings[IDX_SCROLLBACK_LINES] }
+        val SPLIT_FILE: String
+            get() { return currStrings[IDX_SPLIT_FILE] }
     }
 }
