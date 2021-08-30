@@ -19,7 +19,7 @@ import javax.swing.text.JTextComponent
 
 
 class MainUI(title: String) : JFrame() {
-    val VERSION: String = "0.1.2"
+    val VERSION: String = "0.1.3"
     val CONFIG_FILE = "lognote.xml"
     private lateinit var mMenuBar: JMenuBar
     private lateinit var mMenuFile: JMenu
