@@ -136,7 +136,7 @@ class MainUI(title: String) : JFrame() {
     private val INFO = "Info"
     private val WARNING = "Warning"
     private val ERROR = "Error"
-    private val ASSERT = "Assert"
+    private val FATAL = "Fatal"
 
     var mFont: Font = Font("Dialog", Font.PLAIN, 12)
         set(value) {
@@ -292,7 +292,7 @@ class MainUI(title: String) : JFrame() {
         mMenuLogLevel.add(menuItem)
         menuItem.addItemListener(mLevelItemHandler)
 
-        menuItem = JRadioButtonMenuItem(ASSERT)
+        menuItem = JRadioButtonMenuItem(FATAL)
         mLogLevelGroup.add(menuItem)
         mMenuLogLevel.add(menuItem)
         menuItem.addItemListener(mLevelItemHandler)
@@ -737,7 +737,7 @@ class MainUI(title: String) : JFrame() {
             INFO->mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_INFO
             WARNING->mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_WARNING
             ERROR->mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_ERROR
-            ASSERT->mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_ASSERT
+            FATAL->mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_FATAL
         }
 
         if (mShowLogToggle.isSelected && mShowLogCombo.selectedItem != null) {
@@ -1516,7 +1516,7 @@ class MainUI(title: String) : JFrame() {
                 INFO->mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_INFO
                 WARNING->mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_WARNING
                 ERROR->mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_ERROR
-                ASSERT->mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_ASSERT
+                FATAL->mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_FATAL
             }
         }
     }

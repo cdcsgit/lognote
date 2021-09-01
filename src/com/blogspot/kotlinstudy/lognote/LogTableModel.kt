@@ -61,7 +61,7 @@ class LogTableModel() : AbstractTableModel() {
     val LEVEL_INFO = 2
     val LEVEL_WARNING = 3
     val LEVEL_ERROR = 4
-    val LEVEL_ASSERT = 5
+    val LEVEL_FATAL = 5
 
     private var mIsFilterUpdated = true
 
@@ -313,7 +313,7 @@ class LogTableModel() : AbstractTableModel() {
     private val COLOR_INFO = Color(0x00, 0x80, 0xDF)
     private val COLOR_WARNING = Color(0xF0, 0x70, 0x00)
     private val COLOR_ERROR = Color(0xD0, 0x00, 0x00)
-    private val COLOR_ASSERT = Color(0x70, 0x00, 0x00)
+    private val COLOR_FATAL = Color(0x70, 0x00, 0x00)
 
     constructor(baseModel: LogTableModel?) : this() {
         mBaseModel = baseModel
@@ -454,7 +454,7 @@ class LogTableModel() : AbstractTableModel() {
         } else if (text == "E") {
             level = LEVEL_ERROR
         } else if (text == "F") {
-            level = LEVEL_ASSERT
+            level = LEVEL_FATAL
         }
 
         return level
@@ -473,8 +473,8 @@ class LogTableModel() : AbstractTableModel() {
             color = COLOR_WARNING
         } else if (level == LEVEL_ERROR) {
             color = COLOR_ERROR
-        } else if (level == LEVEL_ASSERT) {
-            color = COLOR_ASSERT
+        } else if (level == LEVEL_FATAL) {
+            color = COLOR_FATAL
         }
 
         return color
