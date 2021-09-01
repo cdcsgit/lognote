@@ -14,7 +14,7 @@ import javax.swing.event.ChangeEvent
 import javax.swing.event.ChangeListener
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
-
+import javax.swing.plaf.basic.BasicScrollBarUI
 
 
 class FontDialog (parent: MainUI) : JDialog(parent, "Font settings", true), ActionListener {
@@ -26,6 +26,7 @@ class FontDialog (parent: MainUI) : JDialog(parent, "Font settings", true), Acti
     private var mOkBtn: ColorButton
     private var mCancelBtn: ColorButton
     private var mParent = parent
+    private val mPrevFont = mParent.mFont
 
     init {
         mNameList = JList(GraphicsEnvironment.getLocalGraphicsEnvironment().availableFontFamilyNames)
@@ -33,6 +34,8 @@ class FontDialog (parent: MainUI) : JDialog(parent, "Font settings", true), Acti
         mNameScrollPane = JScrollPane(mNameList)
         mNameScrollPane.preferredSize = Dimension(330, 200)
         mNameList.setSelectedValue(parent.mFont.family, true)
+        mNameScrollPane.verticalScrollBar.ui = BasicScrollBarUI()
+        mNameScrollPane.horizontalScrollBar.ui = BasicScrollBarUI()
         mNameList.addListSelectionListener(ListSelectionHandler())
         mOkBtn = ColorButton("OK")
         mOkBtn.addActionListener(this)
@@ -76,11 +79,9 @@ class FontDialog (parent: MainUI) : JDialog(parent, "Font settings", true), Acti
 
     override fun actionPerformed(e: ActionEvent?) {
         if (e?.source == mOkBtn) {
-            val selection = mNameList.selectedValue
-            val size = mSizeSpinner.model.value as Int
-            mParent.mFont = Font(selection.toString(), Font.PLAIN, size)
             dispose()
         } else if (e?.source == mCancelBtn) {
+            mParent.mFont = mPrevFont
             dispose()
         }
     }
@@ -90,6 +91,9 @@ class FontDialog (parent: MainUI) : JDialog(parent, "Font settings", true), Acti
             val selection = mNameList.selectedValue
             val size = mSizeSpinner.model.value as Int
             mExampleLabel.font = Font(selection.toString(), Font.PLAIN, size)
+
+            mParent.mFont = Font(selection.toString(), Font.PLAIN, size)
+
         }
     }
 
@@ -99,6 +103,9 @@ class FontDialog (parent: MainUI) : JDialog(parent, "Font settings", true), Acti
                 val selection = mNameList.selectedValue
                 val size = mSizeSpinner.model.value as Int
                 mExampleLabel.font = Font(selection.toString(), Font.PLAIN, size)
+
+                mParent.mFont = Font(selection.toString(), Font.PLAIN, size)
+
             }
         }
     }
