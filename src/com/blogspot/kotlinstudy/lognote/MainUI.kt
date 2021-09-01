@@ -49,6 +49,7 @@ class MainUI(title: String) : JFrame() {
     private lateinit var mClearBtn: ColorButton
     private lateinit var mClearSaveBtn: ColorButton
     private lateinit var mRotationBtn: ColorButton
+    private lateinit var mFiltersBtn: ColorButton
     private val SPLIT_WEIGHT = 0.7
 
     private lateinit var mLogPanel: JPanel
@@ -92,7 +93,9 @@ class MainUI(title: String) : JFrame() {
     private lateinit var mScrollbackSplitFileCheck: JCheckBox
     private lateinit var mScrollbackApplyBtn: ColorButton
 
-    private lateinit var mFilteredTableModel: LogTableModel
+    lateinit var mFilteredTableModel: LogTableModel
+        private set
+
     private lateinit var mFullTableModel: LogTableModel
 
     private lateinit var mLogSplitPane: JSplitPane
@@ -117,6 +120,7 @@ class MainUI(title: String) : JFrame() {
     private var mIsCreatingUI = true
 
     private val mAdbManager = AdbManager.getInstance()
+    private val mFiltersManager = FiltersManager(this, mConfigManager)
 
     private var mFrameX = 0
     private var mFrameY = 0
@@ -254,6 +258,7 @@ class MainUI(title: String) : JFrame() {
         mItemLogFile = JMenuItem(Strings.LOGFILE)
         mItemLogFile.addActionListener(mActionHandler)
         mMenuSettings.add(mItemLogFile)
+//        mItemFont = JMenuItem(Strings.FONT + " & " + Strings.COLOR)
         mItemFont = JMenuItem(Strings.FONT)
         mItemFont.addActionListener(mActionHandler)
         mMenuSettings.add(mItemFont)
@@ -378,6 +383,9 @@ class MainUI(title: String) : JFrame() {
         mRotationBtn = ColorButton(Strings.ROTATION)
         mRotationBtn.addActionListener(mActionHandler)
         mRotationBtn.addMouseListener(mMouseHandler)
+        mFiltersBtn = ColorButton(Strings.FILTERS)
+        mFiltersBtn.addActionListener(mActionHandler)
+        mFiltersBtn.addMouseListener(mMouseHandler)
 
         mLogPanel = JPanel()
         mShowLogPanel = JPanel()
@@ -567,6 +575,7 @@ class MainUI(title: String) : JFrame() {
 
         addVSeparator(mLogToolBar)
         mLogToolBar.add(mMatchCaseBtn)
+        mLogToolBar.add(mFiltersBtn)
 
         val toolBarPanel = JPanel(FlowLayout(FlowLayout.LEFT, 0, 0))
         toolBarPanel.addMouseListener(mMouseHandler)
@@ -829,7 +838,7 @@ class MainUI(title: String) : JFrame() {
         panel.add(Box.createHorizontalStrut(5))
     }
 
-    internal inner class ConfigManager {
+    inner class ConfigManager {
         var mProperties = Properties()
         val ITEM_FRAME_X = "FRAME_X"
         val ITEM_FRAME_Y = "FRAME_Y"
@@ -870,6 +879,9 @@ class MainUI(title: String) : JFrame() {
         val ITEM_SCROLLBACK = "SCROLLBACK"
         val ITEM_SCROLLBACK_SPLIT_FILE = "SCROLLBACK_SPLIT_FILE"
         val ITEM_MATCH_CASE = "MATCH_CASE"
+
+        val ITEM_FILTERS_TITLE = "FILTERS_TITLE_"
+        val ITEM_FILTERS_FILTER = "FILTERS_FILTER_"
 
         private fun setDefaultConfig() {
             mProperties.put(ITEM_LOG_LEVEL, VERBOSE)
@@ -1016,6 +1028,40 @@ class MainUI(title: String) : JFrame() {
                     }
                 }
             }
+        }
+
+        fun loadFilters() : ArrayList<FiltersManager.FilterElement> {
+            val filters = ArrayList<FiltersManager.FilterElement>()
+
+            var title: String?
+            var filter: String?
+            for (i in 0 until FiltersManager.MAX_FILTERS) {
+                title = mProperties.get(ITEM_FILTERS_TITLE + i) as? String
+                if (title == null) {
+                    break
+                }
+                filter = mProperties.get(ITEM_FILTERS_FILTER + i) as? String
+                if (filter == null) {
+                    filter = "null"
+                }
+                filters.add(FiltersManager.FilterElement(title, filter))
+            }
+
+            return filters
+        }
+
+        fun saveFilters(filters : ArrayList<FiltersManager.FilterElement>) {
+            var nCount = filters.size
+            if (nCount > FiltersManager.MAX_FILTERS) {
+                nCount = FiltersManager.MAX_FILTERS
+            }
+            for (i in 0 until nCount) {
+                mProperties.put(ITEM_FILTERS_TITLE + i, filters[i].mTitle)
+                mProperties.put(ITEM_FILTERS_FILTER + i, filters[i].mFilter)
+            }
+
+            saveConfig()
+            return
         }
     }
 
@@ -1201,6 +1247,8 @@ class MainUI(title: String) : JFrame() {
                         mLogSplitPane.resizeWeight = 1 - SPLIT_WEIGHT
                     }
                 }
+            } else if (p0?.source == mFiltersBtn) {
+                mFiltersManager.showFiltersDialog()
             }
         }
     }

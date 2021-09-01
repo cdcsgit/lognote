@@ -44,6 +44,8 @@ class StringsEn private constructor() {
             , "Apply"
             , "Scrollback(lines)"
             , "Split File"
+            , "Color"
+            , "Filter list"
 //            , ""
         )
     }
