@@ -16,11 +16,10 @@ import javax.swing.event.PopupMenuEvent
 import javax.swing.event.PopupMenuListener
 import javax.swing.plaf.basic.BasicScrollBarUI
 import javax.swing.text.JTextComponent
+import kotlin.system.exitProcess
 
 
 class MainUI(title: String) : JFrame() {
-    val VERSION: String = "0.1.3"
-    val CONFIG_FILE = "lognote.xml"
     private lateinit var mMenuBar: JMenuBar
     private lateinit var mMenuFile: JMenu
     private lateinit var mItemFileOpen: JMenuItem
@@ -212,7 +211,7 @@ class MainUI(title: String) : JFrame() {
         mFilteredTableModel.stopScan()
         mFullTableModel.stopScan()
         mAdbManager.stop()
-        System.exit(0)
+        exitProcess(0)
     }
 
     private fun createUI(title: String) {
@@ -839,6 +838,7 @@ class MainUI(title: String) : JFrame() {
     }
 
     inner class ConfigManager {
+        val CONFIG_FILE = "lognote.xml"
         var mProperties = Properties()
         val ITEM_FRAME_X = "FRAME_X"
         val ITEM_FRAME_Y = "FRAME_Y"

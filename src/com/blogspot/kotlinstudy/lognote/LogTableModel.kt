@@ -1,36 +1,28 @@
 package com.blogspot.kotlinstudy.lognote
 
-import com.blogspot.kotlinstudy.lognote.AdbManager
 import java.awt.Color
 import java.io.*
 import javax.swing.table.AbstractTableModel
 import java.lang.Exception
-import java.lang.NumberFormatException
-import java.util.*
 import java.util.regex.Pattern
-import javax.swing.text.DefaultStyledDocument
-import javax.swing.text.Style
-import java.util.TreeSet
-import javax.swing.JTable
 import javax.swing.SwingUtilities
-import javax.swing.table.DefaultTableModel
-import jdk.nashorn.internal.objects.NativeArray.pop
-import java.awt.EventQueue
 import java.util.Stack
 import java.util.ArrayList
-import javax.swing.JFrame
-import javax.xml.stream.events.Characters
 
 
-class LogTableModelEvent(source:LogTableModel, change:Int) {
+class LogTableModelEvent(source:LogTableModel, change:Int, removedCount:Int) {
     val mSource = source
     val mDataChange = change
+//    val mFlags = flag
+    val mRemovedCount = removedCount
     companion object {
-        val ADDED = 0
-        val REMOVED = 1
-        val FILTERED = 2
-        val CHANGED = 3
-        val CLEARED = 4
+        val EVENT_ADDED = 0
+        val EVENT_REMOVED = 1
+        val EVENT_FILTERED = 2
+        val EVENT_CHANGED = 3
+        val EVENT_CLEARED = 4
+
+        val FLAG_FIRST_REMOVED = 1
     }
 }
 
@@ -532,16 +524,20 @@ class LogTableModel() : AbstractTableModel() {
         fireLogTableDataChanged()
     }
 
+    private fun fireLogTableDataChanged(flags: Int) {
+        fireLogTableDataChanged(LogTableModelEvent(this, LogTableModelEvent.EVENT_CHANGED, flags))
+    }
+
     private fun fireLogTableDataChanged() {
-        fireLogTableDataChanged(LogTableModelEvent(this, LogTableModelEvent.CHANGED))
+        fireLogTableDataChanged(LogTableModelEvent(this, LogTableModelEvent.EVENT_CHANGED, 0))
     }
 
     private fun fireLogTableDataFiltered() {
-        fireLogTableDataChanged(LogTableModelEvent(this, LogTableModelEvent.FILTERED))
+        fireLogTableDataChanged(LogTableModelEvent(this, LogTableModelEvent.EVENT_FILTERED, 0))
     }
 
     private fun fireLogTableDataCleared() {
-        fireLogTableDataChanged(LogTableModelEvent(this, LogTableModelEvent.CLEARED))
+        fireLogTableDataChanged(LogTableModelEvent(this, LogTableModelEvent.EVENT_CLEARED, 0))
     }
 
     private fun fireLogTableDataChanged(event:LogTableModelEvent) {
@@ -869,6 +865,9 @@ class LogTableModel() : AbstractTableModel() {
             var nextUpdateTime:Long = 0
             var nextBaseUpdateTime:Long = 0
 
+            var removedCount = 0
+            var baseRemovedCount = 0
+
             var item:LogItem
             line = bufferedReader.readLine()
             while (line != null) {
@@ -950,11 +949,13 @@ class LogTableModel() : AbstractTableModel() {
                         mBaseModel!!.mLogItems.add(item)
                         if (mScrollback > 0 && mBaseModel!!.mLogItems.count() > mScrollback) {
                             mBaseModel!!.mLogItems.removeAt(0)
+                            baseRemovedCount++
                         }
                         if (isShow || mBookmarkManager.mBookmarks.contains(item.mNum.toInt())) {
                             mLogItems.add(item)
                             if (mScrollback > 0 && mLogItems.count() > mScrollback) {
                                 mLogItems.removeAt(0)
+                                removedCount++
                             }
                         }
                     }
@@ -963,12 +964,14 @@ class LogTableModel() : AbstractTableModel() {
                     if (mLogItems.size > nextItemCount || millis > nextUpdateTime) {
                         nextItemCount = mLogItems.size + 200
                         nextUpdateTime = millis + 300
-                        fireLogTableDataChanged()
+                        fireLogTableDataChanged(removedCount)
+                        removedCount = 0
                     }
                     if (mBaseModel!!.mLogItems.size > nextBaseItemCount || millis > nextBaseUpdateTime) {
                         nextBaseItemCount = mBaseModel!!.mLogItems.size + 500
                         nextBaseUpdateTime = millis + 500
-                        mBaseModel!!.fireLogTableDataChanged()
+                        mBaseModel!!.fireLogTableDataChanged(baseRemovedCount)
+                        baseRemovedCount = 0
                     }
                     num++
                     saveNum++

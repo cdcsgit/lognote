@@ -7,18 +7,24 @@ import javax.swing.plaf.ColorUIResource
 import javax.swing.text.html.HTMLEditorKit
 import javax.swing.text.html.StyleSheet
 
+class Main {
+    companion object {
+        val VERSION: String = "0.1.3"
 
-fun main(args: Array<String>) {
-    System.setProperty("awt.useSystemAAFontSettings","on")
-    System.setProperty("swing.aatext", "true")
+        @JvmStatic
+        fun main(args: Array<String>) {
+            System.setProperty("awt.useSystemAAFontSettings", "on")
+            System.setProperty("swing.aatext", "true")
 
-    SwingUtilities.invokeLater {
-        UIManager.put("ScrollBar.thumb", ColorUIResource(Color(0xE0, 0xE0, 0xE0)))
-        UIManager.put("ScrollBar.thumbHighlight", ColorUIResource(Color(0xE5, 0xE5, 0xE5)))
-        UIManager.put("ScrollBar.thumbShadow", ColorUIResource(Color(0xE5, 0xE5, 0xE5)))
-        UIManager.put("ComboBox.buttonDarkShadow", ColorUIResource(Color.black))
+            SwingUtilities.invokeLater {
+                UIManager.put("ScrollBar.thumb", ColorUIResource(Color(0xE0, 0xE0, 0xE0)))
+                UIManager.put("ScrollBar.thumbHighlight", ColorUIResource(Color(0xE5, 0xE5, 0xE5)))
+                UIManager.put("ScrollBar.thumbShadow", ColorUIResource(Color(0xE5, 0xE5, 0xE5)))
+                UIManager.put("ComboBox.buttonDarkShadow", ColorUIResource(Color.black))
 
-        val mainUI = MainUI("LogNote")
-        mainUI.setVisible(true)
+                val mainUI = MainUI("LogNote")
+                mainUI.setVisible(true)
+            }
+        }
     }
 }

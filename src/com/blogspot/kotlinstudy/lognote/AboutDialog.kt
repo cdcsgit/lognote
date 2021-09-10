@@ -16,7 +16,7 @@ class AboutDialog(parent: JFrame) :JDialog(parent, "About", true), ActionListene
         mCloseBtn.addActionListener(this)
         mMainUI = parent as MainUI
 
-        mAboutLabel = JLabel("<html><center><h1>LogNote " + mMainUI.VERSION + "</h1><br>cdcsman@gmail.com</center></html>")
+        mAboutLabel = JLabel("<html><center><h1>LogNote " + Main.VERSION + "</h1><br>cdcsman@gmail.com</center></html>")
 
         val aboutPanel = JPanel()
         aboutPanel.add(mAboutLabel)
