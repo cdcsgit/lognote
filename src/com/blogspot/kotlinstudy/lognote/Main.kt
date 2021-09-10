@@ -9,7 +9,7 @@ import javax.swing.text.html.StyleSheet
 
 class Main {
     companion object {
-        val VERSION: String = "0.1.3"
+        val VERSION: String = "0.1.4"
 
         @JvmStatic
         fun main(args: Array<String>) {
