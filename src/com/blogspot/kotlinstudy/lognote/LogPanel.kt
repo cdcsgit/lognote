@@ -274,22 +274,25 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
 
     internal inner class ListSelectionHandler : ListSelectionListener {
         override fun valueChanged(p0: ListSelectionEvent?) {
-            if (p0?.valueIsAdjusting == true) {
-                if (mBasePanel != null) {
+            if (mBasePanel != null) {
+                val value = mTable.mTableModel.getValueAt(mTable.selectedRow, 0)
+                val selectedRow = value.toString().trim().toInt()
+
+                val baseValue = mBasePanel.mTable.mTableModel.getValueAt(mBasePanel.mTable.selectedRow, 0)
+                val baseSelectedRow = baseValue.toString().trim().toInt()
+
+                if (selectedRow != baseSelectedRow) {
                     setGoToLast(false)
                     mBasePanel.setGoToLast(false)
-                    val value = mTable.mTableModel.getValueAt(mTable.selectedRow, 0)
-                    val baseSelectedRow = value.toString().trim().toInt()
-                    println("valueChanged Tid = " + Thread.currentThread().getId())
-                    mBasePanel.goToRowByNum(baseSelectedRow, -1)
+                    mBasePanel.goToRowByNum(selectedRow, -1)
 
                     if (mTable.selectedRow == mTable.rowCount - 1) {
                         setGoToLast(true)
                     }
-                } else {
-                    if (mTable.selectedRow == mTable.rowCount - 1) {
-                        setGoToLast(true)
-                    }
+                }
+            } else {
+                if (mTable.selectedRow == mTable.rowCount - 1) {
+                    setGoToLast(true)
                 }
             }
 
