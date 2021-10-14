@@ -211,7 +211,7 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
             if (event?.mDataChange == LogTableModelEvent.EVENT_CLEARED) {
                 mOldLogVPos = -1
             } else {
-                SwingUtilities.invokeLater {
+                SwingUtilities.invokeAndWait {
                     updateTableUI()
                     mTable.updateColumnWidth(this@LogPanel.width)
                     if (event?.mDataChange == LogTableModelEvent.EVENT_CHANGED) {
@@ -220,25 +220,27 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
                             viewRect.x = mTable.visibleRect.x
                             mTable.scrollRectToVisible(viewRect)
                         }
+                        else {
+                            if (event.mRemovedCount > 0 && mTable.selectedRow > 0) {
+                                var idx = mTable.selectedRow - event.mRemovedCount
+                                if (idx < 0) {
+                                    idx = 0
+                                }
 
-                        if (event.mRemovedCount > 0 && mTable.selectedRow > 0) {
-                            var idx = mTable.selectedRow - event.mRemovedCount
-                            if (idx < 0) {
-                                idx = 0
-                            }
+                                val selectedLine = mTable.getValueAt(idx, 0).toString().trim().toInt()
 
-                            val selectedLine = mTable.getValueAt(idx, 0).toString().trim().toInt()
-                            if (selectedLine >= 0) {
-                                var num = 0
-                                for (idx in 0 until mTable.rowCount) {
-                                    num = mTable.getValueAt(idx, 0).toString().trim().toInt()
-                                    if (selectedLine <= num) {
-                                        mTable.setRowSelectionInterval(idx, idx)
-                                        val viewRect: Rectangle = mTable.getCellRect(idx, 0, true)
-                                        mTable.scrollRectToVisible(viewRect)
-                                        mTable.scrollRectToVisible(viewRect) // sometimes not work
-                                        break
-                                    }
+                                if (selectedLine >= 0) {
+//                                    var num = 0
+//                                    for (idx in 0 until mTable.rowCount) {
+//                                        num = mTable.getValueAt(idx, 0).toString().trim().toInt()
+//                                        if (selectedLine <= num) {
+                                            mTable.setRowSelectionInterval(idx, idx)
+                                            val viewRect: Rectangle = mTable.getCellRect(idx, 0, true)
+                                            mTable.scrollRectToVisible(viewRect)
+                                            mTable.scrollRectToVisible(viewRect) // sometimes not work
+//                                            break
+//                                        }
+//                                    }
                                 }
                             }
                         }
@@ -266,7 +268,6 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
                             }
                         }
                     }
-
                 }
             }
         }
@@ -285,6 +286,7 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
                     setGoToLast(false)
                     mBasePanel.setGoToLast(false)
                     mBasePanel.goToRowByNum(selectedRow, -1)
+                    mTable.mTableModel.mSelectionChanged = true
 
                     if (mTable.selectedRow == mTable.rowCount - 1) {
                         setGoToLast(true)

@@ -57,6 +57,8 @@ class LogTableModel() : AbstractTableModel() {
 
     private var mIsFilterUpdated = true
 
+    var mSelectionChanged = false
+
     var mMainUI: MainUI? = null
         set(value) {
             field = value
@@ -946,6 +948,13 @@ class LogTableModel() : AbstractTableModel() {
                         if (mScanThread == null) {
                             return@invokeAndWait
                         }
+                        if (mSelectionChanged) {
+                            baseRemovedCount = 0
+                            removedCount = 0
+                            nextUpdateTime = System.currentTimeMillis() - 1
+                            mSelectionChanged = false
+                        }
+
                         mBaseModel!!.mLogItems.add(item)
                         if (mScrollback > 0 && mBaseModel!!.mLogItems.count() > mScrollback) {
                             mBaseModel!!.mLogItems.removeAt(0)
