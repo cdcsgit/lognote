@@ -221,7 +221,7 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
             }
         }
 
-        fun tableChangedInternal(event: LogTableModelEvent?) {
+        private fun tableChangedInternal(event: LogTableModelEvent?) {
             updateTableUI()
             mTable.updateColumnWidth(this@LogPanel.width)
             if (event?.mDataChange == LogTableModelEvent.EVENT_CHANGED) {

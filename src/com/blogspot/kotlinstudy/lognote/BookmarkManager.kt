@@ -17,7 +17,6 @@ interface BookmarkEventListener {
 }
 
 class BookmarkManager private constructor(){
-    val mBackground = Color(0xD0, 0xD0, 0xFF)
     companion object {
         private val mInstance: BookmarkManager = BookmarkManager()
 

@@ -301,14 +301,6 @@ class LogTableModel() : AbstractTableModel() {
     var mPatternShowTid = Pattern.compile(mFilterShowTid, mPatternCase)
     var mPatternHideTid = Pattern.compile(mFilterHideTid, mPatternCase)
 
-    private val COLOR_NONE = Color(0x00, 0x00, 0x00)
-    private val COLOR_VERBOSE = Color(0x00, 0x00, 0x00)
-    private val COLOR_DEBUG = Color(0x20, 0x90, 0x00)
-    private val COLOR_INFO = Color(0x00, 0x80, 0xDF)
-    private val COLOR_WARNING = Color(0xF0, 0x70, 0x00)
-    private val COLOR_ERROR = Color(0xD0, 0x00, 0x00)
-    private val COLOR_FATAL = Color(0x70, 0x00, 0x00)
-
     constructor(baseModel: LogTableModel?) : this() {
         mBaseModel = baseModel
         loadItems()
@@ -454,26 +446,6 @@ class LogTableModel() : AbstractTableModel() {
         return level
     }
 
-    private fun levelToColor(level:Int) : Color {
-        var color = COLOR_NONE
-
-        if (level == LEVEL_VERBOSE) {
-            color = COLOR_VERBOSE
-        } else if (level == LEVEL_DEBUG) {
-            color = COLOR_DEBUG
-        } else if (level == LEVEL_INFO) {
-            color = COLOR_INFO
-        } else if (level == LEVEL_WARNING) {
-            color = COLOR_WARNING
-        } else if (level == LEVEL_ERROR) {
-            color = COLOR_ERROR
-        } else if (level == LEVEL_FATAL) {
-            color = COLOR_FATAL
-        }
-
-        return color
-    }
-
     private fun loadFile() {
         mLogItems.clear()
         mBookmarkManager.clear()
@@ -582,7 +554,51 @@ class LogTableModel() : AbstractTableModel() {
     }
 
     fun getFgColor(row: Int) : Color {
-        return levelToColor(mLogItems[row].mLevel)
+        return when (mLogItems[row].mLevel) {
+            LEVEL_VERBOSE -> {
+                ColorManager.LogLevelVerbose
+            }
+            LEVEL_DEBUG -> {
+                ColorManager.LogLevelDebug
+            }
+            LEVEL_INFO -> {
+                ColorManager.LogLevelInfo
+            }
+            LEVEL_WARNING -> {
+                ColorManager.LogLevelWarning
+            }
+            LEVEL_ERROR -> {
+                ColorManager.LogLevelError
+            }
+            LEVEL_FATAL -> {
+                ColorManager.LogLevelFatal
+            }
+            else -> ColorManager.LogLevelNone
+        }
+    }
+
+    fun getFgStrColor(row: Int) : String {
+        return when (mLogItems[row].mLevel) {
+            LEVEL_VERBOSE -> {
+                ColorManager.StrLogLevelVerbose
+            }
+            LEVEL_DEBUG -> {
+                ColorManager.StrLogLevelDebug
+            }
+            LEVEL_INFO -> {
+                ColorManager.StrLogLevelInfo
+            }
+            LEVEL_WARNING -> {
+                ColorManager.StrLogLevelWarning
+            }
+            LEVEL_ERROR -> {
+                ColorManager.StrLogLevelError
+            }
+            LEVEL_FATAL -> {
+                ColorManager.StrLogLevelFatal
+            }
+            else -> ColorManager.StrLogLevelNone
+        }
     }
 
     protected var mPatternPrintValue:Pattern? = null
@@ -660,7 +676,7 @@ class LogTableModel() : AbstractTableModel() {
                         stringBuilder.replace(
                             start,
                             end,
-                            "<b><font color=#FF0000>" + newValue.substring(start, end) + "</font></b>"
+                            "<b><font color=${ColorManager.StrFilteredFG}>" + newValue.substring(start, end) + "</font></b>"
                         )
                     }
                     beforeStart = start
@@ -676,9 +692,8 @@ class LogTableModel() : AbstractTableModel() {
             stringBuilder.replace(0, newValue.length, newValue.replace(" ", "&nbsp;"))
         }
 
-        val color = getFgColor(row)
-        val hex = String.format("#%02x%02x%02x", color.red, color.green, color.blue)
-        stringBuilder.replace(0, 0, "<html><p><nobr><font color=" + hex + ">")
+        val color = getFgStrColor(row)
+        stringBuilder.replace(0, 0, "<html><p><nobr><font color=$color>")
         stringBuilder.append("</font></nobr></p></html>")
         return stringBuilder.toString()
     }

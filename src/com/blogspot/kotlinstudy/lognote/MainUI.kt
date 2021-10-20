@@ -88,7 +88,7 @@ class MainUI(title: String) : JFrame() {
     private lateinit var mAdbDisconnectBtn: ColorButton
 
     private lateinit var mScrollbackLabel: JLabel
-    private lateinit var mScrollbackTextField: JTextField
+    private lateinit var mScrollbackTF: JTextField
     private lateinit var mScrollbackSplitFileCheck: JCheckBox
     private lateinit var mScrollbackApplyBtn: ColorButton
 
@@ -104,7 +104,7 @@ class MainUI(title: String) : JFrame() {
     private var mSelectedLine = 0
 
     private lateinit var mStatusBar: JPanel
-    private lateinit var mStatusTextField: JTextField
+    private lateinit var mStatusTF: JTextField
 
     private val mFrameMouseListener = FrameMouseListener(this)
     private val mKeyHandler = KeyHandler()
@@ -116,6 +116,7 @@ class MainUI(title: String) : JFrame() {
     private val mComponentHandler = ComponentHandler()
 
     private val mConfigManager = ConfigManager()
+    private val mColorManager = ColorManager.getInstance()
     private var mIsCreatingUI = true
 
     private val mAdbManager = AdbManager.getInstance()
@@ -158,7 +159,7 @@ class MainUI(title: String) : JFrame() {
         } else {
             val os = System.getProperty("os.name")
             System.out.println("OS : " + os)
-            if (os.toLowerCase().contains("windows")) {
+            if (os.lowercase().contains("windows")) {
                 mAdbManager.mAdbCmd = "adb.exe"
             } else {
                 mAdbManager.mAdbCmd = "adb"
@@ -257,8 +258,8 @@ class MainUI(title: String) : JFrame() {
         mItemLogFile = JMenuItem(Strings.LOGFILE)
         mItemLogFile.addActionListener(mActionHandler)
         mMenuSettings.add(mItemLogFile)
-//        mItemFont = JMenuItem(Strings.FONT + " & " + Strings.COLOR)
-        mItemFont = JMenuItem(Strings.FONT)
+        mItemFont = JMenuItem(Strings.FONT + " & " + Strings.COLOR)
+//        mItemFont = JMenuItem(Strings.FONT)
         mItemFont.addActionListener(mActionHandler)
         mMenuSettings.add(mItemFont)
         mItemFilterIncremental = JCheckBoxMenuItem(Strings.FILTER + "-" + Strings.INCREMENTAL)
@@ -525,10 +526,10 @@ class MainUI(title: String) : JFrame() {
 
         mScrollbackLabel = JLabel(Strings.SCROLLBACK_LINES)
 
-        mScrollbackTextField = JTextField()
-        mScrollbackTextField.preferredSize = Dimension(80, 25)
+        mScrollbackTF = JTextField()
+        mScrollbackTF.preferredSize = Dimension(80, 25)
+        mScrollbackTF.addKeyListener(mKeyHandler)
         mScrollbackSplitFileCheck = JCheckBox(Strings.SPLIT_FILE, false)
-
 
         val tagPidTidPanel = JPanel(GridLayout(1, 3))
         tagPidTidPanel.add(mTagPanel)
@@ -565,7 +566,7 @@ class MainUI(title: String) : JFrame() {
         addVSeparator(mLogToolBar)
 
         mLogToolBar.add(mScrollbackLabel)
-        mLogToolBar.add(mScrollbackTextField)
+        mLogToolBar.add(mScrollbackTF)
         mLogToolBar.add(mScrollbackSplitFileCheck)
         mLogToolBar.add(mScrollbackApplyBtn)
 
@@ -615,11 +616,11 @@ class MainUI(title: String) : JFrame() {
 
         mStatusBar = JPanel(BorderLayout())
         mStatusBar.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
-        mStatusTextField = JTextField("__")
+        mStatusTF = JTextField("__")
         // mStatusTextField.preferredSize = Dimension(500, 16)
-        mStatusTextField.isEditable = false
-        mStatusTextField.border = BorderFactory.createEmptyBorder()
-        mStatusBar.add(mStatusTextField)
+        mStatusTF.isEditable = false
+        mStatusTF.border = BorderFactory.createEmptyBorder()
+        mStatusBar.add(mStatusTF)
 
         val logLevel = mConfigManager.mProperties.get(mConfigManager.ITEM_LOG_LEVEL) as String
         for (item in mLogLevelGroup.elements) {
@@ -793,11 +794,11 @@ class MainUI(title: String) : JFrame() {
 
         check = mConfigManager.mProperties.get(mConfigManager.ITEM_SCROLLBACK) as? String
         if (!check.isNullOrEmpty()) {
-            mScrollbackTextField.text = check
+            mScrollbackTF.text = check
         } else {
-            mScrollbackTextField.text = "0"
+            mScrollbackTF.text = "0"
         }
-        mFilteredTableModel.mScrollback = mScrollbackTextField.text.toInt()
+        mFilteredTableModel.mScrollback = mScrollbackTF.text.toInt()
 
         check = mConfigManager.mProperties.get(mConfigManager.ITEM_SCROLLBACK_SPLIT_FILE) as? String
         if (!check.isNullOrEmpty()) {
@@ -883,6 +884,8 @@ class MainUI(title: String) : JFrame() {
         val ITEM_FILTERS_TITLE = "FILTERS_TITLE_"
         val ITEM_FILTERS_FILTER = "FILTERS_FILTER_"
 
+        val ITEM_COLOR_MANAGER = "COLOR_MANAGER_"
+
         private fun setDefaultConfig() {
             mProperties.put(ITEM_LOG_LEVEL, VERBOSE)
             mProperties.put(ITEM_SHOW_LOG_CHECK, "true")
@@ -909,6 +912,8 @@ class MainUI(title: String) : JFrame() {
                     }
                 }
             }
+            mColorManager.getConfig(this)
+            mColorManager.applyColor()
         }
 
         fun saveConfig() {
@@ -1013,9 +1018,11 @@ class MainUI(title: String) : JFrame() {
             mProperties.put(ITEM_VIEW_FULL, mItemFull.state.toString())
             mProperties.put(ITEM_FILTER_INCREMENTAL, mItemFilterIncremental.state.toString())
 
-            mProperties.put(ITEM_SCROLLBACK, mScrollbackTextField.text)
+            mProperties.put(ITEM_SCROLLBACK, mScrollbackTF.text)
             mProperties.put(ITEM_SCROLLBACK_SPLIT_FILE, mScrollbackSplitFileCheck.isSelected.toString())
             mProperties.put(ITEM_MATCH_CASE, mMatchCaseBtn.isSelected.toString())
+
+            mColorManager.putConfig(this)
 
             try {
                 fileOutput = FileOutputStream(CONFIG_FILE)
@@ -1115,7 +1122,7 @@ class MainUI(title: String) : JFrame() {
     fun openFile(path: String) {
         System.out.println("Opening: " + path)
         mFilteredTableModel.stopScan()
-        mStatusTextField.text = path
+        mStatusTF.text = path
         mFullTableModel.setLogFile(path)
         mFullTableModel.loadItems()
         mFilteredTableModel.loadItems()
@@ -1134,7 +1141,7 @@ class MainUI(title: String) : JFrame() {
 
         val filePath = mAdbManager.mLogSavePath + "/" + prefix + "_" + dtf.format(LocalDateTime.now()) + ".txt"
         mFilteredTableModel.setLogFile(filePath)
-        mStatusTextField.text = filePath
+        mStatusTF.text = filePath
     }
 
     fun startAdbScan(reconnect: Boolean) {
@@ -1193,10 +1200,10 @@ class MainUI(title: String) : JFrame() {
                 mAdbManager.disconnect()
             } else if (p0?.source == mScrollbackApplyBtn) {
                 try {
-                    mFilteredTableModel.mScrollback = mScrollbackTextField.text.toString().trim().toInt()
+                    mFilteredTableModel.mScrollback = mScrollbackTF.text.toString().trim().toInt()
                 } catch (e: java.lang.NumberFormatException) {
                     mFilteredTableModel.mScrollback = 0
-                    mScrollbackTextField.text = "0"
+                    mScrollbackTF.text = "0"
                 }
                 mFilteredTableModel.mScrollbackSplitFile = mScrollbackSplitFileCheck.isSelected
             } else if (p0?.source == mStartBtn) {
@@ -1479,6 +1486,8 @@ class MainUI(title: String) : JFrame() {
                     mFilteredTableModel.mFilterTid = item
                 } else if (p0.source == mDeviceCombo.editor.editorComponent) {
                     reconnectAdb()
+                } else if (p0.source == mScrollbackTF) {
+                    mScrollbackApplyBtn.doClick()
                 }
             } else if (p0 != null && mItemFilterIncremental.state) {
                 if (p0.source == mShowLogCombo.editor.editorComponent && mShowLogToggle.isSelected) {

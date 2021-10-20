@@ -1,6 +1,5 @@
 package com.blogspot.kotlinstudy.lognote
 
-import com.sun.xml.internal.fastinfoset.alphabet.BuiltInRestrictedAlphabets.table
 import java.awt.Color
 import java.awt.Component
 import java.awt.event.*
@@ -111,17 +110,17 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
             row: Int,
             col: Int
         ): Component {
-            background = Color(0xD0, 0xD0, 0xD0)
-            if (row == table?.selectedRow) {
-                background = Color(0xC0, 0xC0, 0xC0)
-            }
-
             var num = -1
             if (value != null) {
                 num = value.toString().trim().toInt()
             }
-            if (mBookmarkManager.mBookmarks.contains(num)) {
-                background = mBookmarkManager.mBackground
+
+            background = if (mBookmarkManager.mBookmarks.contains(num)) {
+                ColorManager.BookmarkBG
+            } else if (row == table?.selectedRow) {
+                ColorManager.SelectedBG
+            } else {
+                ColorManager.LineNumBG
             }
 
             return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col)
@@ -159,19 +158,22 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
             val numValue = mTableModel.getValueAt(row, 0)
             val num = numValue.toString().trim().toInt()
             if (mBookmarkManager.mBookmarks.contains(num)) {
-                background = mBookmarkManager.mBackground
-                val bookmarkColor = mBookmarkManager.mBackground
+                background = ColorManager.BookmarkBG
 
                 if (isSelected || row == table?.selectedRow) {
-                    background = Color((0xC0 + bookmarkColor.red) and 0xFF, (0xC0 + bookmarkColor.green) and 0xFF, (0xC0 + bookmarkColor.blue) and 0xFF)
+                    background = Color(
+                        (ColorManager.SelectedBG.red + ColorManager.BookmarkBG.red) and 0xFF,
+                        (ColorManager.SelectedBG.green + ColorManager.BookmarkBG.green) and 0xFF,
+                        (ColorManager.SelectedBG.blue + ColorManager.BookmarkBG.blue) and 0xFF
+                    )
                 }
             }
             else if (isSelected || row == table?.selectedRow) {
-                background = Color(0xC0, 0xC0, 0xC0)
+                background = ColorManager.SelectedBG
             } else if (mTableModel.isFullDataModel()) {
-                background = Color(0xFA, 0xFA, 0xFF)
+                background = ColorManager.FullLogBG
             } else {
-                background = Color(0xFF, 0xFA, 0xFA)
+                background = ColorManager.FilterLogBG
             }
 
             return label

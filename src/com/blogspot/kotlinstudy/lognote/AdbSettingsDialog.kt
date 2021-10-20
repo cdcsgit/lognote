@@ -20,9 +20,9 @@ class AdbSettingsDialog(parent: JFrame) :JDialog(parent, "ADB settings", true), 
     private var mPrefixLabel: JLabel
     private var mPrefixLabel2: JLabel
 
-    private var mAdbCmdTextField: JTextField
-    private var mAdbSaveTextField: JTextField
-    private var mPrefixTextField: JTextField
+    private var mAdbCmdTF: JTextField
+    private var mAdbSaveTF: JTextField
+    private var mPrefixTF: JTextField
 
     private val mAdbManager = AdbManager.getInstance()
 
@@ -41,26 +41,26 @@ class AdbSettingsDialog(parent: JFrame) :JDialog(parent, "ADB settings", true), 
         mPrefixLabel = JLabel("Prefix")
         mPrefixLabel2 = JLabel("Default : device, Do not use \\ / : * ? \" < > |")
 
-        mAdbCmdTextField = JTextField(mAdbManager.mAdbCmd)
-        mAdbCmdTextField.preferredSize = Dimension(488, 30)
-        mAdbSaveTextField = JTextField(mAdbManager.mLogSavePath)
-        mAdbSaveTextField.preferredSize = Dimension(488, 30)
-        mPrefixTextField = JTextField(mAdbManager.mPrefix)
-        mPrefixTextField.preferredSize = Dimension(300, 30)
+        mAdbCmdTF = JTextField(mAdbManager.mAdbCmd)
+        mAdbCmdTF.preferredSize = Dimension(488, 30)
+        mAdbSaveTF = JTextField(mAdbManager.mLogSavePath)
+        mAdbSaveTF.preferredSize = Dimension(488, 30)
+        mPrefixTF = JTextField(mAdbManager.mPrefix)
+        mPrefixTF.preferredSize = Dimension(300, 30)
 
         val cmdPanel = JPanel()
         cmdPanel.add(mAdbCmdLabel)
-        cmdPanel.add(mAdbCmdTextField)
+        cmdPanel.add(mAdbCmdTF)
         cmdPanel.add(mAdbCmdBtn)
 
         val savePanel = JPanel()
         savePanel.add(mAdbSaveLabel)
-        savePanel.add(mAdbSaveTextField)
+        savePanel.add(mAdbSaveTF)
         savePanel.add(mAdbSaveBtn)
 
         val prefixPanel = JPanel()
         prefixPanel.add(mPrefixLabel)
-        prefixPanel.add(mPrefixTextField)
+        prefixPanel.add(mPrefixTF)
         prefixPanel.add(mPrefixLabel2)
 
         val confirmPanel = JPanel(FlowLayout(FlowLayout.RIGHT))
@@ -87,7 +87,7 @@ class AdbSettingsDialog(parent: JFrame) :JDialog(parent, "ADB settings", true), 
             if (fileDialog.getFile() != null) {
                 val file = File(fileDialog.getDirectory() + fileDialog.getFile())
                 System.out.println("adb command : " + file.absolutePath)
-                mAdbCmdTextField.text = file.absolutePath
+                mAdbCmdTF.text = file.absolutePath
             } else {
                 System.out.println("Cancel Open")
             }
@@ -100,14 +100,14 @@ class AdbSettingsDialog(parent: JFrame) :JDialog(parent, "ADB settings", true), 
 
             if (chooser.showOpenDialog(this@AdbSettingsDialog) == JFileChooser.APPROVE_OPTION) {
                 println("getSelectedFile() : " + chooser.selectedFile)
-                mAdbSaveTextField.text = chooser.selectedFile.absolutePath
+                mAdbSaveTF.text = chooser.selectedFile.absolutePath
             } else {
                 println("No Selection ")
             }
         } else if (e?.source == mOkBtn) {
-            mAdbManager.mAdbCmd = mAdbCmdTextField.text
-            mAdbManager.mLogSavePath = mAdbSaveTextField.text
-            mAdbManager.mPrefix = mPrefixTextField.text
+            mAdbManager.mAdbCmd = mAdbCmdTF.text
+            mAdbManager.mLogSavePath = mAdbSaveTF.text
+            mAdbManager.mPrefix = mPrefixTF.text
             dispose()
         } else if (e?.source == mCancelBtn) {
             dispose()
