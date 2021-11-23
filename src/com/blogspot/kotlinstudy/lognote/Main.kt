@@ -4,12 +4,10 @@ import java.awt.Color
 import javax.swing.SwingUtilities
 import javax.swing.UIManager
 import javax.swing.plaf.ColorUIResource
-import javax.swing.text.html.HTMLEditorKit
-import javax.swing.text.html.StyleSheet
 
 class Main {
     companion object {
-        val VERSION: String = "0.1.5"
+        const val VERSION: String = "0.1.5"
 
         @JvmStatic
         fun main(args: Array<String>) {

@@ -23,6 +23,8 @@ class MainUI(title: String) : JFrame() {
     private lateinit var mMenuBar: JMenuBar
     private lateinit var mMenuFile: JMenu
     private lateinit var mItemFileOpen: JMenuItem
+    private lateinit var mItemFileOpenFiles: JMenuItem
+    private lateinit var mItemFileAppendFiles: JMenuItem
     private lateinit var mItemFileOpenRecents: JMenu
     private lateinit var mItemFileExit: JMenuItem
     private lateinit var mMenuView: JMenu
@@ -91,6 +93,7 @@ class MainUI(title: String) : JFrame() {
     private lateinit var mScrollbackTF: JTextField
     private lateinit var mScrollbackSplitFileCheck: JCheckBox
     private lateinit var mScrollbackApplyBtn: ColorButton
+    private lateinit var mScrollbackKeepToggle: ColorToggleButton
 
     lateinit var mFilteredTableModel: LogTableModel
         private set
@@ -203,6 +206,14 @@ class MainUI(title: String) : JFrame() {
             mRotationStatus = prop.toInt()
         }
 
+        prop = mConfigManager.mProperties.get(mConfigManager.ITEM_LANG) as? String
+        if (!prop.isNullOrEmpty()) {
+            Strings.lang = prop.toInt()
+        }
+        else {
+            Strings.lang = Strings.EN
+        }
+
         createUI(title)
         mAdbManager.getDevices()
     }
@@ -234,6 +245,14 @@ class MainUI(title: String) : JFrame() {
         mItemFileOpen.addActionListener(mActionHandler)
         mMenuFile.add(mItemFileOpen)
 
+        mItemFileOpenFiles = JMenuItem(Strings.OPEN_FILES)
+        mItemFileOpenFiles.addActionListener(mActionHandler)
+        mMenuFile.add(mItemFileOpenFiles)
+
+        mItemFileAppendFiles = JMenuItem(Strings.APPEND_FILES)
+        mItemFileAppendFiles.addActionListener(mActionHandler)
+        mMenuFile.add(mItemFileAppendFiles)
+        
         mItemFileOpenRecents = JMenu(Strings.OPEN_RECENTS)
         mItemFileOpenRecents.addActionListener(mActionHandler)
         mMenuFile.add(mItemFileOpenRecents)
@@ -366,30 +385,37 @@ class MainUI(title: String) : JFrame() {
 //        mLogToolBar = JPanel()
 //        mLogToolBar.background = Color(0xE5, 0xE5, 0xE5)
         mStartBtn = ColorButton(Strings.START)
+        mStartBtn.toolTipText = TooltipStrings.START_BTN
         mStartBtn.addActionListener(mActionHandler)
         mStartBtn.addMouseListener(mMouseHandler)
         mStopBtn = ColorButton(Strings.STOP)
+        mStopBtn.toolTipText = TooltipStrings.STOP_BTN
         mStopBtn.addActionListener(mActionHandler)
         mStopBtn.addMouseListener(mMouseHandler)
         mPauseBtn = ColorButton(Strings.PAUSE)
         mPauseBtn.addActionListener(mActionHandler)
         mPauseBtn.addMouseListener(mMouseHandler)
         mClearBtn = ColorButton(Strings.CLEAR)
+        mClearBtn.toolTipText = TooltipStrings.CLEAR_BTN
         mClearBtn.addActionListener(mActionHandler)
         mClearBtn.addMouseListener(mMouseHandler)
         mClearSaveBtn = ColorButton(Strings.CLEAR_SAVE)
+        mClearSaveBtn.toolTipText = TooltipStrings.CLEAR_SAVE_BTN
         mClearSaveBtn.addActionListener(mActionHandler)
         mClearSaveBtn.addMouseListener(mMouseHandler)
         mRotationBtn = ColorButton(Strings.ROTATION)
+        mRotationBtn.toolTipText = TooltipStrings.ROTATION_BTN
         mRotationBtn.addActionListener(mActionHandler)
         mRotationBtn.addMouseListener(mMouseHandler)
         mFiltersBtn = ColorButton(Strings.FILTERS)
+        mFiltersBtn.toolTipText = TooltipStrings.FILTER_LIST_BTN
         mFiltersBtn.addActionListener(mActionHandler)
         mFiltersBtn.addMouseListener(mMouseHandler)
 
         mLogPanel = JPanel()
         mShowLogPanel = JPanel()
         mShowLogCombo = ColorComboBox<String>()
+        mShowLogCombo.toolTipText = TooltipStrings.LOG_COMBO
         mShowLogCombo.isEditable = true
         mShowLogCombo.renderer = ColorComboBox.ComboBoxRenderer()
         mShowLogCombo.editor.editorComponent.addKeyListener(mKeyHandler)
@@ -397,6 +423,7 @@ class MainUI(title: String) : JFrame() {
         mShowLogCombo.addPopupMenuListener(mPopupMenuHandler)
         mShowLogCombo.editor.editorComponent.addMouseListener(mMouseHandler)
         mShowLogToggle = ColorToggleButton(Strings.LOG)
+        mShowLogToggle.toolTipText = TooltipStrings.LOG_TOGGLE
         mShowLogToggle.margin = Insets(0, 0, 0, 0)
         mShowLogTogglePanel = JPanel(GridLayout(1, 1))
         mShowLogTogglePanel.add(mShowLogToggle)
@@ -406,12 +433,14 @@ class MainUI(title: String) : JFrame() {
         mBoldPanel = JPanel(GridLayout(1, 2))
         mBoldLogPanel = JPanel()
         mBoldLogCombo = ColorComboBox<String>()
+        mBoldLogCombo.toolTipText = TooltipStrings.BOLD_COMBO
         mBoldLogCombo.isEditable = true
         mBoldLogCombo.renderer = ColorComboBox.ComboBoxRenderer()
         mBoldLogCombo.editor.editorComponent.addKeyListener(mKeyHandler)
         mBoldLogCombo.addItemListener(mItemHandler)
         mBoldLogCombo.editor.editorComponent.addMouseListener(mMouseHandler)
         mBoldLogToggle = ColorToggleButton(Strings.BOLD)
+        mBoldLogToggle.toolTipText = TooltipStrings.BOLD_TOGGLE
         mBoldLogToggle.margin = Insets(0, 0, 0, 0)
         mBoldLogTogglePanel = JPanel(GridLayout(1, 1))
         mBoldLogTogglePanel.add(mBoldLogToggle)
@@ -421,12 +450,14 @@ class MainUI(title: String) : JFrame() {
         mTagPanel = JPanel(GridLayout(1, 2))
         mShowTagPanel = JPanel()
         mShowTagCombo = ColorComboBox<String>()
+        mShowTagCombo.toolTipText = TooltipStrings.TAG_COMBO
         mShowTagCombo.isEditable = true
         mShowTagCombo.renderer = ColorComboBox.ComboBoxRenderer()
         mShowTagCombo.editor.editorComponent.addKeyListener(mKeyHandler)
         mShowTagCombo.addItemListener(mItemHandler)
         mShowTagCombo.editor.editorComponent.addMouseListener(mMouseHandler)
         mShowTagToggle = ColorToggleButton(Strings.TAG)
+        mShowTagToggle.toolTipText = TooltipStrings.TAG_TOGGLE
         mShowTagToggle.margin = Insets(0, 0, 0, 0)
         mShowTagTogglePanel = JPanel(GridLayout(1, 1))
         mShowTagTogglePanel.add(mShowTagToggle)
@@ -436,12 +467,14 @@ class MainUI(title: String) : JFrame() {
         mPidPanel = JPanel(GridLayout(1, 2))
         mShowPidPanel = JPanel()
         mShowPidCombo = ColorComboBox<String>()
+        mShowPidCombo.toolTipText = TooltipStrings.PID_COMBO
         mShowPidCombo.isEditable = true
         mShowPidCombo.renderer = ColorComboBox.ComboBoxRenderer()
         mShowPidCombo.editor.editorComponent.addKeyListener(mKeyHandler)
         mShowPidCombo.addItemListener(mItemHandler)
         mShowPidCombo.editor.editorComponent.addMouseListener(mMouseHandler)
         mShowPidToggle = ColorToggleButton(Strings.PID)
+        mShowPidToggle.toolTipText = TooltipStrings.PID_TOGGLE
         mShowPidToggle.margin = Insets(0, 0, 0, 0)
         mShowPidTogglePanel = JPanel(GridLayout(1, 1))
         mShowPidTogglePanel.add(mShowPidToggle)
@@ -451,12 +484,14 @@ class MainUI(title: String) : JFrame() {
         mTidPanel = JPanel(GridLayout(1, 2))
         mShowTidPanel = JPanel()
         mShowTidCombo = ColorComboBox<String>()
+        mShowTidCombo.toolTipText = TooltipStrings.TID_COMBO
         mShowTidCombo.isEditable = true
         mShowTidCombo.renderer = ColorComboBox.ComboBoxRenderer()
         mShowTidCombo.editor.editorComponent.addKeyListener(mKeyHandler)
         mShowTidCombo.addItemListener(mItemHandler)
         mShowTidCombo.editor.editorComponent.addMouseListener(mMouseHandler)
         mShowTidToggle = ColorToggleButton(Strings.TID)
+        mShowTidToggle.toolTipText = TooltipStrings.TID_TOGGLE
         mShowTidToggle.margin = Insets(0, 0, 0, 0)
         mShowTidTogglePanel = JPanel(GridLayout(1, 1))
         mShowTidTogglePanel.add(mShowTidToggle)
@@ -466,19 +501,24 @@ class MainUI(title: String) : JFrame() {
         mDeviceStatus = JLabel("None", JLabel.LEFT)
         mDeviceStatus.isEnabled = false
         mDeviceCombo = ColorComboBox<String>()
+        mDeviceCombo.toolTipText = TooltipStrings.DEVICES_COMBO
         mDeviceCombo.isEditable = true
         mDeviceCombo.renderer = ColorComboBox.ComboBoxRenderer()
         mDeviceCombo.editor.editorComponent.addKeyListener(mKeyHandler)
         mDeviceCombo.addItemListener(mItemHandler)
         mDeviceCombo.editor.editorComponent.addMouseListener(mMouseHandler)
         mAdbConnectBtn = ColorButton(Strings.CONNECT)
+        mAdbConnectBtn.toolTipText = TooltipStrings.CONNECT_BTN
         mAdbConnectBtn.addActionListener(mActionHandler)
         mAdbRefreshBtn = ColorButton(Strings.REFRESH)
         mAdbRefreshBtn.addActionListener(mActionHandler)
+        mAdbRefreshBtn.toolTipText = TooltipStrings.REFRESH_BTN
         mAdbDisconnectBtn = ColorButton(Strings.DISCONNECT)
         mAdbDisconnectBtn.addActionListener(mActionHandler)
+        mAdbDisconnectBtn.toolTipText = TooltipStrings.DISCONNECT_BTN
 
         mMatchCaseBtn = ColorToggleButton("Aa")
+        mMatchCaseBtn.toolTipText = TooltipStrings.CASE_TOGGLE
         mMatchCaseBtn.addItemListener(mItemHandler)
 
         mShowLogPanel.layout = BorderLayout()
@@ -522,14 +562,22 @@ class MainUI(title: String) : JFrame() {
         mDeviceStatus.horizontalAlignment = JLabel.CENTER
 
         mScrollbackApplyBtn = ColorButton(Strings.APPLY)
+        mScrollbackApplyBtn.toolTipText = TooltipStrings.SCROLLBACK_APPLY_BTN
         mScrollbackApplyBtn.addActionListener(mActionHandler)
+        mScrollbackKeepToggle = ColorToggleButton(Strings.KEEP)
+        mScrollbackKeepToggle.toolTipText = TooltipStrings.SCROLLBACK_KEEP_TOGGLE
+        mScrollbackKeepToggle.mSelectedBg = Color.RED
+        mScrollbackKeepToggle.mSelectedFg = Color.BLACK
+        mScrollbackKeepToggle.addItemListener(mItemHandler)
 
         mScrollbackLabel = JLabel(Strings.SCROLLBACK_LINES)
 
         mScrollbackTF = JTextField()
+        mScrollbackTF.toolTipText = TooltipStrings.SCROLLBACK_TF
         mScrollbackTF.preferredSize = Dimension(80, 25)
         mScrollbackTF.addKeyListener(mKeyHandler)
         mScrollbackSplitFileCheck = JCheckBox(Strings.SPLIT_FILE, false)
+        mScrollbackSplitFileCheck.toolTipText = TooltipStrings.SCROLLBACK_SPLIT_CHK
 
         val tagPidTidPanel = JPanel(GridLayout(1, 3))
         tagPidTidPanel.add(mTagPanel)
@@ -569,6 +617,7 @@ class MainUI(title: String) : JFrame() {
         mLogToolBar.add(mScrollbackTF)
         mLogToolBar.add(mScrollbackSplitFileCheck)
         mLogToolBar.add(mScrollbackApplyBtn)
+        mLogToolBar.add(mScrollbackKeepToggle)
 
         addVSeparator(mLogToolBar)
         mLogToolBar.add(mRotationBtn)
@@ -617,6 +666,7 @@ class MainUI(title: String) : JFrame() {
         mStatusBar = JPanel(BorderLayout())
         mStatusBar.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
         mStatusTF = JTextField("__")
+        mStatusTF.toolTipText = TooltipStrings.SAVED_FILE_TF
         // mStatusTextField.preferredSize = Dimension(500, 16)
         mStatusTF.isEditable = false
         mStatusTF.border = BorderFactory.createEmptyBorder()
@@ -710,9 +760,9 @@ class MainUI(title: String) : JFrame() {
         mDeviceCombo.selectedIndex = 0
 
         if (mAdbManager.mDevices.contains(targetDevice)) {
-            mDeviceStatus.text = "Connected"
+            mDeviceStatus.text = Strings.CONNECTED
         } else {
-            mDeviceStatus.text = "Not connected"
+            mDeviceStatus.text = Strings.NOT_CONNECTED
         }
 
         var fontName = mConfigManager.mProperties.get(mConfigManager.ITEM_FONT_NAME) as? String
@@ -849,6 +899,8 @@ class MainUI(title: String) : JFrame() {
         val ITEM_ROTATION = "ROTATION"
         val ITEM_DIVIDER_LOCATION = "DIVIDER_LOCATION"
         val ITEM_LAST_DIVIDER_LOCATION = "LAST_DIVIDER_LOCATION"
+
+        val ITEM_LANG = "LANG"
 
         val ITEM_SHOW_LOG = "SHOW_LOG_"
         val COUNT_SHOW_LOG = 20
@@ -1012,6 +1064,8 @@ class MainUI(title: String) : JFrame() {
                 mProperties.put(ITEM_LAST_DIVIDER_LOCATION, mLogSplitPane.lastDividerLocation.toString())
             }
 
+            mProperties.put(ITEM_LANG, Strings.lang.toString())
+
             mProperties.put(ITEM_FONT_NAME, mFont.family)
             mProperties.put(ITEM_FONT_SIZE, mFont.size.toString())
 
@@ -1119,13 +1173,18 @@ class MainUI(title: String) : JFrame() {
         }
     }
 
-    fun openFile(path: String) {
-        System.out.println("Opening: " + path)
+    fun openFile(path: String, isAppend: Boolean) {
+        println("Opening: $path, $isAppend")
         mFilteredTableModel.stopScan()
-        mStatusTF.text = path
+
+        if (isAppend) {
+            mStatusTF.text += ", $path"
+        } else {
+            mStatusTF.text = path
+        }
         mFullTableModel.setLogFile(path)
-        mFullTableModel.loadItems()
-        mFilteredTableModel.loadItems()
+        mFullTableModel.loadItems(isAppend)
+        mFilteredTableModel.loadItems(isAppend)
         repaint()
 
         return
@@ -1139,7 +1198,15 @@ class MainUI(title: String) : JFrame() {
             prefix = mAdbManager.mPrefix
         }
 
-        val filePath = mAdbManager.mLogSavePath + "/" + prefix + "_" + dtf.format(LocalDateTime.now()) + ".txt"
+        var filePath = mAdbManager.mLogSavePath + "/" + prefix + "_" + dtf.format(LocalDateTime.now()) + ".txt"
+        var file = File(filePath)
+        var idx = 1;
+        while (file.isFile) {
+            filePath = mAdbManager.mLogSavePath + "/" + prefix + "_" + dtf.format(LocalDateTime.now()) + "-" + idx + ".txt"
+            file = File(filePath)
+            idx++
+        }
+
         mFilteredTableModel.setLogFile(filePath)
         mStatusTF.text = filePath
     }
@@ -1156,12 +1223,45 @@ class MainUI(title: String) : JFrame() {
     internal inner class ActionHandler() : ActionListener {
         override fun actionPerformed(p0: ActionEvent?) {
             if (p0?.source == mItemFileOpen) {
-                val fileDialog = FileDialog(this@MainUI, "File open", FileDialog.LOAD)
+                val fileDialog = FileDialog(this@MainUI, Strings.FILE + " " + Strings.OPEN, FileDialog.LOAD)
+                fileDialog.isMultipleMode = false
                 fileDialog.directory = mFullTableModel.mLogFile?.parent
                 fileDialog.setVisible(true)
                 if (fileDialog.getFile() != null) {
                     val file = File(fileDialog.getDirectory() + fileDialog.getFile())
-                    openFile(file.absolutePath)
+                    openFile(file.absolutePath, false)
+                } else {
+                    System.out.println("Cancel Open")
+                }
+            } else if (p0?.source == mItemFileOpenFiles) {
+                val fileDialog = FileDialog(this@MainUI, Strings.FILE + " " + Strings.OPEN_FILES, FileDialog.LOAD)
+                fileDialog.isMultipleMode = true
+                fileDialog.directory = mFullTableModel.mLogFile?.parent
+                fileDialog.setVisible(true)
+                val fileList = fileDialog.getFiles()
+                if (fileList != null) {
+                    var isFirst = true
+                    for (file in fileList) {
+                        if (isFirst) {
+                            openFile(file.absolutePath, false)
+                            isFirst = false
+                        } else {
+                            openFile(file.absolutePath, true)
+                        }
+                    }
+                } else {
+                    System.out.println("Cancel Open")
+                }
+            } else if (p0?.source == mItemFileAppendFiles) {
+                val fileDialog = FileDialog(this@MainUI, Strings.FILE + " " + Strings.APPEND_FILES, FileDialog.LOAD)
+                fileDialog.isMultipleMode = true
+                fileDialog.directory = mFullTableModel.mLogFile?.parent
+                fileDialog.setVisible(true)
+                val fileList = fileDialog.getFiles()
+                if (fileList != null) {
+                    for (file in fileList) {
+                        openFile(file.absolutePath, true)
+                    }
                 } else {
                     System.out.println("Cancel Open")
                 }
@@ -1560,6 +1660,8 @@ class MainUI(title: String) : JFrame() {
                 }
             } else if (p0?.source == mMatchCaseBtn) {
                 mFilteredTableModel.mMatchCase = mMatchCaseBtn.isSelected
+            } else if (p0?.source == mScrollbackKeepToggle) {
+                mFilteredTableModel.mScrollbackKeep = mScrollbackKeepToggle.isSelected
             }
         }
     }
@@ -1598,7 +1700,7 @@ class MainUI(title: String) : JFrame() {
                     }
 
                     if (mAdbManager.mDevices.contains(selectedItem.toString())) {
-                        mDeviceStatus.text = "Connected"
+                        mDeviceStatus.text = Strings.CONNECTED
                     } else {
                         var isExist = false
                         val deviceChk = selectedItem.toString() + ":"
@@ -1610,9 +1712,9 @@ class MainUI(title: String) : JFrame() {
                             }
                         }
                         if (isExist) {
-                            mDeviceStatus.text = "Connected"
+                            mDeviceStatus.text = Strings.CONNECTED
                         } else {
-                            mDeviceStatus.text = "Not connected"
+                            mDeviceStatus.text = Strings.NOT_CONNECTED
                         }
                     }
                     mDeviceCombo.selectedItem = selectedItem

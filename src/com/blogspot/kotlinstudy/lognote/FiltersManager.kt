@@ -30,7 +30,7 @@ class FiltersManager (mainUI: MainUI, configManager: MainUI.ConfigManager){
         var mFilter = filter
     }
 
-    internal inner class FiltersDialog (parent: MainUI) : JDialog(parent, "Filter list", true), ActionListener {
+    internal inner class FiltersDialog (parent: MainUI) : JDialog(parent, Strings.FILTERS, true), ActionListener {
         private var mFilterScrollPane: JScrollPane
         private var mFilterList = JList<FilterElement>()
         private var mNewBtn: ColorButton
@@ -71,17 +71,17 @@ class FiltersManager (mainUI: MainUI, configManager: MainUI.ConfigManager){
             mFilterScrollPane = JScrollPane(mFilterList)
             mFilterScrollPane.preferredSize = Dimension(800, 500)
 
-            mNewBtn = ColorButton("New")
+            mNewBtn = ColorButton(Strings.NEW)
             mNewBtn.addActionListener(this)
-            mCopyBtn = ColorButton("Copy")
+            mCopyBtn = ColorButton(Strings.COPY)
             mCopyBtn.addActionListener(this)
-            mEditBtn = ColorButton("Edit")
+            mEditBtn = ColorButton(Strings.EDIT)
             mEditBtn.addActionListener(this)
-            mDeleteBtn = ColorButton("Delete")
+            mDeleteBtn = ColorButton(Strings.DELETE)
             mDeleteBtn.addActionListener(this)
-            mSaveBtn = ColorButton("Save")
+            mSaveBtn = ColorButton(Strings.SAVE)
             mSaveBtn.addActionListener(this)
-            mCloseBtn = ColorButton("Close")
+            mCloseBtn = ColorButton(Strings.CLOSE)
             mCloseBtn.addActionListener(this)
             val bottomPanel = JPanel()
             bottomPanel.add(mNewBtn)
@@ -131,6 +131,7 @@ class FiltersManager (mainUI: MainUI, configManager: MainUI.ConfigManager){
 
                 titlePanel = JPanel(BorderLayout())
                 titleLabel = JLabel("")
+                titleLabel.foreground = Color.BLUE
                 titlePanel.add(titleLabel, BorderLayout.NORTH)
                 cellPanel.add(titlePanel, BorderLayout.NORTH)
 
@@ -231,9 +232,9 @@ class FiltersManager (mainUI: MainUI, configManager: MainUI.ConfigManager){
             private var mDocumentHandler = DocumentHandler()
 
             init {
-                mOkBtn = ColorButton("OK")
+                mOkBtn = ColorButton(Strings.OK)
                 mOkBtn.addActionListener(this)
-                mCancelBtn = ColorButton("Cancel")
+                mCancelBtn = ColorButton(Strings.CANCEL)
                 mCancelBtn.addActionListener(this)
 
                 mTitleLabel = JLabel("Title")

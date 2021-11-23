@@ -9,7 +9,7 @@ import java.awt.event.ActionListener
 import java.io.File
 import javax.swing.*
 
-class AdbSettingsDialog(parent: JFrame) :JDialog(parent, "ADB settings", true), ActionListener {
+class AdbSettingsDialog(parent: JFrame) :JDialog(parent, "ADB " + Strings.SETTING, true), ActionListener {
     private var mAdbCmdBtn: ColorButton
     private var mAdbSaveBtn: ColorButton
     private var mOkBtn: ColorButton
@@ -27,17 +27,17 @@ class AdbSettingsDialog(parent: JFrame) :JDialog(parent, "ADB settings", true), 
     private val mAdbManager = AdbManager.getInstance()
 
     init {
-        mAdbCmdBtn = ColorButton("Select")
+        mAdbCmdBtn = ColorButton(Strings.SELECT)
         mAdbCmdBtn.addActionListener(this)
-        mAdbSaveBtn = ColorButton("Select")
+        mAdbSaveBtn = ColorButton(Strings.SELECT)
         mAdbSaveBtn.addActionListener(this)
-        mOkBtn = ColorButton("OK")
+        mOkBtn = ColorButton(Strings.OK)
         mOkBtn.addActionListener(this)
-        mCancelBtn = ColorButton("Cancel")
+        mCancelBtn = ColorButton(Strings.CANCEL)
         mCancelBtn.addActionListener(this)
 
-        mAdbCmdLabel = JLabel("Adb path")
-        mAdbSaveLabel = JLabel("Log path")
+        mAdbCmdLabel = JLabel(Strings.ADB_PATH)
+        mAdbSaveLabel = JLabel(Strings.LOG_PATH)
         mPrefixLabel = JLabel("Prefix")
         mPrefixLabel2 = JLabel("Default : device, Do not use \\ / : * ? \" < > |")
 

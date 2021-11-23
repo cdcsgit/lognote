@@ -14,7 +14,7 @@ import javax.swing.event.ListSelectionListener
 import javax.swing.plaf.basic.BasicScrollBarUI
 
 
-class FontDialog (parent: MainUI) : JDialog(parent, "Font & Color settings", true), ActionListener {
+class FontDialog (parent: MainUI) : JDialog(parent, Strings.FONT + " & " + Strings.COLOR + " " + Strings.SETTING, true), ActionListener {
     private var mNameScrollPane: JScrollPane
     private var mNameList: JList<String>
     private var mSizeLabel: JLabel
@@ -38,12 +38,12 @@ class FontDialog (parent: MainUI) : JDialog(parent, "Font & Color settings", tru
         mNameScrollPane.verticalScrollBar.ui = BasicScrollBarUI()
         mNameScrollPane.horizontalScrollBar.ui = BasicScrollBarUI()
         mNameList.addListSelectionListener(ListSelectionHandler())
-        mOkBtn = ColorButton("OK")
+        mOkBtn = ColorButton(Strings.OK)
         mOkBtn.addActionListener(this)
-        mCancelBtn = ColorButton("Cancel")
+        mCancelBtn = ColorButton(Strings.CANCEL)
         mCancelBtn.addActionListener(this)
 
-        mSizeLabel = JLabel("Size")
+        mSizeLabel = JLabel(Strings.SIZE)
         mSizeSpinner = JSpinner(SpinnerNumberModel())
         mSizeSpinner.model.value = parent.mFont.size
         mSizeSpinner.preferredSize = Dimension(40, 30)

@@ -291,6 +291,8 @@ class LogTableModel() : AbstractTableModel() {
             field = value
         }
 
+    var mScrollbackKeep = false
+
     var mPatternShowLog = Pattern.compile(mFilterShowLog, mPatternCase)
     var mPatternHideLog = Pattern.compile(mFilterHideLog, mPatternCase)
     var mPatternHighlightLog = Pattern.compile(mFilterHighlightLog, mPatternCase)
@@ -303,7 +305,7 @@ class LogTableModel() : AbstractTableModel() {
 
     constructor(baseModel: LogTableModel?) : this() {
         mBaseModel = baseModel
-        loadItems()
+        loadItems(false)
     }
 
 //    override fun isCellEditable(rowIndex: Int, columnIndex: Int): Boolean {
@@ -374,13 +376,13 @@ class LogTableModel() : AbstractTableModel() {
     }
 
     private var mFilteredItemsThread:Thread? = null
-    fun loadItems() {
+    fun loadItems(isAppend: Boolean) {
         if (mBaseModel == null) {
             if (SwingUtilities.isEventDispatchThread()) {
-                loadFile()
+                loadFile(isAppend)
             } else {
                 SwingUtilities.invokeAndWait {
-                    loadFile()
+                    loadFile(isAppend)
                 }
             }
         }
@@ -446,16 +448,27 @@ class LogTableModel() : AbstractTableModel() {
         return level
     }
 
-    private fun loadFile() {
-        mLogItems.clear()
-        mBookmarkManager.clear()
+    private fun loadFile(isAppend: Boolean) {
         if (mLogFile == null) {
             return
         }
 
+        var num = 0
+        if (isAppend) {
+            if (mLogItems.size > 0) {
+                val item = mLogItems.last()
+                num = item.mNum.toInt()
+                num++
+                mLogItems.add(LogItem(num.toString(), "APPEND LOG : $mLogFile", "", "", "", LEVEL_ERROR))
+                num++
+            }
+        } else {
+            mLogItems.clear()
+            mBookmarkManager.clear()
+        }
+
         val bufferedReader = BufferedReader(FileReader(mLogFile!!))
         var line: String?
-        var num = 0
         var level:Int
         var tag:String
         var pid:String
@@ -620,7 +633,7 @@ class LogTableModel() : AbstractTableModel() {
             val item = mLogItems[row]
             if (item.mTag.isNotEmpty()) {
                 val start = newValue.indexOf(item.mTag)
-                stringBuilder.replace(start, start + item.mTag.length, "<b><font size=5>" + item.mTag + "</font></b>")
+                stringBuilder.replace(start, start + item.mTag.length, "<b><font color=${ColorManager.StrFilteredFG}>" + item.mTag + "</font></b>")
                 newValue = stringBuilder.toString()
             }
         }
@@ -629,7 +642,7 @@ class LogTableModel() : AbstractTableModel() {
             val item = mLogItems[row]
             if (item.mPid.isNotEmpty()) {
                 val start = newValue.indexOf(item.mPid)
-                stringBuilder.replace(start, start + item.mPid.length, "<b><font size=5>" + item.mPid + "</font></b>")
+                stringBuilder.replace(start, start + item.mPid.length, "<b><font color=${ColorManager.StrFilteredFG}>" + item.mPid + "</font></b>")
                 newValue = stringBuilder.toString()
             }
         }
@@ -641,7 +654,7 @@ class LogTableModel() : AbstractTableModel() {
                 if (item.mTid == item.mPid) {
                     start = newValue.indexOf(item.mTid, start + 1)
                 }
-                stringBuilder.replace(start, start + item.mTid.length, "<b><font size=5>" + item.mTid + "</font></b>")
+                stringBuilder.replace(start, start + item.mTid.length, "<b><font color=${ColorManager.StrFilteredFG}>" + item.mTid + "</font></b>")
                 newValue = stringBuilder.toString()
             }
         }
@@ -971,13 +984,13 @@ class LogTableModel() : AbstractTableModel() {
                         }
 
                         mBaseModel!!.mLogItems.add(item)
-                        if (mScrollback > 0 && mBaseModel!!.mLogItems.count() > mScrollback) {
+                        while (!mScrollbackKeep && mScrollback > 0 && mBaseModel!!.mLogItems.count() > mScrollback) {
                             mBaseModel!!.mLogItems.removeAt(0)
                             baseRemovedCount++
                         }
                         if (isShow || mBookmarkManager.mBookmarks.contains(item.mNum.toInt())) {
                             mLogItems.add(item)
-                            if (mScrollback > 0 && mLogItems.count() > mScrollback) {
+                            while (!mScrollbackKeep && mScrollback > 0 && mLogItems.count() > mScrollback) {
                                 mLogItems.removeAt(0)
                                 removedCount++
                             }

@@ -21,9 +21,9 @@ class ScrollbackSettingsDialog (parent: MainUI) :JDialog(parent, "Scrollback set
 
     init {
         mParent = parent
-        mOkBtn = ColorButton("OK")
+        mOkBtn = ColorButton(Strings.OK)
         mOkBtn.addActionListener(this)
-        mCancelBtn = ColorButton("Cancel")
+        mCancelBtn = ColorButton(Strings.CANCEL)
         mCancelBtn.addActionListener(this)
 
         mScrollbackLabel = JLabel("Scrollback(lines)")

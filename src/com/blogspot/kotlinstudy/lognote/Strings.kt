@@ -4,6 +4,7 @@ class Strings private constructor() {
     companion object {
         val KO = 0
         val EN = 1
+        var currStrings = StringsEn.STRINGS
         var lang = EN
             set(value) {
                 if (value == KO) {
@@ -12,10 +13,9 @@ class Strings private constructor() {
                     currStrings = StringsEn.STRINGS
                 }
                 field = value
+                TooltipStrings.lang = value
             }
 
-        var currStrings = StringsEn.STRINGS
-//        var currStrings = StringsKo.STRINGS
 
         private var idx = 0
         private val IDX_FILE = idx++
@@ -61,6 +61,24 @@ class Strings private constructor() {
         private val IDX_SPLIT_FILE = idx++
         private val IDX_COLOR = idx++
         private val IDX_FILTERS = idx++
+        private val IDX_KEEP = idx++
+        private val IDX_OK = idx++
+        private val IDX_CANCEL = idx++
+        private val IDX_NEW = idx++
+        private val IDX_COPY = idx++
+        private val IDX_EDIT = idx++
+        private val IDX_DELETE = idx++
+        private val IDX_SAVE = idx++
+        private val IDX_SELECT = idx++
+        private val IDX_ADB_PATH = idx++
+        private val IDX_LOG_PATH = idx++
+        private val IDX_SIZE = idx++
+        private val IDX_CONNECTED = idx++
+        private val IDX_NOT_CONNECTED = idx++
+        private val IDX_APPEND = idx++
+        private val IDX_MSG_SELECT_OPEN_MODE = idx++
+        private val IDX_OPEN_FILES = idx++
+        private val IDX_APPEND_FILES = idx++
 //        private val IDX_ = idx++
 
         val FILE: String
@@ -149,5 +167,41 @@ class Strings private constructor() {
             get() { return currStrings[IDX_COLOR] }
         val FILTERS: String
             get() { return currStrings[IDX_FILTERS] }
+        val KEEP: String
+            get() { return currStrings[IDX_KEEP] }
+        val OK: String
+            get() { return currStrings[IDX_OK] }
+        val CANCEL: String
+            get() { return currStrings[IDX_CANCEL] }
+        val NEW: String
+            get() { return currStrings[IDX_NEW] }
+        val COPY: String
+            get() { return currStrings[IDX_COPY] }
+        val EDIT: String
+            get() { return currStrings[IDX_EDIT] }
+        val DELETE: String
+            get() { return currStrings[IDX_DELETE] }
+        val SAVE: String
+            get() { return currStrings[IDX_SAVE] }
+        val SELECT: String
+            get() { return currStrings[IDX_SELECT] }
+        val ADB_PATH: String
+            get() { return currStrings[IDX_ADB_PATH] }
+        val LOG_PATH: String
+            get() { return currStrings[IDX_LOG_PATH] }
+        val SIZE: String
+            get() { return currStrings[IDX_SIZE] }
+        val CONNECTED: String
+            get() { return currStrings[IDX_CONNECTED] }
+        val NOT_CONNECTED: String
+            get() { return currStrings[IDX_NOT_CONNECTED] }
+        val APPEND: String
+            get() { return currStrings[IDX_APPEND] }
+        val MSG_SELECT_OPEN_MODE: String
+            get() { return currStrings[IDX_MSG_SELECT_OPEN_MODE] }
+        val OPEN_FILES: String
+            get() { return currStrings[IDX_OPEN_FILES] }
+        val APPEND_FILES: String
+            get() { return currStrings[IDX_APPEND_FILES] }
     }
 }

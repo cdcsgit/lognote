@@ -1,6 +1,9 @@
 package com.blogspot.kotlinstudy.lognote
 
-import java.awt.*
+import java.awt.BorderLayout
+import java.awt.FlowLayout
+import java.awt.Font
+import java.awt.Rectangle
 import java.awt.datatransfer.DataFlavor
 import java.awt.event.*
 import java.io.File
@@ -9,7 +12,6 @@ import javax.swing.*
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
 import javax.swing.plaf.basic.BasicScrollBarUI
-
 
 
 class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
@@ -51,22 +53,30 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
         mCtrlPanel = JPanel(FlowLayout(FlowLayout.LEFT, 0, 0))
 //        mFirstBtn = ColorButton(Strings.FIRST)
         mFirstBtn = ColorButton("∧") // △ ▲ ▽ ▼ ↑ ↓ ∧ ∨
+        mFirstBtn.toolTipText = TooltipStrings.VIEW_FIRST_BTN
 
         mFirstBtn.addActionListener(mActionHandler)
 //        mLastBtn = ColorButton(Strings.LAST)
         mLastBtn = ColorButton("∨")
+        mLastBtn.toolTipText = TooltipStrings.VIEW_LAST_BTN
         mLastBtn.addActionListener(mActionHandler)
         mTagBtn = ColorToggleButton(Strings.TAG)
+        mTagBtn.toolTipText = TooltipStrings.VIEW_TAG_TOGGLE
         mTagBtn.addActionListener(mActionHandler)
         mPidBtn = ColorToggleButton(Strings.PID)
+        mPidBtn.toolTipText = TooltipStrings.VIEW_PID_TOGGLE
         mPidBtn.addActionListener(mActionHandler)
         mTidBtn = ColorToggleButton(Strings.TID)
+        mTidBtn.toolTipText = TooltipStrings.VIEW_TID_TOGGLE
         mTidBtn.addActionListener(mActionHandler)
         mWindowedModeBtn = ColorButton(Strings.WINDOWED_MODE)
+        mWindowedModeBtn.toolTipText = TooltipStrings.VIEW__WINDOWED_MODE_BTN
         mWindowedModeBtn.addActionListener(mActionHandler)
         mBookmarksBtn = ColorToggleButton(Strings.BOOKMARKS)
+        mBookmarksBtn.toolTipText = TooltipStrings.VIEW_BOOKMARKS_TOGGLE
         mBookmarksBtn.addActionListener(mActionHandler)
         mFullBtn = ColorToggleButton(Strings.FULL)
+        mFullBtn.toolTipText = TooltipStrings.VIEW_FULL_TOGGLE
         mFullBtn.addActionListener(mActionHandler)
 
         mCtrlPanel.add(mFirstBtn)
@@ -366,40 +376,88 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
         }
 
         override fun importData(info: TransferSupport): Boolean {
+            println("importData")
             if (!info.isDrop) {
                 return false
             }
 
-            var file: File? = null
+            val fileList: MutableList<File> = mutableListOf()
 
             if (info.isDataFlavorSupported(DataFlavor.stringFlavor)) {
                 val data: String
                 try {
                     data = info.transferable.getTransferData(DataFlavor.stringFlavor) as String
-                    file = File(URI(data.trim()))
-                } catch (e: Exception) {
+                    val splitData = data.split("\n")
+
+                    for (item in splitData) {
+                        if (item.isNotEmpty()) {
+                            println("importData item = $item")
+                            fileList.add(File(URI(item.trim())))
+                        }
+                    }
+                } catch (ex: Exception) {
+                    ex.printStackTrace()
                     return false
                 }
             }
 
-            if (info.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+            if (fileList.size == 0 && info.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
                 val listFile: Any
                 try {
                     listFile = info.transferable.getTransferData(DataFlavor.javaFileListFlavor)
                     if (listFile is List<*>) {
                         val iterator = listFile.iterator()
                         if (iterator.hasNext()) {
-                            file = iterator.next() as File
+                            fileList.add(iterator.next() as File)
                         }
                     }
-                } catch (e: Exception) {
+                } catch (ex: Exception) {
+                    ex.printStackTrace()
                     return false
                 }
             }
 
             val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
-            if (file != null) {
-                frame.openFile(file.absolutePath)
+            if (fileList.size > 0) {
+                var value = 1
+                if (info.sourceDropActions == COPY) {
+                    val options = arrayOf<Any>(
+                        Strings.APPEND,
+                        Strings.OPEN,
+                        Strings.CANCEL
+                    )
+                    value = JOptionPane.showOptionDialog(
+                        frame, Strings.MSG_SELECT_OPEN_MODE,
+                        "",
+                        JOptionPane.YES_NO_CANCEL_OPTION,
+                        JOptionPane.PLAIN_MESSAGE,
+                        null,
+                        options,
+                        options[0]
+                    )
+                }
+
+                when (value) {
+                    0 -> {
+                        for (file in fileList) {
+                            frame.openFile(file.absolutePath, true)
+                        }
+                    }
+                    1 -> {
+                        var isFirst = true
+                        for (file in fileList) {
+                            if (isFirst) {
+                                frame.openFile(file.absolutePath, false)
+                                isFirst = false
+                            } else {
+                                frame.openFile(file.absolutePath, true)
+                            }
+                        }
+                    }
+                    else -> {
+                        println("select cancel")
+                    }
+                }
             }
             return true
         }
@@ -479,5 +537,9 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
             super.mouseReleased(p0)
         }
 
+        override fun mouseDragged(e: MouseEvent?) {
+            println("mouseDragged")
+            super.mouseDragged(e)
+        }
     }
 }

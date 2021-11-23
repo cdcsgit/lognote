@@ -8,6 +8,11 @@ import javax.swing.JToggleButton
 
 
 class ColorToggleButton(title:String) : JToggleButton(title){
+    var mSelectedFg: Color? = null
+    var mSelectedBg: Color? = null
+    var mUnselectedFg: Color? = null
+    var mUnselectedBg: Color? = null
+
     override fun paintComponent(g: Graphics) {
         super.paintComponent(g)
 
@@ -23,24 +28,46 @@ class ColorToggleButton(title:String) : JToggleButton(title){
 
         val thickness = 2
         if (isSelected || model.isPressed) {
-            graphics2D.color = Color(0xD5, 0xD5, 0xD5)
+
+            if (mSelectedBg != null) {
+                graphics2D.color = mSelectedBg
+            }
+            else {
+                graphics2D.color = Color(0xD5, 0xD5, 0xD5)
+            }
             graphics2D.fillRect(0, 0, width, height)
 
             graphics2D.color = Color(0x0, 0x0, 0x0)
             graphics2D.fillRect(0, 0, thickness, height)
             graphics2D.fillRect(0, 0, width, thickness)
 
-            graphics2D.color = Color(0x5C, 0x94, 0xCB)
+            if (mSelectedFg != null) {
+                graphics2D.color = mSelectedFg
+            }
+            else {
+                graphics2D.color = Color(0x5C, 0x94, 0xCB)
+            }
             graphics2D.drawString(text,
                 (width - graphics2D.fontMetrics.stringWidth(text)) / 2,
                 (height + graphics2D.fontMetrics.ascent) / 2 - 2)
 
         }
         else {
-            graphics2D.color = Color(0xF0, 0xF0, 0xF0)
+            if (mUnselectedBg != null) {
+                graphics2D.color = mUnselectedBg
+            }
+            else {
+                graphics2D.color = Color(0xF0, 0xF0, 0xF0)
+            }
+
             graphics2D.fillRect(0, 0, width, height)
 
-            graphics2D.color = Color(0xBB, 0x84, 0x4C)
+            if (mUnselectedFg != null) {
+                graphics2D.color = mUnselectedFg
+            }
+            else {
+                graphics2D.color = Color(0xBB, 0x84, 0x4C)
+            }
             graphics2D.drawString(text,
                 (width - graphics2D.fontMetrics.stringWidth(text)) / 2,
                 (height + graphics2D.fontMetrics.ascent) / 2 - 2)

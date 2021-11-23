@@ -6,13 +6,13 @@ import java.awt.event.ActionListener
 import java.io.File
 import javax.swing.*
 
-class AboutDialog(parent: JFrame) :JDialog(parent, "About", true), ActionListener {
+class AboutDialog(parent: JFrame) :JDialog(parent, Strings.ABOUT, true), ActionListener {
     private var mAboutLabel: JLabel
     private var mCloseBtn : ColorButton
     private var mMainUI: MainUI
 
     init {
-        mCloseBtn = ColorButton("Close")
+        mCloseBtn = ColorButton(Strings.CLOSE)
         mCloseBtn.addActionListener(this)
         mMainUI = parent as MainUI
 
