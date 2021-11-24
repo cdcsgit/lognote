@@ -8,6 +8,7 @@ import java.awt.datatransfer.DataFlavor
 import java.awt.event.*
 import java.io.File
 import java.net.URI
+import java.util.*
 import javax.swing.*
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
@@ -407,7 +408,7 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
                     listFile = info.transferable.getTransferData(DataFlavor.javaFileListFlavor)
                     if (listFile is List<*>) {
                         val iterator = listFile.iterator()
-                        if (iterator.hasNext()) {
+                        while (iterator.hasNext()) {
                             fileList.add(iterator.next() as File)
                         }
                     }
@@ -419,8 +420,16 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
 
             val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
             if (fileList.size > 0) {
+                val os = System.getProperty("os.name").lowercase(Locale.getDefault())
+                println("os = $os, drop = ${info.dropAction}, source drop = ${info.sourceDropActions}, user drop = ${info.userDropAction}")
+                val action = if (os.contains("windows")) {
+                    info.dropAction
+                } else {
+                    info.sourceDropActions
+                }
+
                 var value = 1
-                if (info.sourceDropActions == COPY) {
+                if (action == COPY) {
                     val options = arrayOf<Any>(
                         Strings.APPEND,
                         Strings.OPEN,
