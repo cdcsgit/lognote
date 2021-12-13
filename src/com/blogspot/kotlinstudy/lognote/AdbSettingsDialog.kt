@@ -78,6 +78,8 @@ class AdbSettingsDialog(parent: JFrame) :JDialog(parent, "ADB " + Strings.SETTIN
 
         contentPane.add(panel)
         pack()
+
+        Utils.installKeyStrokeEscClosing(this)
     }
 
     override fun actionPerformed(e: ActionEvent?) {

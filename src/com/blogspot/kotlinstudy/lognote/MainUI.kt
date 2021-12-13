@@ -1536,6 +1536,9 @@ class MainUI(title: String) : JFrame() {
     }
 
     fun getTextShowLogCombo() : String {
+        if (mShowLogCombo.selectedItem == null) {
+           return "";
+        }
         return mShowLogCombo.selectedItem!!.toString()
     }
 

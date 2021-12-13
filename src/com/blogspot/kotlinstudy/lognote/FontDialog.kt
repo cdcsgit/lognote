@@ -1,10 +1,7 @@
 package com.blogspot.kotlinstudy.lognote
 
 import java.awt.*
-import java.awt.event.ActionEvent
-import java.awt.event.ActionListener
-import java.awt.event.MouseAdapter
-import java.awt.event.MouseEvent
+import java.awt.event.*
 import javax.swing.*
 import javax.swing.ListSelectionModel.SINGLE_SELECTION
 import javax.swing.event.ChangeEvent
@@ -28,6 +25,7 @@ class FontDialog (parent: MainUI) : JDialog(parent, Strings.FONT + " & " + Strin
     private val mColorLabelArray = arrayOfNulls<ColorLabel>(mColorManager.mColorArray.size)
     private val mMouseHandler = MouseHandler()
     private val mPrevColorArray = arrayOfNulls<String>(mColorManager.mColorArray.size)
+    private var mIsNeedRestore = true
 
     init {
         mNameList = JList(GraphicsEnvironment.getLocalGraphicsEnvironment().availableFontFamilyNames)
@@ -102,7 +100,23 @@ class FontDialog (parent: MainUI) : JDialog(parent, Strings.FONT + " & " + Strin
         panel.add(bottomPanel, BorderLayout.SOUTH)
 
         contentPane.add(panel)
+
+        addWindowListener(object : WindowAdapter() {
+            override fun windowClosing(e: WindowEvent?) {
+                println("exit Font Color dialog, restore $mIsNeedRestore")
+
+                if (mIsNeedRestore) {
+                    for (idx in mColorLabelArray.indices) {
+                        mColorManager.mColorArray[idx].mStrColor = mPrevColorArray[idx]!!
+                    }
+                    mColorManager.applyColor()
+                    mParent.mFont = mPrevFont
+                }
+            }
+        })
+
         pack()
+        Utils.installKeyStrokeEscClosing(this)
     }
 
     class ColorLabel(idx: Int) :JLabel() {
@@ -111,14 +125,10 @@ class FontDialog (parent: MainUI) : JDialog(parent, Strings.FONT + " & " + Strin
 
     override fun actionPerformed(e: ActionEvent?) {
         if (e?.source == mOkBtn) {
-            dispose()
+            mIsNeedRestore = false
+            this.dispatchEvent(WindowEvent(this, WindowEvent.WINDOW_CLOSING))
         } else if (e?.source == mCancelBtn) {
-            for (idx in mColorLabelArray.indices) {
-                mColorManager.mColorArray[idx].mStrColor = mPrevColorArray[idx]!!
-            }
-            mColorManager.applyColor()
-            mParent.mFont = mPrevFont
-            dispose()
+            this.dispatchEvent(WindowEvent(this, WindowEvent.WINDOW_CLOSING))
         }
     }
 

@@ -96,6 +96,8 @@ class FiltersManager (mainUI: MainUI, configManager: MainUI.ConfigManager){
             contentPane.add(bottomPanel, BorderLayout.SOUTH)
 
             pack()
+
+            Utils.installKeyStrokeEscClosing(this)
         }
 
         inner class FilterCellRenderer : ListCellRenderer<Any?> {
@@ -303,6 +305,8 @@ class FiltersManager (mainUI: MainUI, configManager: MainUI.ConfigManager){
                 }
 
                 mOkBtn.isEnabled = isValid
+
+                Utils.installKeyStrokeEscClosing(this)
             }
 
             override fun actionPerformed(e: ActionEvent?) {

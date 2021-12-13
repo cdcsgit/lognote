@@ -23,6 +23,8 @@ class GoToDialog (parent: JFrame) : JDialog(parent, "GoTo line", true) {
         panel.add(label, BorderLayout.WEST)
         contentPane.add(panel)
         pack()
+
+        Utils.installKeyStrokeEscClosing(this)
     }
 
     internal inner class KeyHandler: KeyAdapter() {

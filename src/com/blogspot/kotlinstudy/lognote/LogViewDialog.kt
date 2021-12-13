@@ -33,6 +33,8 @@ class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent
 
         contentPane.add(mTextArea)
         pack()
+
+        Utils.installKeyStrokeEscClosing(this)
     }
 
     internal inner class KeyHandler: KeyAdapter() {
@@ -46,10 +48,7 @@ class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent
         }
 
         override fun keyReleased(p0: KeyEvent?) {
-            if (p0?.keyCode == KeyEvent.VK_ESCAPE) {
-                dispose()
-            }
-            else if (p0?.keyCode == KeyEvent.VK_ENTER && pressedKeyCode == KeyEvent.VK_ENTER) {
+            if (p0?.keyCode == KeyEvent.VK_ENTER && pressedKeyCode == KeyEvent.VK_ENTER) {
                 mTextArea.copy()
                 dispose()
             }

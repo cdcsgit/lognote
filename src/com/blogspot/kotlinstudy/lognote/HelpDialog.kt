@@ -44,6 +44,8 @@ class HelpDialog(parent: JFrame) :JDialog(parent, Strings.HELP, true), ActionLis
 
         contentPane.add(panel)
         pack()
+
+        Utils.installKeyStrokeEscClosing(this)
     }
 
     override fun actionPerformed(e: ActionEvent?) {

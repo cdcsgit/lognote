@@ -33,6 +33,7 @@ class LogTableDialog (parent: MainUI, logPanel: LogPanel) : JFrame("FullLog") {
                 mParent.attachLogPanel(mLogPanel)
             }
         })
-    }
 
+        Utils.installKeyStrokeEscClosing(this)
+    }
 }

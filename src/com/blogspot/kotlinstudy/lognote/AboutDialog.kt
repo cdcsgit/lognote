@@ -3,8 +3,10 @@ package com.blogspot.kotlinstudy.lognote
 import java.awt.*
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
-import java.io.File
+import java.awt.event.KeyEvent
+import java.awt.event.WindowEvent
 import javax.swing.*
+
 
 class AboutDialog(parent: JFrame) :JDialog(parent, Strings.ABOUT, true), ActionListener {
     private var mAboutLabel: JLabel
@@ -31,6 +33,8 @@ class AboutDialog(parent: JFrame) :JDialog(parent, Strings.ABOUT, true), ActionL
 
         contentPane.add(panel)
         pack()
+
+        Utils.installKeyStrokeEscClosing(this)
     }
 
     override fun actionPerformed(e: ActionEvent?) {
