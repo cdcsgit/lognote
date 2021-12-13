@@ -59,25 +59,22 @@ class MainUI(title: String) : JFrame() {
     private lateinit var mShowLogCombo: ColorComboBox<String>
     private lateinit var mShowLogToggle: ColorToggleButton
     private lateinit var mShowLogTogglePanel: JPanel
-    private lateinit var mBoldPanel: JPanel
+
     private lateinit var mBoldLogPanel: JPanel
     private lateinit var mBoldLogCombo: ColorComboBox<String>
     private lateinit var mBoldLogToggle: ColorToggleButton
     private lateinit var mBoldLogTogglePanel: JPanel
 
-    private lateinit var mTagPanel: JPanel
     private lateinit var mShowTagPanel: JPanel
     private lateinit var mShowTagCombo: ColorComboBox<String>
     private lateinit var mShowTagToggle: ColorToggleButton
     private lateinit var mShowTagTogglePanel: JPanel
 
-    private lateinit var mPidPanel: JPanel
     private lateinit var mShowPidPanel: JPanel
     private lateinit var mShowPidCombo: ColorComboBox<String>
     private lateinit var mShowPidToggle: ColorToggleButton
     private lateinit var mShowPidTogglePanel: JPanel
 
-    private lateinit var mTidPanel: JPanel
     private lateinit var mShowTidPanel: JPanel
     private lateinit var mShowTidCombo: ColorComboBox<String>
     private lateinit var mShowTidToggle: ColorToggleButton
@@ -430,7 +427,6 @@ class MainUI(title: String) : JFrame() {
         mShowLogTogglePanel.border = BorderFactory.createEmptyBorder(3,3,3,3)
         mShowLogToggle.addItemListener(mItemHandler)
 
-        mBoldPanel = JPanel(GridLayout(1, 2))
         mBoldLogPanel = JPanel()
         mBoldLogCombo = ColorComboBox<String>()
         mBoldLogCombo.toolTipText = TooltipStrings.BOLD_COMBO
@@ -447,7 +443,6 @@ class MainUI(title: String) : JFrame() {
         mBoldLogTogglePanel.border = BorderFactory.createEmptyBorder(3,3,3,3)
         mBoldLogToggle.addItemListener(mItemHandler)
 
-        mTagPanel = JPanel(GridLayout(1, 2))
         mShowTagPanel = JPanel()
         mShowTagCombo = ColorComboBox<String>()
         mShowTagCombo.toolTipText = TooltipStrings.TAG_COMBO
@@ -464,7 +459,6 @@ class MainUI(title: String) : JFrame() {
         mShowTagTogglePanel.border = BorderFactory.createEmptyBorder(3,3,3,3)
         mShowTagToggle.addItemListener(mItemHandler)
 
-        mPidPanel = JPanel(GridLayout(1, 2))
         mShowPidPanel = JPanel()
         mShowPidCombo = ColorComboBox<String>()
         mShowPidCombo.toolTipText = TooltipStrings.PID_COMBO
@@ -481,7 +475,6 @@ class MainUI(title: String) : JFrame() {
         mShowPidTogglePanel.border = BorderFactory.createEmptyBorder(3,3,3,3)
         mShowPidToggle.addItemListener(mItemHandler)
 
-        mTidPanel = JPanel(GridLayout(1, 2))
         mShowTidPanel = JPanel()
         mShowTidCombo = ColorComboBox<String>()
         mShowTidCombo.toolTipText = TooltipStrings.TID_COMBO
@@ -529,31 +522,30 @@ class MainUI(title: String) : JFrame() {
         mBoldLogPanel.layout = BorderLayout()
         mBoldLogPanel.add(mBoldLogTogglePanel, BorderLayout.WEST)
         mBoldLogCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 3)
+        mBoldLogCombo.preferredSize = Dimension(170, mBoldLogCombo.preferredSize.height)
         mBoldLogPanel.add(mBoldLogCombo, BorderLayout.CENTER)
-        mBoldPanel.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
-        mBoldPanel.add(mBoldLogPanel)
-        mBoldLogPanel.preferredSize = Dimension(200, mBoldLogPanel.preferredSize.height)
+//        mBoldPanel.add(mBoldLogPanel)
 
         mShowTagPanel.layout = BorderLayout()
         mShowTagPanel.add(mShowTagTogglePanel, BorderLayout.WEST)
         mShowTagCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 3)
+        mShowTagCombo.preferredSize = Dimension(250, mShowTagCombo.preferredSize.height)
         mShowTagPanel.add(mShowTagCombo, BorderLayout.CENTER)
-        mTagPanel.add(mShowTagPanel)
-        mShowTagPanel.preferredSize = Dimension(200, mShowTagPanel.preferredSize.height)
+//        mTagPanel.add(mShowTagPanel)
 
         mShowPidPanel.layout = BorderLayout()
         mShowPidPanel.add(mShowPidTogglePanel, BorderLayout.WEST)
         mShowPidCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 3)
+        mShowPidCombo.preferredSize = Dimension(120, mShowPidCombo.preferredSize.height)
         mShowPidPanel.add(mShowPidCombo, BorderLayout.CENTER)
-        mPidPanel.add(mShowPidPanel)
-        mShowPidPanel.preferredSize = Dimension(200, mShowPidPanel.preferredSize.height)
+//        mPidPanel.add(mShowPidPanel)
 
         mShowTidPanel.layout = BorderLayout()
         mShowTidPanel.add(mShowTidTogglePanel, BorderLayout.WEST)
         mShowTidCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 3)
+        mShowTidCombo.preferredSize = Dimension(120, mShowTidCombo.preferredSize.height)
         mShowTidPanel.add(mShowTidCombo, BorderLayout.CENTER)
-        mTidPanel.add(mShowTidPanel)
-        mShowTidPanel.preferredSize = Dimension(200, mShowTidPanel.preferredSize.height)
+//        mTidPanel.add(mShowTidPanel)
 
         mDeviceCombo.preferredSize = Dimension(200, 30)
         mDeviceCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 5)
@@ -579,14 +571,16 @@ class MainUI(title: String) : JFrame() {
         mScrollbackSplitFileCheck = JCheckBox(Strings.SPLIT_FILE, false)
         mScrollbackSplitFileCheck.toolTipText = TooltipStrings.SCROLLBACK_SPLIT_CHK
 
-        val tagPidTidPanel = JPanel(GridLayout(1, 3))
-        tagPidTidPanel.add(mTagPanel)
-        tagPidTidPanel.add(mPidPanel)
-        tagPidTidPanel.add(mTidPanel)
+        val itemFilterPanel = JPanel(FlowLayout(FlowLayout.LEADING, 0, 0))
+        itemFilterPanel.border = BorderFactory.createEmptyBorder(0, 0, 0, 0)
+        itemFilterPanel.add(mShowTagPanel)
+        itemFilterPanel.add(mShowPidPanel)
+        itemFilterPanel.add(mShowTidPanel)
+        itemFilterPanel.add(mBoldLogPanel)
 
         mLogPanel.layout = BorderLayout()
         mLogPanel.add(mShowLogPanel, BorderLayout.CENTER)
-        mLogPanel.add(tagPidTidPanel, BorderLayout.EAST)
+        mLogPanel.add(itemFilterPanel, BorderLayout.EAST)
         mLogPanel.preferredSize = Dimension(mLogPanel.preferredSize.width, 30)
 
         mFilterLeftPanel.layout = BorderLayout()
@@ -595,7 +589,6 @@ class MainUI(title: String) : JFrame() {
 
         mFilterPanel.layout = BorderLayout()
         mFilterPanel.add(mFilterLeftPanel, BorderLayout.CENTER)
-        mFilterPanel.add(mBoldPanel, BorderLayout.EAST)
         mFilterPanel.addMouseListener(mMouseHandler)
 
         mLogToolBar.add(mStartBtn)
@@ -719,7 +712,7 @@ class MainUI(title: String) : JFrame() {
         } else {
             mShowTagToggle.isSelected = true
         }
-        mShowTagCombo.isEnabled = mShowTagToggle.isSelected
+        mShowTagCombo.setEnabledFilter(mShowTagToggle.isSelected)
 
         check = mConfigManager.mProperties.get(mConfigManager.ITEM_SHOW_PID_CHECK) as? String
         if (!check.isNullOrEmpty()) {
@@ -727,7 +720,7 @@ class MainUI(title: String) : JFrame() {
         } else {
             mShowPidToggle.isSelected = true
         }
-        mShowPidCombo.isEnabled = mShowPidToggle.isSelected
+        mShowPidCombo.setEnabledFilter(mShowPidToggle.isSelected)
 
         check = mConfigManager.mProperties.get(mConfigManager.ITEM_SHOW_TID_CHECK) as? String
         if (!check.isNullOrEmpty()) {
@@ -735,7 +728,7 @@ class MainUI(title: String) : JFrame() {
         } else {
             mShowTidToggle.isSelected = true
         }
-        mShowTidCombo.isEnabled = mShowTidToggle.isSelected
+        mShowTidCombo.setEnabledFilter(mShowTidToggle.isSelected)
 
         for (i in 0 until mConfigManager.COUNT_HIGHLIGHT_LOG) {
             item = mConfigManager.mProperties.get(mConfigManager.ITEM_HIGHLIGHT_LOG + i) as? String
@@ -753,7 +746,7 @@ class MainUI(title: String) : JFrame() {
         } else {
             mBoldLogToggle.isSelected = true
         }
-        mBoldLogCombo.isEnabled = mBoldLogToggle.isSelected
+        mBoldLogCombo.setEnabledFilter(mBoldLogToggle.isSelected)
 
         val targetDevice = mConfigManager.mProperties.get(mConfigManager.ITEM_ADB_DEVICE) as? String
         mDeviceCombo.insertItemAt(targetDevice, 0)
@@ -1614,15 +1607,15 @@ class MainUI(title: String) : JFrame() {
     internal inner class ItemHandler : ItemListener {
         override fun itemStateChanged(p0: ItemEvent?) {
             if (p0?.source == mShowLogToggle) {
-                mShowLogCombo.isEnabled = mShowLogToggle.isSelected
+                mShowLogCombo.setEnabledFilter(mShowLogToggle.isSelected)
             } else if (p0?.source == mBoldLogToggle) {
-                mBoldLogCombo.isEnabled = mBoldLogToggle.isSelected
+                mBoldLogCombo.setEnabledFilter(mBoldLogToggle.isSelected)
             } else if (p0?.source == mShowTagToggle) {
-                mShowTagCombo.isEnabled = mShowTagToggle.isSelected
+                mShowTagCombo.setEnabledFilter(mShowTagToggle.isSelected)
             } else if (p0?.source == mShowPidToggle) {
-                mShowPidCombo.isEnabled = mShowPidToggle.isSelected
+                mShowPidCombo.setEnabledFilter(mShowPidToggle.isSelected)
             } else if (p0?.source == mShowTidToggle) {
-                mShowTidCombo.isEnabled = mShowTidToggle.isSelected
+                mShowTidCombo.setEnabledFilter(mShowTidToggle.isSelected)
             }
 
             if (mIsCreatingUI) {

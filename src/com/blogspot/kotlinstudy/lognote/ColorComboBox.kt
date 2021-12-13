@@ -29,6 +29,16 @@ class ColorComboBox<E> : JComboBox<E>() {
         return isExist
     }
 
+    fun setEnabledFilter(enabled: Boolean) {
+        isEnabled = enabled
+        if (!enabled && editor.item.toString().isEmpty()) {
+            isVisible = false
+        }
+        else {
+            isVisible = true
+        }
+    }
+
     internal class ComboBoxRenderer : BasicComboBoxRenderer() {
         override fun getListCellRendererComponent(
             list: JList<*>, value: Any,
