@@ -25,7 +25,7 @@ class MainUI(title: String) : JFrame() {
     private lateinit var mItemFileOpen: JMenuItem
     private lateinit var mItemFileOpenFiles: JMenuItem
     private lateinit var mItemFileAppendFiles: JMenuItem
-    private lateinit var mItemFileOpenRecents: JMenu
+//    private lateinit var mItemFileOpenRecents: JMenu
     private lateinit var mItemFileExit: JMenuItem
     private lateinit var mMenuView: JMenu
     private lateinit var mItemFull: JCheckBoxMenuItem
@@ -249,10 +249,11 @@ class MainUI(title: String) : JFrame() {
         mItemFileAppendFiles = JMenuItem(Strings.APPEND_FILES)
         mItemFileAppendFiles.addActionListener(mActionHandler)
         mMenuFile.add(mItemFileAppendFiles)
-        
-        mItemFileOpenRecents = JMenu(Strings.OPEN_RECENTS)
-        mItemFileOpenRecents.addActionListener(mActionHandler)
-        mMenuFile.add(mItemFileOpenRecents)
+
+//        mItemFileOpenRecents = JMenu(Strings.OPEN_RECENTS)
+//        mItemFileOpenRecents.addActionListener(mActionHandler)
+//        mMenuFile.add(mItemFileOpenRecents)
+        mMenuFile.addSeparator()
 
         mItemFileExit = JMenuItem(Strings.EXIT)
         mItemFileExit.addActionListener(mActionHandler)
@@ -274,12 +275,20 @@ class MainUI(title: String) : JFrame() {
         mItemLogFile = JMenuItem(Strings.LOGFILE)
         mItemLogFile.addActionListener(mActionHandler)
         mMenuSettings.add(mItemLogFile)
+
+        mMenuSettings.addSeparator()
+
         mItemFont = JMenuItem(Strings.FONT + " & " + Strings.COLOR)
 //        mItemFont = JMenuItem(Strings.FONT)
         mItemFont.addActionListener(mActionHandler)
         mMenuSettings.add(mItemFont)
+
+        mMenuSettings.addSeparator()
+
         mItemFilterIncremental = JCheckBoxMenuItem(Strings.FILTER + "-" + Strings.INCREMENTAL)
         mMenuSettings.add(mItemFilterIncremental)
+
+        mMenuSettings.addSeparator()
 
         mMenuLogLevel = JMenu(Strings.LOGLEVEL)
         mMenuLogLevel.addActionListener(mActionHandler)
@@ -325,6 +334,8 @@ class MainUI(title: String) : JFrame() {
         mItemHelp = JMenuItem(Strings.HELP)
         mItemHelp.addActionListener(mActionHandler)
         mMenuHelp.add(mItemHelp)
+
+        mMenuHelp.addSeparator()
 
         mItemAbout = JMenuItem(Strings.ABOUT)
         mItemAbout.addActionListener(mActionHandler)
