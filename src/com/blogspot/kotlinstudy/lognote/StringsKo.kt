@@ -64,6 +64,7 @@ class StringsKo private constructor() {
             , "파일 열기 모드 선택"
             , "여러 파일 열기"
             , "여러 파일 붙이기"
+            , "없음"
 //            , ""
         )
     }

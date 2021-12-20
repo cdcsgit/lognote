@@ -669,9 +669,8 @@ class MainUI(title: String) : JFrame() {
 
         mStatusBar = JPanel(BorderLayout())
         mStatusBar.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
-        mStatusTF = JTextField("__")
+        mStatusTF = StatusTextField(Strings.NONE)
         mStatusTF.toolTipText = TooltipStrings.SAVED_FILE_TF
-        // mStatusTextField.preferredSize = Dimension(500, 16)
         mStatusTF.isEditable = false
         mStatusTF.border = BorderFactory.createEmptyBorder()
         mStatusBar.add(mStatusTF)
@@ -1182,7 +1181,7 @@ class MainUI(title: String) : JFrame() {
         mFilteredTableModel.stopScan()
 
         if (isAppend) {
-            mStatusTF.text += ", $path"
+            mStatusTF.text += "| $path"
         } else {
             mStatusTF.text = path
         }
@@ -1860,6 +1859,29 @@ class MainUI(title: String) : JFrame() {
             return
         }
         goToLine(mSelectedLine)
+    }
+
+    internal inner class StatusTextField(text: String?) : JTextField(text) {
+        var mPrevText = ""
+        override fun getToolTipText(event: MouseEvent?): String? {
+            val textTrimmed = text.trim()
+            var tooltip = ""
+            if (mPrevText != textTrimmed && textTrimmed.isNotEmpty()) {
+                mPrevText = textTrimmed
+                val splitData = textTrimmed.split("|")
+
+                tooltip = "<html>"
+                for (item in splitData) {
+                    val itemTrimmed = item.trim()
+                    if (itemTrimmed.isNotEmpty()) {
+                        tooltip += "$itemTrimmed<br>"
+                    }
+                }
+                tooltip += "</html>"
+                toolTipText = tooltip
+            }
+            return super.getToolTipText(event)
+        }
     }
 }
 

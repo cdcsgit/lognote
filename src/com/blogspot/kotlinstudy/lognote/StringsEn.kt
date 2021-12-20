@@ -64,6 +64,7 @@ class StringsEn private constructor() {
             , "Select file open mode"
             , "Open files"
             , "Append files"
+            , "None"
 //            , ""
         )
     }
