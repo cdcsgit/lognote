@@ -2,12 +2,11 @@ package com.blogspot.kotlinstudy.lognote
 
 import java.awt.Color
 import java.io.*
-import javax.swing.table.AbstractTableModel
-import java.lang.Exception
+import java.util.*
 import java.util.regex.Pattern
+import javax.swing.JOptionPane
 import javax.swing.SwingUtilities
-import java.util.Stack
-import java.util.ArrayList
+import javax.swing.table.AbstractTableModel
 
 
 class LogTableModelEvent(source:LogTableModel, change:Int, removedCount:Int) {
@@ -1019,7 +1018,12 @@ class LogTableModel() : AbstractTableModel() {
                         println("Change save file : " + mLogFile?.absolutePath)
                     }
                     line = bufferedReader.readLine()
-                } catch (e:InterruptedException) {
+                } catch (e:Exception) {
+                    println("Start scan : $e")
+                    if (e !is InterruptedException) {
+                        JOptionPane.showMessageDialog(null, e.toString(), "Error", JOptionPane.ERROR_MESSAGE)
+                    }
+
                     try {
                         mFileWriter?.flush()
                     } catch(e:IOException) {
