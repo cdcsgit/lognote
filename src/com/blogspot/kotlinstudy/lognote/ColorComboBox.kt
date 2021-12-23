@@ -18,27 +18,6 @@ class ColorComboBox<E> : JComboBox<E>() {
         textField.border = BorderFactory.createLineBorder(Color.black)
     }
 
-    fun isExistItem(item:String) : Boolean {
-        var isExist = false
-        for (idx in 0 until itemCount) {
-            if (getItemAt(idx).toString() == item) {
-                isExist = true
-                break
-            }
-        }
-        return isExist
-    }
-
-    fun setEnabledFilter(enabled: Boolean) {
-        isEnabled = enabled
-        if (!enabled && editor.item.toString().isEmpty()) {
-            isVisible = false
-        }
-        else {
-            isVisible = true
-        }
-    }
-
     internal class ComboBoxRenderer : BasicComboBoxRenderer() {
         override fun getListCellRendererComponent(
             list: JList<*>, value: Any,

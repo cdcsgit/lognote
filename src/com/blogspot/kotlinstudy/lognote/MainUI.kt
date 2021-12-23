@@ -56,27 +56,27 @@ class MainUI(title: String) : JFrame() {
     private lateinit var mLogPanel: JPanel
     private lateinit var mShowLogPanel: JPanel
     private lateinit var mMatchCaseBtn: ColorToggleButton
-    private lateinit var mShowLogCombo: ColorComboBox<String>
+    private lateinit var mShowLogCombo: FilterComboBox<String>
     private lateinit var mShowLogToggle: ColorToggleButton
     private lateinit var mShowLogTogglePanel: JPanel
 
     private lateinit var mBoldLogPanel: JPanel
-    private lateinit var mBoldLogCombo: ColorComboBox<String>
+    private lateinit var mBoldLogCombo: FilterComboBox<String>
     private lateinit var mBoldLogToggle: ColorToggleButton
     private lateinit var mBoldLogTogglePanel: JPanel
 
     private lateinit var mShowTagPanel: JPanel
-    private lateinit var mShowTagCombo: ColorComboBox<String>
+    private lateinit var mShowTagCombo: FilterComboBox<String>
     private lateinit var mShowTagToggle: ColorToggleButton
     private lateinit var mShowTagTogglePanel: JPanel
 
     private lateinit var mShowPidPanel: JPanel
-    private lateinit var mShowPidCombo: ColorComboBox<String>
+    private lateinit var mShowPidCombo: FilterComboBox<String>
     private lateinit var mShowPidToggle: ColorToggleButton
     private lateinit var mShowPidTogglePanel: JPanel
 
     private lateinit var mShowTidPanel: JPanel
-    private lateinit var mShowTidCombo: ColorComboBox<String>
+    private lateinit var mShowTidCombo: FilterComboBox<String>
     private lateinit var mShowTidToggle: ColorToggleButton
     private lateinit var mShowTidTogglePanel: JPanel
 
@@ -422,10 +422,10 @@ class MainUI(title: String) : JFrame() {
 
         mLogPanel = JPanel()
         mShowLogPanel = JPanel()
-        mShowLogCombo = ColorComboBox<String>()
+        mShowLogCombo = FilterComboBox<String>()
         mShowLogCombo.toolTipText = TooltipStrings.LOG_COMBO
         mShowLogCombo.isEditable = true
-        mShowLogCombo.renderer = ColorComboBox.ComboBoxRenderer()
+        mShowLogCombo.renderer = FilterComboBox.ComboBoxRenderer()
         mShowLogCombo.editor.editorComponent.addKeyListener(mKeyHandler)
         mShowLogCombo.addItemListener(mItemHandler)
         mShowLogCombo.addPopupMenuListener(mPopupMenuHandler)
@@ -439,10 +439,11 @@ class MainUI(title: String) : JFrame() {
         mShowLogToggle.addItemListener(mItemHandler)
 
         mBoldLogPanel = JPanel()
-        mBoldLogCombo = ColorComboBox<String>()
+        mBoldLogCombo = FilterComboBox<String>()
         mBoldLogCombo.toolTipText = TooltipStrings.BOLD_COMBO
+        mBoldLogCombo.mEnabledTfTooltip = false
         mBoldLogCombo.isEditable = true
-        mBoldLogCombo.renderer = ColorComboBox.ComboBoxRenderer()
+        mBoldLogCombo.renderer = FilterComboBox.ComboBoxRenderer()
         mBoldLogCombo.editor.editorComponent.addKeyListener(mKeyHandler)
         mBoldLogCombo.addItemListener(mItemHandler)
         mBoldLogCombo.editor.editorComponent.addMouseListener(mMouseHandler)
@@ -455,10 +456,10 @@ class MainUI(title: String) : JFrame() {
         mBoldLogToggle.addItemListener(mItemHandler)
 
         mShowTagPanel = JPanel()
-        mShowTagCombo = ColorComboBox<String>()
+        mShowTagCombo = FilterComboBox<String>()
         mShowTagCombo.toolTipText = TooltipStrings.TAG_COMBO
         mShowTagCombo.isEditable = true
-        mShowTagCombo.renderer = ColorComboBox.ComboBoxRenderer()
+        mShowTagCombo.renderer = FilterComboBox.ComboBoxRenderer()
         mShowTagCombo.editor.editorComponent.addKeyListener(mKeyHandler)
         mShowTagCombo.addItemListener(mItemHandler)
         mShowTagCombo.editor.editorComponent.addMouseListener(mMouseHandler)
@@ -471,10 +472,10 @@ class MainUI(title: String) : JFrame() {
         mShowTagToggle.addItemListener(mItemHandler)
 
         mShowPidPanel = JPanel()
-        mShowPidCombo = ColorComboBox<String>()
+        mShowPidCombo = FilterComboBox<String>()
         mShowPidCombo.toolTipText = TooltipStrings.PID_COMBO
         mShowPidCombo.isEditable = true
-        mShowPidCombo.renderer = ColorComboBox.ComboBoxRenderer()
+        mShowPidCombo.renderer = FilterComboBox.ComboBoxRenderer()
         mShowPidCombo.editor.editorComponent.addKeyListener(mKeyHandler)
         mShowPidCombo.addItemListener(mItemHandler)
         mShowPidCombo.editor.editorComponent.addMouseListener(mMouseHandler)
@@ -487,10 +488,10 @@ class MainUI(title: String) : JFrame() {
         mShowPidToggle.addItemListener(mItemHandler)
 
         mShowTidPanel = JPanel()
-        mShowTidCombo = ColorComboBox<String>()
+        mShowTidCombo = FilterComboBox<String>()
         mShowTidCombo.toolTipText = TooltipStrings.TID_COMBO
         mShowTidCombo.isEditable = true
-        mShowTidCombo.renderer = ColorComboBox.ComboBoxRenderer()
+        mShowTidCombo.renderer = FilterComboBox.ComboBoxRenderer()
         mShowTidCombo.editor.editorComponent.addKeyListener(mKeyHandler)
         mShowTidCombo.addItemListener(mItemHandler)
         mShowTidCombo.editor.editorComponent.addMouseListener(mMouseHandler)
@@ -694,6 +695,9 @@ class MainUI(title: String) : JFrame() {
                 mShowLogCombo.addItem(item)
             }
         }
+
+        mShowLogCombo.updateTooltip()
+
         if (mShowLogCombo.itemCount > 0) {
             mShowLogCombo.selectedIndex = 0
         }
@@ -716,6 +720,9 @@ class MainUI(title: String) : JFrame() {
                 mShowTagCombo.selectedIndex = 0
             }
         }
+
+        mShowTagCombo.updateTooltip()
+
         check = mConfigManager.mProperties.get(mConfigManager.ITEM_SHOW_TAG_CHECK) as? String
         if (!check.isNullOrEmpty()) {
             mShowTagToggle.isSelected = check.toBoolean()
@@ -750,6 +757,9 @@ class MainUI(title: String) : JFrame() {
                 mBoldLogCombo.selectedIndex = 0
             }
         }
+
+        mBoldLogCombo.updateTooltip()
+
         check = mConfigManager.mProperties.get(mConfigManager.ITEM_HIGHLIGHT_LOG_CHECK) as? String
         if (!check.isNullOrEmpty()) {
             mBoldLogToggle.isSelected = check.toBoolean()
@@ -1750,6 +1760,7 @@ class MainUI(title: String) : JFrame() {
                 }
                 resetComboItem(combo, item)
                 mFilteredTableModel.mFilterLog = item
+                combo.updateTooltip()
             } else if (p0?.source == mBoldLogCombo) {
                 if (mBoldLogCombo.selectedIndex < 0) {
                     return
@@ -1758,6 +1769,7 @@ class MainUI(title: String) : JFrame() {
                 val item = combo.selectedItem!!.toString()
                 resetComboItem(combo, item)
                 mFilteredTableModel.mFilterHighlightLog = item
+                combo.updateTooltip()
             } else if (p0?.source == mShowTagCombo) {
                 if (mShowTagCombo.selectedIndex < 0) {
                     return
@@ -1766,6 +1778,7 @@ class MainUI(title: String) : JFrame() {
                 val item = combo.selectedItem!!.toString()
                 resetComboItem(combo, item)
                 mFilteredTableModel.mFilterTag = item
+                combo.updateTooltip()
             } else if (p0?.source == mShowPidCombo) {
                 if (mShowPidCombo.selectedIndex < 0) {
                     return
@@ -1774,6 +1787,7 @@ class MainUI(title: String) : JFrame() {
                 val item = combo.selectedItem!!.toString()
                 resetComboItem(combo, item)
                 mFilteredTableModel.mFilterPid = item
+                combo.updateTooltip()
             } else if (p0?.source == mShowTidCombo) {
                 if (mShowTidCombo.selectedIndex < 0) {
                     return
@@ -1782,6 +1796,7 @@ class MainUI(title: String) : JFrame() {
                 val item = combo.selectedItem!!.toString()
                 resetComboItem(combo, item)
                 mFilteredTableModel.mFilterTid = item
+                combo.updateTooltip()
             }
         }
 
@@ -1806,7 +1821,7 @@ class MainUI(title: String) : JFrame() {
         }
     }
 
-    fun resetComboItem(combo: ColorComboBox<String>, item: String) {
+    fun resetComboItem(combo: FilterComboBox<String>, item: String) {
         if (combo.isExistItem(item)) {
             if (combo.selectedIndex == 0) {
                 return
@@ -1819,7 +1834,7 @@ class MainUI(title: String) : JFrame() {
     }
 
     fun goToLine(line: Int) {
-        println("Line : " + line)
+        println("Line : $line")
         if (line < 0) {
             return
         }
