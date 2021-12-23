@@ -48,7 +48,7 @@ class MainUI(title: String) : JFrame() {
     private lateinit var mStopBtn: ColorButton
     private lateinit var mPauseBtn: ColorButton
     private lateinit var mClearBtn: ColorButton
-    private lateinit var mClearSaveBtn: ColorButton
+    private lateinit var mSaveBtn: ColorButton
     private lateinit var mRotationBtn: ColorButton
     private lateinit var mFiltersBtn: ColorButton
     private val SPLIT_WEIGHT = 0.7
@@ -407,10 +407,10 @@ class MainUI(title: String) : JFrame() {
         mClearBtn.toolTipText = TooltipStrings.CLEAR_BTN
         mClearBtn.addActionListener(mActionHandler)
         mClearBtn.addMouseListener(mMouseHandler)
-        mClearSaveBtn = ColorButton(Strings.CLEAR_SAVE)
-        mClearSaveBtn.toolTipText = TooltipStrings.CLEAR_SAVE_BTN
-        mClearSaveBtn.addActionListener(mActionHandler)
-        mClearSaveBtn.addMouseListener(mMouseHandler)
+        mSaveBtn = ColorButton(Strings.SAVE)
+        mSaveBtn.toolTipText = TooltipStrings.SAVE_BTN
+        mSaveBtn.addActionListener(mActionHandler)
+        mSaveBtn.addMouseListener(mMouseHandler)
         mRotationBtn = ColorButton(Strings.ROTATION)
         mRotationBtn.toolTipText = TooltipStrings.ROTATION_BTN
         mRotationBtn.addActionListener(mActionHandler)
@@ -605,7 +605,7 @@ class MainUI(title: String) : JFrame() {
         mLogToolBar.add(mStartBtn)
         mLogToolBar.add(mStopBtn)
         mLogToolBar.add(mClearBtn)
-        mLogToolBar.add(mClearSaveBtn)
+        mLogToolBar.add(mSaveBtn)
 
         addVSeparator(mLogToolBar)
 
@@ -1318,10 +1318,10 @@ class MainUI(title: String) : JFrame() {
             } else if (p0?.source == mClearBtn) {
                 mFilteredTableModel.clearItems()
                 repaint()
-            } else if (p0?.source == mClearSaveBtn) {
-                mFilteredTableModel.clearItems()
+            } else if (p0?.source == mSaveBtn) {
+//                mFilteredTableModel.clearItems()
                 setSaveLogFile()
-                repaint()
+//                repaint()
             } else if (p0?.source == mRotationBtn) {
                 mRotationStatus++
 
@@ -1540,7 +1540,7 @@ class MainUI(title: String) : JFrame() {
     fun clearSaveAdbLog() {
         Thread(Runnable {
             run {
-                mClearSaveBtn.doClick()
+                mSaveBtn.doClick()
             }
         }).start()
     }

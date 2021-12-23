@@ -6,7 +6,7 @@ class TooltipStringsEn private constructor() {
             "Start adb logcat and receive logs"
             , "Stop adb logcat"
             , "Clear log view"
-            , "Clear the log view and change the save file"
+            , "Save new file"
             , "List of connected devices or an address to connect to\n When the Enter key (or ctrl-r) is pressed, log reception starts after reconnection"
             , "adb connect [address]"
             , "Get list of connected devices"

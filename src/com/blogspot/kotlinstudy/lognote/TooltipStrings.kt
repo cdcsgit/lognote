@@ -18,7 +18,7 @@ class TooltipStrings private constructor() {
         private val IDX_START_BTN = idx++
         private val IDX_STOP_BTN = idx++
         private val IDX_CLEAR_BTN = idx++
-        private val IDX_CLEAR_SAVE_BTN = idx++
+        private val IDX_SAVE_BTN = idx++
         private val IDX_DEVICES_COMBO = idx++
         private val IDX_CONNECT_BTN = idx++
         private val IDX_REFRESH_BTN = idx++
@@ -57,8 +57,8 @@ class TooltipStrings private constructor() {
             get() { return currStrings[IDX_STOP_BTN] }
         val CLEAR_BTN: String
             get() { return currStrings[IDX_CLEAR_BTN] }
-        val CLEAR_SAVE_BTN: String
-            get() { return currStrings[IDX_CLEAR_SAVE_BTN] }
+        val SAVE_BTN: String
+            get() { return currStrings[IDX_SAVE_BTN] }
         val DEVICES_COMBO: String
             get() { return currStrings[IDX_DEVICES_COMBO] }
         val CONNECT_BTN: String

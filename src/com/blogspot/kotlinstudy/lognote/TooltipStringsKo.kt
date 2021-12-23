@@ -6,7 +6,7 @@ class TooltipStringsKo private constructor() {
             "adb logcat 시작 및 로그 수신"
             , "adb logcat 중지"
             , "로그 화면 지움"
-            , "로그 화면 지우고 저장 파일 변경"
+            , "새 파일 저장"
             , "연결된 장치 리스트 또는 연결할 주소 입력\n 엔터키(또는 ctrl-r) 입력시 재연결 후 로그 수신 시작함"
             , "adb connect [주소]"
             , "adb 연결된 장치 리스트를 가져옴"
