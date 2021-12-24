@@ -98,16 +98,24 @@ class FilterComboBox<E> : JComboBox<E>() {
         var excludeStr = patterns[1]
 
         if (includeStr.isNotEmpty()) {
+            includeStr = includeStr.replace("&#09", "&amp;#09")
+            includeStr = includeStr.replace("\t", "&#09;")
+            includeStr = includeStr.replace("&nbsp", "&amp;nbsp")
+            includeStr = includeStr.replace(" ", "&nbsp;")
             includeStr = includeStr.replace("|", "<font color=#303030><b>|</b></font>")
         }
 
         if (excludeStr.isNotEmpty()) {
+            excludeStr = excludeStr.replace("&#09", "&amp;#09")
+            excludeStr = excludeStr.replace("\t", "&#09;")
+            excludeStr = excludeStr.replace("&nbsp", "&amp;nbsp")
+            excludeStr = excludeStr.replace(" ", "&nbsp;")
             excludeStr = excludeStr.replace("|", "<font color=#303030><b>|</b></font>")
         }
 
         var tooltip = "<html><b>$toolTipText</b><br>"
-        tooltip += "<font color=#000000>INCLUDE : </font><font size=5 color=#0000FF>$includeStr</font><br>"
-        tooltip += "<font color=#000000>EXCLUDE : </font><font size=5 color=#FF0000>$excludeStr</font><br>"
+        tooltip += "<font color=#000000>INCLUDE : </font>\"<font size=5 color=#0000FF>$includeStr</font>\"<br>"
+        tooltip += "<font color=#000000>EXCLUDE : </font>\"<font size=5 color=#FF0000>$excludeStr</font>\"<br>"
         tooltip += "</html>"
         mTf!!.toolTipText = tooltip
     }
