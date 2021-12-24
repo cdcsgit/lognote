@@ -237,6 +237,7 @@ class MainUI(title: String) : JFrame() {
 
         mMenuBar = JMenuBar()
         mMenuFile = JMenu(Strings.FILE)
+        mMenuFile.mnemonic = KeyEvent.VK_F
 
         mItemFileOpen = JMenuItem(Strings.OPEN)
         mItemFileOpen.addActionListener(mActionHandler)
@@ -261,6 +262,7 @@ class MainUI(title: String) : JFrame() {
         mMenuBar.add(mMenuFile)
 
         mMenuView = JMenu(Strings.VIEW)
+        mMenuView.mnemonic = KeyEvent.VK_V
 
         mItemFull = JCheckBoxMenuItem(Strings.VIEW_FULL)
         mItemFull.addActionListener(mActionHandler)
@@ -268,6 +270,7 @@ class MainUI(title: String) : JFrame() {
         mMenuBar.add(mMenuView)
 
         mMenuSettings = JMenu(Strings.SETTING)
+        mMenuSettings.mnemonic = KeyEvent.VK_S
 
         mItemAdb = JMenuItem(Strings.ADB)
         mItemAdb.addActionListener(mActionHandler)
@@ -330,6 +333,7 @@ class MainUI(title: String) : JFrame() {
         mMenuBar.add(mMenuSettings)
 
         mMenuHelp = JMenu(Strings.HELP)
+        mMenuHelp.mnemonic = KeyEvent.VK_H
 
         mItemHelp = JMenuItem(Strings.HELP)
         mItemHelp.addActionListener(mActionHandler)
