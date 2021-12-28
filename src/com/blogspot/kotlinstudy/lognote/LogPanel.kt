@@ -108,6 +108,9 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
         mScrollPane.horizontalScrollBar.addAdjustmentListener(mAdjustmentHandler)
         mScrollPane.addMouseListener(MouseHandler())
 
+        mScrollPane.verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
+        mScrollPane.horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+
         add(mCtrlPanel, BorderLayout.NORTH)
         add(mVStatusPanel, BorderLayout.WEST)
         add(mScrollPane, BorderLayout.CENTER)
