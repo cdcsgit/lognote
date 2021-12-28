@@ -45,7 +45,7 @@ class StringsKo private constructor() {
             , "스크롤백(라인수)"
             , "분할 저장"
             , "색"
-            , "필터 리스트"
+            , "필터s"
             , "유지"
             , "확인"
             , "취소"
@@ -65,6 +65,7 @@ class StringsKo private constructor() {
             , "여러 파일 열기"
             , "여러 파일 붙이기"
             , "없음"
+            , "필터 추가"
 //            , ""
         )
     }

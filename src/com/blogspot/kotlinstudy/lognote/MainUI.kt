@@ -50,7 +50,7 @@ class MainUI(title: String) : JFrame() {
     private lateinit var mClearBtn: ColorButton
     private lateinit var mSaveBtn: ColorButton
     private lateinit var mRotationBtn: ColorButton
-    private lateinit var mFiltersBtn: ColorButton
+    lateinit var mFiltersBtn: ColorButton
     private val SPLIT_WEIGHT = 0.7
 
     private lateinit var mLogPanel: JPanel
@@ -99,7 +99,7 @@ class MainUI(title: String) : JFrame() {
 
     private lateinit var mLogSplitPane: JSplitPane
 
-    private lateinit var mFilteredLogPanel: LogPanel
+    lateinit var mFilteredLogPanel: LogPanel
     private lateinit var mFullLogPanel: LogPanel
     private var mSelectedLine = 0
 
@@ -650,6 +650,7 @@ class MainUI(title: String) : JFrame() {
 
         mFullLogPanel = LogPanel(mFullTableModel, null)
         mFilteredLogPanel = LogPanel(mFilteredTableModel, mFullLogPanel)
+        mFilteredLogPanel.updateTableBar(mConfigManager.loadFilters())
 
         when (mRotationStatus) {
             ROTATION_LEFT_RIGHT -> {
@@ -952,6 +953,7 @@ class MainUI(title: String) : JFrame() {
 
         val ITEM_FILTERS_TITLE = "FILTERS_TITLE_"
         val ITEM_FILTERS_FILTER = "FILTERS_FILTER_"
+        val ITEM_FILTERS_TABLEBAR = "FILTERS_TABLEBAR_"
 
         val ITEM_COLOR_MANAGER = "COLOR_MANAGER_"
 
@@ -1113,6 +1115,8 @@ class MainUI(title: String) : JFrame() {
 
             var title: String?
             var filter: String?
+            var check: String?
+            var tableBar: Boolean
             for (i in 0 until FiltersManager.MAX_FILTERS) {
                 title = mProperties.get(ITEM_FILTERS_TITLE + i) as? String
                 if (title == null) {
@@ -1122,7 +1126,14 @@ class MainUI(title: String) : JFrame() {
                 if (filter == null) {
                     filter = "null"
                 }
-                filters.add(FiltersManager.FilterElement(title, filter))
+
+                check = mProperties.get(ITEM_FILTERS_TABLEBAR + i) as? String
+                if (!check.isNullOrEmpty()) {
+                    tableBar = check.toBoolean()
+                } else {
+                    tableBar = false
+                }
+                filters.add(FiltersManager.FilterElement(title, filter, tableBar))
             }
 
             return filters
@@ -1136,6 +1147,7 @@ class MainUI(title: String) : JFrame() {
             for (i in 0 until nCount) {
                 mProperties.put(ITEM_FILTERS_TITLE + i, filters[i].mTitle)
                 mProperties.put(ITEM_FILTERS_FILTER + i, filters[i].mFilter)
+                mProperties.put(ITEM_FILTERS_TABLEBAR + i, filters[i].mTableBar.toString())
             }
 
             saveConfig()

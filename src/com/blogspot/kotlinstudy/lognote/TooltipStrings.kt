@@ -49,6 +49,7 @@ class TooltipStrings private constructor() {
         private val IDX_VIEW_BOOKMARKS_TOGGLE = idx++
         private val IDX_VIEW__WINDOWED_MODE_BTN = idx++
         private val IDX_SAVED_FILE_TF = idx++
+        private val IDX_ADD_FILTER_BTN = idx++
 //        private val IDX_ = idx++
 
         val START_BTN: String
@@ -119,5 +120,7 @@ class TooltipStrings private constructor() {
             get() { return currStrings[IDX_VIEW__WINDOWED_MODE_BTN] }
         val SAVED_FILE_TF: String
             get() { return currStrings[IDX_SAVED_FILE_TF] }
+        val ADD_FILTER_BTN: String
+            get() { return currStrings[IDX_ADD_FILTER_BTN] }
     }
 }

@@ -1,9 +1,6 @@
 package com.blogspot.kotlinstudy.lognote
 
-import java.awt.BorderLayout
-import java.awt.FlowLayout
-import java.awt.Font
-import java.awt.Rectangle
+import java.awt.*
 import java.awt.datatransfer.DataFlavor
 import java.awt.event.*
 import java.io.File
@@ -13,11 +10,12 @@ import javax.swing.*
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
 import javax.swing.plaf.basic.BasicScrollBarUI
+import kotlin.collections.ArrayList
 
 
 class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
     private val mBasePanel = basePanel
-    private val mCtrlPanel: JPanel
+    private val mCtrlPanel: ButtonPanel
     private var mFirstBtn: ColorButton
     private var mLastBtn: ColorButton
     private var mTagBtn: ColorToggleButton
@@ -51,48 +49,44 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
 
     init {
         layout = BorderLayout()
-        mCtrlPanel = JPanel(FlowLayout(FlowLayout.LEFT, 0, 0))
+        mCtrlPanel = ButtonPanel()
 //        mFirstBtn = ColorButton(Strings.FIRST)
         mFirstBtn = ColorButton("∧") // △ ▲ ▽ ▼ ↑ ↓ ∧ ∨
         mFirstBtn.toolTipText = TooltipStrings.VIEW_FIRST_BTN
+        mFirstBtn.margin = Insets(0, 7, 0, 7)
 
         mFirstBtn.addActionListener(mActionHandler)
 //        mLastBtn = ColorButton(Strings.LAST)
         mLastBtn = ColorButton("∨")
         mLastBtn.toolTipText = TooltipStrings.VIEW_LAST_BTN
+        mLastBtn.margin = Insets(0, 7, 0, 7)
         mLastBtn.addActionListener(mActionHandler)
         mTagBtn = ColorToggleButton(Strings.TAG)
         mTagBtn.toolTipText = TooltipStrings.VIEW_TAG_TOGGLE
+        mTagBtn.margin = Insets(0, 0, 0, 0)
         mTagBtn.addActionListener(mActionHandler)
         mPidBtn = ColorToggleButton(Strings.PID)
         mPidBtn.toolTipText = TooltipStrings.VIEW_PID_TOGGLE
+        mPidBtn.margin = Insets(0, 0, 0, 0)
         mPidBtn.addActionListener(mActionHandler)
         mTidBtn = ColorToggleButton(Strings.TID)
         mTidBtn.toolTipText = TooltipStrings.VIEW_TID_TOGGLE
+        mTidBtn.margin = Insets(0, 0, 0, 0)
         mTidBtn.addActionListener(mActionHandler)
         mWindowedModeBtn = ColorButton(Strings.WINDOWED_MODE)
         mWindowedModeBtn.toolTipText = TooltipStrings.VIEW__WINDOWED_MODE_BTN
+        mWindowedModeBtn.margin = Insets(0, 0, 0, 0)
         mWindowedModeBtn.addActionListener(mActionHandler)
         mBookmarksBtn = ColorToggleButton(Strings.BOOKMARKS)
         mBookmarksBtn.toolTipText = TooltipStrings.VIEW_BOOKMARKS_TOGGLE
+        mBookmarksBtn.margin = Insets(0, 0, 0, 0)
         mBookmarksBtn.addActionListener(mActionHandler)
         mFullBtn = ColorToggleButton(Strings.FULL)
         mFullBtn.toolTipText = TooltipStrings.VIEW_FULL_TOGGLE
+        mFullBtn.margin = Insets(0, 0, 0, 0)
         mFullBtn.addActionListener(mActionHandler)
 
-        mCtrlPanel.add(mFirstBtn)
-        mCtrlPanel.add(mLastBtn)
-        mCtrlPanel.add(mPidBtn)
-        mCtrlPanel.add(mTidBtn)
-        mCtrlPanel.add(mTagBtn)
-
-        if (mBasePanel != null) {
-            mCtrlPanel.add(mFullBtn)
-            mCtrlPanel.add(mBookmarksBtn)
-        }
-        if (mBasePanel == null) {
-            mCtrlPanel.add(mWindowedModeBtn)
-        }
+        updateTableBar(null)
 
         tableModel.addLogTableModelListener(mTableModelHandler)
         mTable = LogTable(tableModel)
@@ -122,6 +116,66 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
         addComponentListener(mComponentHandler)
 
         mIsCreatingUI = false
+    }
+
+    private fun addVSeparator(panel:JPanel) {
+        val separator1 = JSeparator(SwingConstants.VERTICAL)
+        separator1.preferredSize = Dimension(separator1.preferredSize.width, 10)
+        separator1.foreground = Color.DARK_GRAY
+        separator1.background = Color.DARK_GRAY
+        panel.add(Box.createHorizontalStrut(2))
+        panel.add(separator1)
+        panel.add(Box.createHorizontalStrut(2))
+    }
+
+    fun updateTableBar(filtersArray: ArrayList<FiltersManager.FilterElement>?) {
+        mCtrlPanel.removeAll()
+        mCtrlPanel.add(mFirstBtn)
+        mCtrlPanel.add(mLastBtn)
+        mCtrlPanel.add(mPidBtn)
+        mCtrlPanel.add(mTidBtn)
+        mCtrlPanel.add(mTagBtn)
+
+        if (mBasePanel != null) {
+            mCtrlPanel.add(mFullBtn)
+            mCtrlPanel.add(mBookmarksBtn)
+        }
+        if (mBasePanel == null) {
+            mCtrlPanel.add(mWindowedModeBtn)
+        }
+
+        addVSeparator(mCtrlPanel)
+        if (mBasePanel != null) {
+            var isAdded = false
+            if (filtersArray != null) {
+                for (item in filtersArray) {
+                    if (!item.mTableBar) {
+                        continue
+                    }
+                    val button = ColorButton(item.mTitle)
+                    button.toolTipText = item.mFilter
+                    button.margin = Insets(0, 0, 0, 0)
+                    button.addActionListener(ActionListener { e: ActionEvent? ->
+                        val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
+                        frame.setTextShowLogCombo((e?.source as ColorButton).toolTipText)
+                        frame.applyShowLogCombo()
+                    })
+                    mCtrlPanel.add(button)
+                    isAdded = true
+                }
+            }
+            if (!isAdded) {
+                val button = ColorButton(Strings.ADD_FILTER)
+                button.toolTipText = TooltipStrings.ADD_FILTER_BTN
+                button.margin = Insets(0, 0, 0, 0)
+                button.addActionListener(ActionListener { e: ActionEvent? ->
+                    val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
+                    frame.mFiltersBtn.doClick()
+                })
+                mCtrlPanel.add(button)
+            }
+        }
+        mCtrlPanel.updateUI()
     }
 
     var mFont: Font = Font("Dialog", Font.PLAIN, 12)
@@ -549,6 +603,36 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
         override fun mouseDragged(e: MouseEvent?) {
             println("mouseDragged")
             super.mouseDragged(e)
+        }
+    }
+
+    internal inner class ButtonPanel : JPanel() {
+        var mLastComponent: Component? = null
+        init {
+            layout = FlowLayout(FlowLayout.LEFT, 0, 0)
+
+            addComponentListener(
+                object : ComponentAdapter() {
+                    var mPrevPoint: Point? = null
+                    override fun componentResized(e: ComponentEvent) {
+                        super.componentResized(e)
+                        for (item in components) {
+                            if (mLastComponent == null) {
+                                mLastComponent = item
+                            } else {
+                                if ((item.location.y + item.height) > (mLastComponent!!.location.y + mLastComponent!!.height)) {
+                                    mLastComponent = item
+                                }
+                            }
+                        }
+                        if (mPrevPoint == null || mPrevPoint!!.y != mLastComponent!!.location.y) {
+                            println("lastComonent moved to " + mLastComponent!!.location)
+                            preferredSize = Dimension(preferredSize.width, mLastComponent!!.location.y + mLastComponent!!.height)
+                            updateUI()
+                        }
+                        mPrevPoint = mLastComponent!!.location
+                    }
+                })
         }
     }
 }

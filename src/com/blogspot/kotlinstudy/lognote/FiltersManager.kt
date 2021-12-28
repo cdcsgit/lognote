@@ -25,9 +25,10 @@ class FiltersManager (mainUI: MainUI, configManager: MainUI.ConfigManager){
         filtersDialog.isVisible = true
     }
 
-    class FilterElement(title : String, filter : String) {
+    class FilterElement(title: String, filter: String, tableBar: Boolean) {
         var mTitle = title
         var mFilter = filter
+        var mTableBar = tableBar
     }
 
     internal inner class FiltersDialog (parent: MainUI) : JDialog(parent, Strings.FILTERS, true), ActionListener {
@@ -49,7 +50,7 @@ class FiltersManager (mainUI: MainUI, configManager: MainUI.ConfigManager){
             val filtersArray = mConfigManager.loadFilters()
             mFilterModel.clear()
             if (mParent.getTextShowLogCombo().isNotEmpty()) {
-                mFilterModel.addElement(FilterElement(CURRENT, mParent.getTextShowLogCombo()))
+                mFilterModel.addElement(FilterElement(CURRENT, mParent.getTextShowLogCombo(), false))
             }
             for (item in filtersArray) {
                 mFilterModel.addElement(item)
@@ -101,10 +102,11 @@ class FiltersManager (mainUI: MainUI, configManager: MainUI.ConfigManager){
         }
 
         inner class FilterCellRenderer : ListCellRenderer<Any?> {
-            private val cellPanel = JPanel()
+            private val cellPanel: JPanel
             private val titlePanel: JPanel
             private val titleLabel: JLabel
             private val filterText: JTextArea
+
             override fun getListCellRendererComponent(
                 list: JList<*>,
                 value: Any?, index: Int, isSelected: Boolean,
@@ -112,11 +114,13 @@ class FiltersManager (mainUI: MainUI, configManager: MainUI.ConfigManager){
             ): Component {
                 val element = value as FilterElement
                 titleLabel.text = element.mTitle
-                filterText.text = element.mFilter
-                val width = list.width
-                if (width > 0) {
-                    filterText.setSize(width, Short.MAX_VALUE.toInt())
+                if (element.mTableBar) {
+                    titleLabel.text += " - TableBar"
                 }
+                filterText.text = element.mFilter
+
+                filterText.updateUI()
+
                 if (isSelected) {
                     titlePanel.background = Color.LIGHT_GRAY
                     filterText.background = Color.LIGHT_GRAY
@@ -129,7 +133,7 @@ class FiltersManager (mainUI: MainUI, configManager: MainUI.ConfigManager){
             }
 
             init {
-                cellPanel.layout = BorderLayout()
+                cellPanel = JPanel(BorderLayout())
 
                 titlePanel = JPanel(BorderLayout())
                 titleLabel = JLabel("")
@@ -146,20 +150,20 @@ class FiltersManager (mainUI: MainUI, configManager: MainUI.ConfigManager){
 
         override fun actionPerformed(e: ActionEvent?) {
             if (e?.source == mNewBtn) {
-                val editDialog = FilterEditDialog(this, CMD_NEW, "", "")
+                val editDialog = FilterEditDialog(this, CMD_NEW, "", "", false)
                 editDialog.setLocationRelativeTo(this)
                 editDialog.isVisible = true
             } else if (e?.source == mCopyBtn) {
                 if (mFilterList.selectedIndex >= 0) {
                     val selection = mFilterList.selectedValue
-                    val editDialog = FilterEditDialog(this, CMD_COPY, selection.mTitle, selection.mFilter)
+                    val editDialog = FilterEditDialog(this, CMD_COPY, selection.mTitle, selection.mFilter, selection.mTableBar)
                     editDialog.setLocationRelativeTo(this)
                     editDialog.isVisible = true
                 }
             } else if (e?.source == mEditBtn) {
                 if (mFilterList.selectedIndex >= 0) {
                     val selection = mFilterList.selectedValue
-                    val editDialog = FilterEditDialog(this, CMD_EDIT, selection.mTitle, selection.mFilter)
+                    val editDialog = FilterEditDialog(this, CMD_EDIT, selection.mTitle, selection.mFilter, selection.mTableBar)
                     editDialog.setLocationRelativeTo(this)
                     editDialog.isVisible = true
                 }
@@ -180,6 +184,7 @@ class FiltersManager (mainUI: MainUI, configManager: MainUI.ConfigManager){
                 if (filtersArray.size > 0) {
                     mConfigManager.saveFilters(filtersArray)
                 }
+                mMainUI.mFilteredLogPanel.updateTableBar(filtersArray)
             } else if (e?.source == mCloseBtn) {
                 dispose()
             }
@@ -215,15 +220,17 @@ class FiltersManager (mainUI: MainUI, configManager: MainUI.ConfigManager){
             }
         }
 
-        internal inner class FilterEditDialog(parent: FiltersDialog, cmd: Int, title: String, filter: String) :JDialog(parent, "Filter Edit", true), ActionListener {
+        internal inner class FilterEditDialog(parent: FiltersDialog, cmd: Int, title: String, filter: String, tableBar: Boolean) :JDialog(parent, "Filter Edit", true), ActionListener {
             private var mOkBtn: ColorButton
             private var mCancelBtn: ColorButton
 
             private var mTitleLabel: JLabel
             private var mFilterLabel: JLabel
+            private var mTableBarLabel: JLabel
 
             private var mTitleTF: JTextField
             private var mFilterTF: JTextField
+            private var mTableBarCheck: JCheckBox
 
             private var mTitleStatusLabel: JLabel
             private var mFilterStatusLabel: JLabel
@@ -241,6 +248,7 @@ class FiltersManager (mainUI: MainUI, configManager: MainUI.ConfigManager){
 
                 mTitleLabel = JLabel("Title")
                 mFilterLabel = JLabel("Filter")
+                mTableBarLabel = JLabel("Add TableBar")
 
                 mTitleTF = JTextField(title)
                 mTitleTF.document.addDocumentListener(mDocumentHandler)
@@ -248,6 +256,9 @@ class FiltersManager (mainUI: MainUI, configManager: MainUI.ConfigManager){
                 mFilterTF = JTextField(filter)
                 mFilterTF.document.addDocumentListener(mDocumentHandler)
                 mFilterTF.preferredSize = Dimension(488, 30)
+
+                mTableBarCheck = JCheckBox()
+                mTableBarCheck.isSelected = tableBar
 
                 mTitleStatusLabel = JLabel("Good")
                 mTitleStatusLabel.foreground = Color.BLUE
@@ -268,14 +279,19 @@ class FiltersManager (mainUI: MainUI, configManager: MainUI.ConfigManager){
                 filterPanel.add(mFilterTF)
                 filterPanel.add(mFilterStatusLabel)
 
+                val tableBarPanel = JPanel()
+                tableBarPanel.add(mTableBarLabel)
+                tableBarPanel.add(mTableBarCheck)
+
                 val confirmPanel = JPanel()
                 confirmPanel.preferredSize = Dimension(400, 30)
                 confirmPanel.add(mOkBtn)
                 confirmPanel.add(mCancelBtn)
 
-                val panel = JPanel(GridLayout(3, 1))
+                val panel = JPanel(GridLayout(4, 1))
                 panel.add(titlePanel)
                 panel.add(filterPanel)
+                panel.add(tableBarPanel)
                 panel.add(confirmPanel)
 
                 contentPane.add(panel)
@@ -311,7 +327,7 @@ class FiltersManager (mainUI: MainUI, configManager: MainUI.ConfigManager){
 
             override fun actionPerformed(e: ActionEvent?) {
                 if (e?.source == mOkBtn) {
-                    mParent.updateFilter(mCmd, mPrevTitle, FilterElement(mTitleTF.text, mFilterTF.text))
+                    mParent.updateFilter(mCmd, mPrevTitle, FilterElement(mTitleTF.text, mFilterTF.text, mTableBarCheck.isSelected))
                     dispose()
                 } else if (e?.source == mCancelBtn) {
                     dispose()

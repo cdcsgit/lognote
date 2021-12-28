@@ -80,6 +80,7 @@ class Strings private constructor() {
         private val IDX_OPEN_FILES = idx++
         private val IDX_APPEND_FILES = idx++
         private val IDX_NONE = idx++
+        private val IDX_ADD_FILTER = idx++
 //        private val IDX_ = idx++
 
         val FILE: String
@@ -206,5 +207,7 @@ class Strings private constructor() {
             get() { return currStrings[IDX_APPEND_FILES] }
         val NONE: String
             get() { return currStrings[IDX_NONE] }
+        val ADD_FILTER: String
+            get() { return currStrings[IDX_ADD_FILTER] }
     }
 }

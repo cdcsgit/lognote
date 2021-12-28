@@ -17,7 +17,7 @@ class TooltipStringsEn private constructor() {
             , "Log is kept in the log view, used when the log is pushed up by the number of applied lines when reviewing the log"
             , "Change log views position up/down, left/right"
             , "Log filter case-sensitive"
-            , "Save frequently used filters"
+            , "Manage frequently used filters"
             , "Full log filter"
             , "Regex support, filter: search, -filter: exclude search, ex filter1|filter2|-exclude1"
             , "Tag filter"
@@ -37,6 +37,7 @@ class TooltipStringsEn private constructor() {
             , "Show bookmarks only"
             , "Move the view to a new window"
             , "Saved file name"
+            , "Open filter list(add filter)"
 //            , ""
         )
     }

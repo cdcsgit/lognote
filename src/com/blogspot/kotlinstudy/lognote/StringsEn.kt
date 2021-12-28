@@ -45,7 +45,7 @@ class StringsEn private constructor() {
             , "Scrollback(lines)"
             , "Split File"
             , "Color"
-            , "Filter list"
+            , "Filters"
             , "Keep"
             , "OK"
             , "Cancel"
@@ -65,6 +65,7 @@ class StringsEn private constructor() {
             , "Open files"
             , "Append files"
             , "None"
+            , "Add filter"
 //            , ""
         )
     }
