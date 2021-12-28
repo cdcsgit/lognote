@@ -891,7 +891,7 @@ class MainUI(title: String) : JFrame() {
         mIsCreatingUI = false
     }
 
-    fun addVSeparator(panel:JPanel) {
+    private fun addVSeparator(panel:JPanel) {
         val separator1 = JSeparator(SwingConstants.VERTICAL)
         separator1.preferredSize = Dimension(separator1.preferredSize.width, 20)
         separator1.foreground = Color.DARK_GRAY

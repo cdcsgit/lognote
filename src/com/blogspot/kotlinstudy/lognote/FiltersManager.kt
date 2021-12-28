@@ -34,6 +34,10 @@ class FiltersManager (mainUI: MainUI, configManager: MainUI.ConfigManager){
     internal inner class FiltersDialog (parent: MainUI) : JDialog(parent, Strings.FILTERS, true), ActionListener {
         private var mFilterScrollPane: JScrollPane
         private var mFilterList = JList<FilterElement>()
+        private var mFirstBtn: ColorButton
+        private var mPrevBtn: ColorButton
+        private var mNextBtn: ColorButton
+        private var mLastBtn: ColorButton
         private var mNewBtn: ColorButton
         private var mCopyBtn: ColorButton
         private var mEditBtn: ColorButton
@@ -49,9 +53,8 @@ class FiltersManager (mainUI: MainUI, configManager: MainUI.ConfigManager){
         init {
             val filtersArray = mConfigManager.loadFilters()
             mFilterModel.clear()
-            if (mParent.getTextShowLogCombo().isNotEmpty()) {
-                mFilterModel.addElement(FilterElement(CURRENT, mParent.getTextShowLogCombo(), false))
-            }
+            mFilterModel.addElement(FilterElement(CURRENT, mParent.getTextShowLogCombo(), false))
+
             for (item in filtersArray) {
                 mFilterModel.addElement(item)
             }
@@ -72,6 +75,15 @@ class FiltersManager (mainUI: MainUI, configManager: MainUI.ConfigManager){
             mFilterScrollPane = JScrollPane(mFilterList)
             mFilterScrollPane.preferredSize = Dimension(800, 500)
 
+            mFirstBtn = ColorButton("↑")
+            mFirstBtn.addActionListener(this)
+            mPrevBtn = ColorButton("∧")
+            mPrevBtn.addActionListener(this)
+            mNextBtn = ColorButton("∨")
+            mNextBtn.addActionListener(this)
+            mLastBtn = ColorButton("↓")
+            mLastBtn.addActionListener(this)
+
             mNewBtn = ColorButton(Strings.NEW)
             mNewBtn.addActionListener(this)
             mCopyBtn = ColorButton(Strings.COPY)
@@ -85,10 +97,16 @@ class FiltersManager (mainUI: MainUI, configManager: MainUI.ConfigManager){
             mCloseBtn = ColorButton(Strings.CLOSE)
             mCloseBtn.addActionListener(this)
             val bottomPanel = JPanel()
+            bottomPanel.add(mFirstBtn)
+            bottomPanel.add(mPrevBtn)
+            bottomPanel.add(mNextBtn)
+            bottomPanel.add(mLastBtn)
+            addVSeparator(bottomPanel)
             bottomPanel.add(mNewBtn)
             bottomPanel.add(mCopyBtn)
             bottomPanel.add(mEditBtn)
             bottomPanel.add(mDeleteBtn)
+            addVSeparator(bottomPanel)
             bottomPanel.add(mSaveBtn)
             bottomPanel.add(mCloseBtn)
 
@@ -99,6 +117,14 @@ class FiltersManager (mainUI: MainUI, configManager: MainUI.ConfigManager){
             pack()
 
             Utils.installKeyStrokeEscClosing(this)
+        }
+
+        private fun addVSeparator(panel:JPanel) {
+            val separator1 = JSeparator(SwingConstants.VERTICAL)
+            separator1.preferredSize = Dimension(separator1.preferredSize.width, 20)
+            separator1.foreground = Color.DARK_GRAY
+            separator1.background = Color.DARK_GRAY
+            panel.add(separator1)
         }
 
         inner class FilterCellRenderer : ListCellRenderer<Any?> {
@@ -114,8 +140,14 @@ class FiltersManager (mainUI: MainUI, configManager: MainUI.ConfigManager){
             ): Component {
                 val element = value as FilterElement
                 titleLabel.text = element.mTitle
-                if (element.mTableBar) {
+                if (element.mTitle == CURRENT) {
+                    titleLabel.foreground = Color.RED
+                } else if (element.mTableBar) {
                     titleLabel.text += " - TableBar"
+                    titleLabel.foreground = Color.MAGENTA
+                }
+                else {
+                    titleLabel.foreground = Color.BLUE
                 }
                 filterText.text = element.mFilter
 
@@ -149,7 +181,55 @@ class FiltersManager (mainUI: MainUI, configManager: MainUI.ConfigManager){
         }
 
         override fun actionPerformed(e: ActionEvent?) {
-            if (e?.source == mNewBtn) {
+            if (e?.source == mFirstBtn) {
+                mSelectionListener.isSkip = true
+                val selectedIdx = mFilterList.selectedIndex
+                if (mFilterModel.size >= 3) {
+                    val selection = mFilterList.selectedValue
+                    if (selection.mTitle != CURRENT) {
+                        mFilterModel.remove(selectedIdx)
+                        mFilterModel.add(1, selection)
+                        mFilterList.selectedIndex = 1
+                    }
+                }
+                mSelectionListener.isSkip = false
+            } else if (e?.source == mPrevBtn) {
+                mSelectionListener.isSkip = true
+                val selectedIdx = mFilterList.selectedIndex
+                if (mFilterModel.size >= 3 && selectedIdx > 1) {
+                    val selection = mFilterList.selectedValue
+                    if (selection.mTitle != CURRENT) {
+                        mFilterModel.remove(selectedIdx)
+                        mFilterModel.add(selectedIdx - 1, selection)
+                        mFilterList.selectedIndex = selectedIdx - 1
+                    }
+                }
+                mSelectionListener.isSkip = false
+            } else if (e?.source == mNextBtn) {
+                mSelectionListener.isSkip = true
+                val selectedIdx = mFilterList.selectedIndex
+                if (mFilterModel.size >= 3 && selectedIdx > 0 && selectedIdx < (mFilterModel.size() - 1)) {
+                    val selection = mFilterList.selectedValue
+                    if (selection.mTitle != CURRENT) {
+                        mFilterModel.remove(selectedIdx)
+                        mFilterModel.add(selectedIdx + 1, selection)
+                        mFilterList.selectedIndex = selectedIdx + 1
+                    }
+                }
+                mSelectionListener.isSkip = false
+            } else if (e?.source == mLastBtn) {
+                mSelectionListener.isSkip = true
+                val selectedIdx = mFilterList.selectedIndex
+                if (mFilterModel.size >= 3) {
+                    val selection = mFilterList.selectedValue
+                    if (selection.mTitle != CURRENT) {
+                        mFilterModel.remove(selectedIdx)
+                        mFilterModel.add(mFilterModel.size(), selection)
+                        mFilterList.selectedIndex = mFilterModel.size() - 1
+                    }
+                }
+                mSelectionListener.isSkip = false
+            } else if (e?.source == mNewBtn) {
                 val editDialog = FilterEditDialog(this, CMD_NEW, "", "", false)
                 editDialog.setLocationRelativeTo(this)
                 editDialog.isVisible = true
@@ -163,7 +243,12 @@ class FiltersManager (mainUI: MainUI, configManager: MainUI.ConfigManager){
             } else if (e?.source == mEditBtn) {
                 if (mFilterList.selectedIndex >= 0) {
                     val selection = mFilterList.selectedValue
-                    val editDialog = FilterEditDialog(this, CMD_EDIT, selection.mTitle, selection.mFilter, selection.mTableBar)
+                    val cmd = if (selection.mTitle != CURRENT) {
+                        CMD_EDIT
+                    } else {
+                        CMD_COPY
+                    }
+                    val editDialog = FilterEditDialog(this, cmd, selection.mTitle, selection.mFilter, selection.mTableBar)
                     editDialog.setLocationRelativeTo(this)
                     editDialog.isVisible = true
                 }
@@ -210,10 +295,10 @@ class FiltersManager (mainUI: MainUI, configManager: MainUI.ConfigManager){
         }
 
         internal inner class ListSelectionHandler : ListSelectionListener {
+            var isSkip = false
             override fun valueChanged(p0: ListSelectionEvent?) {
-                if (p0?.source == mFilterList) {
+                if (!isSkip && p0?.source == mFilterList) {
                     val selection = mFilterList.selectedValue
-
                     mParent.setTextShowLogCombo(selection.mFilter)
                     mParent.applyShowLogCombo()
                 }
