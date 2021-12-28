@@ -897,6 +897,9 @@ class LogTableModel() : AbstractTableModel() {
             var removedCount = 0
             var baseRemovedCount = 0
 
+            var nextCount = 200
+            var nextBaseCount = 500
+
             var item:LogItem
             line = bufferedReader.readLine()
             while (line != null) {
@@ -998,13 +1001,26 @@ class LogTableModel() : AbstractTableModel() {
 
                     val millis = System.currentTimeMillis()
                     if (mLogItems.size > nextItemCount || millis > nextUpdateTime) {
-                        nextItemCount = mLogItems.size + 200
+                        if (mLogItems.size > nextItemCount) {
+                            nextCount *= 2
+                        }
+                        else {
+                            nextCount = 200
+                        }
+                        nextItemCount = mLogItems.size + nextCount
                         nextUpdateTime = millis + 300
                         fireLogTableDataChanged(removedCount)
                         removedCount = 0
                     }
                     if (mBaseModel!!.mLogItems.size > nextBaseItemCount || millis > nextBaseUpdateTime) {
-                        nextBaseItemCount = mBaseModel!!.mLogItems.size + 500
+                        if (mBaseModel!!.mLogItems.size > nextBaseItemCount) {
+                            nextBaseCount *= 2
+                        }
+                        else {
+                            nextBaseCount = 500
+                        }
+
+                        nextBaseItemCount = mBaseModel!!.mLogItems.size + nextBaseCount
                         nextBaseUpdateTime = millis + 500
                         mBaseModel!!.fireLogTableDataChanged(baseRemovedCount)
                         baseRemovedCount = 0
