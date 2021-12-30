@@ -66,6 +66,8 @@ class StringsKo private constructor() {
             , "여러 파일 붙이기"
             , "없음"
             , "필터 추가"
+            , "명령 추가"
+            , "명령s"
 //            , ""
         )
     }

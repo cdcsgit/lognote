@@ -142,11 +142,11 @@ class ColorManager private constructor(){
 
     var mColorArray = arrayOf(
         ColorItem("Filtered FG", "#FF0000"),
-        ColorItem("Selected BG", "#C0C0C0"),
+        ColorItem("Selected BG", "#E0E0E0"),
         ColorItem("FullLog BG", "#FAFAFF"),
         ColorItem("FilterLog BG", "#FFFAFA"),
         ColorItem("LineNum BG", "#D0D0D0"),
-        ColorItem("Bookmark BG", "#D0D0FF"),
+        ColorItem("Bookmark BG", "#E0E0FF"),
         ColorItem("Log Level None", "#000000"),
         ColorItem("Log Level Verbose", "#000000"),
         ColorItem("Log Level Debug", "#209000"),

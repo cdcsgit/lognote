@@ -38,6 +38,8 @@ class TooltipStringsEn private constructor() {
             , "Move the view to a new window"
             , "Saved file name"
             , "Open filter list(add filter)"
+            , "Open cmd list(add cmd)"
+            , "Manage frequently used cmds"
 //            , ""
         )
     }

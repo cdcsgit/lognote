@@ -51,6 +51,7 @@ class MainUI(title: String) : JFrame() {
     private lateinit var mSaveBtn: ColorButton
     private lateinit var mRotationBtn: ColorButton
     lateinit var mFiltersBtn: ColorButton
+    lateinit var mCmdsBtn: ColorButton
     private val SPLIT_WEIGHT = 0.7
 
     private lateinit var mLogPanel: JPanel
@@ -100,7 +101,7 @@ class MainUI(title: String) : JFrame() {
     private lateinit var mLogSplitPane: JSplitPane
 
     lateinit var mFilteredLogPanel: LogPanel
-    private lateinit var mFullLogPanel: LogPanel
+    lateinit var mFullLogPanel: LogPanel
     private var mSelectedLine = 0
 
     private lateinit var mStatusBar: JPanel
@@ -120,7 +121,8 @@ class MainUI(title: String) : JFrame() {
     private var mIsCreatingUI = true
 
     private val mAdbManager = AdbManager.getInstance()
-    private val mFiltersManager = FiltersManager(this, mConfigManager)
+    private lateinit var mFiltersManager:FiltersManager
+    private lateinit var mCmdsManager:CmdsManager
 
     private var mFrameX = 0
     private var mFrameY = 0
@@ -423,6 +425,10 @@ class MainUI(title: String) : JFrame() {
         mFiltersBtn.toolTipText = TooltipStrings.FILTER_LIST_BTN
         mFiltersBtn.addActionListener(mActionHandler)
         mFiltersBtn.addMouseListener(mMouseHandler)
+        mCmdsBtn = ColorButton(Strings.CMDS)
+        mCmdsBtn.toolTipText = TooltipStrings.CMD_LIST_BTN
+        mCmdsBtn.addActionListener(mActionHandler)
+        mCmdsBtn.addMouseListener(mMouseHandler)
 
         mLogPanel = JPanel()
         mShowLogPanel = JPanel()
@@ -634,6 +640,7 @@ class MainUI(title: String) : JFrame() {
         addVSeparator(mLogToolBar)
         mLogToolBar.add(mMatchCaseBtn)
         mLogToolBar.add(mFiltersBtn)
+        mLogToolBar.add(mCmdsBtn)
 
         val toolBarPanel = JPanel(FlowLayout(FlowLayout.LEFT, 0, 0))
         toolBarPanel.addMouseListener(mMouseHandler)
@@ -650,7 +657,11 @@ class MainUI(title: String) : JFrame() {
 
         mFullLogPanel = LogPanel(mFullTableModel, null)
         mFilteredLogPanel = LogPanel(mFilteredTableModel, mFullLogPanel)
+        mFullLogPanel.updateTableBar(mConfigManager.loadCmds())
         mFilteredLogPanel.updateTableBar(mConfigManager.loadFilters())
+
+        mFiltersManager = FiltersManager(this, mConfigManager, mFilteredLogPanel)
+        mCmdsManager = CmdsManager(this, mConfigManager, mFullLogPanel)
 
         when (mRotationStatus) {
             ROTATION_LEFT_RIGHT -> {
@@ -955,6 +966,10 @@ class MainUI(title: String) : JFrame() {
         val ITEM_FILTERS_FILTER = "FILTERS_FILTER_"
         val ITEM_FILTERS_TABLEBAR = "FILTERS_TABLEBAR_"
 
+        val ITEM_CMDS_TITLE = "CMDS_TITLE_"
+        val ITEM_CMDS_CMD = "CMDS_CMD_"
+        val ITEM_CMDS_TABLEBAR = "CMDS_TABLEBAR_"
+
         val ITEM_COLOR_MANAGER = "COLOR_MANAGER_"
 
         private fun setDefaultConfig() {
@@ -1110,8 +1125,8 @@ class MainUI(title: String) : JFrame() {
             }
         }
 
-        fun loadFilters() : ArrayList<FiltersManager.FilterElement> {
-            val filters = ArrayList<FiltersManager.FilterElement>()
+        fun loadFilters() : ArrayList<CustomListManager.CustomElement> {
+            val filters = ArrayList<CustomListManager.CustomElement>()
 
             var title: String?
             var filter: String?
@@ -1133,21 +1148,65 @@ class MainUI(title: String) : JFrame() {
                 } else {
                     tableBar = false
                 }
-                filters.add(FiltersManager.FilterElement(title, filter, tableBar))
+                filters.add(CustomListManager.CustomElement(title, filter, tableBar))
             }
 
             return filters
         }
 
-        fun saveFilters(filters : ArrayList<FiltersManager.FilterElement>) {
+        fun saveFilters(filters : ArrayList<CustomListManager.CustomElement>) {
             var nCount = filters.size
             if (nCount > FiltersManager.MAX_FILTERS) {
                 nCount = FiltersManager.MAX_FILTERS
             }
             for (i in 0 until nCount) {
                 mProperties.put(ITEM_FILTERS_TITLE + i, filters[i].mTitle)
-                mProperties.put(ITEM_FILTERS_FILTER + i, filters[i].mFilter)
+                mProperties.put(ITEM_FILTERS_FILTER + i, filters[i].mValue)
                 mProperties.put(ITEM_FILTERS_TABLEBAR + i, filters[i].mTableBar.toString())
+            }
+
+            saveConfig()
+            return
+        }
+        
+        fun loadCmds() : ArrayList<CustomListManager.CustomElement> {
+            val cmds = ArrayList<CustomListManager.CustomElement>()
+
+            var title: String?
+            var cmd: String?
+            var check: String?
+            var tableBar: Boolean
+            for (i in 0 until CmdsManager.MAX_CMDS) {
+                title = mProperties.get(ITEM_CMDS_TITLE + i) as? String
+                if (title == null) {
+                    break
+                }
+                cmd = mProperties.get(ITEM_CMDS_CMD + i) as? String
+                if (cmd == null) {
+                    cmd = "null"
+                }
+
+                check = mProperties.get(ITEM_CMDS_TABLEBAR + i) as? String
+                if (!check.isNullOrEmpty()) {
+                    tableBar = check.toBoolean()
+                } else {
+                    tableBar = false
+                }
+                cmds.add(CustomListManager.CustomElement(title, cmd, tableBar))
+            }
+
+            return cmds
+        }
+
+        fun saveCmds(cmds : ArrayList<CustomListManager.CustomElement>) {
+            var nCount = cmds.size
+            if (nCount > CmdsManager.MAX_CMDS) {
+                nCount = CmdsManager.MAX_CMDS
+            }
+            for (i in 0 until nCount) {
+                mProperties.put(ITEM_CMDS_TITLE + i, cmds[i].mTitle)
+                mProperties.put(ITEM_CMDS_CMD + i, cmds[i].mValue)
+                mProperties.put(ITEM_CMDS_TABLEBAR + i, cmds[i].mTableBar.toString())
             }
 
             saveConfig()
@@ -1384,7 +1443,9 @@ class MainUI(title: String) : JFrame() {
                     }
                 }
             } else if (p0?.source == mFiltersBtn) {
-                mFiltersManager.showFiltersDialog()
+                mFiltersManager.showDialog()
+            } else if (p0?.source == mCmdsBtn) {
+                mCmdsManager.showDialog()
             }
         }
     }

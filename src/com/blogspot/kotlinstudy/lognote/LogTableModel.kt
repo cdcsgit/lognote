@@ -1037,7 +1037,7 @@ class LogTableModel() : AbstractTableModel() {
                 } catch (e:Exception) {
                     println("Start scan : $e")
                     if (e !is InterruptedException) {
-                        JOptionPane.showMessageDialog(null, e.toString(), "Error", JOptionPane.ERROR_MESSAGE)
+                        JOptionPane.showMessageDialog(mMainUI, e.toString(), "Error", JOptionPane.ERROR_MESSAGE)
                     }
 
                     try {

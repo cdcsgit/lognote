@@ -66,6 +66,8 @@ class StringsEn private constructor() {
             , "Append files"
             , "None"
             , "Add filter"
+            , "Add cmd"
+            , "Cmds"
 //            , ""
         )
     }

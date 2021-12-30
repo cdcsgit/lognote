@@ -131,7 +131,79 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
         panel.add(Box.createHorizontalStrut(2))
     }
 
-    fun updateTableBar(filtersArray: ArrayList<FiltersManager.FilterElement>?) {
+    private fun updateTableBarFilters(customArray: ArrayList<CustomListManager.CustomElement>?) {
+        var isAdded = false
+        if (customArray != null) {
+            for (item in customArray) {
+                if (!item.mTableBar) {
+                    continue
+                }
+                val button = TableBarButton(item.mTitle)
+                button.mValue = item.mValue
+                button.toolTipText = "${item.mTitle} : ${item.mValue}"
+                button.margin = Insets(0, 0, 0, 0)
+                button.addActionListener(ActionListener { e: ActionEvent? ->
+                    val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
+                    frame.setTextShowLogCombo((e?.source as TableBarButton).mValue)
+                    frame.applyShowLogCombo()
+                })
+                mCtrlPanel.add(button)
+                isAdded = true
+            }
+        }
+        if (!isAdded) {
+            val button = TableBarButton(Strings.ADD_FILTER)
+            button.toolTipText = TooltipStrings.ADD_FILTER_BTN
+            button.margin = Insets(0, 0, 0, 0)
+            button.addActionListener(ActionListener { e: ActionEvent? ->
+                val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
+                frame.mFiltersBtn.doClick()
+            })
+            mCtrlPanel.add(button)
+        }
+    }
+
+    private fun updateTableBarCmds(customArray: ArrayList<CustomListManager.CustomElement>?) {
+        var isAdded = false
+        if (customArray != null) {
+            for (item in customArray) {
+                if (!item.mTableBar) {
+                    continue
+                }
+                val button = TableBarButton(item.mTitle)
+                button.mValue = item.mValue
+                button.toolTipText = "${item.mTitle} : ${item.mValue}"
+                button.margin = Insets(0, 0, 0, 0)
+                button.addActionListener(ActionListener { e: ActionEvent? ->
+                    var cmd = (e?.source as TableBarButton).mValue
+                    if (cmd.startsWith("adb ")) {
+                        cmd = cmd.replaceFirst("adb ", "${AdbManager.getInstance().mAdbCmd} -s ${AdbManager.getInstance().mTargetDevice} ")
+                    } else if (cmd.startsWith("adb.exe ")) {
+                        cmd = cmd.replaceFirst("adb.exe ", "${AdbManager.getInstance().mAdbCmd} -s ${AdbManager.getInstance().mTargetDevice} ")
+                    }
+
+                    if (cmd.isNotEmpty()) {
+                        val runtime = Runtime.getRuntime()
+                        runtime.exec(cmd)
+                    }
+                })
+                mCtrlPanel.add(button)
+                isAdded = true
+            }
+        }
+        if (!isAdded) {
+            val button = TableBarButton(Strings.ADD_CMD)
+            button.toolTipText = TooltipStrings.ADD_CMD_BTN
+            button.margin = Insets(0, 0, 0, 0)
+            button.addActionListener(ActionListener { e: ActionEvent? ->
+                val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
+                frame.mCmdsBtn.doClick()
+            })
+            mCtrlPanel.add(button)
+        }
+    }
+
+    fun updateTableBar(customArray: ArrayList<CustomListManager.CustomElement>?) {
         mCtrlPanel.removeAll()
         mCtrlPanel.add(mFirstBtn)
         mCtrlPanel.add(mLastBtn)
@@ -149,34 +221,10 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
 
         addVSeparator(mCtrlPanel)
         if (mBasePanel != null) {
-            var isAdded = false
-            if (filtersArray != null) {
-                for (item in filtersArray) {
-                    if (!item.mTableBar) {
-                        continue
-                    }
-                    val button = ColorButton(item.mTitle)
-                    button.toolTipText = item.mFilter
-                    button.margin = Insets(0, 0, 0, 0)
-                    button.addActionListener(ActionListener { e: ActionEvent? ->
-                        val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
-                        frame.setTextShowLogCombo((e?.source as ColorButton).toolTipText)
-                        frame.applyShowLogCombo()
-                    })
-                    mCtrlPanel.add(button)
-                    isAdded = true
-                }
-            }
-            if (!isAdded) {
-                val button = ColorButton(Strings.ADD_FILTER)
-                button.toolTipText = TooltipStrings.ADD_FILTER_BTN
-                button.margin = Insets(0, 0, 0, 0)
-                button.addActionListener(ActionListener { e: ActionEvent? ->
-                    val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
-                    frame.mFiltersBtn.doClick()
-                })
-                mCtrlPanel.add(button)
-            }
+            updateTableBarFilters(customArray)
+        }
+        else {
+            updateTableBarCmds(customArray)
         }
         mCtrlPanel.updateUI()
     }

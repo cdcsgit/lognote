@@ -3,8 +3,19 @@ package com.blogspot.kotlinstudy.lognote
 import java.awt.Color
 import javax.swing.JButton
 
-class ColorButton(title:String) : JButton(title){
+open class ColorButton(title:String) : JButton(title){
     init {
         background = Color(0xE5, 0xE5, 0xE5)
+    }
+}
+
+class TableBarButton(title:String) : ColorButton(title){
+    var mValue = ""
+    private val MAX_TITLE = 15
+
+    init {
+        if (title.length > MAX_TITLE) {
+            text = title.substring(0, MAX_TITLE) + ".."
+        }
     }
 }

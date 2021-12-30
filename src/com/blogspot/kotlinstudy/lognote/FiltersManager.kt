@@ -1,482 +1,78 @@
 package com.blogspot.kotlinstudy.lognote
 
-import java.awt.*
 import java.awt.event.*
+import java.util.ArrayList
 import javax.swing.*
-import javax.swing.event.DocumentEvent
-import javax.swing.event.DocumentListener
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
 
-class FiltersManager (mainUI: MainUI, configManager: MainUI.ConfigManager){
+class FiltersManager (mainUI: MainUI, configManager: MainUI.ConfigManager, logPanel: LogPanel): CustomListManager (mainUI, logPanel){
+    private val mConfigManager = configManager
+    private val CURRENT = "Current"
+
+    init {
+        mDialogTitle = "Filters Manager"
+    }
     companion object {
         const val MAX_FILTERS = 20
-        const val CMD_NEW = 1
-        const val CMD_COPY = 2
-        const val CMD_EDIT = 3
     }
 
-    private val mMainUI = mainUI
-    private val mConfigManager = configManager
-
-    fun showFiltersDialog() {
-        val filtersDialog = FiltersDialog(mMainUI)
-        filtersDialog.setLocationRelativeTo(mMainUI)
-        filtersDialog.isVisible = true
+    override fun loadConfig(): ArrayList<CustomElement> {
+        return mConfigManager.loadFilters()
     }
 
-    class FilterElement(title: String, filter: String, tableBar: Boolean) {
-        var mTitle = title
-        var mFilter = filter
-        var mTableBar = tableBar
+    override fun saveConfig(list: ArrayList<CustomElement>) {
+        mConfigManager.saveFilters(list)
     }
 
-    internal inner class FiltersDialog (parent: MainUI) : JDialog(parent, Strings.FILTERS, true), ActionListener {
-        private var mFilterScrollPane: JScrollPane
-        private var mFilterList = JList<FilterElement>()
-        private var mFirstBtn: ColorButton
-        private var mPrevBtn: ColorButton
-        private var mNextBtn: ColorButton
-        private var mLastBtn: ColorButton
-        private var mNewBtn: ColorButton
-        private var mCopyBtn: ColorButton
-        private var mEditBtn: ColorButton
-        private var mDeleteBtn: ColorButton
-        private var mSaveBtn: ColorButton
-        private var mCloseBtn: ColorButton
-        private var mParent = parent
-        private val CURRENT = "Current"
-        private var mSelectionListener = ListSelectionHandler()
-        private var mFilterModel = DefaultListModel<FilterElement>()
+    override fun getFirstElement(): CustomElement {
+        return CustomElement(CURRENT, mMainUI.getTextShowLogCombo(), false)
+    }
 
+    override fun getListSelectionListener(): ListSelectionListener? {
+        return ListSelectionHandler()
+    }
 
-        init {
-            val filtersArray = mConfigManager.loadFilters()
-            mFilterModel.clear()
-            mFilterModel.addElement(FilterElement(CURRENT, mParent.getTextShowLogCombo(), false))
+    override fun getListMouseListener(): MouseListener? {
+        return MouseHandler()
+    }
 
-            for (item in filtersArray) {
-                mFilterModel.addElement(item)
-            }
-            mFilterList = JList<FilterElement>()
-            mFilterList.model = mFilterModel
-            mFilterList.addListSelectionListener(mSelectionListener)
+    override fun getListKeyListener(): KeyListener? {
+        return KeyHandler()
+    }
 
-            mFilterList.cellRenderer = FilterCellRenderer()
-
-            val componentListener: ComponentListener = object : ComponentAdapter() {
-                override fun componentResized(e: ComponentEvent) {
-                    mFilterList.fixedCellHeight = 10
-                    mFilterList.fixedCellHeight = -1
-                }
-            }
-
-            mFilterList.addComponentListener(componentListener)
-            mFilterScrollPane = JScrollPane(mFilterList)
-            mFilterScrollPane.preferredSize = Dimension(800, 500)
-
-            mFirstBtn = ColorButton("↑")
-            mFirstBtn.addActionListener(this)
-            mPrevBtn = ColorButton("∧")
-            mPrevBtn.addActionListener(this)
-            mNextBtn = ColorButton("∨")
-            mNextBtn.addActionListener(this)
-            mLastBtn = ColorButton("↓")
-            mLastBtn.addActionListener(this)
-
-            mNewBtn = ColorButton(Strings.NEW)
-            mNewBtn.addActionListener(this)
-            mCopyBtn = ColorButton(Strings.COPY)
-            mCopyBtn.addActionListener(this)
-            mEditBtn = ColorButton(Strings.EDIT)
-            mEditBtn.addActionListener(this)
-            mDeleteBtn = ColorButton(Strings.DELETE)
-            mDeleteBtn.addActionListener(this)
-            mSaveBtn = ColorButton(Strings.SAVE)
-            mSaveBtn.addActionListener(this)
-            mCloseBtn = ColorButton(Strings.CLOSE)
-            mCloseBtn.addActionListener(this)
-            val bottomPanel = JPanel()
-            bottomPanel.add(mFirstBtn)
-            bottomPanel.add(mPrevBtn)
-            bottomPanel.add(mNextBtn)
-            bottomPanel.add(mLastBtn)
-            addVSeparator(bottomPanel)
-            bottomPanel.add(mNewBtn)
-            bottomPanel.add(mCopyBtn)
-            bottomPanel.add(mEditBtn)
-            bottomPanel.add(mDeleteBtn)
-            addVSeparator(bottomPanel)
-            bottomPanel.add(mSaveBtn)
-            bottomPanel.add(mCloseBtn)
-
-            contentPane.layout = BorderLayout()
-            contentPane.add(mFilterScrollPane, BorderLayout.CENTER)
-            contentPane.add(bottomPanel, BorderLayout.SOUTH)
-
-            pack()
-
-            Utils.installKeyStrokeEscClosing(this)
-        }
-
-        private fun addVSeparator(panel:JPanel) {
-            val separator1 = JSeparator(SwingConstants.VERTICAL)
-            separator1.preferredSize = Dimension(separator1.preferredSize.width, 20)
-            separator1.foreground = Color.DARK_GRAY
-            separator1.background = Color.DARK_GRAY
-            panel.add(separator1)
-        }
-
-        inner class FilterCellRenderer : ListCellRenderer<Any?> {
-            private val cellPanel: JPanel
-            private val titlePanel: JPanel
-            private val titleLabel: JLabel
-            private val filterText: JTextArea
-
-            override fun getListCellRendererComponent(
-                list: JList<*>,
-                value: Any?, index: Int, isSelected: Boolean,
-                hasFocus: Boolean
-            ): Component {
-                val element = value as FilterElement
-                titleLabel.text = element.mTitle
-                if (element.mTitle == CURRENT) {
-                    titleLabel.foreground = Color.RED
-                } else if (element.mTableBar) {
-                    titleLabel.text += " - TableBar"
-                    titleLabel.foreground = Color.MAGENTA
-                }
-                else {
-                    titleLabel.foreground = Color.BLUE
-                }
-                filterText.text = element.mFilter
-
-                filterText.updateUI()
-
-                if (isSelected) {
-                    titlePanel.background = Color.LIGHT_GRAY
-                    filterText.background = Color.LIGHT_GRAY
-                }
-                else {
-                    titlePanel.background = Color.WHITE
-                    filterText.background = Color.WHITE
-                }
-                return cellPanel
-            }
-
-            init {
-                cellPanel = JPanel(BorderLayout())
-
-                titlePanel = JPanel(BorderLayout())
-                titleLabel = JLabel("")
-                titleLabel.foreground = Color.BLUE
-                titlePanel.add(titleLabel, BorderLayout.NORTH)
-                cellPanel.add(titlePanel, BorderLayout.NORTH)
-
-                filterText = JTextArea()
-                filterText.lineWrap = true
-                filterText.wrapStyleWord = true
-                cellPanel.add(filterText, BorderLayout.CENTER)
-            }
-        }
-
-        override fun actionPerformed(e: ActionEvent?) {
-            if (e?.source == mFirstBtn) {
-                mSelectionListener.isSkip = true
-                val selectedIdx = mFilterList.selectedIndex
-                if (mFilterModel.size >= 3) {
-                    val selection = mFilterList.selectedValue
-                    if (selection.mTitle != CURRENT) {
-                        mFilterModel.remove(selectedIdx)
-                        mFilterModel.add(1, selection)
-                        mFilterList.selectedIndex = 1
-                    }
-                }
-                mSelectionListener.isSkip = false
-            } else if (e?.source == mPrevBtn) {
-                mSelectionListener.isSkip = true
-                val selectedIdx = mFilterList.selectedIndex
-                if (mFilterModel.size >= 3 && selectedIdx > 1) {
-                    val selection = mFilterList.selectedValue
-                    if (selection.mTitle != CURRENT) {
-                        mFilterModel.remove(selectedIdx)
-                        mFilterModel.add(selectedIdx - 1, selection)
-                        mFilterList.selectedIndex = selectedIdx - 1
-                    }
-                }
-                mSelectionListener.isSkip = false
-            } else if (e?.source == mNextBtn) {
-                mSelectionListener.isSkip = true
-                val selectedIdx = mFilterList.selectedIndex
-                if (mFilterModel.size >= 3 && selectedIdx > 0 && selectedIdx < (mFilterModel.size() - 1)) {
-                    val selection = mFilterList.selectedValue
-                    if (selection.mTitle != CURRENT) {
-                        mFilterModel.remove(selectedIdx)
-                        mFilterModel.add(selectedIdx + 1, selection)
-                        mFilterList.selectedIndex = selectedIdx + 1
-                    }
-                }
-                mSelectionListener.isSkip = false
-            } else if (e?.source == mLastBtn) {
-                mSelectionListener.isSkip = true
-                val selectedIdx = mFilterList.selectedIndex
-                if (mFilterModel.size >= 3) {
-                    val selection = mFilterList.selectedValue
-                    if (selection.mTitle != CURRENT) {
-                        mFilterModel.remove(selectedIdx)
-                        mFilterModel.add(mFilterModel.size(), selection)
-                        mFilterList.selectedIndex = mFilterModel.size() - 1
-                    }
-                }
-                mSelectionListener.isSkip = false
-            } else if (e?.source == mNewBtn) {
-                val editDialog = FilterEditDialog(this, CMD_NEW, "", "", false)
-                editDialog.setLocationRelativeTo(this)
-                editDialog.isVisible = true
-            } else if (e?.source == mCopyBtn) {
-                if (mFilterList.selectedIndex >= 0) {
-                    val selection = mFilterList.selectedValue
-                    val editDialog = FilterEditDialog(this, CMD_COPY, selection.mTitle, selection.mFilter, selection.mTableBar)
-                    editDialog.setLocationRelativeTo(this)
-                    editDialog.isVisible = true
-                }
-            } else if (e?.source == mEditBtn) {
-                if (mFilterList.selectedIndex >= 0) {
-                    val selection = mFilterList.selectedValue
-                    val cmd = if (selection.mTitle != CURRENT) {
-                        CMD_EDIT
-                    } else {
-                        CMD_COPY
-                    }
-                    val editDialog = FilterEditDialog(this, cmd, selection.mTitle, selection.mFilter, selection.mTableBar)
-                    editDialog.setLocationRelativeTo(this)
-                    editDialog.isVisible = true
-                }
-            } else if (e?.source == mDeleteBtn) {
-                if (mFilterList.selectedIndex >= 0) {
-                    mFilterList.removeListSelectionListener(mSelectionListener)
-                    mFilterModel.remove(mFilterList.selectedIndex)
-                    mFilterList.addListSelectionListener(mSelectionListener)
-                }
-            } else if (e?.source == mSaveBtn) {
-                val filtersArray = ArrayList<FilterElement>()
-                for (item in mFilterModel.elements()) {
-                    if (item.mTitle != CURRENT) {
-                        filtersArray.add(item)
-                    }
-                }
-
-                if (filtersArray.size > 0) {
-                    mConfigManager.saveFilters(filtersArray)
-                }
-                mMainUI.mFilteredLogPanel.updateTableBar(filtersArray)
-            } else if (e?.source == mCloseBtn) {
-                dispose()
-            }
-        }
-
-        private fun updateFilter(cmd: Int, prevTitle: String, filterElement: FiltersManager.FilterElement) {
-            if (cmd == CMD_EDIT) {
-                for (item in mFilterModel.elements()) {
-                    if (item.mTitle == title) {
-                        item.mFilter = filterElement.mFilter
-                        return
-                    }
-                }
-                mFilterList.removeListSelectionListener(mSelectionListener)
-                val selectedIdx = mFilterList.selectedIndex
-                mFilterModel.remove(selectedIdx)
-                mFilterModel.add(selectedIdx, filterElement)
-                mFilterList.addListSelectionListener(mSelectionListener)
-            }
-            else {
-                mFilterModel.addElement(filterElement)
-            }
-        }
-
-        internal inner class ListSelectionHandler : ListSelectionListener {
-            var isSkip = false
-            override fun valueChanged(p0: ListSelectionEvent?) {
-                if (!isSkip && p0?.source == mFilterList) {
-                    val selection = mFilterList.selectedValue
-                    mParent.setTextShowLogCombo(selection.mFilter)
-                    mParent.applyShowLogCombo()
-                }
-            }
-        }
-
-        internal inner class FilterEditDialog(parent: FiltersDialog, cmd: Int, title: String, filter: String, tableBar: Boolean) :JDialog(parent, "Filter Edit", true), ActionListener {
-            private var mOkBtn: ColorButton
-            private var mCancelBtn: ColorButton
-
-            private var mTitleLabel: JLabel
-            private var mFilterLabel: JLabel
-            private var mTableBarLabel: JLabel
-
-            private var mTitleTF: JTextField
-            private var mFilterTF: JTextField
-            private var mTableBarCheck: JCheckBox
-
-            private var mTitleStatusLabel: JLabel
-            private var mFilterStatusLabel: JLabel
-
-            private var mParent = parent
-            private var mPrevTitle = title
-            private var mCmd = cmd
-            private var mDocumentHandler = DocumentHandler()
-
-            init {
-                mOkBtn = ColorButton(Strings.OK)
-                mOkBtn.addActionListener(this)
-                mCancelBtn = ColorButton(Strings.CANCEL)
-                mCancelBtn.addActionListener(this)
-
-                mTitleLabel = JLabel("Title")
-                mFilterLabel = JLabel("Filter")
-                mTableBarLabel = JLabel("Add TableBar")
-
-                mTitleTF = JTextField(title)
-                mTitleTF.document.addDocumentListener(mDocumentHandler)
-                mTitleTF.preferredSize = Dimension(488, 30)
-                mFilterTF = JTextField(filter)
-                mFilterTF.document.addDocumentListener(mDocumentHandler)
-                mFilterTF.preferredSize = Dimension(488, 30)
-
-                mTableBarCheck = JCheckBox()
-                mTableBarCheck.isSelected = tableBar
-
-                mTitleStatusLabel = JLabel("Good")
-                mTitleStatusLabel.foreground = Color.BLUE
-                mTitleStatusLabel.border = BorderFactory.createLineBorder(Color.DARK_GRAY)
-                mTitleStatusLabel.preferredSize =  Dimension(200, 30)
-                mFilterStatusLabel = JLabel("Good")
-                mFilterStatusLabel.foreground = Color.BLUE
-                mFilterStatusLabel.border = BorderFactory.createLineBorder(Color.DARK_GRAY)
-                mFilterStatusLabel.preferredSize =  Dimension(200, 30)
-
-                val titlePanel = JPanel()
-                titlePanel.add(mTitleLabel)
-                titlePanel.add(mTitleTF)
-                titlePanel.add(mTitleStatusLabel)
-
-                val filterPanel = JPanel()
-                filterPanel.add(mFilterLabel)
-                filterPanel.add(mFilterTF)
-                filterPanel.add(mFilterStatusLabel)
-
-                val tableBarPanel = JPanel()
-                tableBarPanel.add(mTableBarLabel)
-                tableBarPanel.add(mTableBarCheck)
-
-                val confirmPanel = JPanel()
-                confirmPanel.preferredSize = Dimension(400, 30)
-                confirmPanel.add(mOkBtn)
-                confirmPanel.add(mCancelBtn)
-
-                val panel = JPanel(GridLayout(4, 1))
-                panel.add(titlePanel)
-                panel.add(filterPanel)
-                panel.add(tableBarPanel)
-                panel.add(confirmPanel)
-
-                contentPane.add(panel)
-                pack()
-
-                var isValid = true
-                if (mTitleTF.text.trim().isEmpty()) {
-                    mTitleStatusLabel.foreground = Color.RED
-                    mTitleStatusLabel.text = "Empty"
-                    isValid = false
-                }
-                else if (mTitleTF.text.trim() == CURRENT) {
-                    mTitleStatusLabel.foreground = Color.RED
-                    mTitleStatusLabel.text = "Not allow : $CURRENT"
-                    isValid = false
-                }
-                else if (cmd == CMD_COPY) {
-                    mTitleStatusLabel.foreground = Color.RED
-                    mTitleStatusLabel.text = "Copy : duplicated"
-                    isValid = false
-                }
-
-                if (mFilterTF.text.trim().isEmpty()) {
-                    mFilterStatusLabel.foreground = Color.RED
-                    mFilterStatusLabel.text = "Empty"
-                    isValid = false
-                }
-
-                mOkBtn.isEnabled = isValid
-
-                Utils.installKeyStrokeEscClosing(this)
-            }
-
-            override fun actionPerformed(e: ActionEvent?) {
-                if (e?.source == mOkBtn) {
-                    mParent.updateFilter(mCmd, mPrevTitle, FilterElement(mTitleTF.text, mFilterTF.text, mTableBarCheck.isSelected))
-                    dispose()
-                } else if (e?.source == mCancelBtn) {
-                    dispose()
-                }
-            }
-
-            internal inner class DocumentHandler: DocumentListener {
-                override fun insertUpdate(e: DocumentEvent?) {
-                    checkText(e)
-                }
-
-                override fun removeUpdate(e: DocumentEvent?) {
-                    checkText(e)
-                }
-
-                override fun changedUpdate(e: DocumentEvent?) {
-                    checkText(e)
-                }
-                fun checkText(e: DocumentEvent?) {
-                    var isValid = true
-                    if (e?.document == mTitleTF.document) {
-                        val title = mTitleTF.text.trim()
-                        if (title.isEmpty()) {
-                            mTitleStatusLabel.foreground = Color.RED
-                            mTitleStatusLabel.text = "Empty"
-                            isValid = false
-                        }
-                        else if (title == CURRENT) {
-                            mTitleStatusLabel.foreground = Color.RED
-                            mTitleStatusLabel.text = "Not allow : $CURRENT"
-                            isValid = false
-                        }
-                        else {
-                            for (item in mFilterModel.elements()) {
-                                if (item.mTitle == title) {
-                                    if (mCmd != CMD_EDIT || (mCmd == CMD_EDIT && mPrevTitle != title)) {
-                                        mTitleStatusLabel.foreground = Color.RED
-                                        mTitleStatusLabel.text = "Duplicated"
-                                        isValid = false
-                                    }
-                                    break
-                                }
-                            }
-                        }
-                    }
-
-                    if (e?.document == mFilterTF.document) {
-                        val filter = mFilterTF.text.trim()
-                        if (filter.isEmpty()) {
-                            mFilterStatusLabel.foreground = Color.RED
-                            mFilterStatusLabel.text = "Empty"
-                            isValid = false
-                        }
-                    }
-
-                    if (isValid) {
-                        mTitleStatusLabel.foreground = Color.BLUE
-                        mTitleStatusLabel.text = "Good"
-                        mFilterStatusLabel.foreground = Color.BLUE
-                        mFilterStatusLabel.text = "Good"
-                    }
-                    mOkBtn.isEnabled = isValid
-                }
+    internal inner class ListSelectionHandler : ListSelectionListener {
+        override fun valueChanged(p0: ListSelectionEvent?) {
+            if (p0?.valueIsAdjusting == false) {
+//                val list = p0?.source as JList<CustomElement>
+//                val selection = list.selectedValue
+//                mMainUI.setTextShowLogCombo(selection.mValue)
+//                mMainUI.applyShowLogCombo()
             }
         }
     }
+
+    internal inner class MouseHandler: MouseAdapter() {
+        override fun mouseClicked(p0: MouseEvent?) {
+            super.mouseClicked(p0)
+            if (p0?.clickCount == 2) {
+                val list = p0?.source as JList<CustomElement>
+                val selection = list.selectedValue
+                mMainUI.setTextShowLogCombo(selection.mValue)
+                mMainUI.applyShowLogCombo()
+            }
+        }
+    }
+
+    internal inner class KeyHandler: KeyAdapter() {
+        override fun keyPressed(p0: KeyEvent?) {
+            if (p0?.keyCode == KeyEvent.VK_ENTER) {
+                val list = p0?.source as JList<CustomElement>
+                val selection = list.selectedValue
+                mMainUI.setTextShowLogCombo(selection.mValue)
+                mMainUI.applyShowLogCombo()
+            }
+        }
+    }
+
 }

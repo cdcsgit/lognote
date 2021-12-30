@@ -173,7 +173,7 @@ class FontDialog (parent: MainUI) : JDialog(parent, Strings.FONT + " & " + Strin
                     colorChooser.color = colorLabel.foreground
                 }
 
-                var ret = JOptionPane.showConfirmDialog(null, rgbPanel, "Color Chooser", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
+                var ret = JOptionPane.showConfirmDialog(this@FontDialog, rgbPanel, "Color Chooser", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
                 if (ret == JOptionPane.OK_OPTION) {
                     val hex = "#" + Integer.toHexString(colorChooser.color.rgb).substring(2).uppercase()
                     colorLabel.text = mColorManager.mColorArray[colorLabel.mIdx].mName + " " + hex

@@ -50,6 +50,8 @@ class TooltipStrings private constructor() {
         private val IDX_VIEW__WINDOWED_MODE_BTN = idx++
         private val IDX_SAVED_FILE_TF = idx++
         private val IDX_ADD_FILTER_BTN = idx++
+        private val IDX_ADD_CMD_BTN = idx++
+        private val IDX_CMD_LIST_BTN = idx++
 //        private val IDX_ = idx++
 
         val START_BTN: String
@@ -122,5 +124,9 @@ class TooltipStrings private constructor() {
             get() { return currStrings[IDX_SAVED_FILE_TF] }
         val ADD_FILTER_BTN: String
             get() { return currStrings[IDX_ADD_FILTER_BTN] }
+        val ADD_CMD_BTN: String
+            get() { return currStrings[IDX_ADD_CMD_BTN] }
+        val CMD_LIST_BTN: String
+            get() { return currStrings[IDX_CMD_LIST_BTN] }
     }
 }
