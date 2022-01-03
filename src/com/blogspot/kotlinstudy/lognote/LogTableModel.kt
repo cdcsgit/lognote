@@ -3,6 +3,7 @@ package com.blogspot.kotlinstudy.lognote
 import java.awt.Color
 import java.io.*
 import java.util.*
+import java.util.regex.Matcher
 import java.util.regex.Pattern
 import javax.swing.JOptionPane
 import javax.swing.SwingUtilities
@@ -842,8 +843,44 @@ class LogTableModel() : AbstractTableModel() {
                 }
             } else {
                 makePattenPrintValue()
-
+//                val dtf = DateTimeFormatter.ofPattern("HH:mm:ss")
+//                val now = LocalDateTime.now()
+//                println(dtf.format(now))
                 var isShow: Boolean
+
+                var regexShowLog = ""
+                var normalShowLog = ""
+                val showLogSplit = mFilterShowLog.split("|")
+
+                for (logUnit in showLogSplit) {
+                    val hasIt: Boolean = logUnit.chars().anyMatch { c -> "\\.[]{}()*+?^$|".indexOf(c.toChar()) >= 0 }
+                    if (hasIt) {
+                        if (regexShowLog.isEmpty()) {
+                            regexShowLog = "$logUnit"
+                        }
+                        else {
+                            regexShowLog += "|$logUnit"
+                        }
+                    }
+                    else {
+                        if (normalShowLog.isEmpty()) {
+                            normalShowLog = "$logUnit"
+                        }
+                        else {
+                            normalShowLog += "|$logUnit"
+                        }
+
+                        if (mPatternCase == Pattern.CASE_INSENSITIVE) {
+                            normalShowLog = normalShowLog.uppercase()
+                        }
+                    }
+                }
+
+                val patternShowLog = Pattern.compile(regexShowLog, mPatternCase)
+                val matcherShowLog = patternShowLog.matcher("")
+                val normalShowLogSplit = normalShowLog.split("|")
+
+                println("Show Log $normalShowLog, $regexShowLog")
                 for (item in mBaseModel!!.mLogItems) {
                     if (mIsFilterUpdated) {
                         break
@@ -861,13 +898,43 @@ class LogTableModel() : AbstractTableModel() {
                                 || (!mFilterHideTid.isEmpty() && mPatternHideTid.matcher(item.mTid).find())) {
                             isShow = false
                         }
-                        else if (!mFilterShowLog.isEmpty() && !mPatternShowLog.matcher(item.mLogLine).find()) {
-                            isShow = false
+                        else if (!mFilterShowLog.isEmpty()) {
+                            var isFound = false
+                            if (normalShowLog.isNotEmpty()) {
+                                var logLine = ""
+                                if (mPatternCase == Pattern.CASE_INSENSITIVE) {
+                                    logLine = item.mLogLine.uppercase()
+                                }
+                                else {
+                                    logLine = item.mLogLine
+                                }
+                                for (sp in normalShowLogSplit) {
+                                    if (logLine.contains(sp)) {
+                                        isFound = true
+                                        break
+                                    }
+                                }
+                            }
+
+                            if (!isFound) {
+                                if (regexShowLog.isEmpty()) {
+                                    isShow = false
+                                }
+                                else {
+                                    matcherShowLog.reset(item.mLogLine)
+                                    if (!matcherShowLog.find()) {
+                                        isShow = false
+                                    }
+                                }
+                            }
                         }
-                        else if ((!mFilterShowTag.isEmpty() && !mPatternShowTag.matcher(item.mTag).find())
-                                || (!mFilterShowPid.isEmpty() && !mPatternShowPid.matcher(item.mPid).find())
-                                || (!mFilterShowTid.isEmpty() && !mPatternShowTid.matcher(item.mTid).find())) {
-                            isShow = false
+
+                        if (isShow) {
+                            if ((!mFilterShowTag.isEmpty() && !mPatternShowTag.matcher(item.mTag).find())
+                                    || (!mFilterShowPid.isEmpty() && !mPatternShowPid.matcher(item.mPid).find())
+                                    || (!mFilterShowTid.isEmpty() && !mPatternShowTid.matcher(item.mTid).find())) {
+                                isShow = false
+                            }
                         }
                     }
 
@@ -875,6 +942,9 @@ class LogTableModel() : AbstractTableModel() {
                         mLogItems.add(item)
                     }
                 }
+//                val dtf2 = DateTimeFormatter.ofPattern("HH:mm:ss")
+//                val now2 = LocalDateTime.now()
+//                println(dtf2.format(now2))
             }
         }
         if (!mIsFilterUpdated && isRedraw) {
