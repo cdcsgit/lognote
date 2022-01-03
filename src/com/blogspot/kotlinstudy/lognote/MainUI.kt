@@ -692,11 +692,13 @@ class MainUI(title: String) : JFrame() {
         mStatusTF.border = BorderFactory.createEmptyBorder()
         mStatusBar.add(mStatusTF)
 
-        val logLevel = mConfigManager.mProperties.get(mConfigManager.ITEM_LOG_LEVEL) as String
-        for (item in mLogLevelGroup.elements) {
-            if (logLevel == item.text) {
-                item.isSelected = true
-                break
+        val logLevel = mConfigManager.mProperties.get(mConfigManager.ITEM_LOG_LEVEL) as? String
+        if (logLevel != null) {
+            for (item in mLogLevelGroup.elements) {
+                if (logLevel == item.text) {
+                    item.isSelected = true
+                    break
+                }
             }
         }
 

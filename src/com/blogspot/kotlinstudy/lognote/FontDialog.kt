@@ -53,17 +53,17 @@ class FontDialog (parent: MainUI) : JDialog(parent, Strings.FONT + " & " + Strin
 
         val colorLabelPanel = JPanel()
         colorLabelPanel.layout = BoxLayout(colorLabelPanel, BoxLayout.Y_AXIS)
+
         for (idx in mColorLabelArray.indices) {
             mPrevColorArray[idx] = mColorManager.mColorArray[idx].mStrColor
             mColorLabelArray[idx] = ColorLabel(idx)
             mColorLabelArray[idx]!!.text = mColorManager.mColorArray[idx].mName + " " + mColorManager.mColorArray[idx].mStrColor
+            mColorLabelArray[idx]!!.toolTipText = mColorLabelArray[idx]!!.text
             mColorLabelArray[idx]!!.isOpaque = true
             if (mColorManager.mColorArray[idx].mName.contains("BG")) {
-                mColorLabelArray[idx]!!.background = Color.decode(mColorManager.mColorArray[idx].mStrColor)
                 mColorLabelArray[idx]!!.horizontalAlignment = JLabel.RIGHT;
             }
             else {
-                mColorLabelArray[idx]!!.foreground = Color.decode(mColorManager.mColorArray[idx].mStrColor)
                 mColorLabelArray[idx]!!.horizontalAlignment = JLabel.LEFT;
             }
 
@@ -76,6 +76,8 @@ class FontDialog (parent: MainUI) : JDialog(parent, Strings.FONT + " & " + Strin
             colorLabelPanel.add(mColorLabelArray[idx])
             colorLabelPanel.add(Box.createRigidArea(Dimension(5, 3)))
         }
+
+        updateLabelColor()
 
         val namePanel = JPanel()
         namePanel.add(mNameScrollPane)
@@ -117,6 +119,59 @@ class FontDialog (parent: MainUI) : JDialog(parent, Strings.FONT + " & " + Strin
 
         pack()
         Utils.installKeyStrokeEscClosing(this)
+    }
+
+    fun updateLabelColor() {
+        var commonBg:Color? = null
+        var commonFg:Color? = null
+        var lineNumBg:Color? = null
+        var lineNumFg:Color? = null
+
+        for (idx in mColorLabelArray.indices) {
+            when (mColorManager.mColorArray[idx].mName) {
+                "FullLog BG"->commonBg = Color.decode(mColorManager.mColorArray[idx].mStrColor)
+                "Log Level None"->commonFg = Color.decode(mColorManager.mColorArray[idx].mStrColor)
+                "LineNum BG"->lineNumBg = Color.decode(mColorManager.mColorArray[idx].mStrColor)
+                "LineNum FG"->lineNumFg = Color.decode(mColorManager.mColorArray[idx].mStrColor)
+            }
+        }
+
+        if (commonFg == null) {
+            commonFg = Color.BLACK
+        }
+
+        if (commonBg == null) {
+            commonBg = Color.WHITE
+        }
+
+        if (lineNumFg == null) {
+            lineNumFg = Color.BLACK
+        }
+
+        if (lineNumBg == null) {
+            lineNumBg = Color.WHITE
+        }
+
+        for (idx in mColorLabelArray.indices) {
+            if (mColorManager.mColorArray[idx].mName.contains("BG")) {
+                mColorLabelArray[idx]!!.background = Color.decode(mColorManager.mColorArray[idx].mStrColor)
+                if (mColorManager.mColorArray[idx].mName == "LineNum BG") {
+                    mColorLabelArray[idx]!!.foreground = lineNumFg
+                }
+                else {
+                    mColorLabelArray[idx]!!.foreground = commonFg
+                }
+            }
+            else {
+                mColorLabelArray[idx]!!.foreground = Color.decode(mColorManager.mColorArray[idx].mStrColor)
+                if (mColorManager.mColorArray[idx].mName == "LineNum FG") {
+                    mColorLabelArray[idx]!!.background = lineNumBg
+                }
+                else {
+                    mColorLabelArray[idx]!!.background = commonBg
+                }
+            }
+        }
     }
 
     class ColorLabel(idx: Int) :JLabel() {
@@ -184,6 +239,7 @@ class FontDialog (parent: MainUI) : JDialog(parent, Strings.FONT + " & " + Strin
                         colorLabel.foreground = colorChooser.color
                     }
                     mColorManager.applyColor()
+                    updateLabelColor()
                     setFont() // refresh log table
                 }
             }

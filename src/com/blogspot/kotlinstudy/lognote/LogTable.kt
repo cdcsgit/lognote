@@ -115,6 +115,8 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
                 num = value.toString().trim().toInt()
             }
 
+            val label = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col)
+            foreground = ColorManager.LineNumFG
             background = if (mBookmarkManager.mBookmarks.contains(num)) {
                 ColorManager.BookmarkBG
             } else if (row == table?.selectedRow) {
@@ -123,7 +125,7 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
                 ColorManager.LineNumBG
             }
 
-            return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col)
+            return label
         }
     }
 
@@ -157,19 +159,17 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
 
             val numValue = mTableModel.getValueAt(row, 0)
             val num = numValue.toString().trim().toInt()
-            if (mBookmarkManager.mBookmarks.contains(num)) {
-                background = ColorManager.BookmarkBG
-
-                if (isSelected || row == table?.selectedRow) {
-                    background = Color(
-                        (ColorManager.SelectedBG.red + ColorManager.BookmarkBG.red) and 0xFF,
-                        (ColorManager.SelectedBG.green + ColorManager.BookmarkBG.green) and 0xFF,
-                        (ColorManager.SelectedBG.blue + ColorManager.BookmarkBG.blue) and 0xFF
-                    )
-                }
-            }
-            else if (isSelected || row == table?.selectedRow) {
+            if (isSelected || row == table?.selectedRow) {
                 background = ColorManager.SelectedBG
+            } else if (mBookmarkManager.mBookmarks.contains(num)) {
+                background = ColorManager.BookmarkBG
+//                if (isSelected || row == table?.selectedRow) {
+//                    background = Color(
+//                        (ColorManager.SelectedBG.red + ColorManager.BookmarkBG.red) and 0xFF,
+//                        (ColorManager.SelectedBG.green + ColorManager.BookmarkBG.green) and 0xFF,
+//                        (ColorManager.SelectedBG.blue + ColorManager.BookmarkBG.blue) and 0xFF
+//                    )
+//                }
             } else if (mTableModel.isFullDataModel()) {
                 background = ColorManager.FullLogBG
             } else {

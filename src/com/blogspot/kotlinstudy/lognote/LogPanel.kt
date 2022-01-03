@@ -110,6 +110,8 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
 
         mScrollPane.verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
         mScrollPane.horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+        mScrollPane.setOpaque(false);
+        mScrollPane.getViewport().setOpaque(false);
 
         add(mCtrlPanel, BorderLayout.NORTH)
         add(mVStatusPanel, BorderLayout.WEST)
@@ -234,6 +236,19 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
             field = value
             mTable.font = value
             mTable.rowHeight = value.size + 4
+
+            if (mBasePanel != null) {
+                if (ColorManager.FilterLogBG != background) {
+                    println("Color filter ${ColorManager.FilterLogBG}")
+                    background =  ColorManager.FilterLogBG
+                }
+            }
+            else {
+                if (ColorManager.FullLogBG != background) {
+                    println("Color full ${ColorManager.FullLogBG}")
+                    background =  ColorManager.FullLogBG
+                }
+            }
             repaint()
         }
 

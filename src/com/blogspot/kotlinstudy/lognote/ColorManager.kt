@@ -18,6 +18,38 @@ class ColorManager private constructor(){
         var FilteredFG: Color = Color.decode(StrFilteredFG)
             private set
 
+        var StrPidFG = "#000000"
+            set(value) {
+                field = value
+                PidFG = Color.decode(value)
+            }
+        var PidFG: Color = Color.decode(StrPidFG)
+            private set
+
+        var StrTidFG = "#000000"
+            set(value) {
+                field = value
+                TidFG = Color.decode(value)
+            }
+        var TidFG: Color = Color.decode(StrTidFG)
+            private set
+
+        var StrTagFG = "#000000"
+            set(value) {
+                field = value
+                TagFG = Color.decode(value)
+            }
+        var TagFG: Color = Color.decode(StrTagFG)
+            private set
+
+        var StrHighlightFG = "#000000"
+            set(value) {
+                field = value
+                HighlightFG = Color.decode(value)
+            }
+        var HighlightFG: Color = Color.decode(StrHighlightFG)
+            private set
+
         var StrSelectedBG = "#000000"
             set(value) {
                 field = value
@@ -113,6 +145,15 @@ class ColorManager private constructor(){
             }
         var LogLevelFatal = Color.decode(StrLogLevelFatal)
             private set
+
+        var StrLineNumFG = "#000000"
+            set(value) {
+                field = value
+                LineNumFG = Color.decode(value)
+            }
+        var LineNumFG = Color.decode(StrLineNumBG)
+            private set
+
     }
 
     class ColorItem(val name: String, var strColor: String) {
@@ -133,7 +174,12 @@ class ColorManager private constructor(){
         LOG_LEVEL_INFO(9),
         LOG_LEVEL_WARNING(10),
         LOG_LEVEL_ERROR(11),
-        LOG_LEVEL_FATAL(12);
+        LOG_LEVEL_FATAL(12),
+        PID_FG(13),
+        TID_FG(14),
+        TAG_FG(15),
+        HIGHLIGHT_FG(16),
+        LINE_NUM_FG(17);
 
         companion object {
             fun fromInt(value: Int) = ColorIdx.values().first { it.value == value }
@@ -153,7 +199,12 @@ class ColorManager private constructor(){
         ColorItem("Log Level Info", "#0080DF"),
         ColorItem("Log Level Warning", "#F07000"),
         ColorItem("Log Level Error", "#D00000"),
-        ColorItem("Log Level Fatal", "#700000")
+        ColorItem("Log Level Fatal", "#700000"),
+        ColorItem("PID FG", "#0000FF"),
+        ColorItem("TID FG", "#0000FF"),
+        ColorItem("Tag FG", "#0000FF"),
+        ColorItem("Highlight FG", "#0000FF"),
+        ColorItem("LineNum FG", "#333333")
     )
 
     fun getConfig(configManager: MainUI.ConfigManager) {
@@ -185,6 +236,11 @@ class ColorManager private constructor(){
         StrLogLevelWarning = mColorArray[ColorIdx.LOG_LEVEL_WARNING.value].mStrColor
         StrLogLevelError = mColorArray[ColorIdx.LOG_LEVEL_ERROR.value].mStrColor
         StrLogLevelFatal = mColorArray[ColorIdx.LOG_LEVEL_FATAL.value].mStrColor
+        StrPidFG = mColorArray[ColorIdx.PID_FG.value].mStrColor
+        StrTidFG = mColorArray[ColorIdx.TID_FG.value].mStrColor
+        StrTagFG = mColorArray[ColorIdx.TAG_FG.value].mStrColor
+        StrHighlightFG = mColorArray[ColorIdx.HIGHLIGHT_FG.value].mStrColor
+        StrLineNumFG = mColorArray[ColorIdx.LINE_NUM_FG.value].mStrColor
     }
 }
 
