@@ -159,17 +159,10 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
 
             val numValue = mTableModel.getValueAt(row, 0)
             val num = numValue.toString().trim().toInt()
-            if (isSelected || row == table?.selectedRow) {
-                background = ColorManager.SelectedBG
-            } else if (mBookmarkManager.mBookmarks.contains(num)) {
+            if (mBookmarkManager.mBookmarks.contains(num)) {
                 background = ColorManager.BookmarkBG
-//                if (isSelected || row == table?.selectedRow) {
-//                    background = Color(
-//                        (ColorManager.SelectedBG.red + ColorManager.BookmarkBG.red) and 0xFF,
-//                        (ColorManager.SelectedBG.green + ColorManager.BookmarkBG.green) and 0xFF,
-//                        (ColorManager.SelectedBG.blue + ColorManager.BookmarkBG.blue) and 0xFF
-//                    )
-//                }
+            } else if (isSelected || row == table?.selectedRow) {
+                background = ColorManager.SelectedBG
             } else if (mTableModel.isFullDataModel()) {
                 background = ColorManager.FullLogBG
             } else {
