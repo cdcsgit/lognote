@@ -1161,6 +1161,17 @@ class MainUI(title: String) : JFrame() {
             if (nCount > FiltersManager.MAX_FILTERS) {
                 nCount = FiltersManager.MAX_FILTERS
             }
+
+            for (i in 0 until FiltersManager.MAX_FILTERS) {
+                title = mProperties.get(ITEM_CMDS_TITLE + i) as? String
+                if (title == null) {
+                    break
+                }
+                mProperties.remove(ITEM_FILTERS_TITLE + i)
+                mProperties.remove(ITEM_FILTERS_FILTER + i)
+                mProperties.remove(ITEM_FILTERS_TABLEBAR + i)
+            }
+
             for (i in 0 until nCount) {
                 mProperties.put(ITEM_FILTERS_TITLE + i, filters[i].mTitle)
                 mProperties.put(ITEM_FILTERS_FILTER + i, filters[i].mValue)
@@ -1205,6 +1216,17 @@ class MainUI(title: String) : JFrame() {
             if (nCount > CmdsManager.MAX_CMDS) {
                 nCount = CmdsManager.MAX_CMDS
             }
+
+            for (i in 0 until CmdsManager.MAX_CMDS) {
+                title = mProperties.get(ITEM_CMDS_TITLE + i) as? String
+                if (title == null) {
+                    break
+                }
+                mProperties.remove(ITEM_CMDS_TITLE + i)
+                mProperties.remove(ITEM_CMDS_CMD + i)
+                mProperties.remove(ITEM_CMDS_TABLEBAR + i)
+            }
+
             for (i in 0 until nCount) {
                 mProperties.put(ITEM_CMDS_TITLE + i, cmds[i].mTitle)
                 mProperties.put(ITEM_CMDS_CMD + i, cmds[i].mValue)
