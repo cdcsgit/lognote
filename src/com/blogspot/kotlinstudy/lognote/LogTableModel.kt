@@ -279,14 +279,18 @@ class LogTableModel() : AbstractTableModel() {
             field = value
             if (SwingUtilities.isEventDispatchThread()) {
                 mLogItems.clear()
+                mLogItems = mutableListOf()
                 mBaseModel!!.mLogItems.clear()
+                mBaseModel!!.mLogItems = mutableListOf()
                 mBaseModel!!.mBookmarkManager.clear()
                 fireLogTableDataCleared()
                 mBaseModel!!.fireLogTableDataCleared()
             } else {
                 SwingUtilities.invokeAndWait {
                     mLogItems.clear()
+                    mLogItems = mutableListOf()
                     mBaseModel!!.mLogItems.clear()
+                    mBaseModel!!.mLogItems = mutableListOf()
                     mBaseModel!!.mBookmarkManager.clear()
                     fireLogTableDataCleared()
                     mBaseModel!!.fireLogTableDataCleared()
@@ -426,8 +430,10 @@ class LogTableModel() : AbstractTableModel() {
             mBaseModel!!.mGoToLast = true
             mGoToLast = true
             mBaseModel!!.mLogItems.clear()
+            mBaseModel!!.mLogItems = mutableListOf()
             mBaseModel!!.mBookmarkManager.clear()
             mLogItems.clear()
+            mLogItems = mutableListOf()
             mIsFilterUpdated = true
             System.gc()
         }
@@ -472,6 +478,7 @@ class LogTableModel() : AbstractTableModel() {
             }
         } else {
             mLogItems.clear()
+            mLogItems = mutableListOf()
             mBookmarkManager.clear()
         }
 
@@ -834,6 +841,7 @@ class LogTableModel() : AbstractTableModel() {
 //            mBaseModel?.mGoToLast = false
         SwingUtilities.invokeAndWait {
             mLogItems.clear()
+            mLogItems = mutableListOf()
         }
         var logItems:MutableList<LogItem> = mutableListOf()
             if (mBookmarkMode) {
@@ -978,7 +986,9 @@ class LogTableModel() : AbstractTableModel() {
         val mScanThreadNotUsed = Thread(Runnable { run {
             SwingUtilities.invokeAndWait {
                 mLogItems.clear()
+                mLogItems = mutableListOf()
                 mBaseModel!!.mLogItems.clear()
+                mBaseModel!!.mLogItems = mutableListOf()
                 mBaseModel!!.mBookmarkManager.clear()
                 fireLogTableDataCleared()
                 mBaseModel!!.fireLogTableDataCleared()
@@ -1164,7 +1174,9 @@ class LogTableModel() : AbstractTableModel() {
         mScanThread = Thread(Runnable { run {
             SwingUtilities.invokeAndWait {
                 mLogItems.clear()
+                mLogItems = mutableListOf()
                 mBaseModel!!.mLogItems.clear()
+                mBaseModel!!.mLogItems = mutableListOf()
                 mBaseModel!!.mBookmarkManager.clear()
                 fireLogTableDataCleared()
                 mBaseModel!!.fireLogTableDataCleared()
