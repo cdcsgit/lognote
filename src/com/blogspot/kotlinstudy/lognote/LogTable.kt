@@ -1,9 +1,10 @@
 package com.blogspot.kotlinstudy.lognote
 
-import java.awt.Color
-import java.awt.Component
+import java.awt.*
 import java.awt.event.*
+import java.awt.geom.Line2D
 import javax.swing.*
+import javax.swing.border.AbstractBorder
 import javax.swing.table.DefaultTableCellRenderer
 
 
@@ -34,7 +35,7 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         val columnLog = columnModel.getColumn(1)
 //        columnLog.preferredWidth = gd.displayMode.width - COLUMN_0_WIDTH - 25
         columnLog.cellRenderer = LogCellRenderer()
-        setRowMargin(0)
+        intercellSpacing = Dimension(0, 0)
 
         val enter = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0)
         getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(enter, "none")
@@ -51,7 +52,11 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         val fontMetrics = getFontMetrics(font)
         val value = mTableModel.getValueAt(rowCount - 1, 0)
         val column0Width = fontMetrics.stringWidth(value.toString()) + 20
-        val preferredLogWidth = width - column0Width - 25
+        var newWidth = width
+        if (width < 1920) {
+            newWidth = 1920
+        }
+        val preferredLogWidth = newWidth - column0Width - 43
 
         val columnNum = columnModel.getColumn(0)
         val columnLog = columnModel.getColumn(1)
@@ -97,10 +102,39 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
 //            }
         }
 
+    internal class LineNumBorder(val color: Color, val thickness: Int) : AbstractBorder() {
+        override fun paintBorder(
+            c: Component?, g: Graphics?, x: Int, y: Int, width: Int, height: Int
+        ) {
+            println("$x, $y, $width, $height, $c")
+            if (width > 0) {
+                g?.color = color
+                for (i in 1..thickness) {
+                    g?.drawLine(width - i , y, width - i, height)
+                }
+            }
+        }
+
+        override fun getBorderInsets(c: Component): Insets {
+            return getBorderInsets(c, Insets(0, 0, 0, thickness))
+        }
+
+        override fun getBorderInsets(c: Component?, insets: Insets): Insets {
+            insets.top = 0
+            insets.left = 0
+            insets.bottom = 0
+            insets.right = thickness
+            return insets
+        }
+
+        override fun isBorderOpaque(): Boolean {
+            return true
+        }
+    }
     internal inner class NumCellRenderer() : DefaultTableCellRenderer() {
         init {
             horizontalAlignment = JLabel.RIGHT
-            verticalAlignment = JLabel.TOP
+            verticalAlignment = JLabel.CENTER
         }
         override fun getTableCellRendererComponent(
             table: JTable?,
@@ -115,7 +149,9 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
                 num = value.toString().trim().toInt()
             }
 
-            val label = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col)
+            val label = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col) as JLabel
+            label.border = LineNumBorder(ColorManager.NumLogSeperatorBG, 1)
+
             foreground = ColorManager.LineNumFG
             background = if (mBookmarkManager.mBookmarks.contains(num)) {
                 ColorManager.BookmarkBG

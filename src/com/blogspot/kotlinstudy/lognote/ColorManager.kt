@@ -154,6 +154,13 @@ class ColorManager private constructor(){
         var LineNumFG = Color.decode(StrLineNumBG)
             private set
 
+        var StrNumLogSeperatorBG = "#000000"
+            set(value) {
+                field = value
+                NumLogSeperatorBG = Color.decode(value)
+            }
+        var NumLogSeperatorBG = Color.decode(StrNumLogSeperatorBG)
+            private set
     }
 
     class ColorItem(val name: String, var strColor: String) {
@@ -179,7 +186,8 @@ class ColorManager private constructor(){
         TID_FG(14),
         TAG_FG(15),
         HIGHLIGHT_FG(16),
-        LINE_NUM_FG(17);
+        LINE_NUM_FG(17),
+        NUM_LOG_SEPERATOR_BG(18);
 
         companion object {
             fun fromInt(value: Int) = ColorIdx.values().first { it.value == value }
@@ -204,7 +212,8 @@ class ColorManager private constructor(){
         ColorItem("TID FG", "#0000FF"),
         ColorItem("Tag FG", "#0000FF"),
         ColorItem("Highlight FG", "#0000FF"),
-        ColorItem("LineNum FG", "#333333")
+        ColorItem("LineNum FG", "#333333"),
+        ColorItem("NumLogSeperator BG", "#FFFFFF")
     )
 
     fun getConfig(configManager: MainUI.ConfigManager) {
@@ -241,6 +250,7 @@ class ColorManager private constructor(){
         StrTagFG = mColorArray[ColorIdx.TAG_FG.value].mStrColor
         StrHighlightFG = mColorArray[ColorIdx.HIGHLIGHT_FG.value].mStrColor
         StrLineNumFG = mColorArray[ColorIdx.LINE_NUM_FG.value].mStrColor
+        StrNumLogSeperatorBG = mColorArray[ColorIdx.NUM_LOG_SEPERATOR_BG.value].mStrColor
     }
 }
 

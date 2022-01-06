@@ -63,27 +63,27 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
         mLastBtn.addActionListener(mActionHandler)
         mTagBtn = ColorToggleButton(Strings.TAG)
         mTagBtn.toolTipText = TooltipStrings.VIEW_TAG_TOGGLE
-        mTagBtn.margin = Insets(0, 0, 0, 0)
+        mTagBtn.margin = Insets(0, 3, 0, 3)
         mTagBtn.addActionListener(mActionHandler)
         mPidBtn = ColorToggleButton(Strings.PID)
         mPidBtn.toolTipText = TooltipStrings.VIEW_PID_TOGGLE
-        mPidBtn.margin = Insets(0, 0, 0, 0)
+        mPidBtn.margin = Insets(0, 3, 0, 3)
         mPidBtn.addActionListener(mActionHandler)
         mTidBtn = ColorToggleButton(Strings.TID)
         mTidBtn.toolTipText = TooltipStrings.VIEW_TID_TOGGLE
-        mTidBtn.margin = Insets(0, 0, 0, 0)
+        mTidBtn.margin = Insets(0, 3, 0, 3)
         mTidBtn.addActionListener(mActionHandler)
         mWindowedModeBtn = ColorButton(Strings.WINDOWED_MODE)
         mWindowedModeBtn.toolTipText = TooltipStrings.VIEW__WINDOWED_MODE_BTN
-        mWindowedModeBtn.margin = Insets(0, 0, 0, 0)
+        mWindowedModeBtn.margin = Insets(0, 3, 0, 3)
         mWindowedModeBtn.addActionListener(mActionHandler)
         mBookmarksBtn = ColorToggleButton(Strings.BOOKMARKS)
         mBookmarksBtn.toolTipText = TooltipStrings.VIEW_BOOKMARKS_TOGGLE
-        mBookmarksBtn.margin = Insets(0, 0, 0, 0)
+        mBookmarksBtn.margin = Insets(0, 3, 0, 3)
         mBookmarksBtn.addActionListener(mActionHandler)
         mFullBtn = ColorToggleButton(Strings.FULL)
         mFullBtn.toolTipText = TooltipStrings.VIEW_FULL_TOGGLE
-        mFullBtn.margin = Insets(0, 0, 0, 0)
+        mFullBtn.margin = Insets(0, 3, 0, 3)
         mFullBtn.addActionListener(mActionHandler)
 
         updateTableBar(null)
@@ -93,7 +93,6 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
 
         mTable.columnSelectionAllowed = true
         mTable.selectionModel.addListSelectionListener(mListSelectionHandler)
-
         mScrollPane = JScrollPane(mTable)
 
         mVStatusPanel = VStatusPanel(mTable)
@@ -109,7 +108,8 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
         mScrollPane.addMouseListener(MouseHandler())
 
         mScrollPane.verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
-        mScrollPane.horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+        mScrollPane.horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
+
         mScrollPane.setOpaque(false);
         mScrollPane.getViewport().setOpaque(false);
 
@@ -143,7 +143,7 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
                 val button = TableBarButton(item.mTitle)
                 button.mValue = item.mValue
                 button.toolTipText = "${item.mTitle} : ${item.mValue}"
-                button.margin = Insets(0, 0, 0, 0)
+                button.margin = Insets(0, 3, 0, 3)
                 button.addActionListener(ActionListener { e: ActionEvent? ->
                     val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
                     frame.setTextShowLogCombo((e?.source as TableBarButton).mValue)
@@ -156,7 +156,7 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
         if (!isAdded) {
             val button = TableBarButton(Strings.ADD_FILTER)
             button.toolTipText = TooltipStrings.ADD_FILTER_BTN
-            button.margin = Insets(0, 0, 0, 0)
+            button.margin = Insets(0, 3, 0, 3)
             button.addActionListener(ActionListener { e: ActionEvent? ->
                 val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
                 frame.mFiltersBtn.doClick()
@@ -175,7 +175,7 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
                 val button = TableBarButton(item.mTitle)
                 button.mValue = item.mValue
                 button.toolTipText = "${item.mTitle} : ${item.mValue}"
-                button.margin = Insets(0, 0, 0, 0)
+                button.margin = Insets(0, 3, 0, 3)
                 button.addActionListener(ActionListener { e: ActionEvent? ->
                     var cmd = (e?.source as TableBarButton).mValue
                     if (cmd.startsWith("adb ")) {
@@ -196,7 +196,7 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
         if (!isAdded) {
             val button = TableBarButton(Strings.ADD_CMD)
             button.toolTipText = TooltipStrings.ADD_CMD_BTN
-            button.margin = Insets(0, 0, 0, 0)
+            button.margin = Insets(0, 3, 0, 3)
             button.addActionListener(ActionListener { e: ActionEvent? ->
                 val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
                 frame.mCmdsBtn.doClick()
