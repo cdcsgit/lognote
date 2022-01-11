@@ -1,6 +1,8 @@
 # LogNote
 
-Android logcat viewer, kotlin + swing
+Android logcat viewer for Windows, Linux
+
+kotlin + swing
 
 Regular expression filter
 
