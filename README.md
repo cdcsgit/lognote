@@ -10,6 +10,12 @@ Online / offline log view
 
 Save split file by lines for aging test
 
+
+# Run
+windows : start javaw -Xmx4096m -jar LogNote.jar\
+linux : java -Xmx4096m -jar LogNote.jar
+
+
 # Color settings
 Light(default)
 ![default_color](https://user-images.githubusercontent.com/75207513/148026944-d965a90e-f2e4-478d-a763-f9d229d36f4c.png)
@@ -38,6 +44,6 @@ Add or change color configuration in lognote.xml as below.
 <entry key="COLOR_MANAGER_17">#F0F0F0</entry>
 ```
 
-# Run
-windows : start javaw -Xmx4096m -jar LogNote.jar\
-linux : java -Xmx4096m -jar LogNote.jar
+# Save split file by lines for aging test
+![aging](https://user-images.githubusercontent.com/75207513/150263408-d64b7003-6b9c-460f-a4e6-02e6a4ee01e9.png)\
+Each time 100000 lines are saved, it is changed to a new file
