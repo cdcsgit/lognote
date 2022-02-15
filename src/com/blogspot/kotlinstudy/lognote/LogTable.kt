@@ -348,9 +348,13 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
                 val bookmark = value.toString().trim().toInt()
 
                 if (isAdd) {
-                    mBookmarkManager.addBookmark(bookmark)
+                    if (!mBookmarkManager.isBookmark(bookmark)) {
+                        mBookmarkManager.addBookmark(bookmark)
+                    }
                 } else {
-                    mBookmarkManager.removeBookmark(bookmark)
+                    if (mBookmarkManager.isBookmark(bookmark)) {
+                        mBookmarkManager.removeBookmark(bookmark)
+                    }
                 }
             }
         }
