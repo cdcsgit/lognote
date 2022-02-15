@@ -319,9 +319,34 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
     }
 
     private fun updateBookmark() {
-        val value = mTableModel.getValueAt(selectedRow, 0)
-        val bookmark = value.toString().trim().toInt()
-        mBookmarkManager.updateBookmark(bookmark)
+        if (selectedRowCount > 1) {
+            var isAdd = false
+            for (row in selectedRows) {
+                val value = mTableModel.getValueAt(row, 0)
+                val bookmark = value.toString().trim().toInt()
+
+                if (!mBookmarkManager.isBookmark(bookmark)) {
+                    isAdd = true
+                    break
+                }
+            }
+
+            for (row in selectedRows) {
+                val value = mTableModel.getValueAt(row, 0)
+                val bookmark = value.toString().trim().toInt()
+
+                if (isAdd) {
+                    mBookmarkManager.addBookmark(bookmark)
+                } else {
+                    mBookmarkManager.removeBookmark(bookmark)
+                }
+            }
+        }
+        else {
+            val value = mTableModel.getValueAt(selectedRow, 0)
+            val bookmark = value.toString().trim().toInt()
+            mBookmarkManager.updateBookmark(bookmark)
+        }
     }
 
     internal inner class PopUpTable() : JPopupMenu() {

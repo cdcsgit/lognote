@@ -32,6 +32,10 @@ class BookmarkManager private constructor(){
         mEventListeners.add(listener)
     }
 
+    fun isBookmark(bookmark:Int): Boolean {
+        return mBookmarks.contains(bookmark)
+    }
+
     fun updateBookmark(bookmark:Int) {
         if (mBookmarks.contains(bookmark)) {
             removeBookmark(bookmark)
@@ -40,7 +44,7 @@ class BookmarkManager private constructor(){
         }
     }
 
-    private fun addBookmark(bookmark:Int) {
+    fun addBookmark(bookmark:Int) {
         mBookmarks.add(bookmark)
         mBookmarks.sort()
 
@@ -49,7 +53,7 @@ class BookmarkManager private constructor(){
         }
     }
 
-    private fun removeBookmark(bookmark:Int) {
+    fun removeBookmark(bookmark:Int) {
         mBookmarks.remove(bookmark)
 
         for (listener in mEventListeners) {
