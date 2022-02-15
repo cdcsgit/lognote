@@ -2,7 +2,6 @@ package com.blogspot.kotlinstudy.lognote
 
 import java.awt.*
 import java.awt.event.*
-import java.awt.geom.Line2D
 import javax.swing.*
 import javax.swing.border.AbstractBorder
 import javax.swing.table.DefaultTableCellRenderer
@@ -106,7 +105,6 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         override fun paintBorder(
             c: Component?, g: Graphics?, x: Int, y: Int, width: Int, height: Int
         ) {
-            println("$x, $y, $width, $height, $c")
             if (width > 0) {
                 g?.color = color
                 for (i in 1..thickness) {
@@ -149,14 +147,21 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
                 num = value.toString().trim().toInt()
             }
 
+//            println("NumCellRenderer getTableCellRendererComponent $isSelected, $hasFocus, $row, $col, ${isRowSelected(row)}")
             val label = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col) as JLabel
+
             label.border = LineNumBorder(ColorManager.NumLogSeperatorBG, 1)
 
             foreground = ColorManager.LineNumFG
             background = if (mBookmarkManager.mBookmarks.contains(num)) {
-                ColorManager.BookmarkBG
-            } else if (row == table?.selectedRow) {
-                ColorManager.SelectedBG
+                if (isRowSelected(row)) {
+                    ColorManager.NumBookmarkSelectedBG
+                }
+                else {
+                    ColorManager.NumBookmarkBG
+                }
+            } else if (isRowSelected(row)) {
+                ColorManager.NumSelectedBG
             } else {
                 ColorManager.LineNumBG
             }
@@ -177,6 +182,8 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
             row: Int,
             col: Int
         ): Component {
+//            println("LogCellRenderer getTableCellRendererComponent $isSelected, $hasFocus, $row, $col, ${isRowSelected(row)}")
+
             val newValue:String
             if (value != null) {
                 newValue = mTableModel.getPrintValue(value.toString(), row)
@@ -196,8 +203,13 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
             val numValue = mTableModel.getValueAt(row, 0)
             val num = numValue.toString().trim().toInt()
             if (mBookmarkManager.mBookmarks.contains(num)) {
-                background = ColorManager.BookmarkBG
-            } else if (isSelected || row == table?.selectedRow) {
+                if (isRowSelected(row)) {
+                    background = ColorManager.BookmarkSelectedBG
+                }
+                else {
+                    background = ColorManager.BookmarkBG
+                }
+            } else if (isRowSelected(row)) {
                 background = ColorManager.SelectedBG
             } else if (mTableModel.isFullDataModel()) {
                 background = ColorManager.FullLogBG

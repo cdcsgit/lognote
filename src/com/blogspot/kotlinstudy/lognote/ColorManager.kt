@@ -161,6 +161,38 @@ class ColorManager private constructor(){
             }
         var NumLogSeperatorBG = Color.decode(StrNumLogSeperatorBG)
             private set
+
+        var StrBookmarkSelectedBG = "#000000"
+            set(value) {
+                field = value
+                BookmarkSelectedBG = Color.decode(value)
+            }
+        var BookmarkSelectedBG: Color = Color.decode(StrBookmarkSelectedBG)
+            private set
+
+        var StrNumBookmarkSelectedBG = "#000000"
+            set(value) {
+                field = value
+                NumBookmarkSelectedBG = Color.decode(value)
+            }
+        var NumBookmarkSelectedBG: Color = Color.decode(StrNumBookmarkSelectedBG)
+            private set
+
+        var StrNumBookmarkBG = "#000000"
+            set(value) {
+                field = value
+                NumBookmarkBG = Color.decode(value)
+            }
+        var NumBookmarkBG: Color = Color.decode(StrNumBookmarkBG)
+            private set
+
+        var StrNumSelectedBG = "#000000"
+            set(value) {
+                field = value
+                NumSelectedBG = Color.decode(value)
+            }
+        var NumSelectedBG: Color = Color.decode(StrNumSelectedBG)
+            private set
     }
 
     class ColorItem(val name: String, var strColor: String) {
@@ -187,7 +219,11 @@ class ColorManager private constructor(){
         TAG_FG(15),
         HIGHLIGHT_FG(16),
         LINE_NUM_FG(17),
-        NUM_LOG_SEPERATOR_BG(18);
+        NUM_LOG_SEPERATOR_BG(18),
+        BOOKMARK_SELECTED_BG(19),
+        NUM_BOOKMARK_SELECTED_BG(20),
+        NUM_BOOKMARK_BG(21),
+        NUM_SELECTED_BG(22);
 
         companion object {
             fun fromInt(value: Int) = ColorIdx.values().first { it.value == value }
@@ -213,7 +249,11 @@ class ColorManager private constructor(){
         ColorItem("Tag FG", "#0000FF"),
         ColorItem("Highlight FG", "#0000FF"),
         ColorItem("LineNum FG", "#333333"),
-        ColorItem("NumLogSeperator BG", "#FFFFFF")
+        ColorItem("NumLogSeperator BG", "#FFFFFF"),
+        ColorItem("Bookmark Selected BG", "#D0D0DF"),
+        ColorItem("LineNum Bookmark Selected BG", "#C0C0CF"),
+        ColorItem("LineNum Bookmark BG", "#E0E0EF"),
+        ColorItem("LineNum Selected BG", "#C0C0C0")
     )
 
     fun getConfig(configManager: MainUI.ConfigManager) {
@@ -251,6 +291,10 @@ class ColorManager private constructor(){
         StrHighlightFG = mColorArray[ColorIdx.HIGHLIGHT_FG.value].mStrColor
         StrLineNumFG = mColorArray[ColorIdx.LINE_NUM_FG.value].mStrColor
         StrNumLogSeperatorBG = mColorArray[ColorIdx.NUM_LOG_SEPERATOR_BG.value].mStrColor
+        StrBookmarkSelectedBG = mColorArray[ColorIdx.BOOKMARK_SELECTED_BG.value].mStrColor
+        StrNumBookmarkSelectedBG = mColorArray[ColorIdx.NUM_BOOKMARK_SELECTED_BG.value].mStrColor
+        StrNumBookmarkBG = mColorArray[ColorIdx.NUM_BOOKMARK_BG.value].mStrColor
+        StrNumSelectedBG = mColorArray[ColorIdx.NUM_SELECTED_BG.value].mStrColor
     }
 }
 
