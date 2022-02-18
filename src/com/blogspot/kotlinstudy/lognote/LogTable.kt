@@ -26,7 +26,6 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         dragEnabled = true
         dropMode = DropMode.INSERT
 
-
         val columnNum = columnModel.getColumn(0)
 //        columnNum.preferredWidth = COLUMN_0_WIDTH
         columnNum.cellRenderer = NumCellRenderer()
@@ -200,6 +199,7 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
                 label = super.getTableCellRendererComponent(table, newValue, isSelected, hasFocus, row, col) as JLabel
             }
 
+            label.border = BorderFactory.createEmptyBorder(0, 5, 0, 0);
             val numValue = mTableModel.getValueAt(row, 0)
             val num = numValue.toString().trim().toInt()
             if (mBookmarkManager.mBookmarks.contains(num)) {
