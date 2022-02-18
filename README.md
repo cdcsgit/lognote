@@ -50,5 +50,5 @@ Add or change color configuration in lognote.xml as below.
 ```
 
 # Save split file by lines for aging test
-![aging](https://user-images.githubusercontent.com/75207513/150263408-d64b7003-6b9c-460f-a4e6-02e6a4ee01e9.png)\
+![aging](https://user-images.githubusercontent.com/75207513/150263408-d64b7003-6b9c-460f-a4e6-02e6a4ee01e9.png) \
 Each time 100000 lines are saved, it is changed to a new file
