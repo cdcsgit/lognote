@@ -3,6 +3,7 @@ package com.blogspot.kotlinstudy.lognote
 import java.io.IOException
 import java.util.*
 
+
 interface AdbEventListener {
     fun changedStatus(event:AdbEvent)
 }
@@ -59,7 +60,7 @@ class AdbManager private constructor(){
     }
 
     fun stop() {
-        System.err.println("Stop all processes")
+        println("Stop all processes")
         mProcessLogcat?.destroy()
         mProcessLogcat = null
         mCurrentExecuter?.interrupt()
@@ -156,15 +157,24 @@ class AdbManager private constructor(){
                 run {
                     mProcessLogcat?.destroy()
                     val cmd = mAdbCmd + " -s " + mTargetDevice + " logcat -v threadtime"
-                    System.out.println("Run : " + cmd)
+                    println("Start : $cmd")
                     val runtime = Runtime.getRuntime()
                     try {
                         mProcessLogcat = runtime.exec(cmd)
+                        val processExitDetector = ProcessExitDetector(mProcessLogcat!!)
+                        processExitDetector.addProcessListener(object : ProcessListener {
+                            override fun processFinished(process: Process?) {
+                                println("The subprocess has finished.")
+                                mProcessLogcat?.inputStream?.close()
+                            }
+                        })
+                        processExitDetector.start()
                     } catch (e:IOException) {
-                        System.out.println("Failed run " + cmd)
+                        println("Failed run $cmd")
                         mProcessLogcat = null
                         return@run
                     }
+                    println("End : $cmd")
                 }
             }
             CMD_DISCONNECT -> executer = Runnable {
@@ -189,5 +199,37 @@ class AdbManager private constructor(){
         return executer
     }
 
+    interface ProcessListener : EventListener {
+        fun processFinished(process: Process?)
+    }
+    class ProcessExitDetector(process: Process) : Thread() {
+        var process: Process? = null
+        private val listeners: MutableList<ProcessListener> = ArrayList<ProcessListener>()
+        override fun run() {
+            try {
+                process!!.waitFor()
+                for (listener in listeners) {
+                    listener.processFinished(process)
+                }
+            } catch (e: InterruptedException) {
+            }
+        }
 
+        fun addProcessListener(listener: ProcessListener) {
+            listeners.add(listener)
+        }
+
+        fun removeProcessListener(listener: ProcessListener) {
+            listeners.remove(listener)
+        }
+
+        init {
+            try {
+                process.exitValue()
+                throw IllegalArgumentException("The process is already ended")
+            } catch (exc: IllegalThreadStateException) {
+                this.process = process
+            }
+        }
+    }
 }

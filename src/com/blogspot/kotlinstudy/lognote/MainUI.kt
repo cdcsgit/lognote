@@ -45,6 +45,7 @@ class MainUI(title: String) : JFrame() {
 
     private lateinit var mLogToolBar: JPanel
     private lateinit var mStartBtn: ColorButton
+    private lateinit var mRetryAdbToggle: ColorToggleButton
     private lateinit var mStopBtn: ColorButton
     private lateinit var mPauseBtn: ColorButton
     private lateinit var mClearBtn: ColorButton
@@ -402,6 +403,9 @@ class MainUI(title: String) : JFrame() {
         mStartBtn.toolTipText = TooltipStrings.START_BTN
         mStartBtn.addActionListener(mActionHandler)
         mStartBtn.addMouseListener(mMouseHandler)
+        mRetryAdbToggle = ColorToggleButton(Strings.RETRY_ADB)
+        mRetryAdbToggle.toolTipText = TooltipStrings.RETRY_ADB_TOGGLE
+        mRetryAdbToggle.margin = Insets(mRetryAdbToggle.margin.top, 0, mRetryAdbToggle.margin.bottom, 0)
         mStopBtn = ColorButton(Strings.STOP)
         mStopBtn.toolTipText = TooltipStrings.STOP_BTN
         mStopBtn.addActionListener(mActionHandler)
@@ -534,6 +538,7 @@ class MainUI(title: String) : JFrame() {
 
         mMatchCaseBtn = ColorToggleButton("Aa")
         mMatchCaseBtn.toolTipText = TooltipStrings.CASE_TOGGLE
+        mMatchCaseBtn.margin = Insets(mMatchCaseBtn.margin.top, 0, mMatchCaseBtn.margin.bottom, 0)
         mMatchCaseBtn.addItemListener(mItemHandler)
 
         mShowLogPanel.layout = BorderLayout()
@@ -582,6 +587,7 @@ class MainUI(title: String) : JFrame() {
         mScrollbackKeepToggle.toolTipText = TooltipStrings.SCROLLBACK_KEEP_TOGGLE
         mScrollbackKeepToggle.mSelectedBg = Color.RED
         mScrollbackKeepToggle.mSelectedFg = Color.BLACK
+        mScrollbackKeepToggle.margin = Insets(mScrollbackKeepToggle.margin.top, 0, mScrollbackKeepToggle.margin.bottom, 0)
         mScrollbackKeepToggle.addItemListener(mItemHandler)
 
         mScrollbackLabel = JLabel(Strings.SCROLLBACK_LINES)
@@ -614,6 +620,8 @@ class MainUI(title: String) : JFrame() {
         mFilterPanel.addMouseListener(mMouseHandler)
 
         mLogToolBar.add(mStartBtn)
+        mLogToolBar.add(mRetryAdbToggle)
+        addVSeparator2(mLogToolBar)
         mLogToolBar.add(mStopBtn)
         mLogToolBar.add(mClearBtn)
         mLogToolBar.add(mSaveBtn)
@@ -621,7 +629,7 @@ class MainUI(title: String) : JFrame() {
         addVSeparator(mLogToolBar)
 
         mLogToolBar.add(mDeviceCombo)
-        mLogToolBar.add(mDeviceStatus)
+//        mLogToolBar.add(mDeviceStatus)
         mLogToolBar.add(mAdbConnectBtn)
         mLogToolBar.add(mAdbRefreshBtn)
         mLogToolBar.add(mAdbDisconnectBtn)
@@ -792,8 +800,10 @@ class MainUI(title: String) : JFrame() {
 
         if (mAdbManager.mDevices.contains(targetDevice)) {
             mDeviceStatus.text = Strings.CONNECTED
+            mDeviceCombo.editor.editorComponent.foreground = Color.BLUE
         } else {
             mDeviceStatus.text = Strings.NOT_CONNECTED
+            mDeviceCombo.editor.editorComponent.foreground = Color.RED
         }
 
         var fontName = mConfigManager.mProperties.get(mConfigManager.ITEM_FONT_NAME) as? String
@@ -897,6 +907,13 @@ class MainUI(title: String) : JFrame() {
         }
         mFilteredTableModel.mMatchCase = mMatchCaseBtn.isSelected
 
+        check = mConfigManager.mProperties.get(mConfigManager.ITEM_RETRY_ADB) as? String
+        if (!check.isNullOrEmpty()) {
+            mRetryAdbToggle.isSelected = check.toBoolean()
+        } else {
+            mRetryAdbToggle.isSelected = false
+        }
+
         add(mFilterPanel, BorderLayout.NORTH)
         add(mLogSplitPane, BorderLayout.CENTER)
         add(mStatusBar, BorderLayout.SOUTH)
@@ -917,6 +934,16 @@ class MainUI(title: String) : JFrame() {
         panel.add(separator1)
         panel.add(separator2)
         panel.add(Box.createHorizontalStrut(5))
+    }
+
+    private fun addVSeparator2(panel:JPanel) {
+        val separator1 = JSeparator(SwingConstants.VERTICAL)
+        separator1.preferredSize = Dimension(separator1.preferredSize.width / 2, 20)
+        separator1.foreground = Color.DARK_GRAY
+        separator1.background = Color.DARK_GRAY
+        panel.add(Box.createHorizontalStrut(2))
+        panel.add(separator1)
+        panel.add(Box.createHorizontalStrut(2))
     }
 
     inner class ConfigManager {
@@ -973,6 +1000,8 @@ class MainUI(title: String) : JFrame() {
         val ITEM_CMDS_TABLEBAR = "CMDS_TABLEBAR_"
 
         val ITEM_COLOR_MANAGER = "COLOR_MANAGER_"
+
+        val ITEM_RETRY_ADB = "RETRY_ADB"
 
         private fun setDefaultConfig() {
             mProperties.put(ITEM_LOG_LEVEL, VERBOSE)
@@ -1111,6 +1140,8 @@ class MainUI(title: String) : JFrame() {
             mProperties.put(ITEM_SCROLLBACK, mScrollbackTF.text)
             mProperties.put(ITEM_SCROLLBACK_SPLIT_FILE, mScrollbackSplitFileCheck.isSelected.toString())
             mProperties.put(ITEM_MATCH_CASE, mMatchCaseBtn.isSelected.toString())
+
+            mProperties.put(ITEM_RETRY_ADB, mRetryAdbToggle.isSelected.toString())
 
             mColorManager.putConfig(this)
 
@@ -1332,6 +1363,18 @@ class MainUI(title: String) : JFrame() {
         }
         mFilteredTableModel.startScan()
     }
+
+    fun isRestartAdbLogcat(): Boolean {
+        return mRetryAdbToggle.isSelected
+    }
+
+    fun restartAdbLogcat() {
+        println("Restart Adb Logcat")
+        mAdbManager.stop()
+        mAdbManager.mTargetDevice = mDeviceCombo.selectedItem!!.toString()
+        mAdbManager.startLogcat()
+    }
+
     internal inner class ActionHandler() : ActionListener {
         override fun actionPerformed(p0: ActionEvent?) {
             if (p0?.source == mItemFileOpen) {
@@ -1818,6 +1861,7 @@ class MainUI(title: String) : JFrame() {
 
                     if (mAdbManager.mDevices.contains(selectedItem.toString())) {
                         mDeviceStatus.text = Strings.CONNECTED
+                        mDeviceCombo.editor.editorComponent.foreground = Color.BLUE
                     } else {
                         var isExist = false
                         val deviceChk = selectedItem.toString() + ":"
@@ -1830,8 +1874,10 @@ class MainUI(title: String) : JFrame() {
                         }
                         if (isExist) {
                             mDeviceStatus.text = Strings.CONNECTED
+                            mDeviceCombo.editor.editorComponent.foreground = Color.BLUE
                         } else {
                             mDeviceStatus.text = Strings.NOT_CONNECTED
+                            mDeviceCombo.editor.editorComponent.foreground = Color.RED
                         }
                     }
                     mDeviceCombo.selectedItem = selectedItem

@@ -68,6 +68,7 @@ class StringsKo private constructor() {
             , "필터 추가"
             , "명령 추가"
             , "명령s"
+            , "재시도"
 //            , ""
         )
     }

@@ -33,7 +33,7 @@ class ColorToggleButton(title:String) : JToggleButton(title){
                 graphics2D.color = mSelectedBg
             }
             else {
-                graphics2D.color = Color(0xD5, 0xD5, 0xD5)
+                graphics2D.color = Color(0x85, 0x85, 0x85)
             }
             graphics2D.fillRect(0, 0, width, height)
 
@@ -45,7 +45,7 @@ class ColorToggleButton(title:String) : JToggleButton(title){
                 graphics2D.color = mSelectedFg
             }
             else {
-                graphics2D.color = Color(0x5C, 0x94, 0xCB)
+                graphics2D.color = Color(0xFF, 0xFF, 0xFF)
             }
             graphics2D.drawString(text,
                 (width - graphics2D.fontMetrics.stringWidth(text)) / 2,
@@ -57,7 +57,7 @@ class ColorToggleButton(title:String) : JToggleButton(title){
                 graphics2D.color = mUnselectedBg
             }
             else {
-                graphics2D.color = Color(0xF0, 0xF0, 0xF0)
+                graphics2D.color = Color(0xFA, 0xFA, 0xFF)
             }
 
             graphics2D.fillRect(0, 0, width, height)

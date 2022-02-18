@@ -481,7 +481,7 @@ class LogTableModel() : AbstractTableModel() {
                 val item = mLogItems.last()
                 num = item.mNum.toInt()
                 num++
-                mLogItems.add(LogItem(num.toString(), "APPEND LOG : $mLogFile", "", "", "", LEVEL_ERROR))
+                mLogItems.add(LogItem(num.toString(), "LogNote - APPEND LOG : $mLogFile", "", "", "", LEVEL_ERROR))
                 num++
             }
         } else {
@@ -1042,7 +1042,7 @@ class LogTableModel() : AbstractTableModel() {
             makePattenPrintValue()
 
             var currLogFile: File? = mLogFile
-            val bufferedReader = BufferedReader(InputStreamReader(mAdbManager.mProcessLogcat?.inputStream))
+            var bufferedReader = BufferedReader(InputStreamReader(mAdbManager.mProcessLogcat?.inputStream))
             var line: String?
             var num = 0
             var saveNum = 0
@@ -1068,11 +1068,24 @@ class LogTableModel() : AbstractTableModel() {
             val logFilterItems:MutableList<LogFilterItem> = mutableListOf()
 
             line = bufferedReader.readLine()
-            while (line != null) {
+            while (line != null || (line == null && mMainUI?.isRestartAdbLogcat() == true)) {
                 try {
                     nextUpdateTime = System.currentTimeMillis() + 100
                     logLines.clear()
                     logFilterItems.clear()
+
+                    if (line == null && mMainUI?.isRestartAdbLogcat() == true) {
+                        println("line is Null : $line")
+                        if (mAdbManager.mProcessLogcat == null || !mAdbManager.mProcessLogcat!!.isAlive) {
+                            if (mMainUI?.isRestartAdbLogcat() == true) {
+                                Thread.sleep(5000)
+                                mMainUI?.restartAdbLogcat()
+                                bufferedReader = BufferedReader(InputStreamReader(mAdbManager.mProcessLogcat?.inputStream))
+                                line = "LogNote - RESTART LOGCAT"
+                            }
+                        }
+                    }
+
                     while (line != null) {
                         if (currLogFile != mLogFile) {
                             try {
@@ -1113,7 +1126,12 @@ class LogTableModel() : AbstractTableModel() {
                                 pid = textSplited[PID_INDEX]
                                 tid = textSplited[TID_INDEX]
                             } else {
-                                level = LEVEL_NONE
+                                if (tempLine.startsWith("LogNote")) {
+                                    level = LEVEL_ERROR
+                                }
+                                else {
+                                    level = LEVEL_VERBOSE
+                                }
                                 tag = ""
                                 pid = ""
                                 tid = ""
@@ -1194,7 +1212,7 @@ class LogTableModel() : AbstractTableModel() {
                     mBaseModel!!.fireLogTableDataChanged(baseRemovedCount)
                     baseRemovedCount = 0
                 } catch (e:Exception) {
-                    println("Start scan : $e")
+                    println("Start scan : ${e.stackTraceToString()}")
                     if (e !is InterruptedException) {
                         JOptionPane.showMessageDialog(mMainUI, e.toString(), "Error", JOptionPane.ERROR_MESSAGE)
                     }
