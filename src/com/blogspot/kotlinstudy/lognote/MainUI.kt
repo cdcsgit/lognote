@@ -538,7 +538,7 @@ class MainUI(title: String) : JFrame() {
 
         mMatchCaseBtn = ColorToggleButton("Aa")
         mMatchCaseBtn.toolTipText = TooltipStrings.CASE_TOGGLE
-        mMatchCaseBtn.margin = Insets(mMatchCaseBtn.margin.top, 0, mMatchCaseBtn.margin.bottom, 0)
+        mMatchCaseBtn.margin = Insets(0, 0, 0, 0)
         mMatchCaseBtn.addItemListener(mItemHandler)
 
         mShowLogPanel.layout = BorderLayout()
@@ -605,6 +605,7 @@ class MainUI(title: String) : JFrame() {
         itemFilterPanel.add(mShowPidPanel)
         itemFilterPanel.add(mShowTidPanel)
         itemFilterPanel.add(mBoldLogPanel)
+        itemFilterPanel.add(mMatchCaseBtn)
 
         mLogPanel.layout = BorderLayout()
         mLogPanel.add(mShowLogPanel, BorderLayout.CENTER)
@@ -646,7 +647,6 @@ class MainUI(title: String) : JFrame() {
         mLogToolBar.add(mRotationBtn)
 
         addVSeparator(mLogToolBar)
-        mLogToolBar.add(mMatchCaseBtn)
         mLogToolBar.add(mFiltersBtn)
         mLogToolBar.add(mCmdsBtn)
 
