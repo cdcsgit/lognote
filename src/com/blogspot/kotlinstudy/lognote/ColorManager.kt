@@ -195,7 +195,8 @@ class ColorManager private constructor(){
             private set
     }
 
-    class ColorItem(val name: String, var strColor: String) {
+    class ColorItem(order: Int, name: String, strColor: String) {
+        val mOrder = order
         val mName = name
         var mStrColor = strColor
     }
@@ -231,29 +232,29 @@ class ColorManager private constructor(){
     }
 
     var mColorArray = arrayOf(
-        ColorItem("Filtered FG", "#FF0000"),
-        ColorItem("Selected BG", "#E0E0E0"),
-        ColorItem("FullLog BG", "#FAFAFF"),
-        ColorItem("FilterLog BG", "#FFFAFA"),
-        ColorItem("LineNum BG", "#D0D0D0"),
-        ColorItem("Bookmark BG", "#E0E0FF"),
-        ColorItem("Log Level None", "#000000"),
-        ColorItem("Log Level Verbose", "#000000"),
-        ColorItem("Log Level Debug", "#209000"),
-        ColorItem("Log Level Info", "#0080DF"),
-        ColorItem("Log Level Warning", "#F07000"),
-        ColorItem("Log Level Error", "#D00000"),
-        ColorItem("Log Level Fatal", "#700000"),
-        ColorItem("PID FG", "#0000FF"),
-        ColorItem("TID FG", "#0000FF"),
-        ColorItem("Tag FG", "#0000FF"),
-        ColorItem("Highlight FG", "#0000FF"),
-        ColorItem("LineNum FG", "#333333"),
-        ColorItem("NumLogSeperator BG", "#FFFFFF"),
-        ColorItem("Bookmark Selected BG", "#D0D0DF"),
-        ColorItem("LineNum Bookmark Selected BG", "#C0C0CF"),
-        ColorItem("LineNum Bookmark BG", "#E0E0EF"),
-        ColorItem("LineNum Selected BG", "#C0C0C0")
+        ColorItem(0, "Filtered FG", "#FF0000"),
+        ColorItem(13, "Selected BG", "#E0E0E0"),
+        ColorItem(14, "FullLog BG", "#FAFAFF"),
+        ColorItem(15, "FilterLog BG", "#FFFAFA"),
+        ColorItem(16, "LineNum BG", "#D0D0D0"),
+        ColorItem(17, "Bookmark BG", "#E0E0FF"),
+        ColorItem(1, "Log Level None", "#000000"),
+        ColorItem(2, "Log Level Verbose", "#000000"),
+        ColorItem(3, "Log Level Debug", "#209000"),
+        ColorItem(4, "Log Level Info", "#0080DF"),
+        ColorItem(5, "Log Level Warning", "#F07000"),
+        ColorItem(6, "Log Level Error", "#D00000"),
+        ColorItem(7, "Log Level Fatal", "#700000"),
+        ColorItem(8, "PID FG", "#0000FF"),
+        ColorItem(9, "TID FG", "#0000FF"),
+        ColorItem(10, "Tag FG", "#0000FF"),
+        ColorItem(11, "Highlight FG", "#0000FF"),
+        ColorItem(12, "LineNum FG", "#333333"),
+        ColorItem(18, "NumLogSeperator BG", "#FFFFFF"),
+        ColorItem(19, "Bookmark Selected BG", "#D0D0DF"),
+        ColorItem(20, "LineNum Bookmark Selected BG", "#C0C0CF"),
+        ColorItem(21, "LineNum Bookmark BG", "#E0E0EF"),
+        ColorItem(22, "LineNum Selected BG", "#C0C0C0")
     )
 
     fun getConfig(configManager: MainUI.ConfigManager) {

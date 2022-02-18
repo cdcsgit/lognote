@@ -2,6 +2,8 @@ package com.blogspot.kotlinstudy.lognote
 
 import java.awt.*
 import java.awt.event.*
+import java.awt.font.TextLayout
+import java.awt.image.BufferedImage
 import javax.swing.*
 import javax.swing.ListSelectionModel.SINGLE_SELECTION
 import javax.swing.event.ChangeEvent
@@ -22,6 +24,7 @@ class FontDialog (parent: MainUI) : JDialog(parent, Strings.FONT + " & " + Strin
     private var mParent = parent
     private val mPrevFont = mParent.mFont
     private val mColorManager = ColorManager.getInstance()
+    private val mTitleLabelArray = arrayOfNulls<ColorLabel>(mColorManager.mColorArray.size)
     private val mColorLabelArray = arrayOfNulls<ColorLabel>(mColorManager.mColorArray.size)
     private val mMouseHandler = MouseHandler()
     private val mPrevColorArray = arrayOfNulls<String>(mColorManager.mColorArray.size)
@@ -31,7 +34,7 @@ class FontDialog (parent: MainUI) : JDialog(parent, Strings.FONT + " & " + Strin
         mNameList = JList(GraphicsEnvironment.getLocalGraphicsEnvironment().availableFontFamilyNames)
         mNameList.selectionMode = SINGLE_SELECTION
         mNameScrollPane = JScrollPane(mNameList)
-        mNameScrollPane.preferredSize = Dimension(330, 200)
+        mNameScrollPane.preferredSize = Dimension(550, 200)
         mNameList.setSelectedValue(parent.mFont.family, true)
         mNameScrollPane.verticalScrollBar.ui = BasicScrollBarUI()
         mNameScrollPane.horizontalScrollBar.ui = BasicScrollBarUI()
@@ -54,10 +57,13 @@ class FontDialog (parent: MainUI) : JDialog(parent, Strings.FONT + " & " + Strin
         val colorLabelPanel = JPanel()
         colorLabelPanel.layout = BoxLayout(colorLabelPanel, BoxLayout.Y_AXIS)
 
+        val titleLabelPanel = JPanel()
+        titleLabelPanel.layout = BoxLayout(titleLabelPanel, BoxLayout.Y_AXIS)
+
         for (idx in mColorLabelArray.indices) {
             mPrevColorArray[idx] = mColorManager.mColorArray[idx].mStrColor
             mColorLabelArray[idx] = ColorLabel(idx)
-            mColorLabelArray[idx]!!.text = mColorManager.mColorArray[idx].mName + " " + mColorManager.mColorArray[idx].mStrColor
+            mColorLabelArray[idx]!!.text = " ${mColorManager.mColorArray[idx].mName} ${mColorManager.mColorArray[idx].mStrColor} "
             mColorLabelArray[idx]!!.toolTipText = mColorLabelArray[idx]!!.text
             mColorLabelArray[idx]!!.isOpaque = true
             if (mColorManager.mColorArray[idx].mName.contains("BG")) {
@@ -73,13 +79,50 @@ class FontDialog (parent: MainUI) : JDialog(parent, Strings.FONT + " & " + Strin
             mColorLabelArray[idx]!!.preferredSize = Dimension(330, 20)
             mColorLabelArray[idx]!!.maximumSize = Dimension(330, 20)
             mColorLabelArray[idx]!!.addMouseListener(mMouseHandler)
-            colorLabelPanel.add(mColorLabelArray[idx])
-            colorLabelPanel.add(Box.createRigidArea(Dimension(5, 3)))
+
+            mTitleLabelArray[idx] = ColorLabel(idx)
+            mTitleLabelArray[idx]!!.text = " ${mColorManager.mColorArray[idx].mName}"
+            mTitleLabelArray[idx]!!.toolTipText = mColorLabelArray[idx]!!.text
+            mTitleLabelArray[idx]!!.isOpaque = true
+            mTitleLabelArray[idx]!!.horizontalAlignment = JLabel.LEFT
+            if (mColorManager.mColorArray[idx].mName.contains("BG")) {
+                mTitleLabelArray[idx]!!.foreground = Color.WHITE
+                mTitleLabelArray[idx]!!.background = Color.DARK_GRAY
+            }
+            else {
+                mTitleLabelArray[idx]!!.foreground = Color.DARK_GRAY
+                mTitleLabelArray[idx]!!.background = Color.WHITE
+            }
+
+            mTitleLabelArray[idx]!!.verticalAlignment = JLabel.CENTER
+            mTitleLabelArray[idx]!!.border = BorderFactory.createLineBorder(Color.BLACK)
+            mTitleLabelArray[idx]!!.minimumSize = Dimension(220, 20)
+            mTitleLabelArray[idx]!!.preferredSize = Dimension(220, 20)
+            mTitleLabelArray[idx]!!.maximumSize = Dimension(220, 20)
+            mTitleLabelArray[idx]!!.addMouseListener(mMouseHandler)
         }
+
+        for (order in mColorLabelArray.indices) {
+            for (idx in mColorLabelArray.indices) {
+                if (order == mColorManager.mColorArray[idx].mOrder) {
+                    colorLabelPanel.add(mColorLabelArray[idx])
+                    colorLabelPanel.add(Box.createRigidArea(Dimension(5, 3)))
+                    titleLabelPanel.add(mTitleLabelArray[idx])
+                    titleLabelPanel.add(Box.createRigidArea(Dimension(5, 3)))
+                    break
+                }
+            }
+        }
+
+        val colorPanel = JPanel()
+        colorPanel.layout = FlowLayout(FlowLayout.LEFT, 0, 0);
+        colorPanel.add(titleLabelPanel)
+        colorPanel.add(colorLabelPanel)
 
         updateLabelColor()
 
         val namePanel = JPanel()
+        namePanel.layout = FlowLayout(FlowLayout.LEFT, 3, 0);
         namePanel.add(mNameScrollPane)
 
         val sizePanel = JPanel()
@@ -95,7 +138,7 @@ class FontDialog (parent: MainUI) : JDialog(parent, Strings.FONT + " & " + Strin
 
         val bottomPanel = JPanel(BorderLayout())
         bottomPanel.add(sizePanel, BorderLayout.NORTH)
-        bottomPanel.add(colorLabelPanel, BorderLayout.CENTER)
+        bottomPanel.add(colorPanel, BorderLayout.CENTER)
         bottomPanel.add(confirmPanel, BorderLayout.SOUTH)
         val panel = JPanel(BorderLayout())
         panel.add(namePanel, BorderLayout.CENTER)
@@ -221,7 +264,9 @@ class FontDialog (parent: MainUI) : JDialog(parent, Strings.FONT + " & " + Strin
             }
 
             if (rgbPanel != null) {
-                val colorLabel = e!!.source as ColorLabel
+                val tmpColorLabel = e!!.source as ColorLabel
+                val idx = tmpColorLabel.mIdx
+                val colorLabel = mColorLabelArray[idx]!!
                 if (colorLabel.text.contains("BG")) {
                     colorChooser.color = colorLabel.background
                 } else {
@@ -231,8 +276,8 @@ class FontDialog (parent: MainUI) : JDialog(parent, Strings.FONT + " & " + Strin
                 var ret = JOptionPane.showConfirmDialog(this@FontDialog, rgbPanel, "Color Chooser", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
                 if (ret == JOptionPane.OK_OPTION) {
                     val hex = "#" + Integer.toHexString(colorChooser.color.rgb).substring(2).uppercase()
-                    colorLabel.text = mColorManager.mColorArray[colorLabel.mIdx].mName + " " + hex
-                    mColorManager.mColorArray[colorLabel.mIdx].mStrColor = hex
+                    colorLabel.text = " ${mColorManager.mColorArray[idx].mName} $hex "
+                    mColorManager.mColorArray[idx].mStrColor = hex
                     if (colorLabel.text.contains("BG")) {
                         colorLabel.background = colorChooser.color
                     } else {
