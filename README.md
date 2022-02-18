@@ -8,12 +8,12 @@ Regular expression filter
 
 Online / offline log view
 
-Save split file by lines for aging test
+Aging Test : Save split file by lines
 
 
 # Run
-windows : start javaw -Xmx4096m -jar LogNote.jar\
-linux : java -Xmx4096m -jar LogNote.jar
+windows : start javaw -Dfile.encoding=utf8 -Xmx4096m -jar LogNote.jar\
+linux : java -Dfile.encoding=utf8 -Xmx4096m -jar LogNote.jar
 
 
 # Color settings
