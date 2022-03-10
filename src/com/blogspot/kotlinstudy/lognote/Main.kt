@@ -7,7 +7,7 @@ import javax.swing.plaf.ColorUIResource
 
 class Main {
     companion object {
-        const val VERSION: String = "0.2.1"
+        const val VERSION: String = "0.2.2"
 
         @JvmStatic
         fun main(args: Array<String>) {
