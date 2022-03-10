@@ -40,7 +40,7 @@ class TooltipStringsEn private constructor() {
             , "Open filter list(add filter)"
             , "Open cmd list(add cmd)"
             , "Manage frequently used cmds"
-            , "Auto retry when disconnected"
+            , "Auto retry when failed to receive log"
 //            , ""
         )
     }
