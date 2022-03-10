@@ -885,8 +885,8 @@ class LogTableModel() : AbstractTableModel() {
         SwingUtilities.invokeAndWait {
             mLogItems.clear()
             mLogItems = mutableListOf()
-        }
-        var logItems:MutableList<LogItem> = mutableListOf()
+
+            var logItems:MutableList<LogItem> = mutableListOf()
             if (mBookmarkMode) {
                 for (item in mBaseModel!!.mLogItems) {
                     if (mBookmarkManager.mBookmarks.contains(item.mNum.toInt())) {
@@ -994,12 +994,8 @@ class LogTableModel() : AbstractTableModel() {
                         logItems.add(item)
                     }
                 }
-//                val dtf2 = DateTimeFormatter.ofPattern("HH:mm:ss")
-//                val now2 = LocalDateTime.now()
-//                println(dtf2.format(now2))
             }
-//        }
-        SwingUtilities.invokeAndWait {
+
             mLogItems = logItems
         }
 
