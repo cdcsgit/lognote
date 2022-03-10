@@ -21,8 +21,8 @@ abstract class CustomListManager (mainUI: MainUI, logPanel: LogPanel){
     private var mFirstElement: CustomElement? = null
     private var mCustomDialog: CustomDialog? = null
 
-    abstract fun loadConfig(): ArrayList<CustomElement>
-    abstract fun saveConfig(list: ArrayList<CustomElement>)
+    abstract fun loadList(): ArrayList<CustomElement>
+    abstract fun saveList(list: ArrayList<CustomElement>)
     abstract fun getFirstElement(): CustomElement
     abstract fun getListSelectionListener(): ListSelectionListener?
     abstract fun getListMouseListener(): MouseListener?
@@ -143,7 +143,7 @@ abstract class CustomListManager (mainUI: MainUI, logPanel: LogPanel){
         }
 
         fun initDialog() {
-            val customListArray = loadConfig()
+            val customListArray = loadList()
             mModel.clear()
             mFirstElement = getFirstElement()
             if (mFirstElement != null) {
@@ -302,7 +302,7 @@ abstract class CustomListManager (mainUI: MainUI, logPanel: LogPanel){
                 }
 
                 if (customListArray.size > 0) {
-                    saveConfig(customListArray)
+                    saveList(customListArray)
                 }
                 mLogPanel.updateTableBar(customListArray)
             } else if (e?.source == mCloseBtn) {

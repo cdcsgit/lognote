@@ -157,6 +157,9 @@ class FontDialog (parent: MainUI) : JDialog(parent, Strings.FONT + " & " + Strin
                     mColorManager.applyColor()
                     mParent.mFont = mPrevFont
                 }
+                else {
+                    mParent.mConfigManager.saveFontColors()
+                }
             }
         })
 

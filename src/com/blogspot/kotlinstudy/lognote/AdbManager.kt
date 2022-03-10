@@ -16,7 +16,7 @@ class AdbEvent(c:Int, e:Int) {
 class AdbManager private constructor(){
     var mPrefix: String =""
     var mAdbCmd = "adb"
-    var mLogSavePath:String? = "."
+    var mLogSavePath:String = "."
     var mTargetDevice: String = ""
     var mDevices = ArrayList<String>()
     val mEventListeners = ArrayList<AdbEventListener>()

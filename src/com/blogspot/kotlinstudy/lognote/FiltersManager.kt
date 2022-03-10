@@ -17,11 +17,11 @@ class FiltersManager (mainUI: MainUI, configManager: MainUI.ConfigManager, logPa
         const val MAX_FILTERS = 20
     }
 
-    override fun loadConfig(): ArrayList<CustomElement> {
+    override fun loadList(): ArrayList<CustomElement> {
         return mConfigManager.loadFilters()
     }
 
-    override fun saveConfig(list: ArrayList<CustomElement>) {
+    override fun saveList(list: ArrayList<CustomElement>) {
         mConfigManager.saveFilters(list)
     }
 

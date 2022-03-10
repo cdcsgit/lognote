@@ -25,6 +25,7 @@ class AdbSettingsDialog(parent: JFrame) :JDialog(parent, "ADB " + Strings.SETTIN
     private var mPrefixTF: JTextField
 
     private val mAdbManager = AdbManager.getInstance()
+    private val mMainUI = parent as MainUI
 
     init {
         mAdbCmdBtn = ColorButton(Strings.SELECT)
@@ -110,6 +111,12 @@ class AdbSettingsDialog(parent: JFrame) :JDialog(parent, "ADB " + Strings.SETTIN
             mAdbManager.mAdbCmd = mAdbCmdTF.text
             mAdbManager.mLogSavePath = mAdbSaveTF.text
             mAdbManager.mPrefix = mPrefixTF.text
+
+            val keys = arrayOf(mMainUI.mConfigManager.ITEM_ADB_CMD, mMainUI.mConfigManager.ITEM_ADB_LOG_SAVE_PATH, mMainUI.mConfigManager.ITEM_ADB_PREFIX)
+            val values = arrayOf(mAdbManager.mAdbCmd, mAdbManager.mLogSavePath, mAdbManager.mPrefix)
+
+            mMainUI.mConfigManager.saveConfigItems(keys, values)
+
             dispose()
         } else if (e?.source == mCancelBtn) {
             dispose()

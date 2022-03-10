@@ -117,7 +117,7 @@ class MainUI(title: String) : JFrame() {
     private val mMouseHandler = MouseHandler()
     private val mComponentHandler = ComponentHandler()
 
-    private val mConfigManager = ConfigManager()
+    val mConfigManager = ConfigManager()
     private val mColorManager = ColorManager.getInstance()
     private var mIsCreatingUI = true
 
@@ -155,7 +155,7 @@ class MainUI(title: String) : JFrame() {
         }
 
     init {
-        mConfigManager.loadConfig()
+        mConfigManager.loadConfigOnCreate()
         val cmd = mConfigManager.mProperties.get(mConfigManager.ITEM_ADB_CMD) as? String
         if (!cmd.isNullOrEmpty()) {
             mAdbManager.mAdbCmd = cmd
@@ -169,9 +169,11 @@ class MainUI(title: String) : JFrame() {
             }
         }
         mAdbManager.addEventListener(AdbHandler())
-        mAdbManager.mLogSavePath = mConfigManager.mProperties.get(mConfigManager.ITEM_ADB_LOG_SAVE_PATH) as? String
-        if (mAdbManager.mLogSavePath.isNullOrEmpty()) {
+        val logSavePath = mConfigManager.mProperties.get(mConfigManager.ITEM_ADB_LOG_SAVE_PATH) as? String
+        if (logSavePath.isNullOrEmpty()) {
             mAdbManager.mLogSavePath = "."
+        } else {
+            mAdbManager.mLogSavePath = logSavePath
         }
 
         val prefix = mConfigManager.mProperties.get(mConfigManager.ITEM_ADB_PREFIX) as? String
@@ -219,7 +221,7 @@ class MainUI(title: String) : JFrame() {
     }
 
     private fun exit() {
-        mConfigManager.saveConfig()
+        mConfigManager.saveConfigOnDestroy()
         mFilteredTableModel.stopScan()
         mFullTableModel.stopScan()
         mAdbManager.stop()
@@ -292,6 +294,7 @@ class MainUI(title: String) : JFrame() {
         mMenuSettings.addSeparator()
 
         mItemFilterIncremental = JCheckBoxMenuItem(Strings.FILTER + "-" + Strings.INCREMENTAL)
+        mItemFilterIncremental.addActionListener(mActionHandler)
         mMenuSettings.add(mItemFilterIncremental)
 
         mMenuSettings.addSeparator()
@@ -406,6 +409,7 @@ class MainUI(title: String) : JFrame() {
         mRetryAdbToggle = ColorToggleButton(Strings.RETRY_ADB)
         mRetryAdbToggle.toolTipText = TooltipStrings.RETRY_ADB_TOGGLE
         mRetryAdbToggle.margin = Insets(mRetryAdbToggle.margin.top, 0, mRetryAdbToggle.margin.bottom, 0)
+        mRetryAdbToggle.addItemListener(mItemHandler)
         mStopBtn = ColorButton(Strings.STOP)
         mStopBtn.toolTipText = TooltipStrings.STOP_BTN
         mStopBtn.addActionListener(mActionHandler)
@@ -1012,7 +1016,7 @@ class MainUI(title: String) : JFrame() {
             mProperties.put(ITEM_HIGHLIGHT_LOG_CHECK, "true")
         }
 
-        fun loadConfig() {
+        private fun loadConfig() {
             var fileInput: FileInputStream? = null
 
             try {
@@ -1029,12 +1033,50 @@ class MainUI(title: String) : JFrame() {
                     }
                 }
             }
+        }
+
+        fun loadConfigOnCreate() {
+            loadConfig()
             mColorManager.getConfig(this)
             mColorManager.applyColor()
+            saveConfig()
         }
 
         fun saveConfig() {
             var fileOutput: FileOutputStream? = null
+            try {
+                fileOutput = FileOutputStream(CONFIG_FILE)
+                mProperties.storeToXML(fileOutput, "")
+            } finally {
+                if (null != fileOutput) {
+                    try {
+                        fileOutput.close()
+                    } catch (ex: IOException) {
+                    }
+                }
+            }
+        }
+
+        fun saveConfigItem(key: String, value: String) {
+            loadConfig()
+            mProperties.put(key, value)
+            saveConfig()
+        }
+
+        fun saveConfigItems(keys: Array<String>, values: Array<String>) {
+            if (keys.size != values.size) {
+                println("saveConfigItem : size not match ${keys.size}, ${values.size}")
+                return
+            }
+            loadConfig()
+            for (idx in keys.indices) {
+                mProperties.put(keys[idx], values[idx])
+            }
+            saveConfig()
+        }
+
+        fun saveConfigOnDestroy() {
+            loadConfig()
 
             val location = getLocation()
             try {
@@ -1064,17 +1106,6 @@ class MainUI(title: String) : JFrame() {
 
             mProperties.put(ITEM_FRAME_EXTENDED_STATE, extendedState.toString())
 
-            try {
-                for (item in mLogLevelGroup.elements) {
-                    if (item.isSelected) {
-                        mProperties.put(ITEM_LOG_LEVEL, item.text)
-                        break
-                    }
-                }
-            } catch (e: NullPointerException) {
-                mProperties.put(ITEM_LOG_LEVEL, VERBOSE)
-            }
-
             var nCount = mShowLogCombo.itemCount
             if (nCount > COUNT_SHOW_LOG) {
                 nCount = COUNT_SHOW_LOG
@@ -1086,7 +1117,7 @@ class MainUI(title: String) : JFrame() {
             for (i in nCount until COUNT_SHOW_LOG) {
                 mProperties.remove(ITEM_SHOW_LOG + i)
             }
-            mProperties.put(ITEM_SHOW_LOG_CHECK, mShowLogToggle.isSelected.toString())
+
             nCount = mShowTagCombo.itemCount
             if (nCount > COUNT_SHOW_TAG) {
                 nCount = COUNT_SHOW_TAG
@@ -1097,10 +1128,6 @@ class MainUI(title: String) : JFrame() {
             for (i in nCount until COUNT_SHOW_TAG) {
                 mProperties.remove(ITEM_SHOW_TAG + i)
             }
-            mProperties.put(ITEM_SHOW_TAG_CHECK, mShowTagToggle.isSelected.toString())
-
-            mProperties.put(ITEM_SHOW_PID_CHECK, mShowPidToggle.isSelected.toString())
-            mProperties.put(ITEM_SHOW_TID_CHECK, mShowTidToggle.isSelected.toString())
 
             nCount = mBoldLogCombo.itemCount
             if (nCount > COUNT_HIGHLIGHT_LOG) {
@@ -1112,50 +1139,30 @@ class MainUI(title: String) : JFrame() {
             for (i in nCount until COUNT_HIGHLIGHT_LOG) {
                 mProperties.remove(ITEM_HIGHLIGHT_LOG + i)
             }
-            mProperties.put(ITEM_HIGHLIGHT_LOG_CHECK, mBoldLogToggle.isSelected.toString())
             try {
                 mProperties.put(ITEM_ADB_DEVICE, mDeviceCombo.getItemAt(0).toString())
             } catch (e: NullPointerException) {
                 mProperties.put(ITEM_ADB_DEVICE, "0.0.0.0")
             }
 
-            mProperties.put(ITEM_ADB_CMD, mAdbManager.mAdbCmd)
-            mProperties.put(ITEM_ADB_LOG_SAVE_PATH, mAdbManager.mLogSavePath)
-            mProperties.put(ITEM_ADB_PREFIX, mAdbManager.mPrefix)
-
-            mProperties.put(ITEM_ROTATION, mRotationStatus.toString())
             mProperties.put(ITEM_DIVIDER_LOCATION, mLogSplitPane.dividerLocation.toString())
             if (mLogSplitPane.lastDividerLocation != -1) {
                 mProperties.put(ITEM_LAST_DIVIDER_LOCATION, mLogSplitPane.lastDividerLocation.toString())
             }
 
-            mProperties.put(ITEM_LANG, Strings.lang.toString())
+//            mProperties.put(ITEM_LANG, Strings.lang.toString())
+
+            saveConfig()
+        }
+
+        fun saveFontColors() {
+            loadConfig()
 
             mProperties.put(ITEM_FONT_NAME, mFont.family)
             mProperties.put(ITEM_FONT_SIZE, mFont.size.toString())
-
-            mProperties.put(ITEM_VIEW_FULL, mItemFull.state.toString())
-            mProperties.put(ITEM_FILTER_INCREMENTAL, mItemFilterIncremental.state.toString())
-
-            mProperties.put(ITEM_SCROLLBACK, mScrollbackTF.text)
-            mProperties.put(ITEM_SCROLLBACK_SPLIT_FILE, mScrollbackSplitFileCheck.isSelected.toString())
-            mProperties.put(ITEM_MATCH_CASE, mMatchCaseBtn.isSelected.toString())
-
-            mProperties.put(ITEM_RETRY_ADB, mRetryAdbToggle.isSelected.toString())
-
             mColorManager.putConfig(this)
 
-            try {
-                fileOutput = FileOutputStream(CONFIG_FILE)
-                mProperties.storeToXML(fileOutput, "")
-            } finally {
-                if (null != fileOutput) {
-                    try {
-                        fileOutput.close()
-                    } catch (ex: IOException) {
-                    }
-                }
-            }
+            saveConfig()
         }
 
         fun loadFilters() : ArrayList<CustomListManager.CustomElement> {
@@ -1188,6 +1195,8 @@ class MainUI(title: String) : JFrame() {
         }
 
         fun saveFilters(filters : ArrayList<CustomListManager.CustomElement>) {
+            loadConfig()
+
             var nCount = filters.size
             if (nCount > FiltersManager.MAX_FILTERS) {
                 nCount = FiltersManager.MAX_FILTERS
@@ -1243,6 +1252,8 @@ class MainUI(title: String) : JFrame() {
         }
 
         fun saveCmds(cmds : ArrayList<CustomListManager.CustomElement>) {
+            loadConfig()
+
             var nCount = cmds.size
             if (nCount > CmdsManager.MAX_CMDS) {
                 nCount = CmdsManager.MAX_CMDS
@@ -1436,6 +1447,10 @@ class MainUI(title: String) : JFrame() {
                 } else {
                     windowedModeLogPanel(mFullLogPanel)
                 }
+
+                mConfigManager.saveConfigItem(mConfigManager.ITEM_VIEW_FULL, mItemFull.state.toString())
+            } else if (p0?.source == mItemFilterIncremental) {
+                mConfigManager.saveConfigItem(mConfigManager.ITEM_FILTER_INCREMENTAL, mItemFilterIncremental.state.toString())
             } else if (p0?.source == mItemAbout) {
                 val aboutDialog = AboutDialog(this@MainUI)
                 aboutDialog.setLocationRelativeTo(this@MainUI)
@@ -1461,6 +1476,9 @@ class MainUI(title: String) : JFrame() {
                     mScrollbackTF.text = "0"
                 }
                 mFilteredTableModel.mScrollbackSplitFile = mScrollbackSplitFileCheck.isSelected
+
+                mConfigManager.saveConfigItem(mConfigManager.ITEM_SCROLLBACK, mScrollbackTF.text)
+                mConfigManager.saveConfigItem(mConfigManager.ITEM_SCROLLBACK_SPLIT_FILE, mScrollbackSplitFileCheck.isSelected.toString())
             } else if (p0?.source == mStartBtn) {
                 startAdbScan(true)
             } else if (p0?.source == mStopBtn) {
@@ -1480,6 +1498,8 @@ class MainUI(title: String) : JFrame() {
                 if (mRotationStatus > ROTATION_MAX) {
                     mRotationStatus = ROTATION_LEFT_RIGHT
                 }
+
+                mConfigManager.saveConfigItem(mConfigManager.ITEM_ROTATION, mRotationStatus.toString())
 
                 mLogSplitPane.remove(mFilteredLogPanel)
                 mLogSplitPane.remove(mFullLogPanel)
@@ -1708,6 +1728,7 @@ class MainUI(title: String) : JFrame() {
 
     fun setTextShowLogCombo(text : String) {
         mShowLogCombo.selectedItem = text
+        mShowLogCombo.updateTooltip()
     }
 
     fun applyShowLogCombo() {
@@ -1794,34 +1815,42 @@ class MainUI(title: String) : JFrame() {
                 } else {
                     mFilteredTableModel.mFilterLog = ""
                 }
+                mConfigManager.saveConfigItem(mConfigManager.ITEM_SHOW_LOG_CHECK, mShowLogToggle.isSelected.toString())
             } else if (p0?.source == mBoldLogToggle) {
                 if (mBoldLogToggle.isSelected && mBoldLogCombo.selectedItem != null) {
                     mFilteredTableModel.mFilterHighlightLog = mBoldLogCombo.selectedItem!!.toString()
                 } else {
                     mFilteredTableModel.mFilterHighlightLog = ""
                 }
+                mConfigManager.saveConfigItem(mConfigManager.ITEM_HIGHLIGHT_LOG_CHECK, mBoldLogToggle.isSelected.toString())
             } else if (p0?.source == mShowTagToggle) {
                 if (mShowTagToggle.isSelected && mShowTagCombo.selectedItem != null) {
                     mFilteredTableModel.mFilterTag = mShowTagCombo.selectedItem!!.toString()
                 } else {
                     mFilteredTableModel.mFilterTag = ""
                 }
+                mConfigManager.saveConfigItem(mConfigManager.ITEM_SHOW_TAG_CHECK, mShowTagToggle.isSelected.toString())
             } else if (p0?.source == mShowPidToggle) {
                 if (mShowPidToggle.isSelected && mShowPidCombo.selectedItem != null) {
                     mFilteredTableModel.mFilterPid = mShowPidCombo.selectedItem!!.toString()
                 } else {
                     mFilteredTableModel.mFilterPid = ""
                 }
+                mConfigManager.saveConfigItem(mConfigManager.ITEM_SHOW_PID_CHECK, mShowPidToggle.isSelected.toString())
             } else if (p0?.source == mShowTidToggle) {
                 if (mShowTidToggle.isSelected && mShowTidCombo.selectedItem != null) {
                     mFilteredTableModel.mFilterTid = mShowTidCombo.selectedItem!!.toString()
                 } else {
                     mFilteredTableModel.mFilterTid = ""
                 }
+                mConfigManager.saveConfigItem(mConfigManager.ITEM_SHOW_TID_CHECK, mShowTidToggle.isSelected.toString())
             } else if (p0?.source == mMatchCaseBtn) {
                 mFilteredTableModel.mMatchCase = mMatchCaseBtn.isSelected
+                mConfigManager.saveConfigItem(mConfigManager.ITEM_MATCH_CASE, mMatchCaseBtn.isSelected.toString())
             } else if (p0?.source == mScrollbackKeepToggle) {
                 mFilteredTableModel.mScrollbackKeep = mScrollbackKeepToggle.isSelected
+            } else if (p0?.source == mRetryAdbToggle) {
+                mConfigManager.saveConfigItem(mConfigManager.ITEM_RETRY_ADB, mRetryAdbToggle.isSelected.toString())
             }
         }
     }
@@ -1837,6 +1866,7 @@ class MainUI(title: String) : JFrame() {
                 ERROR->mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_ERROR
                 FATAL->mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_FATAL
             }
+            mConfigManager.saveConfigItem(mConfigManager.ITEM_LOG_LEVEL, item.text)
         }
     }
 

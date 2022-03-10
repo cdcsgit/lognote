@@ -18,11 +18,11 @@ class CmdsManager (mainUI: MainUI, configManager: MainUI.ConfigManager, logPanel
         mDialogTitle = "Cmds Manager"
     }
 
-    override fun loadConfig(): ArrayList<CustomElement> {
+    override fun loadList(): ArrayList<CustomElement> {
         return mConfigManager.loadCmds()
     }
 
-    override fun saveConfig(list: ArrayList<CustomElement>) {
+    override fun saveList(list: ArrayList<CustomElement>) {
         mConfigManager.saveCmds(list)
     }
 
