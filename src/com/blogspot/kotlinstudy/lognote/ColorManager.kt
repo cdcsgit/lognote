@@ -257,18 +257,20 @@ class ColorManager private constructor(){
         ColorItem(22, "LineNum Selected BG", "#C0C0C0")
     )
 
-    fun getConfig(configManager: MainUI.ConfigManager) {
+    private val mConfigManager = ConfigManager.getInstance()
+
+    fun getConfig() {
         for (idx in mColorArray.indices) {
-            val item = configManager.mProperties[configManager.ITEM_COLOR_MANAGER + idx] as? String
+            val item = mConfigManager.getItem(ConfigManager.ITEM_COLOR_MANAGER + idx)
             if (item != null) {
                 mColorArray[idx].mStrColor = item
             }
         }
     }
 
-    fun putConfig(configManager: MainUI.ConfigManager) {
+    fun putConfig() {
         for (idx in mColorArray.indices) {
-            configManager.mProperties[configManager.ITEM_COLOR_MANAGER + idx] = mColorArray[idx].mStrColor
+            mConfigManager.setItem(ConfigManager.ITEM_COLOR_MANAGER + idx, mColorArray[idx].mStrColor)
         }
     }
 

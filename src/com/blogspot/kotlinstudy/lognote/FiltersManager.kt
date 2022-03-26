@@ -5,8 +5,8 @@ import javax.swing.JList
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
 
-class FiltersManager (mainUI: MainUI, configManager: MainUI.ConfigManager, logPanel: LogPanel): CustomListManager (mainUI, logPanel){
-    private val mConfigManager = configManager
+class FiltersManager (mainUI: MainUI, logPanel: LogPanel): CustomListManager (mainUI, logPanel){
+    private val mConfigManager = ConfigManager.getInstance()
     private val CURRENT_FILTER = "Current"
 
     private val mListSelectionHandler = ListSelectionHandler()
