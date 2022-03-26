@@ -1,9 +1,12 @@
 package com.blogspot.kotlinstudy.lognote
 
-import java.awt.*
+import java.awt.BorderLayout
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
-import javax.swing.*
+import javax.swing.JDialog
+import javax.swing.JFrame
+import javax.swing.JLabel
+import javax.swing.JPanel
 
 
 class AboutDialog(parent: JFrame) :JDialog(parent, Strings.ABOUT, true), ActionListener {

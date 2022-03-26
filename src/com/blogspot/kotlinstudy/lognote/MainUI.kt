@@ -1652,8 +1652,8 @@ class MainUI(title: String) : JFrame() {
         }
     }
 
-    internal inner class AdbHandler : AdbEventListener {
-        override fun changedStatus(event: AdbEvent) {
+    internal inner class AdbHandler : AdbManager.AdbEventListener {
+        override fun changedStatus(event: AdbManager.AdbEvent) {
             when (event.cmd) {
                 AdbManager.CMD_CONNECT -> {
                     mAdbManager.getDevices()

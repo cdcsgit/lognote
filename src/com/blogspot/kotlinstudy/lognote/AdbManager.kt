@@ -4,15 +4,6 @@ import java.io.IOException
 import java.util.*
 
 
-interface AdbEventListener {
-    fun changedStatus(event:AdbEvent)
-}
-
-class AdbEvent(c:Int, e:Int) {
-    val cmd = c
-    val event = e
-}
-
 class AdbManager private constructor(){
     var mPrefix: String =""
     var mAdbCmd = "adb"
@@ -199,9 +190,19 @@ class AdbManager private constructor(){
         return executer
     }
 
+    interface AdbEventListener {
+        fun changedStatus(event:AdbEvent)
+    }
+
+    class AdbEvent(c:Int, e:Int) {
+        val cmd = c
+        val event = e
+    }
+
     interface ProcessListener : EventListener {
         fun processFinished(process: Process?)
     }
+
     class ProcessExitDetector(process: Process) : Thread() {
         var process: Process? = null
         private val listeners: MutableList<ProcessListener> = ArrayList<ProcessListener>()
