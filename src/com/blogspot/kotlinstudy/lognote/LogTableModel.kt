@@ -15,13 +15,13 @@ class LogTableModelEvent(source:LogTableModel, change:Int, removedCount:Int) {
 //    val mFlags = flag
     val mRemovedCount = removedCount
     companion object {
-        val EVENT_ADDED = 0
-        val EVENT_REMOVED = 1
-        val EVENT_FILTERED = 2
-        val EVENT_CHANGED = 3
-        val EVENT_CLEARED = 4
+        const val EVENT_ADDED = 0
+        const val EVENT_REMOVED = 1
+        const val EVENT_FILTERED = 2
+        const val EVENT_CHANGED = 3
+        const val EVENT_CLEARED = 4
 
-        val FLAG_FIRST_REMOVED = 1
+        const val FLAG_FIRST_REMOVED = 1
     }
 }
 
@@ -63,9 +63,6 @@ class LogTableModel() : AbstractTableModel() {
     var mSelectionChanged = false
 
     var mMainUI: MainUI? = null
-        set(value) {
-            field = value
-        }
 
     var mFilterLevel = 0
         set(value) {
@@ -82,7 +79,7 @@ class LogTableModel() : AbstractTableModel() {
             mFilterHideLog = patterns[1]
         }
 
-    var mFilterShowLog: String = ""
+    private var mFilterShowLog: String = ""
         set(value) {
             try {
                 mPatternShowLog = Pattern.compile(value, mPatternCase)
@@ -95,7 +92,7 @@ class LogTableModel() : AbstractTableModel() {
             }
         }
 
-    var mFilterHideLog: String = ""
+    private var mFilterHideLog: String = ""
         set(value) {
             try {
                 mPatternHideLog = Pattern.compile(value, mPatternCase)
@@ -123,9 +120,7 @@ class LogTableModel() : AbstractTableModel() {
 //            }
         }
 
-    var mFilterHighlightSplit: List<String>? = null
-        private set
-
+    private var mFilterHighlightSplit: List<String>? = null
 
     var mFilterTag: String = ""
         set(value) {
@@ -134,7 +129,7 @@ class LogTableModel() : AbstractTableModel() {
             mFilterHideTag = patterns[1]
         }
 
-    var mFilterShowTag: String = ""
+    private var mFilterShowTag: String = ""
         set(value) {
             try {
                 mPatternShowTag = Pattern.compile(value, mPatternCase)
@@ -146,7 +141,7 @@ class LogTableModel() : AbstractTableModel() {
                 ex.printStackTrace()
             }
         }
-    var mFilterHideTag: String = ""
+    private var mFilterHideTag: String = ""
         set(value) {
             try {
                 mPatternHideTag = Pattern.compile(value, mPatternCase)
@@ -166,7 +161,7 @@ class LogTableModel() : AbstractTableModel() {
             mFilterHidePid = patterns[1]
         }
 
-    var mFilterShowPid: String = ""
+    private var mFilterShowPid: String = ""
         set(value) {
             try {
                 mPatternShowPid = Pattern.compile(value, mPatternCase)
@@ -179,7 +174,7 @@ class LogTableModel() : AbstractTableModel() {
             }
         }
 
-    var mFilterHidePid: String = ""
+    private var mFilterHidePid: String = ""
         set(value) {
             try {
                 mPatternHidePid = Pattern.compile(value, mPatternCase)
@@ -199,7 +194,7 @@ class LogTableModel() : AbstractTableModel() {
             patterns[1].let { mFilterHideTid = it}
         }
 
-    var mFilterShowTid: String = ""
+    private var mFilterShowTid: String = ""
         set(value) {
             try {
                 mPatternShowTid = Pattern.compile(value, mPatternCase)
@@ -211,7 +206,7 @@ class LogTableModel() : AbstractTableModel() {
                 ex.printStackTrace()
             }
         }
-    var mFilterHideTid: String = ""
+    private var mFilterHideTid: String = ""
         set(value) {
             try {
                 mPatternHideTid = Pattern.compile(value, mPatternCase)
@@ -302,26 +297,23 @@ class LogTableModel() : AbstractTableModel() {
         }
 
     var mScrollbackSplitFile = false
-        set(value) {
-            field = value
-        }
 
     var mScrollbackKeep = false
 
-    var mPatternShowLog = Pattern.compile(mFilterShowLog, mPatternCase)
-    var mPatternHideLog = Pattern.compile(mFilterHideLog, mPatternCase)
+    private var mPatternShowLog: Pattern = Pattern.compile(mFilterShowLog, mPatternCase)
+    private var mPatternHideLog: Pattern = Pattern.compile(mFilterHideLog, mPatternCase)
 //    var mPatternHighlightLog = Pattern.compile(mFilterHighlightLog, mPatternCase)
-    var mPatternShowTag = Pattern.compile(mFilterShowTag, mPatternCase)
-    var mPatternHideTag = Pattern.compile(mFilterHideTag, mPatternCase)
-    var mPatternShowPid = Pattern.compile(mFilterShowPid, mPatternCase)
-    var mPatternHidePid = Pattern.compile(mFilterHidePid, mPatternCase)
-    var mPatternShowTid = Pattern.compile(mFilterShowTid, mPatternCase)
-    var mPatternHideTid = Pattern.compile(mFilterHideTid, mPatternCase)
+    private var mPatternShowTag: Pattern = Pattern.compile(mFilterShowTag, mPatternCase)
+    private var mPatternHideTag: Pattern = Pattern.compile(mFilterHideTag, mPatternCase)
+    private var mPatternShowPid: Pattern = Pattern.compile(mFilterShowPid, mPatternCase)
+    private var mPatternHidePid: Pattern = Pattern.compile(mFilterHidePid, mPatternCase)
+    private var mPatternShowTid: Pattern = Pattern.compile(mFilterShowTid, mPatternCase)
+    private var mPatternHideTid: Pattern = Pattern.compile(mFilterHideTid, mPatternCase)
 
-    var mPatternError = Pattern.compile("\\bERROR\\b", Pattern.CASE_INSENSITIVE)
-    var mPatternWarning = Pattern.compile("\\bWARNING\\b", Pattern.CASE_INSENSITIVE)
-    var mPatternInfo = Pattern.compile("\\bINFO\\b", Pattern.CASE_INSENSITIVE)
-    var mPatternDebug = Pattern.compile("\\bDEBUG\\b", Pattern.CASE_INSENSITIVE)
+    private var mPatternError: Pattern = Pattern.compile("\\bERROR\\b", Pattern.CASE_INSENSITIVE)
+    private var mPatternWarning: Pattern = Pattern.compile("\\bWARNING\\b", Pattern.CASE_INSENSITIVE)
+    private var mPatternInfo: Pattern = Pattern.compile("\\bINFO\\b", Pattern.CASE_INSENSITIVE)
+    private var mPatternDebug: Pattern = Pattern.compile("\\bDEBUG\\b", Pattern.CASE_INSENSITIVE)
 
     constructor(baseModel: LogTableModel?) : this() {
         mBaseModel = baseModel
@@ -341,7 +333,7 @@ class LogTableModel() : AbstractTableModel() {
     }
 
     private fun parsePattern(pattern: String) : Array<String> {
-        val patterns: Array<String> = Array<String>(2) { "" }
+        val patterns: Array<String> = Array(2) { "" }
 
         val strs = pattern.split("|")
         var prevPatternIdx = -1
@@ -351,13 +343,13 @@ class LogTableModel() : AbstractTableModel() {
                 patterns[prevPatternIdx] += "|"
                 patterns[prevPatternIdx] += item
 
-                if (!item.substring(item.length - 1).equals("\\")) {
+                if (item.substring(item.length - 1) != "\\") {
                     prevPatternIdx = -1
                 }
                 continue
             }
 
-            if (item.length > 0) {
+            if (item.isNotEmpty()) {
                 if (item[0] != '-') {
                     if (patterns[0].isNotEmpty()) {
                         patterns[0] += "|"
@@ -366,7 +358,7 @@ class LogTableModel() : AbstractTableModel() {
                     else {
                         patterns[0] = item
                     }
-                    if (item.substring(item.length - 1).equals("\\")) {
+                    if (item.substring(item.length - 1) == "\\") {
                         prevPatternIdx = 0
                     }
                 } else {
@@ -377,7 +369,7 @@ class LogTableModel() : AbstractTableModel() {
                     else {
                         patterns[1] = item.substring(1)
                     }
-                    if (item.substring(item.length - 1).equals("\\")) {
+                    if (item.substring(item.length - 1) == "\\") {
                         prevPatternIdx = 1
                     }
                 }
@@ -432,7 +424,7 @@ class LogTableModel() : AbstractTableModel() {
     }
 
     fun clearItems() {
-        println("isEventDispatchThread =" + SwingUtilities.isEventDispatchThread())
+        println("isEventDispatchThread = ${SwingUtilities.isEventDispatchThread()}")
 
         if (mBaseModel != null) {
             mBaseModel!!.mGoToLast = true
@@ -453,18 +445,25 @@ class LogTableModel() : AbstractTableModel() {
 
     private fun levelToInt(text:String) : Int {
         var level = LEVEL_NONE
-        if (text == "V") {
-            level = LEVEL_VERBOSE
-        } else if (text == "D") {
-            level = LEVEL_DEBUG
-        } else if (text == "I") {
-            level = LEVEL_INFO
-        } else if (text == "W") {
-            level = LEVEL_WARNING
-        } else if (text == "E") {
-            level = LEVEL_ERROR
-        } else if (text == "F") {
-            level = LEVEL_FATAL
+        when (text) {
+            "V" -> {
+                level = LEVEL_VERBOSE
+            }
+            "D" -> {
+                level = LEVEL_DEBUG
+            }
+            "I" -> {
+                level = LEVEL_INFO
+            }
+            "W" -> {
+                level = LEVEL_WARNING
+            }
+            "E" -> {
+                level = LEVEL_ERROR
+            }
+            "F" -> {
+                level = LEVEL_FATAL
+            }
         }
 
         return level
@@ -511,8 +510,8 @@ class LogTableModel() : AbstractTableModel() {
                     pid = textSplited[PID_INDEX]
                     tid = textSplited[TID_INDEX]
                 }
-                else if (Character.isAlphabetic(textSplited[PID_INDEX][0].toInt())) {
-                    level = levelToInt(Character.toString(textSplited[PID_INDEX][0]))
+                else if (Character.isAlphabetic(textSplited[PID_INDEX][0].code)) {
+                    level = levelToInt(textSplited[PID_INDEX][0].toString())
                     tag = ""
                     pid = ""
                     tid = ""
@@ -648,7 +647,7 @@ class LogTableModel() : AbstractTableModel() {
         }
     }
 
-    fun getFgStrColor(row: Int) : String {
+    private fun getFgStrColor(row: Int) : String {
         return when (checkLevel(mLogItems[row])) {
             LEVEL_VERBOSE -> {
                 ColorManager.StrLogLevelVerbose
@@ -805,7 +804,7 @@ class LogTableModel() : AbstractTableModel() {
         var filterPrintValue = ""
         if (mFilterShowLog.isNotEmpty()) {
             if (filterPrintValue.isNotEmpty()) {
-                filterPrintValue += "|" + mFilterShowLog
+                filterPrintValue += "|$mFilterShowLog"
             }
             else {
                 filterPrintValue += mFilterShowLog
@@ -857,7 +856,7 @@ class LogTableModel() : AbstractTableModel() {
             while (index != -1) {
                 index = filterPrintValue.indexOf('|', start)
                 start = index + 1
-                if (index == 0 || index == filterPrintValue.lastIndex || filterPrintValue.get(index + 1) == '|') {
+                if (index == 0 || index == filterPrintValue.lastIndex || filterPrintValue[index + 1] == '|') {
                     skip = true
                     break
                 }
@@ -874,7 +873,7 @@ class LogTableModel() : AbstractTableModel() {
 
     private fun makeFilteredItems(isRedraw: Boolean) {
         if (mBaseModel == null || !mIsFilterUpdated) {
-            println("skip makeFilteredItems " + mBaseModel + ", " + mIsFilterUpdated)
+            println("skip makeFilteredItems $mBaseModel, $mIsFilterUpdated")
             return
         }
         else {
@@ -886,7 +885,7 @@ class LogTableModel() : AbstractTableModel() {
             mLogItems.clear()
             mLogItems = mutableListOf()
 
-            var logItems:MutableList<LogItem> = mutableListOf()
+            val logItems:MutableList<LogItem> = mutableListOf()
             if (mBookmarkMode) {
                 for (item in mBaseModel!!.mLogItems) {
                     if (mBookmarkManager.mBookmarks.contains(item.mNum.toInt())) {
@@ -908,7 +907,7 @@ class LogTableModel() : AbstractTableModel() {
                     val hasIt: Boolean = logUnit.chars().anyMatch { c -> "\\.[]{}()*+?^$|".indexOf(c.toChar()) >= 0 }
                     if (hasIt) {
                         if (regexShowLog.isEmpty()) {
-                            regexShowLog = "$logUnit"
+                            regexShowLog = logUnit
                         }
                         else {
                             regexShowLog += "|$logUnit"
@@ -916,7 +915,7 @@ class LogTableModel() : AbstractTableModel() {
                     }
                     else {
                         if (normalShowLog.isEmpty()) {
-                            normalShowLog = "$logUnit"
+                            normalShowLog = logUnit
                         }
                         else {
                             normalShowLog += "|$logUnit"
@@ -944,13 +943,13 @@ class LogTableModel() : AbstractTableModel() {
                         if (item.mLevel != LEVEL_NONE && item.mLevel < mFilterLevel) {
                             isShow = false
                         }
-                        else if ((!mFilterHideLog.isEmpty() && mPatternHideLog.matcher(item.mLogLine).find())
-                                || (!mFilterHideTag.isEmpty() && mPatternHideTag.matcher(item.mTag).find())
-                                || (!mFilterHidePid.isEmpty() && mPatternHidePid.matcher(item.mPid).find())
-                                || (!mFilterHideTid.isEmpty() && mPatternHideTid.matcher(item.mTid).find())) {
+                        else if ((mFilterHideLog.isNotEmpty() && mPatternHideLog.matcher(item.mLogLine).find())
+                                || (mFilterHideTag.isNotEmpty() && mPatternHideTag.matcher(item.mTag).find())
+                                || (mFilterHidePid.isNotEmpty() && mPatternHidePid.matcher(item.mPid).find())
+                                || (mFilterHideTid.isNotEmpty() && mPatternHideTid.matcher(item.mTid).find())) {
                             isShow = false
                         }
-                        else if (!mFilterShowLog.isEmpty()) {
+                        else if (mFilterShowLog.isNotEmpty()) {
                             var isFound = false
                             if (normalShowLog.isNotEmpty()) {
                                 var logLine = ""
@@ -982,9 +981,9 @@ class LogTableModel() : AbstractTableModel() {
                         }
 
                         if (isShow) {
-                            if ((!mFilterShowTag.isEmpty() && !mPatternShowTag.matcher(item.mTag).find())
-                                    || (!mFilterShowPid.isEmpty() && !mPatternShowPid.matcher(item.mPid).find())
-                                    || (!mFilterShowTid.isEmpty() && !mPatternShowTid.matcher(item.mTid).find())) {
+                            if ((mFilterShowTag.isNotEmpty() && !mPatternShowTag.matcher(item.mTag).find())
+                                    || (mFilterShowPid.isNotEmpty() && !mPatternShowPid.matcher(item.mPid).find())
+                                    || (mFilterShowTid.isNotEmpty() && !mPatternShowTid.matcher(item.mTid).find())) {
                                 isShow = false
                             }
                         }
@@ -1103,10 +1102,10 @@ class LogTableModel() : AbstractTableModel() {
 
                         if (mScrollbackSplitFile && mScrollback > 0 && saveNum >= mScrollback) {
                             mMainUI?.setSaveLogFile()
-                            println("Change save file : " + mLogFile?.absolutePath)
+                            println("Change save file : ${mLogFile?.absolutePath}")
                         }
 
-                        logLines.add(line!!)
+                        logLines.add(line)
                         line = bufferedReader.readLine()
                         if (System.currentTimeMillis() > nextUpdateTime) {
                             break
@@ -1115,7 +1114,7 @@ class LogTableModel() : AbstractTableModel() {
 
                     synchronized(this) {
                         for (tempLine in logLines) {
-                            val textSplited = tempLine!!.trim().split(Regex("\\s+"))
+                            val textSplited = tempLine.trim().split(Regex("\\s+"))
                             if (textSplited.size > TAG_INDEX) {
                                 level = levelToInt(textSplited[LEVEL_INDEX])
                                 tag = textSplited[TAG_INDEX]
@@ -1133,7 +1132,7 @@ class LogTableModel() : AbstractTableModel() {
                                 tid = ""
                             }
 
-                            item = LogItem(num.toString(), tempLine!!, tag, pid, tid, level)
+                            item = LogItem(num.toString(), tempLine, tag, pid, tid, level)
 
                             isShow = true
 
@@ -1146,26 +1145,26 @@ class LogTableModel() : AbstractTableModel() {
                                     isShow = false
                                 }
                                 if (isShow
-                                    && (!mFilterHideLog.isEmpty() && mPatternHideLog.matcher(item.mLogLine).find())
-                                    || (!mFilterShowLog.isEmpty() && !mPatternShowLog.matcher(item.mLogLine).find())
+                                    && (mFilterHideLog.isNotEmpty() && mPatternHideLog.matcher(item.mLogLine).find())
+                                    || (mFilterShowLog.isNotEmpty() && !mPatternShowLog.matcher(item.mLogLine).find())
                                 ) {
                                     isShow = false
                                 }
                                 if (isShow
-                                    && ((!mFilterHideTag.isEmpty() && mPatternHideTag.matcher(item.mTag).find())
-                                            || (!mFilterShowTag.isEmpty() && !mPatternShowTag.matcher(item.mTag).find()))
+                                    && ((mFilterHideTag.isNotEmpty() && mPatternHideTag.matcher(item.mTag).find())
+                                            || (mFilterShowTag.isNotEmpty() && !mPatternShowTag.matcher(item.mTag).find()))
                                 ) {
                                     isShow = false
                                 }
                                 if (isShow
-                                    && ((!mFilterHidePid.isEmpty() && mPatternHidePid.matcher(item.mPid).find())
-                                            || (!mFilterShowPid.isEmpty() && !mPatternShowPid.matcher(item.mPid).find()))
+                                    && ((mFilterHidePid.isNotEmpty() && mPatternHidePid.matcher(item.mPid).find())
+                                            || (mFilterShowPid.isNotEmpty() && !mPatternShowPid.matcher(item.mPid).find()))
                                 ) {
                                     isShow = false
                                 }
                                 if (isShow
-                                    && ((!mFilterHideTid.isEmpty() && mPatternHideTid.matcher(item.mTid).find())
-                                            || (!mFilterShowTid.isEmpty() && !mPatternShowTid.matcher(item.mTid).find()))
+                                    && ((mFilterHideTid.isNotEmpty() && mPatternHideTid.matcher(item.mTid).find())
+                                            || (mFilterShowTid.isNotEmpty() && !mPatternShowTid.matcher(item.mTid).find()))
                                 ) {
                                     isShow = false
                                 }

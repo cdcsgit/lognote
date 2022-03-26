@@ -1,14 +1,17 @@
 package com.blogspot.kotlinstudy.lognote
 
 import java.awt.event.*
-import java.util.ArrayList
-import javax.swing.*
+import javax.swing.JList
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
 
 class FiltersManager (mainUI: MainUI, configManager: MainUI.ConfigManager, logPanel: LogPanel): CustomListManager (mainUI, logPanel){
     private val mConfigManager = configManager
-    private val CURRENT = "Current"
+    private val CURRENT_FILTER = "Current"
+
+    private val mListSelectionHandler = ListSelectionHandler()
+    private val mMouseHandler = MouseHandler()
+    private val mKeyHandler = KeyHandler()
 
     init {
         mDialogTitle = "Filters Manager"
@@ -26,19 +29,19 @@ class FiltersManager (mainUI: MainUI, configManager: MainUI.ConfigManager, logPa
     }
 
     override fun getFirstElement(): CustomElement {
-        return CustomElement(CURRENT, mMainUI.getTextShowLogCombo(), false)
+        return CustomElement(CURRENT_FILTER, mMainUI.getTextShowLogCombo(), false)
     }
 
-    override fun getListSelectionListener(): ListSelectionListener? {
-        return ListSelectionHandler()
+    override fun getListSelectionListener(): ListSelectionListener {
+        return mListSelectionHandler
     }
 
-    override fun getListMouseListener(): MouseListener? {
-        return MouseHandler()
+    override fun getListMouseListener(): MouseListener {
+        return mMouseHandler
     }
 
-    override fun getListKeyListener(): KeyListener? {
-        return KeyHandler()
+    override fun getListKeyListener(): KeyListener {
+        return mKeyHandler
     }
 
     internal inner class ListSelectionHandler : ListSelectionListener {
@@ -52,11 +55,12 @@ class FiltersManager (mainUI: MainUI, configManager: MainUI.ConfigManager, logPa
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     internal inner class MouseHandler: MouseAdapter() {
         override fun mouseClicked(p0: MouseEvent?) {
             super.mouseClicked(p0)
             if (p0?.clickCount == 2) {
-                val list = p0?.source as JList<CustomElement>
+                val list = p0.source as JList<CustomElement>
                 val selection = list.selectedValue
                 mMainUI.setTextShowLogCombo(selection.mValue)
                 mMainUI.applyShowLogCombo()
@@ -64,10 +68,11 @@ class FiltersManager (mainUI: MainUI, configManager: MainUI.ConfigManager, logPa
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     internal inner class KeyHandler: KeyAdapter() {
         override fun keyPressed(p0: KeyEvent?) {
             if (p0?.keyCode == KeyEvent.VK_ENTER) {
-                val list = p0?.source as JList<CustomElement>
+                val list = p0.source as JList<CustomElement>
                 val selection = list.selectedValue
                 mMainUI.setTextShowLogCombo(selection.mValue)
                 mMainUI.applyShowLogCombo()

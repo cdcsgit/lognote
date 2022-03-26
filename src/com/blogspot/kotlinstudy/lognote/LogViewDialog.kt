@@ -8,7 +8,7 @@ import javax.swing.*
 class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent, "Log", false) {
 
     val mTextArea = JTextArea()
-    val mMainUI = parent as MainUI
+    private val mMainUI = parent as MainUI
     private val mPopupMenu = PopUpLogViewDialog()
 
     init {
@@ -38,7 +38,7 @@ class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent
     }
 
     internal inner class KeyHandler: KeyAdapter() {
-        var pressedKeyCode: Int = 0
+        private var pressedKeyCode: Int = 0
         override fun keyPressed(p0: KeyEvent?) {
             if (p0 != null) {
                 pressedKeyCode = p0.keyCode
@@ -64,12 +64,12 @@ class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent
         }
     }
 
-    internal inner class PopUpLogViewDialog() : JPopupMenu() {
+    internal inner class PopUpLogViewDialog : JPopupMenu() {
         var mIncludeItem = JMenuItem("Add Include")
         var mExcludeItem = JMenuItem("Add Exclude")
         var mCopyItem = JMenuItem("Copy")
         var mCloseItem = JMenuItem("Close")
-        val mActionHandler = ActionHandler()
+        private val mActionHandler = ActionHandler()
 
         init {
             mIncludeItem.addActionListener(mActionHandler)
@@ -83,24 +83,29 @@ class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent
             addFocusListener(FocusHandler())
         }
 
-        internal inner class ActionHandler() : ActionListener {
+        internal inner class ActionHandler : ActionListener {
             override fun actionPerformed(p0: ActionEvent?) {
-                if (p0?.source == mIncludeItem) {
-                    val frame = SwingUtilities.windowForComponent(this@LogViewDialog) as MainUI
-                    var text = frame.getTextShowLogCombo()
-                    text += "|" + mTextArea.selectedText
-                    frame.setTextShowLogCombo(text)
-                    frame.applyShowLogCombo()
-                } else if (p0?.source == mExcludeItem) {
-                    val frame = SwingUtilities.windowForComponent(this@LogViewDialog) as MainUI
-                    var text = frame.getTextShowLogCombo()
-                    text += "|-" + mTextArea.selectedText
-                    frame.setTextShowLogCombo(text)
-                    frame.applyShowLogCombo()
-                } else if (p0?.source == mCopyItem) {
-                    mTextArea.copy()
-                } else if (p0?.source == mCloseItem) {
-                    dispose()
+                when (p0?.source) {
+                    mIncludeItem -> {
+                        val frame = SwingUtilities.windowForComponent(this@LogViewDialog) as MainUI
+                        var text = frame.getTextShowLogCombo()
+                        text += "|" + mTextArea.selectedText
+                        frame.setTextShowLogCombo(text)
+                        frame.applyShowLogCombo()
+                    }
+                    mExcludeItem -> {
+                        val frame = SwingUtilities.windowForComponent(this@LogViewDialog) as MainUI
+                        var text = frame.getTextShowLogCombo()
+                        text += "|-" + mTextArea.selectedText
+                        frame.setTextShowLogCombo(text)
+                        frame.applyShowLogCombo()
+                    }
+                    mCopyItem -> {
+                        mTextArea.copy()
+                    }
+                    mCloseItem -> {
+                        dispose()
+                    }
                 }
             }
         }

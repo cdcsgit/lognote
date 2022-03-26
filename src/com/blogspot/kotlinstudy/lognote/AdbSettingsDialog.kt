@@ -86,13 +86,13 @@ class AdbSettingsDialog(parent: JFrame) :JDialog(parent, "ADB " + Strings.SETTIN
     override fun actionPerformed(e: ActionEvent?) {
         if (e?.source == mAdbCmdBtn) {
             val fileDialog = FileDialog(this@AdbSettingsDialog, "Adb command", FileDialog.LOAD)
-            fileDialog.setVisible(true)
-            if (fileDialog.getFile() != null) {
-                val file = File(fileDialog.getDirectory() + fileDialog.getFile())
-                System.out.println("adb command : " + file.absolutePath)
+            fileDialog.isVisible = true
+            if (fileDialog.file != null) {
+                val file = File(fileDialog.directory + fileDialog.file)
+                println("adb command : ${file.absolutePath}")
                 mAdbCmdTF.text = file.absolutePath
             } else {
-                System.out.println("Cancel Open")
+                println("Cancel Open")
             }
         } else if (e?.source == mAdbSaveBtn) {
             val chooser = JFileChooser()
@@ -102,7 +102,7 @@ class AdbSettingsDialog(parent: JFrame) :JDialog(parent, "ADB " + Strings.SETTIN
             chooser.isAcceptAllFileFilterUsed = false
 
             if (chooser.showOpenDialog(this@AdbSettingsDialog) == JFileChooser.APPROVE_OPTION) {
-                println("getSelectedFile() : " + chooser.selectedFile)
+                println("getSelectedFile() : ${chooser.selectedFile}")
                 mAdbSaveTF.text = chooser.selectedFile.absolutePath
             } else {
                 println("No Selection ")

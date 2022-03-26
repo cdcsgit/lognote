@@ -2,9 +2,9 @@ package com.blogspot.kotlinstudy.lognote
 
 class Strings private constructor() {
     companion object {
-        val KO = 0
-        val EN = 1
-        var currStrings = StringsEn.STRINGS
+        const val KO = 0
+        const val EN = 1
+        private var currStrings = StringsEn.STRINGS
         var lang = EN
             set(value) {
                 if (value == KO) {

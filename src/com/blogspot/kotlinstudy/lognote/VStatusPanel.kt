@@ -1,6 +1,9 @@
 package com.blogspot.kotlinstudy.lognote
 
-import java.awt.*
+import java.awt.Color
+import java.awt.Dimension
+import java.awt.Graphics
+import java.awt.Rectangle
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.BorderFactory
@@ -12,8 +15,8 @@ class VStatusPanel(logTable: LogTable) : JPanel() {
     private val mBookmarkManager = BookmarkManager.getInstance()
 
     companion object {
-        val VIEW_RECT_WIDTH = 20
-        val VIEW_RECT_HEIGHT = 5
+        const val VIEW_RECT_WIDTH = 20
+        const val VIEW_RECT_HEIGHT = 5
     }
     init {
         preferredSize = Dimension(VIEW_RECT_WIDTH, VIEW_RECT_HEIGHT)
@@ -57,7 +60,7 @@ class VStatusPanel(logTable: LogTable) : JPanel() {
                 // mLogTable.setRowSelectionInterval(row, row)
                 mLogTable.scrollRectToVisible(Rectangle(mLogTable.getCellRect(row, 0, true)))
             } catch (e: IllegalArgumentException) {
-                System.out.println("e : " + e.toString())
+                println("e : $e")
             }
             super.mouseClicked(p0)
         }

@@ -1,14 +1,10 @@
 package com.blogspot.kotlinstudy.lognote
 
-import java.awt.Color
-import java.util.ArrayList
-import javax.swing.JComponent
-
 class BookmarkEvent(change:Int) {
     val mBookmarkChange = change
     companion object {
-        val ADDED = 0
-        val REMOVED = 1
+        const val ADDED = 0
+        const val REMOVED = 1
     }
 }
 

@@ -23,8 +23,8 @@ class Utils {
 
         fun installKeyStrokeEscClosing(container: RootPaneContainer) {
             if (container !is Window) {
-                println("container is not java.awt.Window");
-                return;
+                println("container is not java.awt.Window")
+                return
             }
 
             val escStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0)

@@ -25,12 +25,7 @@ class FilterComboBox<E> : JComboBox<E>() {
 
     fun setEnabledFilter(enabled: Boolean) {
         isEnabled = enabled
-        if (!enabled && editor.item.toString().isEmpty()) {
-            isVisible = false
-        }
-        else {
-            isVisible = true
-        }
+        isVisible = !(!enabled && editor.item.toString().isEmpty())
     }
 
     fun isExistItem(item:String) : Boolean {
@@ -45,7 +40,7 @@ class FilterComboBox<E> : JComboBox<E>() {
     }
 
     private fun parsePattern(pattern: String) : Array<String> {
-        val patterns: Array<String> = Array<String>(2) { "" }
+        val patterns: Array<String> = Array(2) { "" }
 
         val patternSplit = pattern.split("|")
         var prevPatternIdx = -1
@@ -55,7 +50,7 @@ class FilterComboBox<E> : JComboBox<E>() {
                 patterns[prevPatternIdx] += "|"
                 patterns[prevPatternIdx] += item
 
-                if (!item.substring(item.length - 1).equals("\\")) {
+                if (item.substring(item.length - 1) != "\\") {
                     prevPatternIdx = -1
                 }
                 continue
@@ -69,7 +64,7 @@ class FilterComboBox<E> : JComboBox<E>() {
                     } else {
                         patterns[0] = item
                     }
-                    if (item.substring(item.length - 1).equals("\\")) {
+                    if (item.substring(item.length - 1) == "\\") {
                         prevPatternIdx = 0
                     }
                 } else {
@@ -79,7 +74,7 @@ class FilterComboBox<E> : JComboBox<E>() {
                     } else {
                         patterns[1] = item.substring(1)
                     }
-                    if (item.substring(item.length - 1).equals("\\")) {
+                    if (item.substring(item.length - 1) == "\\") {
                         prevPatternIdx = 1
                     }
                 }
@@ -91,7 +86,7 @@ class FilterComboBox<E> : JComboBox<E>() {
 
     fun updateTooltip() {
         if (!mEnabledTfTooltip) {
-            return;
+            return
         }
         val patterns = parsePattern(mTf!!.text)
         var includeStr = patterns[0]

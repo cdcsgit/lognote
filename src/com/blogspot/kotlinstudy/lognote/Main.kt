@@ -21,7 +21,7 @@ class Main {
                 UIManager.put("ComboBox.buttonDarkShadow", ColorUIResource(Color.black))
 
                 val mainUI = MainUI("LogNote")
-                mainUI.setVisible(true)
+                mainUI.isVisible = true
             }
         }
     }

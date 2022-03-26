@@ -1,9 +1,9 @@
 package com.blogspot.kotlinstudy.lognote
 
 import java.awt.BorderLayout
-import java.awt.Color
 import java.awt.Dimension
-import java.awt.event.*
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
 import javax.swing.*
 
 class GoToDialog (parent: JFrame) : JDialog(parent, "GoTo line", true) {
@@ -31,10 +31,10 @@ class GoToDialog (parent: JFrame) : JDialog(parent, "GoTo line", true) {
                 line = -1
                 dispose()
             } else if (p0?.keyCode == KeyEvent.VK_ENTER && textField.text.trim().isNotEmpty()) {
-                try {
-                    line = textField.text.toInt()
+                line = try {
+                    textField.text.toInt()
                 } catch (e:NumberFormatException) {
-                    line = -1
+                    -1
                 }
                 dispose()
             }

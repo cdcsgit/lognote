@@ -55,7 +55,7 @@ class HelpDialog(parent: JFrame) :JDialog(parent, Strings.HELP, true), ActionLis
     }
 }
 
-private class HelpText() {
+private class HelpText {
     companion object {
 //        val text =
 //            """

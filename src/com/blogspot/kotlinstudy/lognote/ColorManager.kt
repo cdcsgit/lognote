@@ -63,7 +63,7 @@ class ColorManager private constructor(){
                 field = value
                 FullLogBG = Color.decode(value)
             }
-        var FullLogBG = Color.decode(StrFullLogBG)
+        var FullLogBG: Color = Color.decode(StrFullLogBG)
             private set
 
         var StrFilterLogBG = "#000000"
@@ -71,7 +71,7 @@ class ColorManager private constructor(){
                 field = value
                 FilterLogBG = Color.decode(value)
             }
-        var FilterLogBG = Color.decode(StrFilterLogBG)
+        var FilterLogBG: Color = Color.decode(StrFilterLogBG)
             private set
 
         var StrLineNumBG = "#000000"
@@ -79,7 +79,7 @@ class ColorManager private constructor(){
                 field = value
                 LineNumBG = Color.decode(value)
             }
-        var LineNumBG = Color.decode(StrLineNumBG)
+        var LineNumBG: Color = Color.decode(StrLineNumBG)
             private set
 
         var StrBookmarkBG = "#000000"
@@ -87,7 +87,7 @@ class ColorManager private constructor(){
                 field = value
                 BookmarkBG = Color.decode(value)
             }
-        var BookmarkBG = Color.decode(StrBookmarkBG)
+        var BookmarkBG: Color = Color.decode(StrBookmarkBG)
             private set
 
         var StrLogLevelNone = "#000000"
@@ -95,7 +95,7 @@ class ColorManager private constructor(){
                 field = value
                 LogLevelNone = Color.decode(value)
             }
-        var LogLevelNone = Color.decode(StrLogLevelNone)
+        var LogLevelNone: Color = Color.decode(StrLogLevelNone)
             private set
 
         var StrLogLevelVerbose = "#000000"
@@ -103,7 +103,7 @@ class ColorManager private constructor(){
                 field = value
                 LogLevelVerbose = Color.decode(value)
             }
-        var LogLevelVerbose = Color.decode(StrLogLevelVerbose)
+        var LogLevelVerbose: Color = Color.decode(StrLogLevelVerbose)
             private set
 
         var StrLogLevelDebug = "#000000"
@@ -111,7 +111,7 @@ class ColorManager private constructor(){
                 field = value
                 LogLevelDebug = Color.decode(value)
             }
-        var LogLevelDebug = Color.decode(StrLogLevelDebug)
+        var LogLevelDebug: Color = Color.decode(StrLogLevelDebug)
             private set
 
         var StrLogLevelInfo = "#000000"
@@ -119,7 +119,7 @@ class ColorManager private constructor(){
                 field = value
                 LogLevelInfo = Color.decode(value)
             }
-        var LogLevelInfo = Color.decode(StrLogLevelInfo)
+        var LogLevelInfo: Color = Color.decode(StrLogLevelInfo)
             private set
 
         var StrLogLevelWarning = "#000000"
@@ -127,7 +127,7 @@ class ColorManager private constructor(){
                 field = value
                 LogLevelWarning = Color.decode(value)
             }
-        var LogLevelWarning = Color.decode(StrLogLevelWarning)
+        var LogLevelWarning: Color = Color.decode(StrLogLevelWarning)
             private set
 
         var StrLogLevelError = "#000000"
@@ -135,7 +135,7 @@ class ColorManager private constructor(){
                 field = value
                 LogLevelError = Color.decode(value)
             }
-        var LogLevelError = Color.decode(StrLogLevelError)
+        var LogLevelError: Color = Color.decode(StrLogLevelError)
             private set
 
         var StrLogLevelFatal = "#000000"
@@ -143,7 +143,7 @@ class ColorManager private constructor(){
                 field = value
                 LogLevelFatal = Color.decode(value)
             }
-        var LogLevelFatal = Color.decode(StrLogLevelFatal)
+        var LogLevelFatal: Color = Color.decode(StrLogLevelFatal)
             private set
 
         var StrLineNumFG = "#000000"
@@ -151,7 +151,7 @@ class ColorManager private constructor(){
                 field = value
                 LineNumFG = Color.decode(value)
             }
-        var LineNumFG = Color.decode(StrLineNumBG)
+        var LineNumFG: Color = Color.decode(StrLineNumBG)
             private set
 
         var StrNumLogSeperatorBG = "#000000"
@@ -159,7 +159,7 @@ class ColorManager private constructor(){
                 field = value
                 NumLogSeperatorBG = Color.decode(value)
             }
-        var NumLogSeperatorBG = Color.decode(StrNumLogSeperatorBG)
+        var NumLogSeperatorBG: Color = Color.decode(StrNumLogSeperatorBG)
             private set
 
         var StrBookmarkSelectedBG = "#000000"
@@ -227,7 +227,7 @@ class ColorManager private constructor(){
         NUM_SELECTED_BG(22);
 
         companion object {
-            fun fromInt(value: Int) = ColorIdx.values().first { it.value == value }
+            fun fromInt(value: Int) = values().first { it.value == value }
         }
     }
 
@@ -259,7 +259,7 @@ class ColorManager private constructor(){
 
     fun getConfig(configManager: MainUI.ConfigManager) {
         for (idx in mColorArray.indices) {
-            var item = configManager.mProperties[configManager.ITEM_COLOR_MANAGER + idx] as? String
+            val item = configManager.mProperties[configManager.ITEM_COLOR_MANAGER + idx] as? String
             if (item != null) {
                 mColorArray[idx].mStrColor = item
             }

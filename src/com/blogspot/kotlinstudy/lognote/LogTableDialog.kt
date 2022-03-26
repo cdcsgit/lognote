@@ -6,7 +6,6 @@ import java.awt.event.WindowEvent
 import javax.swing.ImageIcon
 import javax.swing.JFrame
 import javax.swing.JPanel
-import kotlin.math.log
 
 class LogTableDialog (parent: MainUI, logPanel: LogPanel) : JFrame("FullLog") {
     private val mParent = parent

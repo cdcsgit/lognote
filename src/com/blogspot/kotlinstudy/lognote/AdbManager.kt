@@ -22,14 +22,14 @@ class AdbManager private constructor(){
     val mEventListeners = ArrayList<AdbEventListener>()
 
     companion object {
-        val EVENT_NONE = 0
-        val EVENT_SUCCESS = 1
-        val EVENT_FAIL = 2
+        const val EVENT_NONE = 0
+        const val EVENT_SUCCESS = 1
+        const val EVENT_FAIL = 2
 
-        val CMD_CONNECT = 1
-        val CMD_GET_DEVICES = 2
-        val CMD_LOGCAT = 3
-        val CMD_DISCONNECT = 4
+        const val CMD_CONNECT = 1
+        const val CMD_GET_DEVICES = 2
+        const val CMD_LOGCAT = 3
+        const val CMD_DISCONNECT = 4
 
         private val mInstance: AdbManager = AdbManager()
 
@@ -44,7 +44,7 @@ class AdbManager private constructor(){
 
     fun connect() {
         if (mTargetDevice.isEmpty()) {
-            System.err.println("Target device is not selected")
+            println("Target device is not selected")
             return
         }
 
@@ -88,13 +88,13 @@ class AdbManager private constructor(){
         when (cmdNum) {
             CMD_CONNECT -> executer = Runnable {
                 run {
-                    val cmd = mAdbCmd + " connect " + mTargetDevice
+                    val cmd = "$mAdbCmd connect $mTargetDevice"
                     val runtime = Runtime.getRuntime()
                     val scanner = try {
                         val process = runtime.exec(cmd)
                         Scanner(process.inputStream)
                     } catch (e:IOException) {
-                        System.out.println("Failed run " + cmd)
+                        println("Failed run $cmd")
                         val adbEvent = AdbEvent(CMD_CONNECT, EVENT_FAIL)
                         sendEvent(adbEvent)
                         return@run
@@ -105,7 +105,7 @@ class AdbManager private constructor(){
                     while (scanner.hasNextLine()) {
                         line = scanner.nextLine()
                         if (line.contains("connected to")) {
-                            System.out.println("Success connect to " + mTargetDevice)
+                            println("Success connect to $mTargetDevice")
                             val adbEvent = AdbEvent(CMD_CONNECT, EVENT_SUCCESS)
                             sendEvent(adbEvent)
                             isSuccess = true
@@ -114,7 +114,7 @@ class AdbManager private constructor(){
                     }
 
                     if (!isSuccess) {
-                        System.out.println("Failed connect to " + mTargetDevice)
+                        println("Failed connect to $mTargetDevice")
                         val adbEvent = AdbEvent(CMD_CONNECT, EVENT_FAIL)
                         sendEvent(adbEvent)
                     }
@@ -125,13 +125,13 @@ class AdbManager private constructor(){
                 run {
                     mDevices.clear()
 
-                    val cmd = mAdbCmd + " devices"
+                    val cmd = "$mAdbCmd devices"
                     val runtime = Runtime.getRuntime()
                     val scanner = try {
                         val process = runtime.exec(cmd)
                         Scanner(process.inputStream)
                     } catch (e:IOException) {
-                        System.out.println("Failed run " + cmd)
+                        println("Failed run $cmd")
                         val adbEvent = AdbEvent(CMD_GET_DEVICES, EVENT_FAIL)
                         sendEvent(adbEvent)
                         return@run
@@ -145,7 +145,7 @@ class AdbManager private constructor(){
                         }
                         val textSplited = line.trim().split(Regex("\\s+"))
                         if (textSplited.size >= 2) {
-                            System.out.println("device : " + textSplited[0])
+                            println("device : ${textSplited[0]}")
                             mDevices.add(textSplited[0])
                         }
                     }
@@ -156,7 +156,7 @@ class AdbManager private constructor(){
             CMD_LOGCAT -> executer = Runnable {
                 run {
                     mProcessLogcat?.destroy()
-                    val cmd = mAdbCmd + " -s " + mTargetDevice + " logcat -v threadtime"
+                    val cmd = "$mAdbCmd -s $mTargetDevice logcat -v threadtime"
                     println("Start : $cmd")
                     val runtime = Runtime.getRuntime()
                     try {
@@ -179,12 +179,12 @@ class AdbManager private constructor(){
             }
             CMD_DISCONNECT -> executer = Runnable {
                 run {
-                    val cmd = mAdbCmd + " disconnect"
+                    val cmd = "$mAdbCmd disconnect"
                     val runtime = Runtime.getRuntime()
                     try {
                         runtime.exec(cmd)
                     } catch (e: IOException) {
-                        System.out.println("Failed run " + cmd)
+                        println("Failed run $cmd")
                         val adbEvent = AdbEvent(CMD_DISCONNECT, EVENT_FAIL)
                         sendEvent(adbEvent)
                         return@run

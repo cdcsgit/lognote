@@ -24,9 +24,9 @@ abstract class CustomListManager (mainUI: MainUI, logPanel: LogPanel){
     abstract fun loadList(): ArrayList<CustomElement>
     abstract fun saveList(list: ArrayList<CustomElement>)
     abstract fun getFirstElement(): CustomElement
-    abstract fun getListSelectionListener(): ListSelectionListener?
-    abstract fun getListMouseListener(): MouseListener?
-    abstract fun getListKeyListener(): KeyListener?
+    abstract fun getListSelectionListener(): ListSelectionListener
+    abstract fun getListMouseListener(): MouseListener
+    abstract fun getListKeyListener(): KeyListener
 
     fun showDialog() {
         if (mCustomDialog == null) {
@@ -63,19 +63,13 @@ abstract class CustomListManager (mainUI: MainUI, logPanel: LogPanel){
             mList.model = mModel
 
             val selectionListener = getListSelectionListener()
-            if (selectionListener != null) {
-                mList.addListSelectionListener(selectionListener)
-            }
+            mList.addListSelectionListener(selectionListener)
 
             val mouseListener = getListMouseListener()
-            if (mouseListener != null) {
-                mList.addMouseListener(mouseListener)
-            }
+            mList.addMouseListener(mouseListener)
 
             val keyListener = getListKeyListener()
-            if (keyListener != null) {
-                mList.addKeyListener(keyListener)
-            }
+            mList.addKeyListener(keyListener)
 
             mList.cellRenderer = CustomCellRenderer()
 
@@ -310,7 +304,7 @@ abstract class CustomListManager (mainUI: MainUI, logPanel: LogPanel){
             }
         }
 
-        private fun updateElement(cmd: Int, prevTitle: String, element: CustomListManager.CustomElement) {
+        private fun updateElement(cmd: Int, prevTitle: String, element: CustomElement) {
             if (cmd == CMD_EDIT) {
                 for (item in mModel.elements()) {
                     if (item.mTitle == title) {
@@ -455,7 +449,7 @@ abstract class CustomListManager (mainUI: MainUI, logPanel: LogPanel){
                 override fun changedUpdate(e: DocumentEvent?) {
                     checkText(e)
                 }
-                fun checkText(e: DocumentEvent?) {
+                private fun checkText(e: DocumentEvent?) {
                     var isValid = true
                     val title = mTitleTF.text.trim()
                     if (title.isEmpty()) {
@@ -502,7 +496,7 @@ abstract class CustomListManager (mainUI: MainUI, logPanel: LogPanel){
                 override fun changedUpdate(e: DocumentEvent?) {
                     checkText(e)
                 }
-                fun checkText(e: DocumentEvent?) {
+                private fun checkText(e: DocumentEvent?) {
                     var isValid = true
 
                     val value = mValueTF.text.trim()

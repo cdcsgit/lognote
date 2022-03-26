@@ -2,7 +2,7 @@ package com.blogspot.kotlinstudy.lognote
 
 class TooltipStrings private constructor() {
     companion object {
-        var currStrings = TooltipStringsEn.STRINGS
+        private var currStrings = TooltipStringsEn.STRINGS
         var lang = Strings.EN
             set(value) {
                 if (value == Strings.KO) {

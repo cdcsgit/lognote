@@ -10,7 +10,6 @@ import javax.swing.*
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
 import javax.swing.plaf.basic.BasicScrollBarUI
-import kotlin.collections.ArrayList
 
 
 class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
@@ -110,8 +109,8 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
         mScrollPane.verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
         mScrollPane.horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
 
-        mScrollPane.setOpaque(false);
-        mScrollPane.getViewport().setOpaque(false);
+        mScrollPane.isOpaque = false
+        mScrollPane.viewport.isOpaque = false
 
         add(mCtrlPanel, BorderLayout.NORTH)
         add(mVStatusPanel, BorderLayout.WEST)
@@ -387,13 +386,10 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
                         for (idx in 0 until mTable.rowCount) {
                             num = mTable.getValueAt(idx, 0).toString().trim().toInt()
                             if (selectedLine <= num) {
-                                println("tableChanged Tid = " + Thread.currentThread().getId() + ", num = " + num + ", selectedLine = " + selectedLine)
+                                println("tableChanged Tid = ${Thread.currentThread().id}, num = $num, selectedLine = $selectedLine")
                                 mTable.setRowSelectionInterval(idx, idx)
                                 val viewRect: Rectangle = mTable.getCellRect(idx, 0, true)
-                                println(
-                                    "tableChanged Tid = " + Thread.currentThread()
-                                        .getId() + ", viewRect = " + viewRect.toString() + ", rowCount = " + mTable.rowCount + ", idx " + idx
-                                )
+                                println("tableChanged Tid = ${Thread.currentThread().id}, viewRect = $viewRect, rowCount = ${ mTable.rowCount }, idx = $idx")
                                 mTable.scrollRectToVisible(viewRect)
                                 mTable.scrollRectToVisible(viewRect) // sometimes not work
                                 break
@@ -434,7 +430,7 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
         }
     }
 
-    internal inner class ActionHandler() : ActionListener {
+    internal inner class ActionHandler : ActionListener {
         override fun actionPerformed(p0: ActionEvent?) {
             if (p0?.source == mFirstBtn) {
                 goToFirst()
@@ -592,7 +588,7 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
         }
     }
 
-    internal inner class ComponenetHander() : ComponentAdapter() {
+    internal inner class ComponenetHander : ComponentAdapter() {
         override fun componentResized(e: ComponentEvent?) {
             if (e != null) {
                 mTable.updateColumnWidth(e.component.width)
@@ -601,13 +597,13 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
         }
     }
 
-    internal inner class PopUpLogPanel() : JPopupMenu() {
+    internal inner class PopUpLogPanel : JPopupMenu() {
         var mReconnectItem = JMenuItem("Reconnect adb")
         var mStartItem = JMenuItem("Start")
         var mStopItem = JMenuItem("Stop")
         var mClearItem = JMenuItem("Clear")
         var mClearSaveItem = JMenuItem("Clear/Save")
-        val mActionHandler = ActionHandler()
+        private val mActionHandler = ActionHandler()
 
         init {
             mReconnectItem.addActionListener(mActionHandler)
@@ -622,7 +618,7 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
             add(mClearSaveItem)
         }
 
-        internal inner class ActionHandler() : ActionListener {
+        internal inner class ActionHandler : ActionListener {
             override fun actionPerformed(p0: ActionEvent?) {
                 if (p0?.source == mReconnectItem) {
                     val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
@@ -649,7 +645,7 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
             super.mousePressed(p0)
         }
 
-        var popupMenu: JPopupMenu? = null
+        private var popupMenu: JPopupMenu? = null
         override fun mouseReleased(p0: MouseEvent?) {
             if (p0 == null) {
                 super.mouseReleased(p0)
@@ -692,7 +688,7 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
                             }
                         }
                         if (mPrevPoint == null || mPrevPoint!!.y != mLastComponent!!.location.y) {
-                            println("lastComonent moved to " + mLastComponent!!.location)
+                            println("lastComonent moved to ${mLastComponent!!.location}")
                             preferredSize = Dimension(preferredSize.width, mLastComponent!!.location.y + mLastComponent!!.height)
                             updateUI()
                         }

@@ -2,8 +2,6 @@ package com.blogspot.kotlinstudy.lognote
 
 import java.awt.*
 import java.awt.event.*
-import java.awt.font.TextLayout
-import java.awt.image.BufferedImage
 import javax.swing.*
 import javax.swing.ListSelectionModel.SINGLE_SELECTION
 import javax.swing.event.ChangeEvent
@@ -67,13 +65,13 @@ class FontDialog (parent: MainUI) : JDialog(parent, Strings.FONT + " & " + Strin
             mColorLabelArray[idx]!!.toolTipText = mColorLabelArray[idx]!!.text
             mColorLabelArray[idx]!!.isOpaque = true
             if (mColorManager.mColorArray[idx].mName.contains("BG")) {
-                mColorLabelArray[idx]!!.horizontalAlignment = JLabel.RIGHT;
+                mColorLabelArray[idx]!!.horizontalAlignment = JLabel.RIGHT
             }
             else {
-                mColorLabelArray[idx]!!.horizontalAlignment = JLabel.LEFT;
+                mColorLabelArray[idx]!!.horizontalAlignment = JLabel.LEFT
             }
 
-            mColorLabelArray[idx]!!.verticalAlignment = JLabel.CENTER;
+            mColorLabelArray[idx]!!.verticalAlignment = JLabel.CENTER
             mColorLabelArray[idx]!!.border = BorderFactory.createLineBorder(Color.BLACK)
             mColorLabelArray[idx]!!.minimumSize = Dimension(330, 20)
             mColorLabelArray[idx]!!.preferredSize = Dimension(330, 20)
@@ -115,14 +113,14 @@ class FontDialog (parent: MainUI) : JDialog(parent, Strings.FONT + " & " + Strin
         }
 
         val colorPanel = JPanel()
-        colorPanel.layout = FlowLayout(FlowLayout.LEFT, 0, 0);
+        colorPanel.layout = FlowLayout(FlowLayout.LEFT, 0, 0)
         colorPanel.add(titleLabelPanel)
         colorPanel.add(colorLabelPanel)
 
         updateLabelColor()
 
         val namePanel = JPanel()
-        namePanel.layout = FlowLayout(FlowLayout.LEFT, 3, 0);
+        namePanel.layout = FlowLayout(FlowLayout.LEFT, 3, 0)
         namePanel.add(mNameScrollPane)
 
         val sizePanel = JPanel()
@@ -276,7 +274,7 @@ class FontDialog (parent: MainUI) : JDialog(parent, Strings.FONT + " & " + Strin
                     colorChooser.color = colorLabel.foreground
                 }
 
-                var ret = JOptionPane.showConfirmDialog(this@FontDialog, rgbPanel, "Color Chooser", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
+                val ret = JOptionPane.showConfirmDialog(this@FontDialog, rgbPanel, "Color Chooser", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
                 if (ret == JOptionPane.OK_OPTION) {
                     val hex = "#" + Integer.toHexString(colorChooser.color.rgb).substring(2).uppercase()
                     colorLabel.text = " ${mColorManager.mColorArray[idx].mName} $hex "

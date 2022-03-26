@@ -20,6 +20,23 @@ import kotlin.system.exitProcess
 
 
 class MainUI(title: String) : JFrame() {
+    companion object {
+        private const val SPLIT_WEIGHT = 0.7
+
+        private const val ROTATION_LEFT_RIGHT = 0
+        private const val ROTATION_TOP_BOTTOM = 1
+        private const val ROTATION_RIGHT_LEFT = 2
+        private const val ROTATION_BOTTOM_TOP = 3
+        private const val ROTATION_MAX = ROTATION_BOTTOM_TOP
+
+        private const val VERBOSE = "Verbose"
+        private const val DEBUG = "Debug"
+        private const val INFO = "Info"
+        private const val WARNING = "Warning"
+        private const val ERROR = "Error"
+        private const val FATAL = "Fatal"
+    }
+
     private lateinit var mMenuBar: JMenuBar
     private lateinit var mMenuFile: JMenu
     private lateinit var mItemFileOpen: JMenuItem
@@ -53,7 +70,6 @@ class MainUI(title: String) : JFrame() {
     private lateinit var mRotationBtn: ColorButton
     lateinit var mFiltersBtn: ColorButton
     lateinit var mCmdsBtn: ColorButton
-    private val SPLIT_WEIGHT = 0.7
 
     private lateinit var mLogPanel: JPanel
     private lateinit var mShowLogPanel: JPanel
@@ -131,24 +147,12 @@ class MainUI(title: String) : JFrame() {
     private var mFrameHeight = 720
     private var mFrameExtendedState = Frame.MAXIMIZED_BOTH
 
-    private val ROTATION_LEFT_RIGHT = 0
-    private val ROTATION_TOP_BOTTOM = 1
-    private val ROTATION_RIGHT_LEFT = 2
-    private val ROTATION_BOTTOM_TOP = 3
-    private val ROTATION_MAX = ROTATION_BOTTOM_TOP
     private var mRotationStatus = ROTATION_LEFT_RIGHT
-
-    private val VERBOSE = "Verbose"
-    private val DEBUG = "Debug"
-    private val INFO = "Info"
-    private val WARNING = "Warning"
-    private val ERROR = "Error"
-    private val FATAL = "Fatal"
 
     var mFont: Font = Font("Dialog", Font.PLAIN, 12)
         set(value) {
             field = value
-            if (mIsCreatingUI == false) {
+            if (!mIsCreatingUI) {
                 mFilteredLogPanel.mFont = value
                 mFullLogPanel.mFont = value
             }
@@ -156,12 +160,12 @@ class MainUI(title: String) : JFrame() {
 
     init {
         mConfigManager.loadConfigOnCreate()
-        val cmd = mConfigManager.mProperties.get(mConfigManager.ITEM_ADB_CMD) as? String
+        val cmd = mConfigManager.mProperties[mConfigManager.ITEM_ADB_CMD] as? String
         if (!cmd.isNullOrEmpty()) {
             mAdbManager.mAdbCmd = cmd
         } else {
             val os = System.getProperty("os.name")
-            System.out.println("OS : " + os)
+            println("OS : $os")
             if (os.lowercase().contains("windows")) {
                 mAdbManager.mAdbCmd = "adb.exe"
             } else {
@@ -169,46 +173,46 @@ class MainUI(title: String) : JFrame() {
             }
         }
         mAdbManager.addEventListener(AdbHandler())
-        val logSavePath = mConfigManager.mProperties.get(mConfigManager.ITEM_ADB_LOG_SAVE_PATH) as? String
+        val logSavePath = mConfigManager.mProperties[mConfigManager.ITEM_ADB_LOG_SAVE_PATH] as? String
         if (logSavePath.isNullOrEmpty()) {
             mAdbManager.mLogSavePath = "."
         } else {
             mAdbManager.mLogSavePath = logSavePath
         }
 
-        val prefix = mConfigManager.mProperties.get(mConfigManager.ITEM_ADB_PREFIX) as? String
+        val prefix = mConfigManager.mProperties[mConfigManager.ITEM_ADB_PREFIX] as? String
         if (prefix.isNullOrEmpty()) {
             mAdbManager.mPrefix = ""
         } else {
             mAdbManager.mPrefix = prefix
         }
 
-        var prop = mConfigManager.mProperties.get(mConfigManager.ITEM_FRAME_X) as? String
+        var prop = mConfigManager.mProperties[mConfigManager.ITEM_FRAME_X] as? String
         if (!prop.isNullOrEmpty()) {
             mFrameX = prop.toInt()
         }
-        prop = mConfigManager.mProperties.get(mConfigManager.ITEM_FRAME_Y) as? String
+        prop = mConfigManager.mProperties[mConfigManager.ITEM_FRAME_Y] as? String
         if (!prop.isNullOrEmpty()) {
             mFrameY = prop.toInt()
         }
-        prop = mConfigManager.mProperties.get(mConfigManager.ITEM_FRAME_WIDTH) as? String
+        prop = mConfigManager.mProperties[mConfigManager.ITEM_FRAME_WIDTH] as? String
         if (!prop.isNullOrEmpty()) {
             mFrameWidth = prop.toInt()
         }
-        prop = mConfigManager.mProperties.get(mConfigManager.ITEM_FRAME_HEIGHT) as? String
+        prop = mConfigManager.mProperties[mConfigManager.ITEM_FRAME_HEIGHT] as? String
         if (!prop.isNullOrEmpty()) {
             mFrameHeight = prop.toInt()
         }
-        prop = mConfigManager.mProperties.get(mConfigManager.ITEM_FRAME_EXTENDED_STATE) as? String
+        prop = mConfigManager.mProperties[mConfigManager.ITEM_FRAME_EXTENDED_STATE] as? String
         if (!prop.isNullOrEmpty()) {
             mFrameExtendedState = prop.toInt()
         }
-        prop = mConfigManager.mProperties.get(mConfigManager.ITEM_ROTATION) as? String
+        prop = mConfigManager.mProperties[mConfigManager.ITEM_ROTATION] as? String
         if (!prop.isNullOrEmpty()) {
             mRotationStatus = prop.toInt()
         }
 
-        prop = mConfigManager.mProperties.get(mConfigManager.ITEM_LANG) as? String
+        prop = mConfigManager.mProperties[mConfigManager.ITEM_LANG] as? String
         if (!prop.isNullOrEmpty()) {
             Strings.lang = prop.toInt()
         }
@@ -381,7 +385,7 @@ class MainUI(title: String) : JFrame() {
                 } else if (p0?.keyCode == KeyEvent.VK_G && (p0.modifiers and KeyEvent.CTRL_MASK) != 0) {
                     val goToDialog = GoToDialog(this@MainUI)
                     goToDialog.setLocationRelativeTo(this@MainUI)
-                    goToDialog.setVisible(true)
+                    goToDialog.isVisible = true
                     if (goToDialog.line != -1) {
                         goToLine(goToDialog.line)
                     } else {
@@ -440,7 +444,7 @@ class MainUI(title: String) : JFrame() {
 
         mLogPanel = JPanel()
         mShowLogPanel = JPanel()
-        mShowLogCombo = FilterComboBox<String>()
+        mShowLogCombo = FilterComboBox()
         mShowLogCombo.toolTipText = TooltipStrings.LOG_COMBO
         mShowLogCombo.isEditable = true
         mShowLogCombo.renderer = FilterComboBox.ComboBoxRenderer()
@@ -457,7 +461,7 @@ class MainUI(title: String) : JFrame() {
         mShowLogToggle.addItemListener(mItemHandler)
 
         mBoldLogPanel = JPanel()
-        mBoldLogCombo = FilterComboBox<String>()
+        mBoldLogCombo = FilterComboBox()
         mBoldLogCombo.toolTipText = TooltipStrings.BOLD_COMBO
         mBoldLogCombo.mEnabledTfTooltip = false
         mBoldLogCombo.isEditable = true
@@ -474,7 +478,7 @@ class MainUI(title: String) : JFrame() {
         mBoldLogToggle.addItemListener(mItemHandler)
 
         mShowTagPanel = JPanel()
-        mShowTagCombo = FilterComboBox<String>()
+        mShowTagCombo = FilterComboBox()
         mShowTagCombo.toolTipText = TooltipStrings.TAG_COMBO
         mShowTagCombo.isEditable = true
         mShowTagCombo.renderer = FilterComboBox.ComboBoxRenderer()
@@ -490,7 +494,7 @@ class MainUI(title: String) : JFrame() {
         mShowTagToggle.addItemListener(mItemHandler)
 
         mShowPidPanel = JPanel()
-        mShowPidCombo = FilterComboBox<String>()
+        mShowPidCombo = FilterComboBox()
         mShowPidCombo.toolTipText = TooltipStrings.PID_COMBO
         mShowPidCombo.isEditable = true
         mShowPidCombo.renderer = FilterComboBox.ComboBoxRenderer()
@@ -506,7 +510,7 @@ class MainUI(title: String) : JFrame() {
         mShowPidToggle.addItemListener(mItemHandler)
 
         mShowTidPanel = JPanel()
-        mShowTidCombo = FilterComboBox<String>()
+        mShowTidCombo = FilterComboBox()
         mShowTidCombo.toolTipText = TooltipStrings.TID_COMBO
         mShowTidCombo.isEditable = true
         mShowTidCombo.renderer = FilterComboBox.ComboBoxRenderer()
@@ -523,7 +527,7 @@ class MainUI(title: String) : JFrame() {
 
         mDeviceStatus = JLabel("None", JLabel.LEFT)
         mDeviceStatus.isEnabled = false
-        mDeviceCombo = ColorComboBox<String>()
+        mDeviceCombo = ColorComboBox()
         mDeviceCombo.toolTipText = TooltipStrings.DEVICES_COMBO
         mDeviceCombo.isEditable = true
         mDeviceCombo.renderer = ColorComboBox.ComboBoxRenderer()
@@ -704,7 +708,7 @@ class MainUI(title: String) : JFrame() {
         mStatusTF.border = BorderFactory.createEmptyBorder()
         mStatusBar.add(mStatusTF)
 
-        val logLevel = mConfigManager.mProperties.get(mConfigManager.ITEM_LOG_LEVEL) as? String
+        val logLevel = mConfigManager.mProperties[mConfigManager.ITEM_LOG_LEVEL] as? String
         if (logLevel != null) {
             for (item in mLogLevelGroup.elements) {
                 if (logLevel == item.text) {
@@ -716,7 +720,7 @@ class MainUI(title: String) : JFrame() {
 
         var item: String?
         for (i in 0 until mConfigManager.COUNT_SHOW_LOG) {
-            item = mConfigManager.mProperties.get(mConfigManager.ITEM_SHOW_LOG + i) as? String
+            item = mConfigManager.mProperties[mConfigManager.ITEM_SHOW_LOG + i] as? String
             if (item == null) {
                 break
             }
@@ -732,7 +736,7 @@ class MainUI(title: String) : JFrame() {
             mShowLogCombo.selectedIndex = 0
         }
 
-        var check = mConfigManager.mProperties.get(mConfigManager.ITEM_SHOW_LOG_CHECK) as? String
+        var check = mConfigManager.mProperties[mConfigManager.ITEM_SHOW_LOG_CHECK] as? String
         if (!check.isNullOrEmpty()) {
             mShowLogToggle.isSelected = check.toBoolean()
         } else {
@@ -741,7 +745,7 @@ class MainUI(title: String) : JFrame() {
         mShowLogCombo.isEnabled = mShowLogToggle.isSelected 
         
         for (i in 0 until mConfigManager.COUNT_SHOW_TAG) {
-            item = mConfigManager.mProperties.get(mConfigManager.ITEM_SHOW_TAG + i) as? String
+            item = mConfigManager.mProperties[mConfigManager.ITEM_SHOW_TAG + i] as? String
             if (item == null) {
                 break
             }
@@ -753,7 +757,7 @@ class MainUI(title: String) : JFrame() {
 
         mShowTagCombo.updateTooltip()
 
-        check = mConfigManager.mProperties.get(mConfigManager.ITEM_SHOW_TAG_CHECK) as? String
+        check = mConfigManager.mProperties[mConfigManager.ITEM_SHOW_TAG_CHECK] as? String
         if (!check.isNullOrEmpty()) {
             mShowTagToggle.isSelected = check.toBoolean()
         } else {
@@ -761,7 +765,7 @@ class MainUI(title: String) : JFrame() {
         }
         mShowTagCombo.setEnabledFilter(mShowTagToggle.isSelected)
 
-        check = mConfigManager.mProperties.get(mConfigManager.ITEM_SHOW_PID_CHECK) as? String
+        check = mConfigManager.mProperties[mConfigManager.ITEM_SHOW_PID_CHECK] as? String
         if (!check.isNullOrEmpty()) {
             mShowPidToggle.isSelected = check.toBoolean()
         } else {
@@ -769,7 +773,7 @@ class MainUI(title: String) : JFrame() {
         }
         mShowPidCombo.setEnabledFilter(mShowPidToggle.isSelected)
 
-        check = mConfigManager.mProperties.get(mConfigManager.ITEM_SHOW_TID_CHECK) as? String
+        check = mConfigManager.mProperties[mConfigManager.ITEM_SHOW_TID_CHECK] as? String
         if (!check.isNullOrEmpty()) {
             mShowTidToggle.isSelected = check.toBoolean()
         } else {
@@ -778,7 +782,7 @@ class MainUI(title: String) : JFrame() {
         mShowTidCombo.setEnabledFilter(mShowTidToggle.isSelected)
 
         for (i in 0 until mConfigManager.COUNT_HIGHLIGHT_LOG) {
-            item = mConfigManager.mProperties.get(mConfigManager.ITEM_HIGHLIGHT_LOG + i) as? String
+            item = mConfigManager.mProperties[mConfigManager.ITEM_HIGHLIGHT_LOG + i] as? String
             if (item == null) {
                 break
             }
@@ -790,7 +794,7 @@ class MainUI(title: String) : JFrame() {
 
         mBoldLogCombo.updateTooltip()
 
-        check = mConfigManager.mProperties.get(mConfigManager.ITEM_HIGHLIGHT_LOG_CHECK) as? String
+        check = mConfigManager.mProperties[mConfigManager.ITEM_HIGHLIGHT_LOG_CHECK] as? String
         if (!check.isNullOrEmpty()) {
             mBoldLogToggle.isSelected = check.toBoolean()
         } else {
@@ -798,7 +802,7 @@ class MainUI(title: String) : JFrame() {
         }
         mBoldLogCombo.setEnabledFilter(mBoldLogToggle.isSelected)
 
-        val targetDevice = mConfigManager.mProperties.get(mConfigManager.ITEM_ADB_DEVICE) as? String
+        val targetDevice = mConfigManager.mProperties[mConfigManager.ITEM_ADB_DEVICE] as? String
         mDeviceCombo.insertItemAt(targetDevice, 0)
         mDeviceCombo.selectedIndex = 0
 
@@ -810,13 +814,13 @@ class MainUI(title: String) : JFrame() {
             mDeviceCombo.editor.editorComponent.foreground = Color.RED
         }
 
-        var fontName = mConfigManager.mProperties.get(mConfigManager.ITEM_FONT_NAME) as? String
+        var fontName = mConfigManager.mProperties[mConfigManager.ITEM_FONT_NAME] as? String
         if (fontName.isNullOrEmpty()) {
             fontName = "Dialog"
         }
 
         var fontSize = 12
-        check = mConfigManager.mProperties.get(mConfigManager.ITEM_FONT_SIZE) as? String
+        check = mConfigManager.mProperties[mConfigManager.ITEM_FONT_SIZE] as? String
         if (!check.isNullOrEmpty()) {
             fontSize = check.toInt()
         }
@@ -825,12 +829,12 @@ class MainUI(title: String) : JFrame() {
         mFilteredLogPanel.mFont = mFont
         mFullLogPanel.mFont = mFont
 
-        var divider = mConfigManager.mProperties.get(mConfigManager.ITEM_LAST_DIVIDER_LOCATION) as? String
+        var divider = mConfigManager.mProperties[mConfigManager.ITEM_LAST_DIVIDER_LOCATION] as? String
         if (!divider.isNullOrEmpty()) {
             mLogSplitPane.lastDividerLocation = divider.toInt()
         }
 
-        divider = mConfigManager.mProperties.get(mConfigManager.ITEM_DIVIDER_LOCATION) as? String
+        divider = mConfigManager.mProperties[mConfigManager.ITEM_DIVIDER_LOCATION] as? String
         if (!divider.isNullOrEmpty() && mLogSplitPane.lastDividerLocation != -1) {
             mLogSplitPane.dividerLocation = divider.toInt()
         }
@@ -870,24 +874,24 @@ class MainUI(title: String) : JFrame() {
             mFilteredTableModel.mFilterTid = ""
         }
 
-        check = mConfigManager.mProperties.get(mConfigManager.ITEM_VIEW_FULL) as? String
+        check = mConfigManager.mProperties[mConfigManager.ITEM_VIEW_FULL] as? String
         if (!check.isNullOrEmpty()) {
             mItemFull.state = check.toBoolean()
         } else {
             mItemFull.state = true
         }
-        if (mItemFull.state == false) {
+        if (!mItemFull.state) {
             windowedModeLogPanel(mFullLogPanel)
         }
 
-        check = mConfigManager.mProperties.get(mConfigManager.ITEM_FILTER_INCREMENTAL) as? String
+        check = mConfigManager.mProperties[mConfigManager.ITEM_FILTER_INCREMENTAL] as? String
         if (!check.isNullOrEmpty()) {
             mItemFilterIncremental.state = check.toBoolean()
         } else {
             mItemFilterIncremental.state = false
         }
 
-        check = mConfigManager.mProperties.get(mConfigManager.ITEM_SCROLLBACK) as? String
+        check = mConfigManager.mProperties[mConfigManager.ITEM_SCROLLBACK] as? String
         if (!check.isNullOrEmpty()) {
             mScrollbackTF.text = check
         } else {
@@ -895,7 +899,7 @@ class MainUI(title: String) : JFrame() {
         }
         mFilteredTableModel.mScrollback = mScrollbackTF.text.toInt()
 
-        check = mConfigManager.mProperties.get(mConfigManager.ITEM_SCROLLBACK_SPLIT_FILE) as? String
+        check = mConfigManager.mProperties[mConfigManager.ITEM_SCROLLBACK_SPLIT_FILE] as? String
         if (!check.isNullOrEmpty()) {
             mScrollbackSplitFileCheck.isSelected = check.toBoolean()
         } else {
@@ -903,7 +907,7 @@ class MainUI(title: String) : JFrame() {
         }
         mFilteredTableModel.mScrollbackSplitFile = mScrollbackSplitFileCheck.isSelected
 
-        check = mConfigManager.mProperties.get(mConfigManager.ITEM_MATCH_CASE) as? String
+        check = mConfigManager.mProperties[mConfigManager.ITEM_MATCH_CASE] as? String
         if (!check.isNullOrEmpty()) {
             mMatchCaseBtn.isSelected = check.toBoolean()
         } else {
@@ -911,7 +915,7 @@ class MainUI(title: String) : JFrame() {
         }
         mFilteredTableModel.mMatchCase = mMatchCaseBtn.isSelected
 
-        check = mConfigManager.mProperties.get(mConfigManager.ITEM_RETRY_ADB) as? String
+        check = mConfigManager.mProperties[mConfigManager.ITEM_RETRY_ADB] as? String
         if (!check.isNullOrEmpty()) {
             mRetryAdbToggle.isSelected = check.toBoolean()
         } else {
@@ -951,7 +955,7 @@ class MainUI(title: String) : JFrame() {
     }
 
     inner class ConfigManager {
-        val CONFIG_FILE = "lognote.xml"
+        private val CONFIG_FILE = "lognote.xml"
         var mProperties = Properties()
         val ITEM_FRAME_X = "FRAME_X"
         val ITEM_FRAME_Y = "FRAME_Y"
@@ -1008,12 +1012,12 @@ class MainUI(title: String) : JFrame() {
         val ITEM_RETRY_ADB = "RETRY_ADB"
 
         private fun setDefaultConfig() {
-            mProperties.put(ITEM_LOG_LEVEL, VERBOSE)
-            mProperties.put(ITEM_SHOW_LOG_CHECK, "true")
-            mProperties.put(ITEM_SHOW_TAG_CHECK, "true")
-            mProperties.put(ITEM_SHOW_PID_CHECK, "true")
-            mProperties.put(ITEM_SHOW_TID_CHECK, "true")
-            mProperties.put(ITEM_HIGHLIGHT_LOG_CHECK, "true")
+            mProperties[ITEM_LOG_LEVEL] = VERBOSE
+            mProperties[ITEM_SHOW_LOG_CHECK] = "true"
+            mProperties[ITEM_SHOW_TAG_CHECK] = "true"
+            mProperties[ITEM_SHOW_PID_CHECK] = "true"
+            mProperties[ITEM_SHOW_TID_CHECK] = "true"
+            mProperties[ITEM_HIGHLIGHT_LOG_CHECK] = "true"
         }
 
         private fun loadConfig() {
@@ -1059,7 +1063,7 @@ class MainUI(title: String) : JFrame() {
 
         fun saveConfigItem(key: String, value: String) {
             loadConfig()
-            mProperties.put(key, value)
+            mProperties[key] = value
             saveConfig()
         }
 
@@ -1070,7 +1074,7 @@ class MainUI(title: String) : JFrame() {
             }
             loadConfig()
             for (idx in keys.indices) {
-                mProperties.put(keys[idx], values[idx])
+                mProperties[keys[idx]] = values[idx]
             }
             saveConfig()
         }
@@ -1078,40 +1082,38 @@ class MainUI(title: String) : JFrame() {
         fun saveConfigOnDestroy() {
             loadConfig()
 
-            val location = getLocation()
             try {
-                mProperties.put(ITEM_FRAME_X, location.x.toString())
+                mProperties[ITEM_FRAME_X] = location.x.toString()
             } catch (e: NullPointerException) {
-                mProperties.put(ITEM_FRAME_X, "0")
+                mProperties[ITEM_FRAME_X] = "0"
             }
 
             try {
-                mProperties.put(ITEM_FRAME_Y, location.y.toString())
+                mProperties[ITEM_FRAME_Y] = location.y.toString()
             } catch (e: NullPointerException) {
-                mProperties.put(ITEM_FRAME_Y, "0")
-            }
-
-            val size = getSize()
-            try {
-                mProperties.put(ITEM_FRAME_WIDTH, size.width.toString())
-            } catch (e: NullPointerException) {
-                mProperties.put(ITEM_FRAME_WIDTH, "1280")
+                mProperties[ITEM_FRAME_Y] = "0"
             }
 
             try {
-                mProperties.put(ITEM_FRAME_HEIGHT, size.height.toString())
+                mProperties[ITEM_FRAME_WIDTH] = size.width.toString()
             } catch (e: NullPointerException) {
-                mProperties.put(ITEM_FRAME_HEIGHT, "720")
+                mProperties[ITEM_FRAME_WIDTH] = "1280"
             }
 
-            mProperties.put(ITEM_FRAME_EXTENDED_STATE, extendedState.toString())
+            try {
+                mProperties[ITEM_FRAME_HEIGHT] = size.height.toString()
+            } catch (e: NullPointerException) {
+                mProperties[ITEM_FRAME_HEIGHT] = "720"
+            }
+
+            mProperties[ITEM_FRAME_EXTENDED_STATE] = extendedState.toString()
 
             var nCount = mShowLogCombo.itemCount
             if (nCount > COUNT_SHOW_LOG) {
                 nCount = COUNT_SHOW_LOG
             }
             for (i in 0 until nCount) {
-                mProperties.put(ITEM_SHOW_LOG + i, mShowLogCombo.getItemAt(i).toString())
+                mProperties[ITEM_SHOW_LOG + i] = mShowLogCombo.getItemAt(i).toString()
             }
 
             for (i in nCount until COUNT_SHOW_LOG) {
@@ -1123,7 +1125,7 @@ class MainUI(title: String) : JFrame() {
                 nCount = COUNT_SHOW_TAG
             }
             for (i in 0 until nCount) {
-                mProperties.put(ITEM_SHOW_TAG + i, mShowTagCombo.getItemAt(i).toString())
+                mProperties[ITEM_SHOW_TAG + i] = mShowTagCombo.getItemAt(i).toString()
             }
             for (i in nCount until COUNT_SHOW_TAG) {
                 mProperties.remove(ITEM_SHOW_TAG + i)
@@ -1134,20 +1136,20 @@ class MainUI(title: String) : JFrame() {
                 nCount = COUNT_HIGHLIGHT_LOG
             }
             for (i in 0 until nCount) {
-                mProperties.put(ITEM_HIGHLIGHT_LOG + i, mBoldLogCombo.getItemAt(i).toString())
+                mProperties[ITEM_HIGHLIGHT_LOG + i] = mBoldLogCombo.getItemAt(i).toString()
             }
             for (i in nCount until COUNT_HIGHLIGHT_LOG) {
                 mProperties.remove(ITEM_HIGHLIGHT_LOG + i)
             }
             try {
-                mProperties.put(ITEM_ADB_DEVICE, mDeviceCombo.getItemAt(0).toString())
+                mProperties[ITEM_ADB_DEVICE] = mDeviceCombo.getItemAt(0).toString()
             } catch (e: NullPointerException) {
-                mProperties.put(ITEM_ADB_DEVICE, "0.0.0.0")
+                mProperties[ITEM_ADB_DEVICE] = "0.0.0.0"
             }
 
-            mProperties.put(ITEM_DIVIDER_LOCATION, mLogSplitPane.dividerLocation.toString())
+            mProperties[ITEM_DIVIDER_LOCATION] = mLogSplitPane.dividerLocation.toString()
             if (mLogSplitPane.lastDividerLocation != -1) {
-                mProperties.put(ITEM_LAST_DIVIDER_LOCATION, mLogSplitPane.lastDividerLocation.toString())
+                mProperties[ITEM_LAST_DIVIDER_LOCATION] = mLogSplitPane.lastDividerLocation.toString()
             }
 
 //            mProperties.put(ITEM_LANG, Strings.lang.toString())
@@ -1158,8 +1160,8 @@ class MainUI(title: String) : JFrame() {
         fun saveFontColors() {
             loadConfig()
 
-            mProperties.put(ITEM_FONT_NAME, mFont.family)
-            mProperties.put(ITEM_FONT_SIZE, mFont.size.toString())
+            mProperties[ITEM_FONT_NAME] = mFont.family
+            mProperties[ITEM_FONT_SIZE] = mFont.size.toString()
             mColorManager.putConfig(this)
 
             saveConfig()
@@ -1173,16 +1175,16 @@ class MainUI(title: String) : JFrame() {
             var check: String?
             var tableBar: Boolean
             for (i in 0 until FiltersManager.MAX_FILTERS) {
-                title = mProperties.get(ITEM_FILTERS_TITLE + i) as? String
+                title = mProperties[ITEM_FILTERS_TITLE + i] as? String
                 if (title == null) {
                     break
                 }
-                filter = mProperties.get(ITEM_FILTERS_FILTER + i) as? String
+                filter = mProperties[ITEM_FILTERS_FILTER + i] as? String
                 if (filter == null) {
                     filter = "null"
                 }
 
-                check = mProperties.get(ITEM_FILTERS_TABLEBAR + i) as? String
+                check = mProperties[ITEM_FILTERS_TABLEBAR + i] as? String
                 if (!check.isNullOrEmpty()) {
                     tableBar = check.toBoolean()
                 } else {
@@ -1203,7 +1205,7 @@ class MainUI(title: String) : JFrame() {
             }
 
             for (i in 0 until FiltersManager.MAX_FILTERS) {
-                title = mProperties.get(ITEM_CMDS_TITLE + i) as? String
+                title = mProperties[ITEM_CMDS_TITLE + i] as? String
                 if (title == null) {
                     break
                 }
@@ -1213,9 +1215,9 @@ class MainUI(title: String) : JFrame() {
             }
 
             for (i in 0 until nCount) {
-                mProperties.put(ITEM_FILTERS_TITLE + i, filters[i].mTitle)
-                mProperties.put(ITEM_FILTERS_FILTER + i, filters[i].mValue)
-                mProperties.put(ITEM_FILTERS_TABLEBAR + i, filters[i].mTableBar.toString())
+                mProperties[ITEM_FILTERS_TITLE + i] = filters[i].mTitle
+                mProperties[ITEM_FILTERS_FILTER + i] = filters[i].mValue
+                mProperties[ITEM_FILTERS_TABLEBAR + i] = filters[i].mTableBar.toString()
             }
 
             saveConfig()
@@ -1230,16 +1232,16 @@ class MainUI(title: String) : JFrame() {
             var check: String?
             var tableBar: Boolean
             for (i in 0 until CmdsManager.MAX_CMDS) {
-                title = mProperties.get(ITEM_CMDS_TITLE + i) as? String
+                title = mProperties[ITEM_CMDS_TITLE + i] as? String
                 if (title == null) {
                     break
                 }
-                cmd = mProperties.get(ITEM_CMDS_CMD + i) as? String
+                cmd = mProperties[ITEM_CMDS_CMD + i] as? String
                 if (cmd == null) {
                     cmd = "null"
                 }
 
-                check = mProperties.get(ITEM_CMDS_TABLEBAR + i) as? String
+                check = mProperties[ITEM_CMDS_TABLEBAR + i] as? String
                 if (!check.isNullOrEmpty()) {
                     tableBar = check.toBoolean()
                 } else {
@@ -1260,7 +1262,7 @@ class MainUI(title: String) : JFrame() {
             }
 
             for (i in 0 until CmdsManager.MAX_CMDS) {
-                title = mProperties.get(ITEM_CMDS_TITLE + i) as? String
+                title = mProperties[ITEM_CMDS_TITLE + i] as? String
                 if (title == null) {
                     break
                 }
@@ -1270,9 +1272,9 @@ class MainUI(title: String) : JFrame() {
             }
 
             for (i in 0 until nCount) {
-                mProperties.put(ITEM_CMDS_TITLE + i, cmds[i].mTitle)
-                mProperties.put(ITEM_CMDS_CMD + i, cmds[i].mValue)
-                mProperties.put(ITEM_CMDS_TABLEBAR + i, cmds[i].mTableBar.toString())
+                mProperties[ITEM_CMDS_TITLE + i] = cmds[i].mTitle
+                mProperties[ITEM_CMDS_CMD + i] = cmds[i].mValue
+                mProperties[ITEM_CMDS_TABLEBAR + i] = cmds[i].mTableBar.toString()
             }
 
             saveConfig()
@@ -1348,13 +1350,13 @@ class MainUI(title: String) : JFrame() {
         val dtf = DateTimeFormatter.ofPattern("yyyyMMdd_HH.mm.ss")
         var prefix = mDeviceCombo.selectedItem!!.toString()
         prefix = prefix.substringBefore(":")
-        if (mAdbManager.mPrefix.length > 0) {
+        if (mAdbManager.mPrefix.isNotEmpty()) {
             prefix = mAdbManager.mPrefix
         }
 
         var filePath = mAdbManager.mLogSavePath + "/" + prefix + "_" + dtf.format(LocalDateTime.now()) + ".txt"
         var file = File(filePath)
-        var idx = 1;
+        var idx = 1
         while (file.isFile) {
             filePath = mAdbManager.mLogSavePath + "/" + prefix + "_" + dtf.format(LocalDateTime.now()) + "-" + idx + ".txt"
             file = File(filePath)
@@ -1386,25 +1388,25 @@ class MainUI(title: String) : JFrame() {
         mAdbManager.startLogcat()
     }
 
-    internal inner class ActionHandler() : ActionListener {
+    internal inner class ActionHandler : ActionListener {
         override fun actionPerformed(p0: ActionEvent?) {
             if (p0?.source == mItemFileOpen) {
                 val fileDialog = FileDialog(this@MainUI, Strings.FILE + " " + Strings.OPEN, FileDialog.LOAD)
                 fileDialog.isMultipleMode = false
                 fileDialog.directory = mFullTableModel.mLogFile?.parent
-                fileDialog.setVisible(true)
-                if (fileDialog.getFile() != null) {
-                    val file = File(fileDialog.getDirectory() + fileDialog.getFile())
+                fileDialog.isVisible = true
+                if (fileDialog.file != null) {
+                    val file = File(fileDialog.directory + fileDialog.file)
                     openFile(file.absolutePath, false)
                 } else {
-                    System.out.println("Cancel Open")
+                    println("Cancel Open")
                 }
             } else if (p0?.source == mItemFileOpenFiles) {
                 val fileDialog = FileDialog(this@MainUI, Strings.FILE + " " + Strings.OPEN_FILES, FileDialog.LOAD)
                 fileDialog.isMultipleMode = true
                 fileDialog.directory = mFullTableModel.mLogFile?.parent
-                fileDialog.setVisible(true)
-                val fileList = fileDialog.getFiles()
+                fileDialog.isVisible = true
+                val fileList = fileDialog.files
                 if (fileList != null) {
                     var isFirst = true
                     for (file in fileList) {
@@ -1416,31 +1418,31 @@ class MainUI(title: String) : JFrame() {
                         }
                     }
                 } else {
-                    System.out.println("Cancel Open")
+                    println("Cancel Open")
                 }
             } else if (p0?.source == mItemFileAppendFiles) {
                 val fileDialog = FileDialog(this@MainUI, Strings.FILE + " " + Strings.APPEND_FILES, FileDialog.LOAD)
                 fileDialog.isMultipleMode = true
                 fileDialog.directory = mFullTableModel.mLogFile?.parent
-                fileDialog.setVisible(true)
-                val fileList = fileDialog.getFiles()
+                fileDialog.isVisible = true
+                val fileList = fileDialog.files
                 if (fileList != null) {
                     for (file in fileList) {
                         openFile(file.absolutePath, true)
                     }
                 } else {
-                    System.out.println("Cancel Open")
+                    println("Cancel Open")
                 }
             } else if (p0?.source == mItemFileExit) {
                 exit()
             } else if (p0?.source == mItemAdb || p0?.source == mItemLogFile) {
                 val settingsDialog = AdbSettingsDialog(this@MainUI)
                 settingsDialog.setLocationRelativeTo(this@MainUI)
-                settingsDialog.setVisible(true)
+                settingsDialog.isVisible = true
             } else if (p0?.source == mItemFont) {
                 val fontDialog = FontDialog(this@MainUI)
                 fontDialog.setLocationRelativeTo(this@MainUI)
-                fontDialog.setVisible(true)
+                fontDialog.isVisible = true
             } else if (p0?.source == mItemFull) {
                 if (mItemFull.state) {
                     attachLogPanel(mFullLogPanel)
@@ -1454,11 +1456,11 @@ class MainUI(title: String) : JFrame() {
             } else if (p0?.source == mItemAbout) {
                 val aboutDialog = AboutDialog(this@MainUI)
                 aboutDialog.setLocationRelativeTo(this@MainUI)
-                aboutDialog.setVisible(true)
+                aboutDialog.isVisible = true
             } else if (p0?.source == mItemHelp) {
                 val helpDialog = HelpDialog(this@MainUI)
                 helpDialog.setLocationRelativeTo(this@MainUI)
-                helpDialog.setVisible(true)
+                helpDialog.isVisible = true
             } else if (p0?.source == mAdbConnectBtn) {
                 mFilteredTableModel.stopScan()
                 mAdbManager.mTargetDevice = mDeviceCombo.selectedItem!!.toString()
@@ -1496,7 +1498,7 @@ class MainUI(title: String) : JFrame() {
                 mRotationStatus++
 
                 if (mRotationStatus > ROTATION_MAX) {
-                    mRotationStatus = ROTATION_LEFT_RIGHT
+                    mRotationStatus = Companion.ROTATION_LEFT_RIGHT
                 }
 
                 mConfigManager.saveConfigItem(mConfigManager.ITEM_ROTATION, mRotationStatus.toString())
@@ -1504,7 +1506,7 @@ class MainUI(title: String) : JFrame() {
                 mLogSplitPane.remove(mFilteredLogPanel)
                 mLogSplitPane.remove(mFullLogPanel)
                 when (mRotationStatus) {
-                    ROTATION_LEFT_RIGHT -> {
+                    Companion.ROTATION_LEFT_RIGHT -> {
                         mLogSplitPane.orientation = JSplitPane.HORIZONTAL_SPLIT
                         mLogSplitPane.add(mFilteredLogPanel)
                         mLogSplitPane.add(mFullLogPanel)
@@ -1537,16 +1539,16 @@ class MainUI(title: String) : JFrame() {
         }
     }
 
-    internal inner class FramePopUp() : JPopupMenu() {
+    internal inner class FramePopUp : JPopupMenu() {
         var mReconnectItem: JMenuItem
-        val mActionHandler = ActionHandler()
+        private val mActionHandler = ActionHandler()
 
         init {
             mReconnectItem = JMenuItem("Reconnect " + mDeviceCombo.selectedItem?.toString())
             mReconnectItem.addActionListener(mActionHandler)
             add(mReconnectItem)
         }
-        internal inner class ActionHandler() : ActionListener {
+        internal inner class ActionHandler : ActionListener {
             override fun actionPerformed(p0: ActionEvent?) {
                 if (p0?.source == mReconnectItem) {
                     reconnectAdb()
@@ -1557,7 +1559,7 @@ class MainUI(title: String) : JFrame() {
     internal inner class FrameMouseListener(private val frame: JFrame) : MouseAdapter() {
         private var mouseDownCompCoords: Point? = null
 
-        var popupMenu: JPopupMenu? = null
+        private var popupMenu: JPopupMenu? = null
         override fun mouseReleased(e: MouseEvent) {
             mouseDownCompCoords = null
 
@@ -1573,11 +1575,11 @@ class MainUI(title: String) : JFrame() {
         }
 
         override fun mousePressed(e: MouseEvent) {
-            mouseDownCompCoords = e.getPoint()
+            mouseDownCompCoords = e.point
         }
 
         override fun mouseDragged(e: MouseEvent) {
-            val currCoords = e.getLocationOnScreen()
+            val currCoords = e.locationOnScreen
             frame.setLocation(currCoords.x - mouseDownCompCoords!!.x, currCoords.y - mouseDownCompCoords!!.y)
         }
     }
@@ -1588,7 +1590,7 @@ class MainUI(title: String) : JFrame() {
         var mPasteItem: JMenuItem
         var mReconnectItem: JMenuItem
         var mCombo: JComboBox<String>?
-        val mActionHandler = ActionHandler()
+        private val mActionHandler = ActionHandler()
 
         init {
             mSelectAllItem = JMenuItem("Select All")
@@ -1605,21 +1607,26 @@ class MainUI(title: String) : JFrame() {
             add(mReconnectItem)
             mCombo = combo
         }
-        internal inner class ActionHandler() : ActionListener {
+        internal inner class ActionHandler : ActionListener {
             override fun actionPerformed(p0: ActionEvent?) {
-                if (p0?.source == mSelectAllItem) {
-                    mCombo?.editor?.selectAll()
-                } else if (p0?.source == mCopyItem) {
-                    val editorCom: JTextComponent = mCombo?.editor?.editorComponent as JTextField
-                    editorCom.selectedText
-                    val stringSelection = StringSelection(editorCom.selectedText)
-                    val clipboard: Clipboard = Toolkit.getDefaultToolkit().systemClipboard
-                    clipboard.setContents(stringSelection, null)
-                } else if (p0?.source == mPasteItem) {
-                    val editorCom: JTextComponent = mCombo?.editor?.editorComponent as JTextField
-                    editorCom.paste()
-                } else if (p0?.source == mReconnectItem) {
-                    reconnectAdb()
+                when (p0?.source) {
+                    mSelectAllItem -> {
+                        mCombo?.editor?.selectAll()
+                    }
+                    mCopyItem -> {
+                        val editorCom: JTextComponent = mCombo?.editor?.editorComponent as JTextField
+                        editorCom.selectedText
+                        val stringSelection = StringSelection(editorCom.selectedText)
+                        val clipboard: Clipboard = Toolkit.getDefaultToolkit().systemClipboard
+                        clipboard.setContents(stringSelection, null)
+                    }
+                    mPasteItem -> {
+                        val editorCom: JTextComponent = mCombo?.editor?.editorComponent as JTextField
+                        editorCom.paste()
+                    }
+                    mReconnectItem -> {
+                        reconnectAdb()
+                    }
                 }
             }
         }
@@ -1630,7 +1637,7 @@ class MainUI(title: String) : JFrame() {
             super.mouseClicked(p0)
         }
 
-        var popupMenu: JPopupMenu? = null
+        private var popupMenu: JPopupMenu? = null
         override fun mouseReleased(p0: MouseEvent?) {
             if (p0 == null) {
                 super.mouseReleased(p0)
@@ -1645,18 +1652,25 @@ class MainUI(title: String) : JFrame() {
                         || p0.source == mShowPidCombo.editor.editorComponent
                         || p0.source == mShowTidCombo.editor.editorComponent) {
                     var combo: JComboBox<String>? = null
-                    if (p0.source == mDeviceCombo.editor.editorComponent) {
-                        combo = mDeviceCombo
-                    } else if (p0.source == mShowLogCombo.editor.editorComponent) {
-                        combo = mShowLogCombo
-                    } else if (p0.source == mBoldLogCombo.editor.editorComponent) {
-                        combo = mBoldLogCombo
-                    } else if (p0.source == mShowTagCombo.editor.editorComponent) {
-                        combo = mShowTagCombo
-                    } else if (p0.source == mShowPidCombo.editor.editorComponent) {
-                        combo = mShowPidCombo
-                    } else if (p0.source == mShowTidCombo.editor.editorComponent) {
-                        combo = mShowTidCombo
+                    when (p0.source) {
+                        mDeviceCombo.editor.editorComponent -> {
+                            combo = mDeviceCombo
+                        }
+                        mShowLogCombo.editor.editorComponent -> {
+                            combo = mShowLogCombo
+                        }
+                        mBoldLogCombo.editor.editorComponent -> {
+                            combo = mBoldLogCombo
+                        }
+                        mShowTagCombo.editor.editorComponent -> {
+                            combo = mShowTagCombo
+                        }
+                        mShowPidCombo.editor.editorComponent -> {
+                            combo = mShowPidCombo
+                        }
+                        mShowTidCombo.editor.editorComponent -> {
+                            combo = mShowTidCombo
+                        }
                     }
                     popupMenu = PopUpCombobox(combo)
                     popupMenu?.show(p0.component, p0.x, p0.y)
@@ -1721,7 +1735,7 @@ class MainUI(title: String) : JFrame() {
 
     fun getTextShowLogCombo() : String {
         if (mShowLogCombo.selectedItem == null) {
-           return "";
+           return ""
         }
         return mShowLogCombo.selectedItem!!.toString()
     }
@@ -1794,63 +1808,78 @@ class MainUI(title: String) : JFrame() {
 
     internal inner class ItemHandler : ItemListener {
         override fun itemStateChanged(p0: ItemEvent?) {
-            if (p0?.source == mShowLogToggle) {
-                mShowLogCombo.setEnabledFilter(mShowLogToggle.isSelected)
-            } else if (p0?.source == mBoldLogToggle) {
-                mBoldLogCombo.setEnabledFilter(mBoldLogToggle.isSelected)
-            } else if (p0?.source == mShowTagToggle) {
-                mShowTagCombo.setEnabledFilter(mShowTagToggle.isSelected)
-            } else if (p0?.source == mShowPidToggle) {
-                mShowPidCombo.setEnabledFilter(mShowPidToggle.isSelected)
-            } else if (p0?.source == mShowTidToggle) {
-                mShowTidCombo.setEnabledFilter(mShowTidToggle.isSelected)
+            when (p0?.source) {
+                mShowLogToggle -> {
+                    mShowLogCombo.setEnabledFilter(mShowLogToggle.isSelected)
+                }
+                mBoldLogToggle -> {
+                    mBoldLogCombo.setEnabledFilter(mBoldLogToggle.isSelected)
+                }
+                mShowTagToggle -> {
+                    mShowTagCombo.setEnabledFilter(mShowTagToggle.isSelected)
+                }
+                mShowPidToggle -> {
+                    mShowPidCombo.setEnabledFilter(mShowPidToggle.isSelected)
+                }
+                mShowTidToggle -> {
+                    mShowTidCombo.setEnabledFilter(mShowTidToggle.isSelected)
+                }
             }
 
             if (mIsCreatingUI) {
                 return
             }
-            if (p0?.source == mShowLogToggle) {
-                if (mShowLogToggle.isSelected && mShowLogCombo.selectedItem != null) {
-                    mFilteredTableModel.mFilterLog = mShowLogCombo.selectedItem!!.toString()
-                } else {
-                    mFilteredTableModel.mFilterLog = ""
+            when (p0?.source) {
+                mShowLogToggle -> {
+                    if (mShowLogToggle.isSelected && mShowLogCombo.selectedItem != null) {
+                        mFilteredTableModel.mFilterLog = mShowLogCombo.selectedItem!!.toString()
+                    } else {
+                        mFilteredTableModel.mFilterLog = ""
+                    }
+                    mConfigManager.saveConfigItem(mConfigManager.ITEM_SHOW_LOG_CHECK, mShowLogToggle.isSelected.toString())
                 }
-                mConfigManager.saveConfigItem(mConfigManager.ITEM_SHOW_LOG_CHECK, mShowLogToggle.isSelected.toString())
-            } else if (p0?.source == mBoldLogToggle) {
-                if (mBoldLogToggle.isSelected && mBoldLogCombo.selectedItem != null) {
-                    mFilteredTableModel.mFilterHighlightLog = mBoldLogCombo.selectedItem!!.toString()
-                } else {
-                    mFilteredTableModel.mFilterHighlightLog = ""
+                mBoldLogToggle -> {
+                    if (mBoldLogToggle.isSelected && mBoldLogCombo.selectedItem != null) {
+                        mFilteredTableModel.mFilterHighlightLog = mBoldLogCombo.selectedItem!!.toString()
+                    } else {
+                        mFilteredTableModel.mFilterHighlightLog = ""
+                    }
+                    mConfigManager.saveConfigItem(mConfigManager.ITEM_HIGHLIGHT_LOG_CHECK, mBoldLogToggle.isSelected.toString())
                 }
-                mConfigManager.saveConfigItem(mConfigManager.ITEM_HIGHLIGHT_LOG_CHECK, mBoldLogToggle.isSelected.toString())
-            } else if (p0?.source == mShowTagToggle) {
-                if (mShowTagToggle.isSelected && mShowTagCombo.selectedItem != null) {
-                    mFilteredTableModel.mFilterTag = mShowTagCombo.selectedItem!!.toString()
-                } else {
-                    mFilteredTableModel.mFilterTag = ""
+                mShowTagToggle -> {
+                    if (mShowTagToggle.isSelected && mShowTagCombo.selectedItem != null) {
+                        mFilteredTableModel.mFilterTag = mShowTagCombo.selectedItem!!.toString()
+                    } else {
+                        mFilteredTableModel.mFilterTag = ""
+                    }
+                    mConfigManager.saveConfigItem(mConfigManager.ITEM_SHOW_TAG_CHECK, mShowTagToggle.isSelected.toString())
                 }
-                mConfigManager.saveConfigItem(mConfigManager.ITEM_SHOW_TAG_CHECK, mShowTagToggle.isSelected.toString())
-            } else if (p0?.source == mShowPidToggle) {
-                if (mShowPidToggle.isSelected && mShowPidCombo.selectedItem != null) {
-                    mFilteredTableModel.mFilterPid = mShowPidCombo.selectedItem!!.toString()
-                } else {
-                    mFilteredTableModel.mFilterPid = ""
+                mShowPidToggle -> {
+                    if (mShowPidToggle.isSelected && mShowPidCombo.selectedItem != null) {
+                        mFilteredTableModel.mFilterPid = mShowPidCombo.selectedItem!!.toString()
+                    } else {
+                        mFilteredTableModel.mFilterPid = ""
+                    }
+                    mConfigManager.saveConfigItem(mConfigManager.ITEM_SHOW_PID_CHECK, mShowPidToggle.isSelected.toString())
                 }
-                mConfigManager.saveConfigItem(mConfigManager.ITEM_SHOW_PID_CHECK, mShowPidToggle.isSelected.toString())
-            } else if (p0?.source == mShowTidToggle) {
-                if (mShowTidToggle.isSelected && mShowTidCombo.selectedItem != null) {
-                    mFilteredTableModel.mFilterTid = mShowTidCombo.selectedItem!!.toString()
-                } else {
-                    mFilteredTableModel.mFilterTid = ""
+                mShowTidToggle -> {
+                    if (mShowTidToggle.isSelected && mShowTidCombo.selectedItem != null) {
+                        mFilteredTableModel.mFilterTid = mShowTidCombo.selectedItem!!.toString()
+                    } else {
+                        mFilteredTableModel.mFilterTid = ""
+                    }
+                    mConfigManager.saveConfigItem(mConfigManager.ITEM_SHOW_TID_CHECK, mShowTidToggle.isSelected.toString())
                 }
-                mConfigManager.saveConfigItem(mConfigManager.ITEM_SHOW_TID_CHECK, mShowTidToggle.isSelected.toString())
-            } else if (p0?.source == mMatchCaseBtn) {
-                mFilteredTableModel.mMatchCase = mMatchCaseBtn.isSelected
-                mConfigManager.saveConfigItem(mConfigManager.ITEM_MATCH_CASE, mMatchCaseBtn.isSelected.toString())
-            } else if (p0?.source == mScrollbackKeepToggle) {
-                mFilteredTableModel.mScrollbackKeep = mScrollbackKeepToggle.isSelected
-            } else if (p0?.source == mRetryAdbToggle) {
-                mConfigManager.saveConfigItem(mConfigManager.ITEM_RETRY_ADB, mRetryAdbToggle.isSelected.toString())
+                mMatchCaseBtn -> {
+                    mFilteredTableModel.mMatchCase = mMatchCaseBtn.isSelected
+                    mConfigManager.saveConfigItem(mConfigManager.ITEM_MATCH_CASE, mMatchCaseBtn.isSelected.toString())
+                }
+                mScrollbackKeepToggle -> {
+                    mFilteredTableModel.mScrollbackKeep = mScrollbackKeepToggle.isSelected
+                }
+                mRetryAdbToggle -> {
+                    mConfigManager.saveConfigItem(mConfigManager.ITEM_RETRY_ADB, mRetryAdbToggle.isSelected.toString())
+                }
             }
         }
     }
@@ -1894,7 +1923,7 @@ class MainUI(title: String) : JFrame() {
                         mDeviceCombo.editor.editorComponent.foreground = Color.BLUE
                     } else {
                         var isExist = false
-                        val deviceChk = selectedItem.toString() + ":"
+                        val deviceChk = "$selectedItem:"
                         for (device in mAdbManager.mDevices) {
                             if (device.contains(deviceChk)) {
                                 isExist = true
@@ -1926,54 +1955,60 @@ class MainUI(title: String) : JFrame() {
                 mIsCanceled = false
                 return
             }
-            if (p0?.source == mShowLogCombo) {
-                if (mShowLogCombo.selectedIndex < 0) {
-                    return
+            when (p0?.source) {
+                mShowLogCombo -> {
+                    if (mShowLogCombo.selectedIndex < 0) {
+                        return
+                    }
+                    val combo = mShowLogCombo
+                    val item = combo.selectedItem!!.toString()
+                    if (combo.editor.item.toString() != item) {
+                        return
+                    }
+                    resetComboItem(combo, item)
+                    mFilteredTableModel.mFilterLog = item
+                    combo.updateTooltip()
                 }
-                val combo = mShowLogCombo
-                val item = combo.selectedItem!!.toString()
-                if (combo.editor.item.toString() != item) {
-                    return
+                mBoldLogCombo -> {
+                    if (mBoldLogCombo.selectedIndex < 0) {
+                        return
+                    }
+                    val combo = mBoldLogCombo
+                    val item = combo.selectedItem!!.toString()
+                    resetComboItem(combo, item)
+                    mFilteredTableModel.mFilterHighlightLog = item
+                    combo.updateTooltip()
                 }
-                resetComboItem(combo, item)
-                mFilteredTableModel.mFilterLog = item
-                combo.updateTooltip()
-            } else if (p0?.source == mBoldLogCombo) {
-                if (mBoldLogCombo.selectedIndex < 0) {
-                    return
+                mShowTagCombo -> {
+                    if (mShowTagCombo.selectedIndex < 0) {
+                        return
+                    }
+                    val combo = mShowTagCombo
+                    val item = combo.selectedItem!!.toString()
+                    resetComboItem(combo, item)
+                    mFilteredTableModel.mFilterTag = item
+                    combo.updateTooltip()
                 }
-                val combo = mBoldLogCombo
-                val item = combo.selectedItem!!.toString()
-                resetComboItem(combo, item)
-                mFilteredTableModel.mFilterHighlightLog = item
-                combo.updateTooltip()
-            } else if (p0?.source == mShowTagCombo) {
-                if (mShowTagCombo.selectedIndex < 0) {
-                    return
+                mShowPidCombo -> {
+                    if (mShowPidCombo.selectedIndex < 0) {
+                        return
+                    }
+                    val combo = mShowPidCombo
+                    val item = combo.selectedItem!!.toString()
+                    resetComboItem(combo, item)
+                    mFilteredTableModel.mFilterPid = item
+                    combo.updateTooltip()
                 }
-                val combo = mShowTagCombo
-                val item = combo.selectedItem!!.toString()
-                resetComboItem(combo, item)
-                mFilteredTableModel.mFilterTag = item
-                combo.updateTooltip()
-            } else if (p0?.source == mShowPidCombo) {
-                if (mShowPidCombo.selectedIndex < 0) {
-                    return
+                mShowTidCombo -> {
+                    if (mShowTidCombo.selectedIndex < 0) {
+                        return
+                    }
+                    val combo = mShowTidCombo
+                    val item = combo.selectedItem!!.toString()
+                    resetComboItem(combo, item)
+                    mFilteredTableModel.mFilterTid = item
+                    combo.updateTooltip()
                 }
-                val combo = mShowPidCombo
-                val item = combo.selectedItem!!.toString()
-                resetComboItem(combo, item)
-                mFilteredTableModel.mFilterPid = item
-                combo.updateTooltip()
-            } else if (p0?.source == mShowTidCombo) {
-                if (mShowTidCombo.selectedIndex < 0) {
-                    return
-                }
-                val combo = mShowTidCombo
-                val item = combo.selectedItem!!.toString()
-                resetComboItem(combo, item)
-                mFilteredTableModel.mFilterTid = item
-                combo.updateTooltip()
             }
         }
 
@@ -1982,7 +2017,7 @@ class MainUI(title: String) : JFrame() {
         }
 
         override fun popupMenuWillBecomeVisible(p0: PopupMenuEvent?) {
-            val box = p0?.getSource() as JComboBox<*>
+            val box = p0?.source as JComboBox<*>
             val comp = box.ui.getAccessibleChild(box, 0) as? JPopupMenu ?: return
             val scrollPane = comp.getComponent(0) as JScrollPane
             scrollPane.verticalScrollBar?.ui = BasicScrollBarUI()
@@ -2054,7 +2089,7 @@ class MainUI(title: String) : JFrame() {
     }
 
     internal inner class StatusTextField(text: String?) : JTextField(text) {
-        var mPrevText = ""
+        private var mPrevText = ""
         override fun getToolTipText(event: MouseEvent?): String? {
             val textTrimmed = text.trim()
             var tooltip = ""
