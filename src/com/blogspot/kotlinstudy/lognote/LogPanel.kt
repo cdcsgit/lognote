@@ -669,10 +669,14 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
     }
 
     internal inner class ButtonPanel : JPanel() {
+        internal inner class ButtonFlowLayout(align: Int, hgap: Int, vgap: Int) : FlowLayout(align, hgap, vgap) {
+            override fun minimumLayoutSize(target: Container?): Dimension {
+                return Dimension(0, 0)
+            }
+        }
         var mLastComponent: Component? = null
         init {
-            layout = FlowLayout(FlowLayout.LEFT, 0, 0)
-
+            layout = ButtonFlowLayout(FlowLayout.LEFT, 0, 0)
             addComponentListener(
                 object : ComponentAdapter() {
                     var mPrevPoint: Point? = null
