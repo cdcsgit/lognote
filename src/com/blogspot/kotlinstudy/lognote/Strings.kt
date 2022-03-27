@@ -84,6 +84,7 @@ class Strings private constructor() {
         private val IDX_ADD_CMD = idx++
         private val IDX_CMDS = idx++
         private val IDX_RETRY_ADB = idx++
+        private val IDX_FILTER_STYLE = idx++
 //        private val IDX_ = idx++
 
         val FILE: String
@@ -218,5 +219,7 @@ class Strings private constructor() {
             get() { return currStrings[IDX_CMDS] }
         val RETRY_ADB: String
             get() { return currStrings[IDX_RETRY_ADB] }
+        val FILTER_STYLE: String
+            get() { return currStrings[IDX_FILTER_STYLE] }
     }
 }

@@ -47,6 +47,7 @@ class MainUI(title: String) : JFrame() {
     private lateinit var mItemLogFile: JMenuItem
     private lateinit var mItemFont: JMenuItem
     private lateinit var mItemFilterIncremental: JCheckBoxMenuItem
+    private lateinit var mItemFilterStyle: JMenuItem
     private lateinit var mMenuLogLevel: JMenu
     private lateinit var mLogLevelGroup: ButtonGroup
     private lateinit var mMenuHelp: JMenu
@@ -70,27 +71,32 @@ class MainUI(title: String) : JFrame() {
     private lateinit var mLogPanel: JPanel
     private lateinit var mShowLogPanel: JPanel
     private lateinit var mMatchCaseBtn: ColorToggleButton
-    private lateinit var mShowLogCombo: FilterComboBox<String>
+    private lateinit var mShowLogCombo: FilterComboBox
+    var mShowLogComboStyle: FilterComboBox.Mode
     private lateinit var mShowLogToggle: ColorToggleButton
     private lateinit var mShowLogTogglePanel: JPanel
 
     private lateinit var mBoldLogPanel: JPanel
-    private lateinit var mBoldLogCombo: FilterComboBox<String>
+    private lateinit var mBoldLogCombo: FilterComboBox
+    var mBoldLogComboStyle: FilterComboBox.Mode
     private lateinit var mBoldLogToggle: ColorToggleButton
     private lateinit var mBoldLogTogglePanel: JPanel
 
     private lateinit var mShowTagPanel: JPanel
-    private lateinit var mShowTagCombo: FilterComboBox<String>
+    private lateinit var mShowTagCombo: FilterComboBox
+    var mShowTagComboStyle: FilterComboBox.Mode
     private lateinit var mShowTagToggle: ColorToggleButton
     private lateinit var mShowTagTogglePanel: JPanel
 
     private lateinit var mShowPidPanel: JPanel
-    private lateinit var mShowPidCombo: FilterComboBox<String>
+    private lateinit var mShowPidCombo: FilterComboBox
+    var mShowPidComboStyle: FilterComboBox.Mode
     private lateinit var mShowPidToggle: ColorToggleButton
     private lateinit var mShowPidTogglePanel: JPanel
 
     private lateinit var mShowTidPanel: JPanel
-    private lateinit var mShowTidCombo: FilterComboBox<String>
+    private lateinit var mShowTidCombo: FilterComboBox
+    var mShowTidComboStyle: FilterComboBox.Mode
     private lateinit var mShowTidToggle: ColorToggleButton
     private lateinit var mShowTidTogglePanel: JPanel
 
@@ -216,7 +222,48 @@ class MainUI(title: String) : JFrame() {
             Strings.lang = Strings.EN
         }
 
+        prop = mConfigManager.getItem(ConfigManager.ITEM_SHOW_LOG_STYLE)
+        if (!prop.isNullOrEmpty()) {
+            mShowLogComboStyle = FilterComboBox.Mode.fromInt(prop.toInt())
+        }
+        else {
+            mShowLogComboStyle = FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT
+        }
+
+        prop = mConfigManager.getItem(ConfigManager.ITEM_BOLD_LOG_STYLE)
+        if (!prop.isNullOrEmpty()) {
+            mBoldLogComboStyle = FilterComboBox.Mode.fromInt(prop.toInt())
+        }
+        else {
+            mBoldLogComboStyle = FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT
+        }
+
+        prop = mConfigManager.getItem(ConfigManager.ITEM_SHOW_TAG_STYLE)
+        if (!prop.isNullOrEmpty()) {
+            mShowTagComboStyle = FilterComboBox.Mode.fromInt(prop.toInt())
+        }
+        else {
+            mShowTagComboStyle = FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT
+        }
+
+        prop = mConfigManager.getItem(ConfigManager.ITEM_SHOW_PID_STYLE)
+        if (!prop.isNullOrEmpty()) {
+            mShowPidComboStyle = FilterComboBox.Mode.fromInt(prop.toInt())
+        }
+        else {
+            mShowPidComboStyle = FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT
+        }
+
+        prop = mConfigManager.getItem(ConfigManager.ITEM_SHOW_TID_STYLE)
+        if (!prop.isNullOrEmpty()) {
+            mShowTidComboStyle = FilterComboBox.Mode.fromInt(prop.toInt())
+        }
+        else {
+            mShowTidComboStyle = FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT
+        }
+
         createUI(title)
+
         mAdbManager.getDevices()
     }
 
@@ -232,6 +279,7 @@ class MainUI(title: String) : JFrame() {
         mConfigManager.loadConfig()
         mColorManager.getConfig()
         mColorManager.applyColor()
+        mColorManager.getConfigFilterStyle()
         mConfigManager.saveConfig()
     }
 
@@ -382,6 +430,10 @@ class MainUI(title: String) : JFrame() {
         mItemFilterIncremental.addActionListener(mActionHandler)
         mMenuSettings.add(mItemFilterIncremental)
 
+        mItemFilterStyle = JMenuItem(Strings.FILTER_STYLE)
+        mItemFilterStyle.addActionListener(mActionHandler)
+        mMenuSettings.add(mItemFilterStyle)
+
         mMenuSettings.addSeparator()
 
         mMenuLogLevel = JMenu(Strings.LOGLEVEL)
@@ -525,7 +577,7 @@ class MainUI(title: String) : JFrame() {
 
         mLogPanel = JPanel()
         mShowLogPanel = JPanel()
-        mShowLogCombo = FilterComboBox()
+        mShowLogCombo = FilterComboBox(mShowLogComboStyle)
         mShowLogCombo.toolTipText = TooltipStrings.LOG_COMBO
         mShowLogCombo.isEditable = true
         mShowLogCombo.renderer = FilterComboBox.ComboBoxRenderer()
@@ -542,7 +594,7 @@ class MainUI(title: String) : JFrame() {
         mShowLogToggle.addItemListener(mItemHandler)
 
         mBoldLogPanel = JPanel()
-        mBoldLogCombo = FilterComboBox()
+        mBoldLogCombo = FilterComboBox(mBoldLogComboStyle)
         mBoldLogCombo.toolTipText = TooltipStrings.BOLD_COMBO
         mBoldLogCombo.mEnabledTfTooltip = false
         mBoldLogCombo.isEditable = true
@@ -559,7 +611,7 @@ class MainUI(title: String) : JFrame() {
         mBoldLogToggle.addItemListener(mItemHandler)
 
         mShowTagPanel = JPanel()
-        mShowTagCombo = FilterComboBox()
+        mShowTagCombo = FilterComboBox(mShowTagComboStyle)
         mShowTagCombo.toolTipText = TooltipStrings.TAG_COMBO
         mShowTagCombo.isEditable = true
         mShowTagCombo.renderer = FilterComboBox.ComboBoxRenderer()
@@ -575,7 +627,7 @@ class MainUI(title: String) : JFrame() {
         mShowTagToggle.addItemListener(mItemHandler)
 
         mShowPidPanel = JPanel()
-        mShowPidCombo = FilterComboBox()
+        mShowPidCombo = FilterComboBox(mShowPidComboStyle)
         mShowPidCombo.toolTipText = TooltipStrings.PID_COMBO
         mShowPidCombo.isEditable = true
         mShowPidCombo.renderer = FilterComboBox.ComboBoxRenderer()
@@ -591,7 +643,7 @@ class MainUI(title: String) : JFrame() {
         mShowPidToggle.addItemListener(mItemHandler)
 
         mShowTidPanel = JPanel()
-        mShowTidCombo = FilterComboBox()
+        mShowTidCombo = FilterComboBox(mShowTidComboStyle)
         mShowTidCombo.toolTipText = TooltipStrings.TID_COMBO
         mShowTidCombo.isEditable = true
         mShowTidCombo.renderer = FilterComboBox.ComboBoxRenderer()
@@ -699,7 +751,7 @@ class MainUI(title: String) : JFrame() {
         mLogPanel.layout = BorderLayout()
         mLogPanel.add(mShowLogPanel, BorderLayout.CENTER)
         mLogPanel.add(itemFilterPanel, BorderLayout.EAST)
-        mLogPanel.preferredSize = Dimension(mLogPanel.preferredSize.width, 30)
+//        mLogPanel.preferredSize = Dimension(mLogPanel.preferredSize.width, 30)
 
         mFilterLeftPanel.layout = BorderLayout()
         mFilterLeftPanel.add(mLogPanel, BorderLayout.NORTH)
@@ -1206,6 +1258,10 @@ class MainUI(title: String) : JFrame() {
                 mConfigManager.saveItem(ConfigManager.ITEM_VIEW_FULL, mItemFull.state.toString())
             } else if (p0?.source == mItemFilterIncremental) {
                 mConfigManager.saveItem(ConfigManager.ITEM_FILTER_INCREMENTAL, mItemFilterIncremental.state.toString())
+            } else if (p0?.source == mItemFilterStyle) {
+                val filterStyleDialog = FilterStyleDialog(this@MainUI)
+                filterStyleDialog.setLocationRelativeTo(this@MainUI)
+                filterStyleDialog.isVisible = true
             } else if (p0?.source == mItemAbout) {
                 val aboutDialog = AboutDialog(this@MainUI)
                 aboutDialog.setLocationRelativeTo(this@MainUI)
@@ -1786,7 +1842,7 @@ class MainUI(title: String) : JFrame() {
         }
     }
 
-    fun resetComboItem(combo: FilterComboBox<String>, item: String) {
+    fun resetComboItem(combo: FilterComboBox, item: String) {
         if (combo.isExistItem(item)) {
             if (combo.selectedIndex == 0) {
                 return
@@ -1841,16 +1897,44 @@ class MainUI(title: String) : JFrame() {
         goToLine(mSelectedLine)
     }
 
+    fun updateUIAfterVisible() {
+        if (mShowLogCombo.selectedIndex >= 0) {
+            val selectedItem = mShowLogCombo.selectedItem
+            mShowLogCombo.selectedItem = ""
+            mShowLogCombo.selectedItem = selectedItem
+            mShowLogCombo.parent.revalidate()
+            mShowLogCombo.parent.repaint()
+        }
+        if (mShowTagCombo.selectedIndex >= 0) {
+            val selectedItem = mShowTagCombo.selectedItem
+            mShowTagCombo.selectedItem = ""
+            mShowTagCombo.selectedItem = selectedItem
+            mShowTagCombo.parent.revalidate()
+            mShowTagCombo.parent.repaint()
+        }
+        if (mBoldLogCombo.selectedIndex >= 0) {
+            val selectedItem = mBoldLogCombo.selectedItem
+            mBoldLogCombo.selectedItem = ""
+            mBoldLogCombo.selectedItem = selectedItem
+            mBoldLogCombo.parent.revalidate()
+            mBoldLogCombo.parent.repaint()
+        }
+
+        mShowLogCombo.mEnabledTfTooltip = true
+        mShowTagCombo.mEnabledTfTooltip = true
+        mShowPidCombo.mEnabledTfTooltip = true
+        mShowTidCombo.mEnabledTfTooltip = true
+    }
+
     internal inner class StatusTextField(text: String?) : JTextField(text) {
         private var mPrevText = ""
         override fun getToolTipText(event: MouseEvent?): String? {
             val textTrimmed = text.trim()
-            var tooltip = ""
             if (mPrevText != textTrimmed && textTrimmed.isNotEmpty()) {
                 mPrevText = textTrimmed
                 val splitData = textTrimmed.split("|")
 
-                tooltip = "<html>"
+                var tooltip = "<html>"
                 for (item in splitData) {
                     val itemTrimmed = item.trim()
                     if (itemTrimmed.isNotEmpty()) {

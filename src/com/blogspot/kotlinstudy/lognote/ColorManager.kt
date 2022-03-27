@@ -299,5 +299,35 @@ class ColorManager private constructor(){
         StrNumBookmarkBG = mColorArray[ColorIdx.NUM_BOOKMARK_BG.value].mStrColor
         StrNumSelectedBG = mColorArray[ColorIdx.NUM_SELECTED_BG.value].mStrColor
     }
+
+    var mFilterStyle = arrayOf(
+            ColorItem(0, "Include Text", "#FFFFFF"),
+            ColorItem(1, "Exclude Text", "#F07000"),
+            ColorItem(2, "Separator", "#00FF00"),
+    )
+    var mFilterStyleInclude: Color = Color.decode(mFilterStyle[0].mStrColor)
+    var mFilterStyleExclude: Color = Color.decode(mFilterStyle[1].mStrColor)
+    var mFilterStyleSeparator: Color = Color.decode(mFilterStyle[2].mStrColor)
+
+    fun applyFilterStyle() {
+        mFilterStyleInclude = Color.decode(mFilterStyle[0].mStrColor)
+        mFilterStyleExclude = Color.decode(mFilterStyle[1].mStrColor)
+        mFilterStyleSeparator = Color.decode(mFilterStyle[2].mStrColor)
+    }
+
+    fun getConfigFilterStyle() {
+        for (idx in mFilterStyle.indices) {
+            val item = mConfigManager.getItem(ConfigManager.ITEM_COLOR_FILTER_STYLE + idx)
+            if (item != null) {
+                mFilterStyle[idx].mStrColor = item
+            }
+        }
+    }
+
+    fun putConfigFilterStyle() {
+        for (idx in mFilterStyle.indices) {
+            mConfigManager.setItem(ConfigManager.ITEM_COLOR_FILTER_STYLE + idx, mFilterStyle[idx].mStrColor)
+        }
+    }
 }
 

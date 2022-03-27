@@ -22,6 +22,7 @@ class Main {
 
                 val mainUI = MainUI("LogNote")
                 mainUI.isVisible = true
+                mainUI.updateUIAfterVisible()
             }
         }
     }

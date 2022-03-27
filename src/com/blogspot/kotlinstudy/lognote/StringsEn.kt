@@ -69,6 +69,7 @@ class StringsEn private constructor() {
             , "Add cmd"
             , "Cmds"
             , "Retry"
+            , "Filter Style"
 //            , ""
         )
     }

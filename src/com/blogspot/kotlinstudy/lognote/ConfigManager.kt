@@ -59,8 +59,15 @@ class ConfigManager private constructor() {
         const val ITEM_CMDS_TABLEBAR = "CMDS_TABLEBAR_"
 
         const val ITEM_COLOR_MANAGER = "COLOR_MANAGER_"
+        const val ITEM_COLOR_FILTER_STYLE = "COLOR_FILTER_STYLE_"
 
         const val ITEM_RETRY_ADB = "RETRY_ADB"
+
+        const val ITEM_SHOW_LOG_STYLE = "SHOW_LOG_STYLE"
+        const val ITEM_SHOW_TAG_STYLE = "SHOW_TAG_STYLE"
+        const val ITEM_SHOW_PID_STYLE = "SHOW_PID_STYLE"
+        const val ITEM_SHOW_TID_STYLE = "SHOW_TID_STYLE"
+        const val ITEM_BOLD_LOG_STYLE = "BOLD_LOG_STYLE"
 
         private val mInstance: ConfigManager = ConfigManager()
 
@@ -93,6 +100,7 @@ class ConfigManager private constructor() {
                 try {
                     fileInput.close()
                 } catch (ex: IOException) {
+                    ex.printStackTrace()
                 }
             }
         }
@@ -108,6 +116,7 @@ class ConfigManager private constructor() {
                 try {
                     fileOutput.close()
                 } catch (ex: IOException) {
+                    ex.printStackTrace()
                 }
             }
         }
@@ -133,7 +142,7 @@ class ConfigManager private constructor() {
         mProperties[key] = value
     }
 
-    fun setItems(keys: Array<String>, values: Array<String>) {
+    private fun setItems(keys: Array<String>, values: Array<String>) {
         if (keys.size != values.size) {
             println("saveItem : size not match ${keys.size}, ${values.size}")
             return
@@ -154,6 +163,13 @@ class ConfigManager private constructor() {
         mProperties[ITEM_FONT_SIZE] = size.toString()
         ColorManager.getInstance().putConfig()
 
+        saveConfig()
+    }
+
+    fun saveFilterStyle(keys: Array<String>, values: Array<String>) {
+        loadConfig()
+        setItems(keys, values)
+        ColorManager.getInstance().putConfigFilterStyle()
         saveConfig()
     }
 
