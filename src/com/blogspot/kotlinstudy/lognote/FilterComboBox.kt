@@ -208,7 +208,7 @@ class FilterComboBox(mode: Mode) : JComboBox<String>() {
         }
     }
 
-    internal class HighlighterEditor() : ComboBoxEditor {
+    internal class HighlighterEditor : ComboBoxEditor {
         private val textEditor: HighlighterTextField = HighlighterTextField()
         override fun getEditorComponent(): Component {
             return textEditor
@@ -241,8 +241,17 @@ class FilterComboBox(mode: Mode) : JComboBox<String>() {
             textEditor.removeActionListener(l)
         }
         internal inner class HighlighterTextField : JTextField() {
+            val mColorManager = ColorManager.getInstance()
+
             init {
                 (highlighter as DefaultHighlighter).drawsLayeredHighlights = false
+
+                mColorManager.addFilterStyleEventListener(object: ColorManager.ColorEventListener{
+                    override fun colorChanged(event: ColorManager.ColorEvent?) {
+                        setUpdateHighlighter(true)
+                        repaint()
+                    }
+                })
             }
             fun setUpdateHighlighter(mUpdateHighlighter: Boolean) {
                 this.mUpdateHighlighter = mUpdateHighlighter
@@ -253,10 +262,9 @@ class FilterComboBox(mode: Mode) : JComboBox<String>() {
             override fun paint(g: Graphics?) {
                 if (mEnableHighlighter && mUpdateHighlighter) {
                     if (selectedText == null) {
-                        val colorManager = ColorManager.getInstance()
-                        val painterInclude: Highlighter.HighlightPainter = DefaultHighlighter.DefaultHighlightPainter(colorManager.mFilterStyleInclude)
-                        val painterExclude: Highlighter.HighlightPainter = DefaultHighlighter.DefaultHighlightPainter(colorManager.mFilterStyleExclude)
-                        val painterSeparator: Highlighter.HighlightPainter = DefaultHighlighter.DefaultHighlightPainter(colorManager.mFilterStyleSeparator)
+                        val painterInclude: Highlighter.HighlightPainter = DefaultHighlighter.DefaultHighlightPainter(mColorManager.mFilterStyleInclude)
+                        val painterExclude: Highlighter.HighlightPainter = DefaultHighlighter.DefaultHighlightPainter(mColorManager.mFilterStyleExclude)
+                        val painterSeparator: Highlighter.HighlightPainter = DefaultHighlighter.DefaultHighlightPainter(mColorManager.mFilterStyleSeparator)
                         val text = text
                         val separator = "|"
                         try {
@@ -315,7 +323,7 @@ class FilterComboBox(mode: Mode) : JComboBox<String>() {
         }
     }
 
-    class HighlighterMultilineEditor() : ComboBoxEditor {
+    class HighlighterMultilineEditor : ComboBoxEditor {
         private val textEditor: HighlighterTextArea = HighlighterTextArea()
         override fun getEditorComponent(): Component {
             return textEditor
@@ -345,11 +353,12 @@ class FilterComboBox(mode: Mode) : JComboBox<String>() {
             textEditor.removeActionListener(l)
         }
         inner class HighlighterTextArea : JTextArea() {
+            val mColorManager = ColorManager.getInstance()
             private var mEnableHighlighter = false
             private lateinit var mCombo: FilterComboBox
             private var mUpdateHighlighter = false
-            private var mActionListener: ActionListener? = null
             private var mPrevCaret = 0
+            private val mActionListeners = ArrayList<ActionListener>()
 
             init {
 //                wrapStyleWord = true
@@ -360,47 +369,53 @@ class FilterComboBox(mode: Mode) : JComboBox<String>() {
                     override fun keyTyped(e: KeyEvent?) {
                     }
                     override fun keyPressed(e: KeyEvent?) {
-                        if (e?.keyCode == KeyEvent.VK_ENTER) {
-                            e.consume()
-                        }
-                        else if (e?.keyCode == KeyEvent.VK_DOWN) {
-                            mPrevCaret = caretPosition
-                            return
-                        }
-                        else if (e?.keyCode == KeyEvent.VK_UP) {
-                            if (mCombo.isPopupVisible) {
+                        when (e?.keyCode) {
+                            KeyEvent.VK_ENTER -> {
                                 e.consume()
                             }
-                            return
+                            KeyEvent.VK_DOWN -> {
+                                mPrevCaret = caretPosition
+                                return
+                            }
+                            KeyEvent.VK_UP -> {
+                                if (mCombo.isPopupVisible) {
+                                    e.consume()
+                                }
+                                return
+                            }
                         }
 
                         setUpdateHighlighter(true)
                     }
                     override fun keyReleased(e: KeyEvent?) {
-                        if (e?.keyCode == KeyEvent.VK_ENTER) {
-                            e.consume()
-                            mActionListener?.actionPerformed(ActionEvent(this, ActionEvent.ACTION_PERFORMED, text))
-                        }
-                        else if (e?.keyCode == KeyEvent.VK_DOWN) {
-                            if (mPrevCaret == caretPosition) {
+                        when (e?.keyCode) {
+                            KeyEvent.VK_ENTER -> {
                                 e.consume()
-                                if (!mCombo.isPopupVisible) {
-                                    mCombo.showPopup()
-                                }
-                                if (mCombo.selectedIndex < (mCombo.itemCount - 1)) {
-                                    mCombo.selectedIndex++
+                                for (listener in mActionListeners) {
+                                    listener.actionPerformed(ActionEvent(this, ActionEvent.ACTION_PERFORMED, text))
                                 }
                             }
-                            return
-                        }
-                        else if (e?.keyCode == KeyEvent.VK_UP) {
-                            if (mCombo.isPopupVisible) {
-                                e.consume()
-                                if (mCombo.selectedIndex > 0) {
-                                    mCombo.selectedIndex--
+                            KeyEvent.VK_DOWN -> {
+                                if (mPrevCaret == caretPosition) {
+                                    e.consume()
+                                    if (!mCombo.isPopupVisible) {
+                                        mCombo.showPopup()
+                                    }
+                                    if (mCombo.selectedIndex < (mCombo.itemCount - 1)) {
+                                        mCombo.selectedIndex++
+                                    }
                                 }
+                                return
                             }
-                            return
+                            KeyEvent.VK_UP -> {
+                                if (mCombo.isPopupVisible) {
+                                    e.consume()
+                                    if (mCombo.selectedIndex > 0) {
+                                        mCombo.selectedIndex--
+                                    }
+                                }
+                                return
+                            }
                         }
 
                         mCombo.preferredSize = Dimension(mCombo.preferredSize.width, preferredSize.height + 6)
@@ -414,9 +429,25 @@ class FilterComboBox(mode: Mode) : JComboBox<String>() {
                         setUpdateHighlighter(true)
                     }
                 })
+
+                mColorManager.addFilterStyleEventListener(object: ColorManager.ColorEventListener{
+                    override fun colorChanged(event: ColorManager.ColorEvent?) {
+                        setUpdateHighlighter(true)
+                        repaint()
+                    }
+                })
             }
+
             fun setUpdateHighlighter(mUpdateHighlighter: Boolean) {
                 this.mUpdateHighlighter = mUpdateHighlighter
+            }
+
+            fun setEnableHighlighter(enable: Boolean) {
+                mEnableHighlighter = enable
+                if (mEnableHighlighter) {
+                    setUpdateHighlighter(true)
+                    repaint()
+                }
             }
 
             override fun paint(g: Graphics?) {
@@ -460,21 +491,14 @@ class FilterComboBox(mode: Mode) : JComboBox<String>() {
                 super.paint(g)
             }
             fun addActionListener(l: ActionListener) {
-                if (mActionListener != null) {
-                    println("WARN : HighlighterTextArea addActionListener, mActionListener changed")
-                }
-                mActionListener = l
+                mActionListeners.add(l)
             }
             fun removeActionListener(l: ActionListener) {
-                mActionListener = null
+                mActionListeners.remove(l)
             }
 
             fun setComboBox(filterComboBox: FilterComboBox) {
                 mCombo = filterComboBox
-            }
-
-            fun setEnableHighlighter(enable: Boolean) {
-                mEnableHighlighter = enable
             }
 
             override fun setText(t: String?) {

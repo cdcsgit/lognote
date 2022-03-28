@@ -1,6 +1,9 @@
 package com.blogspot.kotlinstudy.lognote
 
-import java.awt.*
+import java.awt.BorderLayout
+import java.awt.Color
+import java.awt.Dimension
+import java.awt.FlowLayout
 import java.awt.event.*
 import javax.swing.*
 
@@ -206,7 +209,6 @@ class FilterStyleDialog (parent: MainUI) : JDialog(parent, "${Strings.FILTER_STY
 
                     mParent.mConfigManager.saveFilterStyle(keys, values)
                 }
-
             }
         })
 

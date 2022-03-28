@@ -3,6 +3,14 @@ package com.blogspot.kotlinstudy.lognote
 import java.awt.Color
 
 class ColorManager private constructor(){
+    class ColorEvent(change:Int) {
+        val mColorChange = change
+    }
+
+    interface ColorEventListener {
+        fun colorChanged(event:ColorEvent?)
+    }
+
     companion object {
         private val mInstance: ColorManager = ColorManager()
 
@@ -195,6 +203,25 @@ class ColorManager private constructor(){
             private set
     }
 
+    private val mColorEventListeners = ArrayList<ColorEventListener>()
+    private val mFilterStyleEventListeners = ArrayList<ColorEventListener>()
+    
+    fun addColorEventListener(listener:ColorEventListener) {
+        mColorEventListeners.add(listener)
+    }
+
+    fun removeColorEventListener(listener:ColorEventListener) {
+        mColorEventListeners.remove(listener)
+    }
+
+    fun addFilterStyleEventListener(listener:ColorEventListener) {
+        mFilterStyleEventListeners.add(listener)
+    }
+
+    fun removeFilterStyleEventListener(listener:ColorEventListener) {
+        mFilterStyleEventListeners.remove(listener)
+    }
+
     class ColorItem(order: Int, name: String, strColor: String) {
         val mOrder = order
         val mName = name
@@ -298,11 +325,15 @@ class ColorManager private constructor(){
         StrNumBookmarkSelectedBG = mColorArray[ColorIdx.NUM_BOOKMARK_SELECTED_BG.value].mStrColor
         StrNumBookmarkBG = mColorArray[ColorIdx.NUM_BOOKMARK_BG.value].mStrColor
         StrNumSelectedBG = mColorArray[ColorIdx.NUM_SELECTED_BG.value].mStrColor
+
+        for (listener in mColorEventListeners) {
+            listener.colorChanged(ColorEvent(0))
+        }
     }
 
     var mFilterStyle = arrayOf(
             ColorItem(0, "Include Text", "#FFFFFF"),
-            ColorItem(1, "Exclude Text", "#F07000"),
+            ColorItem(1, "Exclude Text", "#FFA0A0"),
             ColorItem(2, "Separator", "#00FF00"),
     )
     var mFilterStyleInclude: Color = Color.decode(mFilterStyle[0].mStrColor)
@@ -313,6 +344,10 @@ class ColorManager private constructor(){
         mFilterStyleInclude = Color.decode(mFilterStyle[0].mStrColor)
         mFilterStyleExclude = Color.decode(mFilterStyle[1].mStrColor)
         mFilterStyleSeparator = Color.decode(mFilterStyle[2].mStrColor)
+
+        for (listener in mFilterStyleEventListeners) {
+            listener.colorChanged(ColorEvent(0))
+        }
     }
 
     fun getConfigFilterStyle() {

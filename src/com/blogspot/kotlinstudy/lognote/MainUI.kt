@@ -1898,27 +1898,28 @@ class MainUI(title: String) : JFrame() {
     }
 
     fun updateUIAfterVisible() {
-        if (mShowLogCombo.selectedIndex >= 0) {
+        if (mShowLogCombo.selectedIndex >= 0 && (mShowLogComboStyle == FilterComboBox.Mode.MULTI_LINE || mShowLogComboStyle == FilterComboBox.Mode.MULTI_LINE_HIGHLIGHT)) {
             val selectedItem = mShowLogCombo.selectedItem
             mShowLogCombo.selectedItem = ""
             mShowLogCombo.selectedItem = selectedItem
             mShowLogCombo.parent.revalidate()
             mShowLogCombo.parent.repaint()
         }
-        if (mShowTagCombo.selectedIndex >= 0) {
+        if (mShowTagCombo.selectedIndex >= 0 && (mShowTagComboStyle == FilterComboBox.Mode.MULTI_LINE || mShowTagComboStyle == FilterComboBox.Mode.MULTI_LINE_HIGHLIGHT)) {
             val selectedItem = mShowTagCombo.selectedItem
             mShowTagCombo.selectedItem = ""
             mShowTagCombo.selectedItem = selectedItem
             mShowTagCombo.parent.revalidate()
             mShowTagCombo.parent.repaint()
         }
-        if (mBoldLogCombo.selectedIndex >= 0) {
+        if (mBoldLogCombo.selectedIndex >= 0 && (mBoldLogComboStyle == FilterComboBox.Mode.MULTI_LINE || mBoldLogComboStyle == FilterComboBox.Mode.MULTI_LINE_HIGHLIGHT)) {
             val selectedItem = mBoldLogCombo.selectedItem
             mBoldLogCombo.selectedItem = ""
             mBoldLogCombo.selectedItem = selectedItem
             mBoldLogCombo.parent.revalidate()
             mBoldLogCombo.parent.repaint()
         }
+        mColorManager.applyFilterStyle()
 
         mShowLogCombo.mEnabledTfTooltip = true
         mShowTagCombo.mEnabledTfTooltip = true
