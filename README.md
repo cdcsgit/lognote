@@ -17,11 +17,12 @@ linux : java -Dfile.encoding=utf8 -Xmx4096m -jar LogNote.jar
 
 
 # Color settings
-Light(default)
-![default_color](https://user-images.githubusercontent.com/75207513/148026944-d965a90e-f2e4-478d-a763-f9d229d36f4c.png)
+Light(default) \
+<img src="https://user-images.githubusercontent.com/75207513/148026944-d965a90e-f2e4-478d-a763-f9d229d36f4c.png" width="600">
 
-Dark
-![dark_color](https://user-images.githubusercontent.com/75207513/148026947-e713661d-a876-41c6-99c3-877596c098ad.png)
+Dark \
+<img src="https://user-images.githubusercontent.com/75207513/148026947-e713661d-a876-41c6-99c3-877596c098ad.png" width="600">
+
 Add or change color configuration in lognote.xml as below.
 ```xml
 <entry key="COLOR_MANAGER_22">#101010</entry>
@@ -48,6 +49,9 @@ Add or change color configuration in lognote.xml as below.
 <entry key="COLOR_MANAGER_1">#101010</entry>
 <entry key="COLOR_MANAGER_0">#F05050</entry>
 ```
+
+Setting > Font & Color \
+<img src="https://user-images.githubusercontent.com/75207513/160410523-afcb82c2-78de-4695-a372-ac7d32533464.png" width="300">
 
 # Save split file by lines for aging test
 ![aging](https://user-images.githubusercontent.com/75207513/150263408-d64b7003-6b9c-460f-a4e6-02e6a4ee01e9.png) \
