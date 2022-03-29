@@ -37,27 +37,27 @@ class FilterComboBox(mode: Mode) : JComboBox<String>() {
 
         when (mMode) {
             Mode.SINGLE_LINE -> {
-                editor = HighlighterEditor()
-                val editorComponent = editor.editorComponent as HighlighterEditor.HighlighterTextField
+                editor = HighlighterSingleLineEditor()
+                val editorComponent = editor.editorComponent as HighlighterSingleLineEditor.HighlighterTextField
                 editorComponent.setEnableHighlighter(false)
                 mEditorComponent = editorComponent
             }
             Mode.SINGLE_LINE_HIGHLIGHT -> {
-                editor = HighlighterEditor()
-                val editorComponent = editor.editorComponent as HighlighterEditor.HighlighterTextField
+                editor = HighlighterSingleLineEditor()
+                val editorComponent = editor.editorComponent as HighlighterSingleLineEditor.HighlighterTextField
                 editorComponent.setEnableHighlighter(true)
                 mEditorComponent = editorComponent
             }
             Mode.MULTI_LINE -> {
-                editor = HighlighterMultilineEditor()
-                val editorComponent = editor.editorComponent as HighlighterMultilineEditor.HighlighterTextArea
+                editor = HighlighterMultiLineEditor()
+                val editorComponent = editor.editorComponent as HighlighterMultiLineEditor.HighlighterTextArea
                 editorComponent.setComboBox(this)
                 editorComponent.setEnableHighlighter(false)
                 mEditorComponent = editorComponent
             }
             Mode.MULTI_LINE_HIGHLIGHT -> {
-                editor = HighlighterMultilineEditor()
-                val editorComponent = editor.editorComponent as HighlighterMultilineEditor.HighlighterTextArea
+                editor = HighlighterMultiLineEditor()
+                val editorComponent = editor.editorComponent as HighlighterMultiLineEditor.HighlighterTextArea
                 editorComponent.setComboBox(this)
                 editorComponent.setEnableHighlighter(true)
                 mEditorComponent = editorComponent
@@ -208,7 +208,46 @@ class FilterComboBox(mode: Mode) : JComboBox<String>() {
         }
     }
 
-    internal class HighlighterEditor : ComboBoxEditor {
+    internal abstract class HighlighterEditor : ComboBoxEditor {
+        val mColorManager = ColorManager.getInstance()
+        fun updateHighlighter(textComponent: JTextComponent) {
+            if (textComponent.selectedText == null) {
+                val painterInclude: Highlighter.HighlightPainter = DefaultHighlighter.DefaultHighlightPainter(mColorManager.mFilterStyleInclude)
+                val painterExclude: Highlighter.HighlightPainter = DefaultHighlighter.DefaultHighlightPainter(mColorManager.mFilterStyleExclude)
+                val painterSeparator: Highlighter.HighlightPainter = DefaultHighlighter.DefaultHighlightPainter(mColorManager.mFilterStyleSeparator)
+                val text = textComponent.text
+                val separator = "|"
+                try {
+                    textComponent.highlighter.removeAllHighlights()
+                    var currPos = 0
+                    while (currPos < text.length) {
+                        val startPos = currPos
+                        val separatorPos = text.indexOf(separator, currPos)
+                        var endPos = separatorPos
+                        if (separatorPos < 0) {
+                            endPos = text.length
+                        }
+                        if (startPos in 0 until endPos) {
+                            if (text[startPos] == '-') {
+                                textComponent.highlighter.addHighlight(startPos, endPos, painterExclude)
+                            }
+                            else {
+                                textComponent.highlighter.addHighlight(startPos, endPos, painterInclude)
+                            }
+                        }
+                        if (separatorPos >= 0) {
+                            textComponent.highlighter.addHighlight(separatorPos, separatorPos + 1, painterSeparator)
+                        }
+                        currPos = endPos + 1
+                    }
+                } catch (ex: BadLocationException) {
+                    ex.printStackTrace()
+                }
+            }
+        }
+    }
+
+    internal class HighlighterSingleLineEditor : HighlighterEditor() {
         private val textEditor: HighlighterTextField = HighlighterTextField()
         override fun getEditorComponent(): Component {
             return textEditor
@@ -233,18 +272,30 @@ class FilterComboBox(mode: Mode) : JComboBox<String>() {
 
         override fun addActionListener(l: ActionListener) {
             textEditor.addActionListener(l)
-//            textEditor.addActionListener(ActionListener() {
-//                println(it)
-//            })
         }
         override fun removeActionListener(l: ActionListener) {
             textEditor.removeActionListener(l)
         }
-        internal inner class HighlighterTextField : JTextField() {
-            val mColorManager = ColorManager.getInstance()
 
+        internal inner class HighlighterTextField : JTextField() {
             init {
                 (highlighter as DefaultHighlighter).drawsLayeredHighlights = false
+
+                addKeyListener(object : KeyListener {
+                    override fun keyTyped(e: KeyEvent?) {
+                    }
+                    override fun keyPressed(e: KeyEvent?) {
+                        setUpdateHighlighter(true)
+                    }
+                    override fun keyReleased(e: KeyEvent?) {
+                    }
+                })
+                addFocusListener(object : FocusListener {
+                    override fun focusGained(e: FocusEvent) {}
+                    override fun focusLost(e: FocusEvent) {
+                        setUpdateHighlighter(true)
+                    }
+                })
 
                 mColorManager.addFilterStyleEventListener(object: ColorManager.ColorEventListener{
                     override fun colorChanged(event: ColorManager.ColorEvent?) {
@@ -253,6 +304,7 @@ class FilterComboBox(mode: Mode) : JComboBox<String>() {
                     }
                 })
             }
+
             fun setUpdateHighlighter(mUpdateHighlighter: Boolean) {
                 this.mUpdateHighlighter = mUpdateHighlighter
             }
@@ -261,39 +313,7 @@ class FilterComboBox(mode: Mode) : JComboBox<String>() {
             private var mUpdateHighlighter = false
             override fun paint(g: Graphics?) {
                 if (mEnableHighlighter && mUpdateHighlighter) {
-                    if (selectedText == null) {
-                        val painterInclude: Highlighter.HighlightPainter = DefaultHighlighter.DefaultHighlightPainter(mColorManager.mFilterStyleInclude)
-                        val painterExclude: Highlighter.HighlightPainter = DefaultHighlighter.DefaultHighlightPainter(mColorManager.mFilterStyleExclude)
-                        val painterSeparator: Highlighter.HighlightPainter = DefaultHighlighter.DefaultHighlightPainter(mColorManager.mFilterStyleSeparator)
-                        val text = text
-                        val separator = "|"
-                        try {
-                            highlighter.removeAllHighlights()
-                            var currPos = 0
-                            while (currPos < text.length) {
-                                val startPos = currPos
-                                val separatorPos = text.indexOf(separator, currPos)
-                                var endPos = separatorPos
-                                if (separatorPos < 0) {
-                                    endPos = text.length
-                                }
-                                if (startPos in 0 until endPos) {
-                                    if (text[startPos] == '-') {
-                                        highlighter.addHighlight(startPos, endPos, painterExclude)
-                                    }
-                                    else {
-                                        highlighter.addHighlight(startPos, endPos, painterInclude)
-                                    }
-                                }
-                                if (separatorPos >= 0) {
-                                    highlighter.addHighlight(separatorPos, separatorPos + 1, painterSeparator)
-                                }
-                                currPos = endPos + 1
-                            }
-                        } catch (ex: BadLocationException) {
-                            ex.printStackTrace()
-                        }
-                    }
+                    updateHighlighter(this)
                     mUpdateHighlighter = false
                 }
                 super.paint(g)
@@ -303,27 +323,9 @@ class FilterComboBox(mode: Mode) : JComboBox<String>() {
                 mEnableHighlighter = enable
             }
         }
-
-        init {
-            textEditor.addKeyListener(object : KeyListener {
-                override fun keyTyped(e: KeyEvent?) {
-                }
-                override fun keyPressed(e: KeyEvent?) {
-                    textEditor.setUpdateHighlighter(true)
-                }
-                override fun keyReleased(e: KeyEvent?) {
-                }
-            })
-            textEditor.addFocusListener(object : FocusListener {
-                override fun focusGained(e: FocusEvent) {}
-                override fun focusLost(e: FocusEvent) {
-                    textEditor.setUpdateHighlighter(true)
-                }
-            })
-        }
     }
 
-    class HighlighterMultilineEditor : ComboBoxEditor {
+    internal class HighlighterMultiLineEditor : HighlighterEditor() {
         private val textEditor: HighlighterTextArea = HighlighterTextArea()
         override fun getEditorComponent(): Component {
             return textEditor
@@ -352,8 +354,8 @@ class FilterComboBox(mode: Mode) : JComboBox<String>() {
         override fun removeActionListener(l: ActionListener) {
             textEditor.removeActionListener(l)
         }
+
         inner class HighlighterTextArea : JTextArea() {
-            val mColorManager = ColorManager.getInstance()
             private var mEnableHighlighter = false
             private lateinit var mCombo: FilterComboBox
             private var mUpdateHighlighter = false
@@ -361,7 +363,6 @@ class FilterComboBox(mode: Mode) : JComboBox<String>() {
             private val mActionListeners = ArrayList<ActionListener>()
 
             init {
-//                wrapStyleWord = true
                 lineWrap = true
 
                 (highlighter as DefaultHighlighter).drawsLayeredHighlights = false
@@ -452,40 +453,7 @@ class FilterComboBox(mode: Mode) : JComboBox<String>() {
 
             override fun paint(g: Graphics?) {
                 if (mEnableHighlighter && mUpdateHighlighter) {
-                    if (selectedText == null) {
-                        val colorManager = ColorManager.getInstance()
-                        val painterInclude: Highlighter.HighlightPainter = DefaultHighlighter.DefaultHighlightPainter(colorManager.mFilterStyleInclude)
-                        val painterExclude: Highlighter.HighlightPainter = DefaultHighlighter.DefaultHighlightPainter(colorManager.mFilterStyleExclude)
-                        val painterSeparator: Highlighter.HighlightPainter = DefaultHighlighter.DefaultHighlightPainter(colorManager.mFilterStyleSeparator)
-                        val text = text
-                        val separator = "|"
-                        try {
-                            highlighter.removeAllHighlights()
-                            var currPos = 0
-                            while (currPos < text.length) {
-                                val startPos = currPos
-                                val separatorPos = text.indexOf(separator, currPos)
-                                var endPos = separatorPos
-                                if (separatorPos < 0) {
-                                    endPos = text.length
-                                }
-                                if (startPos in 0 until endPos) {
-                                    if (text[startPos] == '-') {
-                                        highlighter.addHighlight(startPos, endPos, painterExclude)
-                                    }
-                                    else {
-                                        highlighter.addHighlight(startPos, endPos, painterInclude)
-                                    }
-                                }
-                                if (separatorPos >= 0) {
-                                    highlighter.addHighlight(separatorPos, separatorPos + 1, painterSeparator)
-                                }
-                                currPos = endPos + 1
-                            }
-                        } catch (ex: BadLocationException) {
-                            ex.printStackTrace()
-                        }
-                    }
+                    updateHighlighter(this)
                     mUpdateHighlighter = false
                 }
                 super.paint(g)
