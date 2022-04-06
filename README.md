@@ -24,6 +24,9 @@ Dark \
 <img src="https://user-images.githubusercontent.com/75207513/148026947-e713661d-a876-41c6-99c3-877596c098ad.png" width="600">
 
 Add or change color configuration in lognote.xml as below.
+<details markdown="1">
+<summary>Click to expand</summary>
+
 ```xml
 <entry key="COLOR_MANAGER_22">#101010</entry>
 <entry key="COLOR_MANAGER_21">#503030</entry>
@@ -50,6 +53,9 @@ Add or change color configuration in lognote.xml as below.
 <entry key="COLOR_MANAGER_0">#F05050</entry>
 ```
 
+</details>
+
+\
 Setting > Font & Color \
 <img src="https://user-images.githubusercontent.com/75207513/160410523-afcb82c2-78de-4695-a372-ac7d32533464.png" width="300">
 
