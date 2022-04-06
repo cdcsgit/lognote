@@ -227,7 +227,7 @@ class MainUI(title: String) : JFrame() {
             mShowLogComboStyle = FilterComboBox.Mode.fromInt(prop.toInt())
         }
         else {
-            mShowLogComboStyle = FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT
+            mShowLogComboStyle = FilterComboBox.Mode.MULTI_LINE_HIGHLIGHT
         }
 
         prop = mConfigManager.getItem(ConfigManager.ITEM_BOLD_LOG_STYLE)
