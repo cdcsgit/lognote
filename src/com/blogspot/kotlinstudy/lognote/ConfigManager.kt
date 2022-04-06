@@ -8,6 +8,7 @@ import java.util.*
 class ConfigManager private constructor() {
     companion object {
         private const val CONFIG_FILE = "lognote.xml"
+        val LOGNOTE_HOME: String? = System.getenv("LOGNOTE_HOME")
         const val ITEM_FRAME_X = "FRAME_X"
         const val ITEM_FRAME_Y = "FRAME_Y"
         const val ITEM_FRAME_WIDTH = "FRAME_WIDTH"
@@ -75,7 +76,21 @@ class ConfigManager private constructor() {
             return mInstance
         }
     }
+
     private val mProperties = Properties()
+    private var mConfigPath = CONFIG_FILE
+    init {
+        if (LOGNOTE_HOME != null) {
+            val os = System.getProperty("os.name")
+            if (os.lowercase().contains("windows")) {
+                mConfigPath = "$LOGNOTE_HOME\\$CONFIG_FILE"
+            }
+            else {
+                mConfigPath = "$LOGNOTE_HOME/$CONFIG_FILE"
+            }
+        }
+        println("Config Path : $mConfigPath")
+    }
 
     private fun setDefaultConfig() {
         mProperties[ITEM_LOG_LEVEL] = MainUI.VERBOSE
@@ -90,7 +105,7 @@ class ConfigManager private constructor() {
         var fileInput: FileInputStream? = null
 
         try {
-            fileInput = FileInputStream(CONFIG_FILE)
+            fileInput = FileInputStream(mConfigPath)
             mProperties.loadFromXML(fileInput)
         } catch (ex: Exception) {
             ex.printStackTrace()
@@ -109,8 +124,10 @@ class ConfigManager private constructor() {
     fun saveConfig() {
         var fileOutput: FileOutputStream? = null
         try {
-            fileOutput = FileOutputStream(CONFIG_FILE)
+            fileOutput = FileOutputStream(mConfigPath)
             mProperties.storeToXML(fileOutput, "")
+        } catch (ex: Exception) {
+            ex.printStackTrace()
         } finally {
             if (null != fileOutput) {
                 try {
