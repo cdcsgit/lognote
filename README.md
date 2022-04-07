@@ -1,6 +1,6 @@
 # LogNote
 
-Android logcat viewer for Windows, Linux
+Android logcat viewer for Windows, Linux, Mac
 
 kotlin + swing
 
