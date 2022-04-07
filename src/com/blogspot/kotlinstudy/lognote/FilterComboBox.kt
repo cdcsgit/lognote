@@ -15,6 +15,7 @@ import javax.swing.text.DefaultHighlighter
 import javax.swing.text.Highlighter
 import javax.swing.text.JTextComponent
 
+
 class FilterComboBox(mode: Mode) : JComboBox<String>() {
     enum class Mode(val value: Int) {
         SINGLE_LINE(0),
@@ -383,6 +384,16 @@ class FilterComboBox(mode: Mode) : JComboBox<String>() {
                                     e.consume()
                                 }
                                 return
+                            }
+                            KeyEvent.VK_TAB -> {
+                                if (e.modifiers > 0) {
+                                    transferFocusBackward()
+                                }
+                                else {
+                                    transferFocus()
+                                }
+
+                                e.consume()
                             }
                         }
 
