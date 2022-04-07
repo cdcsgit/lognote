@@ -2,7 +2,7 @@
 
 Android logcat viewer for Windows, Linux, Mac
 
-kotlin + swing
+Kotlin + swing
 
 Regular expression filter
 
@@ -12,8 +12,9 @@ Aging Test : Save split file by lines
 
 
 # Run
-windows : start javaw -Dfile.encoding=utf8 -Xmx4096m -jar LogNote.jar\
-linux : java -Dfile.encoding=utf8 -Xmx4096m -jar LogNote.jar
+Windows : start javaw -Dfile.encoding=utf8 -Xmx4096m -jar LogNote.jar\
+Linux : java -Dfile.encoding=utf8 -Xmx4096m -jar LogNote.jar\
+Mac : java -Dfile.encoding=utf8 -Xmx4096m -jar LogNote.jar
 
 
 # Color settings
