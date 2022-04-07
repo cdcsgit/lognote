@@ -731,10 +731,21 @@ class LogTableModel() : AbstractTableModel() {
             }
             else {
                 var beforeStart = 0
+                var isFirst = true
                 while (!starts.isEmpty()) {
                     val start = starts.pop()
                     val end = ends.pop()
 
+                    if (isFirst) {
+                        if (end < newValue.length) {
+                            stringBuilder.replace(
+                                end,
+                                newValue.length,
+                                newValue.substring(end, newValue.length).replace(" ", "&nbsp;")
+                            )
+                        }
+                        isFirst = false
+                    }
                     if (beforeStart > end) {
                         stringBuilder.replace(
                             end,
@@ -763,9 +774,20 @@ class LogTableModel() : AbstractTableModel() {
                         }
 
                         stringBuilder.replace(
+                            end,
+                            end,
+                            newValue.substring(end, end) + "</font></b>"
+                        )
+
+                        stringBuilder.replace(
                             start,
                             end,
-                            "<b><font color=$fgColor>" + newValue.substring(start, end) + "</font></b>"
+                            newValue.substring(start, end).replace(" ", "&nbsp;")
+                        )
+                        stringBuilder.replace(
+                            start,
+                            start,
+                            "<b><font color=$fgColor>" + newValue.substring(start, start)
                         )
                     }
                     beforeStart = start
