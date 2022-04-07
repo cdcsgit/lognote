@@ -10,12 +10,40 @@ Online / offline log view
 
 Aging Test : Save split file by lines
 
+<br/>
 
 # Run
 Windows : start javaw -Dfile.encoding=utf8 -Xmx4096m -jar LogNote.jar\
 Linux : java -Dfile.encoding=utf8 -Xmx4096m -jar LogNote.jar\
 Mac : java -Dfile.encoding=utf8 -Xmx4096m -jar LogNote.jar
 
+<br/>
+
+# Config path
+Save to the path set in the environment variable "LOGNOTE_HOME"\
+Default current path
+
+<br/>
+
+# Adb setting
+Set the adb path(to view online log) \
+![Lognote_adb_setting.png](https://user-images.githubusercontent.com/75207513/162198088-90d0f2de-f811-44b6-bc36-d9ab230b461c.png)
+
+<br/>
+
+# Filter combobox style
+Setting > Filter Style : set style, color
+1. Single line
+2. Single line - highlight\
+![lognote_singleline](https://user-images.githubusercontent.com/75207513/162203519-27a485f4-df90-4f33-8ae5-698957abea49.PNG)
+3. Multi line
+4. Multi line - highlight\
+![lognote_multiline](https://user-images.githubusercontent.com/75207513/162203533-3bf194e8-a093-45a1-a82c-ba1b50bbf118.PNG)
+
+Highlight color : Include text, Exclude text, Separator
+
+
+<br/>
 
 # Color settings
 Light(default) \
@@ -59,6 +87,8 @@ Add or change color configuration in lognote.xml as below.
 \
 Setting > Font & Color \
 <img src="https://user-images.githubusercontent.com/75207513/160410523-afcb82c2-78de-4695-a372-ac7d32533464.png" width="300">
+
+<br/>
 
 # Save split file by lines for aging test
 ![aging](https://user-images.githubusercontent.com/75207513/150263408-d64b7003-6b9c-460f-a4e6-02e6a4ee01e9.png) \
