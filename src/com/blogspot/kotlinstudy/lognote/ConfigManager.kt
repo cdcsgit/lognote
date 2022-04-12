@@ -37,6 +37,8 @@ class ConfigManager private constructor() {
 
         const val ITEM_LOG_LEVEL = "LOG_LEVEL"
 
+        const val ITEM_LOOK_AND_FEEL = "LOOK_AND_FEEL"
+
         const val ITEM_ADB_DEVICE = "ADB_DEVICE"
         const val ITEM_ADB_CMD = "ADB_CMD"
         const val ITEM_ADB_LOG_SAVE_PATH = "ADB_LOG_SAVE_PATH"
@@ -70,6 +72,8 @@ class ConfigManager private constructor() {
         const val ITEM_SHOW_TID_STYLE = "SHOW_TID_STYLE"
         const val ITEM_BOLD_LOG_STYLE = "BOLD_LOG_STYLE"
 
+        var LaF = ""
+
         private val mInstance: ConfigManager = ConfigManager()
 
         fun getInstance(): ConfigManager {
@@ -79,6 +83,7 @@ class ConfigManager private constructor() {
 
     private val mProperties = Properties()
     private var mConfigPath = CONFIG_FILE
+
     init {
         if (LOGNOTE_HOME != null) {
             val os = System.getProperty("os.name")

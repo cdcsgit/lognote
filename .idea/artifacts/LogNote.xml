@@ -9,6 +9,7 @@
       <element id="extracted-dir" path="$KOTLIN_BUNDLED$/lib/kotlin-stdlib-jdk7.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$KOTLIN_BUNDLED$/lib/kotlin-stdlib-jdk8.jar" path-in-jar="/" />
       <element id="dir-copy" path="$PROJECT_DIR$/res" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/libs/flatlaf-2.1.jar" path-in-jar="/" />
     </root>
   </artifact>
 </component>

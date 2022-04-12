@@ -1,5 +1,7 @@
 package com.blogspot.kotlinstudy.lognote
 
+import com.formdev.flatlaf.FlatDarkLaf
+import com.formdev.flatlaf.FlatLightLaf
 import java.awt.*
 import java.awt.datatransfer.Clipboard
 import java.awt.datatransfer.StringSelection
@@ -31,6 +33,11 @@ class MainUI(title: String) : JFrame() {
         const val WARNING = "Warning"
         const val ERROR = "Error"
         const val FATAL = "Fatal"
+
+        const val CROSS_PLATFORM_LAF = "Cross Platform"
+        const val SYSTEM_LAF = "System"
+        const val FLAT_LIGHT_LAF = "Flat Light"
+        const val FLAT_DARK_LAF = "Flat Dark"
     }
 
     private lateinit var mMenuBar: JMenuBar
@@ -50,6 +57,8 @@ class MainUI(title: String) : JFrame() {
     private lateinit var mItemFilterStyle: JMenuItem
     private lateinit var mMenuLogLevel: JMenu
     private lateinit var mLogLevelGroup: ButtonGroup
+    private lateinit var mMenuLaF: JMenu
+    private lateinit var mLaFGroup: ButtonGroup
     private lateinit var mMenuHelp: JMenu
     private lateinit var mItemHelp: JMenuItem
     private lateinit var mItemAbout: JMenuItem
@@ -130,6 +139,7 @@ class MainUI(title: String) : JFrame() {
     private val mKeyHandler = KeyHandler()
     private val mItemHandler = ItemHandler()
     private val mLevelItemHandler = LevelItemHandler()
+    private val mLaFItemHandler = LaFItemHandler()
     private val mActionHandler = ActionHandler()
     private val mPopupMenuHandler = PopupMenuHandler()
     private val mMouseHandler = MouseHandler()
@@ -473,6 +483,35 @@ class MainUI(title: String) : JFrame() {
         mMenuLogLevel.add(menuItem)
         menuItem.addItemListener(mLevelItemHandler)
 
+        mMenuSettings.addSeparator()
+
+        mMenuLaF = JMenu(Strings.LOOK_AND_FEEL)
+        mMenuLaF.addActionListener(mActionHandler)
+        mMenuSettings.add(mMenuLaF)
+
+        mLaFGroup = ButtonGroup()
+
+        var lafItem = JRadioButtonMenuItem(CROSS_PLATFORM_LAF)
+        mLaFGroup.add(lafItem)
+        mMenuLaF.add(lafItem)
+        lafItem.addItemListener(mLaFItemHandler)
+
+        lafItem = JRadioButtonMenuItem(SYSTEM_LAF)
+        mLaFGroup.add(lafItem)
+        mMenuLaF.add(lafItem)
+        lafItem.addItemListener(mLaFItemHandler)
+
+        lafItem = JRadioButtonMenuItem(FLAT_LIGHT_LAF)
+        mLaFGroup.add(lafItem)
+        mMenuLaF.add(lafItem)
+        lafItem.isSelected = true
+        lafItem.addItemListener(mLaFItemHandler)
+
+        lafItem = JRadioButtonMenuItem(FLAT_DARK_LAF)
+        mLaFGroup.add(lafItem)
+        mMenuLaF.add(lafItem)
+        lafItem.addItemListener(mLaFItemHandler)
+
         mMenuBar.add(mMenuSettings)
 
         mMenuHelp = JMenu(Strings.HELP)
@@ -490,6 +529,20 @@ class MainUI(title: String) : JFrame() {
         mMenuBar.add(mMenuHelp)
 
         jMenuBar = mMenuBar
+
+        var laf = mConfigManager.getItem(ConfigManager.ITEM_LOOK_AND_FEEL)
+
+        if (laf == null) {
+            laf = FLAT_LIGHT_LAF
+        }
+        for (item in mLaFGroup.elements) {
+            if (laf == item.text) {
+                item.isSelected = true
+                break
+            }
+        }
+
+        setLaF(laf)
 
         addMouseListener(mFrameMouseListener)
         addMouseMotionListener(mFrameMouseListener)
@@ -684,39 +737,51 @@ class MainUI(title: String) : JFrame() {
 
         mShowLogPanel.layout = BorderLayout()
         mShowLogPanel.add(mShowLogTogglePanel, BorderLayout.WEST)
-        mShowLogCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 3)
+        if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
+            mShowLogCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 3)
+        }
         mShowLogPanel.add(mShowLogCombo, BorderLayout.CENTER)
 
         mBoldLogPanel.layout = BorderLayout()
         mBoldLogPanel.add(mBoldLogTogglePanel, BorderLayout.WEST)
-        mBoldLogCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 3)
+        if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
+            mBoldLogCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 3)
+        }
         mBoldLogCombo.preferredSize = Dimension(170, mBoldLogCombo.preferredSize.height)
         mBoldLogPanel.add(mBoldLogCombo, BorderLayout.CENTER)
 //        mBoldPanel.add(mBoldLogPanel)
 
         mShowTagPanel.layout = BorderLayout()
         mShowTagPanel.add(mShowTagTogglePanel, BorderLayout.WEST)
-        mShowTagCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 3)
+        if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
+            mShowTagCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 3)
+        }
         mShowTagCombo.preferredSize = Dimension(250, mShowTagCombo.preferredSize.height)
         mShowTagPanel.add(mShowTagCombo, BorderLayout.CENTER)
 //        mTagPanel.add(mShowTagPanel)
 
         mShowPidPanel.layout = BorderLayout()
         mShowPidPanel.add(mShowPidTogglePanel, BorderLayout.WEST)
-        mShowPidCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 3)
+        if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
+            mShowPidCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 3)
+        }
         mShowPidCombo.preferredSize = Dimension(120, mShowPidCombo.preferredSize.height)
         mShowPidPanel.add(mShowPidCombo, BorderLayout.CENTER)
 //        mPidPanel.add(mShowPidPanel)
 
         mShowTidPanel.layout = BorderLayout()
         mShowTidPanel.add(mShowTidTogglePanel, BorderLayout.WEST)
-        mShowTidCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 3)
+        if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
+            mShowTidCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 3)
+        }
         mShowTidCombo.preferredSize = Dimension(120, mShowTidCombo.preferredSize.height)
         mShowTidPanel.add(mShowTidCombo, BorderLayout.CENTER)
 //        mTidPanel.add(mShowTidPanel)
 
         mDeviceCombo.preferredSize = Dimension(200, 30)
-        mDeviceCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 5)
+        if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
+            mDeviceCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 5)
+        }
         mDeviceStatus.preferredSize = Dimension(100, 30)
         mDeviceStatus.border = BorderFactory.createEmptyBorder(3, 0, 3, 0)
         mDeviceStatus.horizontalAlignment = JLabel.CENTER
@@ -728,6 +793,11 @@ class MainUI(title: String) : JFrame() {
         mScrollbackKeepToggle.toolTipText = TooltipStrings.SCROLLBACK_KEEP_TOGGLE
         mScrollbackKeepToggle.mSelectedBg = Color.RED
         mScrollbackKeepToggle.mSelectedFg = Color.BLACK
+        if (ConfigManager.LaF != CROSS_PLATFORM_LAF) {
+            val imgIcon = ImageIcon(this.javaClass.getResource("/images/toggle_on_warn.png"))
+            mScrollbackKeepToggle.selectedIcon = imgIcon
+        }
+
         mScrollbackKeepToggle.margin = Insets(mScrollbackKeepToggle.margin.top, 0, mScrollbackKeepToggle.margin.bottom, 0)
         mScrollbackKeepToggle.addItemListener(mItemHandler)
 
@@ -751,7 +821,6 @@ class MainUI(title: String) : JFrame() {
         mLogPanel.layout = BorderLayout()
         mLogPanel.add(mShowLogPanel, BorderLayout.CENTER)
         mLogPanel.add(itemFilterPanel, BorderLayout.EAST)
-//        mLogPanel.preferredSize = Dimension(mLogPanel.preferredSize.width, 30)
 
         mFilterLeftPanel.layout = BorderLayout()
         mFilterLeftPanel.add(mLogPanel, BorderLayout.NORTH)
@@ -941,10 +1010,10 @@ class MainUI(title: String) : JFrame() {
 
         if (mAdbManager.mDevices.contains(targetDevice)) {
             mDeviceStatus.text = Strings.CONNECTED
-            mDeviceCombo.editor.editorComponent.foreground = Color.BLUE
+            setDeviceComboColor(true)
         } else {
             mDeviceStatus.text = Strings.NOT_CONNECTED
-            mDeviceCombo.editor.editorComponent.foreground = Color.RED
+            setDeviceComboColor(false)
         }
 
         var fontName = mConfigManager.getItem(ConfigManager.ITEM_FONT_NAME)
@@ -1060,6 +1129,48 @@ class MainUI(title: String) : JFrame() {
         add(mStatusBar, BorderLayout.SOUTH)
 
         mIsCreatingUI = false
+    }
+
+    private fun setLaF(laf:String) {
+        ConfigManager.LaF = laf
+        when (laf) {
+            CROSS_PLATFORM_LAF->{
+                try {
+                    UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName())
+                } catch (ex: Exception) {
+                    println("Failed to initialize CrossPlatformLaf")
+                }
+            }
+            SYSTEM_LAF->{
+                try {
+                    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
+                } catch (ex: Exception) {
+                    println("Failed to initialize SystemLaf")
+                }
+            }
+            FLAT_LIGHT_LAF->{
+                try {
+                    UIManager.setLookAndFeel(FlatLightLaf())
+                } catch (ex: Exception) {
+                    println("Failed to initialize FlatLightLaf")
+                }
+            }
+            FLAT_DARK_LAF->{
+                try {
+                    UIManager.setLookAndFeel(FlatDarkLaf())
+                } catch (ex: Exception) {
+                    println("Failed to initialize FlatDarkLaf")
+                }
+            }
+            else->{
+                try {
+                    UIManager.setLookAndFeel(FlatLightLaf())
+                } catch (ex: Exception) {
+                    println("Failed to initialize FlatLightLaf")
+                }
+            }
+        }
+        SwingUtilities.updateComponentTreeUI(this);
     }
 
     private fun addVSeparator(panel:JPanel) {
@@ -1560,6 +1671,24 @@ class MainUI(title: String) : JFrame() {
         mFilteredTableModel.mFilterLog = item
     }
 
+    fun setDeviceComboColor(isConnected: Boolean) {
+        if (isConnected) {
+            if (ConfigManager.LaF == FLAT_DARK_LAF) {
+                mDeviceCombo.editor.editorComponent.foreground = Color(0x70, 0x70, 0xC0)
+            }
+            else {
+                mDeviceCombo.editor.editorComponent.foreground = Color.BLUE
+            }
+        } else {
+            if (ConfigManager.LaF == FLAT_DARK_LAF) {
+                mDeviceCombo.editor.editorComponent.foreground = Color(0xC0, 0x70, 0x70)
+            }
+            else {
+                mDeviceCombo.editor.editorComponent.foreground = Color.RED
+            }
+        }
+    }
+
     internal inner class KeyHandler : KeyAdapter() {
         override fun keyReleased(p0: KeyEvent?) {
             if (KeyEvent.VK_ENTER == p0?.keyCode) {
@@ -1708,6 +1837,14 @@ class MainUI(title: String) : JFrame() {
         }
     }
 
+    internal inner class LaFItemHandler : ItemListener {
+        override fun itemStateChanged(p0: ItemEvent?) {
+            val item = p0?.source as JRadioButtonMenuItem
+//            setLaF(item.text)
+            mConfigManager.saveItem(ConfigManager.ITEM_LOOK_AND_FEEL, item.text)
+        }
+    }
+
     internal inner class AdbHandler : AdbManager.AdbEventListener {
         override fun changedStatus(event: AdbManager.AdbEvent) {
             when (event.cmd) {
@@ -1729,7 +1866,7 @@ class MainUI(title: String) : JFrame() {
 
                     if (mAdbManager.mDevices.contains(selectedItem.toString())) {
                         mDeviceStatus.text = Strings.CONNECTED
-                        mDeviceCombo.editor.editorComponent.foreground = Color.BLUE
+                        setDeviceComboColor(true)
                     } else {
                         var isExist = false
                         val deviceChk = "$selectedItem:"
@@ -1742,10 +1879,10 @@ class MainUI(title: String) : JFrame() {
                         }
                         if (isExist) {
                             mDeviceStatus.text = Strings.CONNECTED
-                            mDeviceCombo.editor.editorComponent.foreground = Color.BLUE
+                            setDeviceComboColor(true)
                         } else {
                             mDeviceStatus.text = Strings.NOT_CONNECTED
-                            mDeviceCombo.editor.editorComponent.foreground = Color.RED
+                            setDeviceComboColor(false)
                         }
                     }
                     mDeviceCombo.selectedItem = selectedItem

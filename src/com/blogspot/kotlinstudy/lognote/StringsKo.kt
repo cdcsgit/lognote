@@ -70,6 +70,7 @@ class StringsKo private constructor() {
             , "명령s"
             , "재시도"
             , "필터 스타일"
+            , "Look and Feel"
 //            , ""
         )
     }

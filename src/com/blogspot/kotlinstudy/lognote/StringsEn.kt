@@ -70,6 +70,7 @@ class StringsEn private constructor() {
             , "Cmds"
             , "Retry"
             , "Filter Style"
+            , "Look and Feel"
 //            , ""
         )
     }

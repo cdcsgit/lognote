@@ -45,7 +45,7 @@ class FontDialog (parent: MainUI) : JDialog(parent, Strings.FONT + " & " + Strin
         mSizeLabel = JLabel(Strings.SIZE)
         mSizeSpinner = JSpinner(SpinnerNumberModel())
         mSizeSpinner.model.value = parent.mFont.size
-        mSizeSpinner.preferredSize = Dimension(40, 30)
+        mSizeSpinner.preferredSize = Dimension(70, 30)
         mSizeSpinner.addChangeListener(ChangeHandler())
         mExampleLabel = JLabel("123 가나다 ABC abc", SwingConstants.CENTER)
         mExampleLabel.font = parent.mFont

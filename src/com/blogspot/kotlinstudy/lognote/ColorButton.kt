@@ -5,7 +5,9 @@ import javax.swing.JButton
 
 open class ColorButton(title:String) : JButton(title){
     init {
-        background = Color(0xE5, 0xE5, 0xE5)
+        if (ConfigManager.LaF == MainUI.CROSS_PLATFORM_LAF) {
+            background = Color(0xE5, 0xE5, 0xE5)
+        }
     }
 }
 

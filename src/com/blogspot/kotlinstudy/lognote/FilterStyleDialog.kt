@@ -39,7 +39,7 @@ class FilterStyleDialog (parent: MainUI) : JDialog(parent, "${Strings.FILTER_STY
     private var mIsNeedRestore = true
 
     init {
-        mConfirmLabel = JLabel("To apply \"Combo Style\" need to restart")
+        mConfirmLabel = JLabel("To apply \"Style\" need to restart")
         mOkBtn = ColorButton(Strings.OK)
         mOkBtn.addActionListener(this)
         mCancelBtn = ColorButton(Strings.CANCEL)
@@ -57,6 +57,7 @@ class FilterStyleDialog (parent: MainUI) : JDialog(parent, "${Strings.FILTER_STY
         val styleComboPanel = JPanel()
         styleComboPanel.layout = BoxLayout(styleComboPanel, BoxLayout.Y_AXIS)
 
+        val rightWidth = 270
         for (idx in mComboLabelArray.indices) {
             mComboLabelArray[idx] = ColorLabel(idx)
             mComboLabelArray[idx]!!.isOpaque = true
@@ -72,9 +73,9 @@ class FilterStyleDialog (parent: MainUI) : JDialog(parent, "${Strings.FILTER_STY
 
             mStyleComboArray[idx] = ColorComboBox()
             mStyleComboArray[idx]!!.border = BorderFactory.createLineBorder(Color.BLACK)
-            mStyleComboArray[idx]!!.minimumSize = Dimension(200, 20)
-            mStyleComboArray[idx]!!.preferredSize = Dimension(200, 20)
-            mStyleComboArray[idx]!!.maximumSize = Dimension(200, 20)
+            mStyleComboArray[idx]!!.minimumSize = Dimension(rightWidth, 20)
+            mStyleComboArray[idx]!!.preferredSize = Dimension(rightWidth, 20)
+            mStyleComboArray[idx]!!.maximumSize = Dimension(rightWidth, 20)
             mStyleComboArray[idx]!!.addItem("SINGLE LINE")
             mStyleComboArray[idx]!!.addItem("SINGLE LINE / HIGHLIGHT")
             mStyleComboArray[idx]!!.addItem("MULTI LINE")
@@ -121,9 +122,9 @@ class FilterStyleDialog (parent: MainUI) : JDialog(parent, "${Strings.FILTER_STY
 
             mColorLabelArray[idx]!!.verticalAlignment = JLabel.CENTER
             mColorLabelArray[idx]!!.border = BorderFactory.createLineBorder(Color.BLACK)
-            mColorLabelArray[idx]!!.minimumSize = Dimension(200, 20)
-            mColorLabelArray[idx]!!.preferredSize = Dimension(200, 20)
-            mColorLabelArray[idx]!!.maximumSize = Dimension(200, 20)
+            mColorLabelArray[idx]!!.minimumSize = Dimension(rightWidth, 20)
+            mColorLabelArray[idx]!!.preferredSize = Dimension(rightWidth, 20)
+            mColorLabelArray[idx]!!.maximumSize = Dimension(rightWidth, 20)
             mColorLabelArray[idx]!!.addMouseListener(mMouseHandler)
 
             mTitleLabelArray[idx] = ColorLabel(idx)

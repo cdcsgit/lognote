@@ -33,9 +33,10 @@ class FilterComboBox(mode: Mode) : JComboBox<String>() {
     private val mMode = mode
 
     init {
-        ui = BasicComboBoxUI()
-        ui.installUI(this)
-
+        if (ConfigManager.LaF == MainUI.CROSS_PLATFORM_LAF) {
+            ui = BasicComboBoxUI()
+            ui.installUI(this)
+        }
         when (mMode) {
             Mode.SINGLE_LINE -> {
                 editor = HighlighterSingleLineEditor()
@@ -64,7 +65,9 @@ class FilterComboBox(mode: Mode) : JComboBox<String>() {
                 mEditorComponent = editorComponent
             }
         }
-        mEditorComponent.border = BorderFactory.createLineBorder(Color.black)
+        if (ConfigManager.LaF == MainUI.CROSS_PLATFORM_LAF) {
+            mEditorComponent.border = BorderFactory.createLineBorder(Color.black)
+        }
         mEditorComponent.toolTipText = toolTipText
         mEditorComponent.addKeyListener(KeyHandler())
         mEditorComponent.document.addDocumentListener(DocumentHandler())
@@ -156,8 +159,14 @@ class FilterComboBox(mode: Mode) : JComboBox<String>() {
         }
 
         var tooltip = "<html><b>$toolTipText</b><br>"
-        tooltip += "<font color=#000000>INCLUDE : </font>\"<font size=5 color=#0000FF>$includeStr</font>\"<br>"
-        tooltip += "<font color=#000000>EXCLUDE : </font>\"<font size=5 color=#FF0000>$excludeStr</font>\"<br>"
+        if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+            tooltip += "<font>INCLUDE : </font>\"<font size=5 color=#7070C0>$includeStr</font>\"<br>"
+            tooltip += "<font>EXCLUDE : </font>\"<font size=5 color=#C07070>$excludeStr</font>\"<br>"
+        }
+        else {
+            tooltip += "<font>INCLUDE : </font>\"<font size=5 color=#0000FF>$includeStr</font>\"<br>"
+            tooltip += "<font>EXCLUDE : </font>\"<font size=5 color=#FF0000>$excludeStr</font>\"<br>"
+        }
         tooltip += "</html>"
         mEditorComponent.toolTipText = tooltip
     }
@@ -430,7 +439,12 @@ class FilterComboBox(mode: Mode) : JComboBox<String>() {
                             }
                         }
 
-                        mCombo.preferredSize = Dimension(mCombo.preferredSize.width, preferredSize.height + 6)
+                        if (ConfigManager.LaF == MainUI.CROSS_PLATFORM_LAF) {
+                            mCombo.preferredSize = Dimension(mCombo.preferredSize.width, preferredSize.height + 6)
+                        }
+                        else {
+                            mCombo.preferredSize = Dimension(mCombo.preferredSize.width, preferredSize.height)
+                        }
                         mCombo.parent.revalidate()
                         mCombo.parent.repaint()
                     }
@@ -483,7 +497,12 @@ class FilterComboBox(mode: Mode) : JComboBox<String>() {
             override fun setText(t: String?) {
                 super.setText(t)
                 if (t != null) {
-                    mCombo.preferredSize = Dimension(mCombo.preferredSize.width, preferredSize.height + 6)
+                    if (ConfigManager.LaF == MainUI.CROSS_PLATFORM_LAF) {
+                        mCombo.preferredSize = Dimension(mCombo.preferredSize.width, preferredSize.height + 6)
+                    }
+                    else {
+                        mCombo.preferredSize = Dimension(mCombo.preferredSize.width, preferredSize.height)
+                    }
                 }
             }
         }

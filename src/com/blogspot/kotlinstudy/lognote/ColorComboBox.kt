@@ -12,10 +12,12 @@ import javax.swing.plaf.basic.BasicComboBoxUI
 
 class ColorComboBox<E> : JComboBox<E>() {
     init {
-        ui = BasicComboBoxUI()
-        ui.installUI(this)
-        val textField = editor.editorComponent as JTextField
-        textField.border = BorderFactory.createLineBorder(Color.black)
+        if (ConfigManager.LaF == MainUI.CROSS_PLATFORM_LAF) {
+            ui = BasicComboBoxUI()
+            ui.installUI(this)
+            val textField = editor.editorComponent as JTextField
+            textField.border = BorderFactory.createLineBorder(Color.black)
+        }
     }
 
     internal class ComboBoxRenderer : BasicComboBoxRenderer() {

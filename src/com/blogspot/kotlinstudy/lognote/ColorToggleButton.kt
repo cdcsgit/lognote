@@ -4,6 +4,7 @@ import java.awt.Color
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.RenderingHints
+import javax.swing.ImageIcon
 import javax.swing.JToggleButton
 
 
@@ -13,8 +14,21 @@ class ColorToggleButton(title:String) : JToggleButton(title){
     var mUnselectedFg: Color? = null
     var mUnselectedBg: Color? = null
 
+    init {
+        if (ConfigManager.LaF != MainUI.CROSS_PLATFORM_LAF) {
+            var imgIcon = ImageIcon(this.javaClass.getResource("/images/toggle_off.png"))
+            icon = imgIcon
+
+            imgIcon = ImageIcon(this.javaClass.getResource("/images/toggle_on.png"))
+            selectedIcon = imgIcon
+        }
+    }
+
     override fun paintComponent(g: Graphics) {
         super.paintComponent(g)
+        if (ConfigManager.LaF != MainUI.CROSS_PLATFORM_LAF) {
+            return
+        }
 
         val graphics2D = g as Graphics2D
         graphics2D.setRenderingHint(
@@ -31,8 +45,7 @@ class ColorToggleButton(title:String) : JToggleButton(title){
 
             if (mSelectedBg != null) {
                 graphics2D.color = mSelectedBg
-            }
-            else {
+            } else {
                 graphics2D.color = Color(0x85, 0x85, 0x85)
             }
             graphics2D.fillRect(0, 0, width, height)
@@ -43,20 +56,19 @@ class ColorToggleButton(title:String) : JToggleButton(title){
 
             if (mSelectedFg != null) {
                 graphics2D.color = mSelectedFg
-            }
-            else {
+            } else {
                 graphics2D.color = Color(0xFF, 0xFF, 0xFF)
             }
-            graphics2D.drawString(text,
+            graphics2D.drawString(
+                text,
                 (width - graphics2D.fontMetrics.stringWidth(text)) / 2,
-                (height + graphics2D.fontMetrics.ascent) / 2 - 2)
+                (height + graphics2D.fontMetrics.ascent) / 2 - 2
+            )
 
-        }
-        else {
+        } else {
             if (mUnselectedBg != null) {
                 graphics2D.color = mUnselectedBg
-            }
-            else {
+            } else {
                 graphics2D.color = Color(0xFA, 0xFA, 0xFF)
             }
 
@@ -64,13 +76,14 @@ class ColorToggleButton(title:String) : JToggleButton(title){
 
             if (mUnselectedFg != null) {
                 graphics2D.color = mUnselectedFg
-            }
-            else {
+            } else {
                 graphics2D.color = Color(0xBB, 0x84, 0x4C)
             }
-            graphics2D.drawString(text,
+            graphics2D.drawString(
+                text,
                 (width - graphics2D.fontMetrics.stringWidth(text)) / 2,
-                (height + graphics2D.fontMetrics.ascent) / 2 - 2)
+                (height + graphics2D.fontMetrics.ascent) / 2 - 2
+            )
         }
     }
 }
