@@ -1,9 +1,6 @@
 package com.blogspot.kotlinstudy.lognote
 
-import java.awt.Dimension
-import java.awt.FileDialog
-import java.awt.FlowLayout
-import java.awt.GridLayout
+import java.awt.*
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import java.io.File
@@ -27,8 +24,10 @@ class AdbSettingsDialog(parent: JFrame) :JDialog(parent, "ADB " + Strings.SETTIN
     private val mAdbManager = AdbManager.getInstance()
 
     init {
+        val rowHeight = 30
         mAdbCmdBtn = ColorButton(Strings.SELECT)
         mAdbCmdBtn.addActionListener(this)
+        mAdbCmdBtn.preferredSize = Dimension(mAdbCmdBtn.preferredSize.width, rowHeight)
         mAdbSaveBtn = ColorButton(Strings.SELECT)
         mAdbSaveBtn.addActionListener(this)
         mOkBtn = ColorButton(Strings.OK)
@@ -37,44 +36,47 @@ class AdbSettingsDialog(parent: JFrame) :JDialog(parent, "ADB " + Strings.SETTIN
         mCancelBtn.addActionListener(this)
 
         mAdbCmdLabel = JLabel(Strings.ADB_PATH)
+        mAdbCmdLabel.preferredSize = Dimension(mAdbCmdLabel.preferredSize.width, rowHeight)
         mAdbSaveLabel = JLabel(Strings.LOG_PATH)
         mPrefixLabel = JLabel("Prefix")
         mPrefixLabel2 = JLabel("Default : device, Do not use \\ / : * ? \" < > |")
 
         mAdbCmdTF = JTextField(mAdbManager.mAdbCmd)
-        mAdbCmdTF.preferredSize = Dimension(488, 30)
+        mAdbCmdTF.preferredSize = Dimension(488, rowHeight)
         mAdbSaveTF = JTextField(mAdbManager.mLogSavePath)
-        mAdbSaveTF.preferredSize = Dimension(488, 30)
+        mAdbSaveTF.preferredSize = Dimension(488, rowHeight)
         mPrefixTF = JTextField(mAdbManager.mPrefix)
-        mPrefixTF.preferredSize = Dimension(300, 30)
+        mPrefixTF.preferredSize = Dimension(300, rowHeight)
 
-        val cmdPanel = JPanel()
-        cmdPanel.add(mAdbCmdLabel)
-        cmdPanel.add(mAdbCmdTF)
-        cmdPanel.add(mAdbCmdBtn)
+        val panel1 = JPanel(GridLayout(4, 1, 0, 2))
+        panel1.add(mAdbCmdLabel)
+        panel1.add(mAdbSaveLabel)
+        panel1.add(mPrefixLabel)
 
-        val savePanel = JPanel()
-        savePanel.add(mAdbSaveLabel)
-        savePanel.add(mAdbSaveTF)
-        savePanel.add(mAdbSaveBtn)
+        val panel2 = JPanel(GridLayout(4, 1, 0, 2))
+        panel2.add(mAdbCmdTF)
+        panel2.add(mAdbSaveTF)
+        panel2.add(mPrefixTF)
+        panel2.add(mPrefixLabel2)
 
-        val prefixPanel = JPanel()
-        prefixPanel.add(mPrefixLabel)
-        prefixPanel.add(mPrefixTF)
-        prefixPanel.add(mPrefixLabel2)
+        val panel3 = JPanel(GridLayout(4, 1, 0, 2))
+        panel3.add(mAdbCmdBtn)
+        panel3.add(mAdbSaveBtn)
+
+        val cmdPathPanel = JPanel()
+        cmdPathPanel.add(panel1)
+        cmdPathPanel.add(panel2)
+        cmdPathPanel.add(panel3)
 
         val confirmPanel = JPanel(FlowLayout(FlowLayout.RIGHT))
-        confirmPanel.preferredSize = Dimension(400, 30)
+        confirmPanel.preferredSize = Dimension(400, 40)
         confirmPanel.alignmentX = JPanel.RIGHT_ALIGNMENT
         confirmPanel.add(mOkBtn)
         confirmPanel.add(mCancelBtn)
 
-        val panel = JPanel(GridLayout(5, 1))
-        panel.add(cmdPanel)
-        panel.add(savePanel)
-        panel.add(prefixPanel)
-//        panel.add(mPrefixLabel2)
-        panel.add(confirmPanel)
+        val panel = JPanel(BorderLayout())
+        panel.add(cmdPathPanel, BorderLayout.CENTER)
+        panel.add(confirmPanel, BorderLayout.SOUTH)
 
         contentPane.add(panel)
         pack()

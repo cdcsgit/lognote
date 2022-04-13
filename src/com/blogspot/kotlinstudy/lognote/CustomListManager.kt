@@ -162,25 +162,52 @@ abstract class CustomListManager (mainUI: MainUI, logPanel: LogPanel){
                 val element = value as CustomElement
                 titleLabel.text = element.mTitle
                 if (mFirstElement != null && mFirstElement!!.mTitle == element.mTitle) {
-                    titleLabel.foreground = Color.RED
+                    if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+                        titleLabel.foreground = Color(0xC05050)
+                    }
+                    else {
+                        titleLabel.foreground = Color(0x900000)
+                    }
                 } else if (element.mTableBar) {
                     titleLabel.text += " - TableBar"
-                    titleLabel.foreground = Color.MAGENTA
+                    if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+                        titleLabel.foreground = Color(0x50C050)
+                    }
+                    else {
+                        titleLabel.foreground = Color(0x009000)
+                    }
                 }
                 else {
-                    titleLabel.foreground = Color.BLUE
+                    if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+                        titleLabel.foreground = Color(0x7070E0)
+                    }
+                    else {
+                        titleLabel.foreground = Color(0x000090)
+                    }
                 }
                 valueTA.text = element.mValue
 
                 valueTA.updateUI()
 
                 if (isSelected) {
-                    titlePanel.background = Color.LIGHT_GRAY
-                    valueTA.background = Color.LIGHT_GRAY
+                    if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+                        titlePanel.background = Color(0x56595B)
+                        valueTA.background = Color(0x56595B)
+                    }
+                    else {
+                        titlePanel.background = Color.LIGHT_GRAY
+                        valueTA.background = Color.LIGHT_GRAY
+                    }
                 }
                 else {
-                    titlePanel.background = Color.WHITE
-                    valueTA.background = Color.WHITE
+                    if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+                        titlePanel.background = Color(0x46494B)
+                        valueTA.background = Color(0x46494B)
+                    }
+                    else {
+                        titlePanel.background = Color.WHITE
+                        valueTA.background = Color.WHITE
+                    }
                 }
                 return cellPanel
             }
@@ -190,7 +217,8 @@ abstract class CustomListManager (mainUI: MainUI, logPanel: LogPanel){
 
                 titlePanel = JPanel(BorderLayout())
                 titleLabel = JLabel("")
-                titleLabel.foreground = Color.BLUE
+                titleLabel.foreground = Color(0x000090)
+                titleLabel.font = titleLabel.font.deriveFont(titleLabel.font.style or Font.BOLD)
                 titlePanel.add(titleLabel, BorderLayout.NORTH)
                 cellPanel.add(titlePanel, BorderLayout.NORTH)
 
@@ -295,9 +323,8 @@ abstract class CustomListManager (mainUI: MainUI, logPanel: LogPanel){
                     }
                 }
 
-                if (customListArray.size > 0) {
-                    saveList(customListArray)
-                }
+                saveList(customListArray)
+
                 mLogPanel.updateTableBar(customListArray)
             } else if (e?.source == mCloseBtn) {
                 dispose()
@@ -329,7 +356,7 @@ abstract class CustomListManager (mainUI: MainUI, logPanel: LogPanel){
             private var mCancelBtn: ColorButton
 
             private var mTitleLabel: JLabel
-            private var mValueLable: JLabel
+            private var mValueLabel: JLabel
             private var mTableBarLabel: JLabel
 
             private var mTitleTF: JTextField
@@ -350,7 +377,9 @@ abstract class CustomListManager (mainUI: MainUI, logPanel: LogPanel){
                 mCancelBtn.addActionListener(this)
 
                 mTitleLabel = JLabel("Title")
-                mValueLable = JLabel("Value")
+                mTitleLabel.preferredSize = Dimension(50, 30)
+                mValueLabel = JLabel("Value")
+                mValueLabel.preferredSize = Dimension(50, 30)
                 mTableBarLabel = JLabel("Add TableBar")
 
                 mTitleTF = JTextField(title)
@@ -364,36 +393,48 @@ abstract class CustomListManager (mainUI: MainUI, logPanel: LogPanel){
                 mTableBarCheck.isSelected = tableBar
 
                 mTitleStatusLabel = JLabel("Good")
-                mTitleStatusLabel.foreground = Color.BLUE
-                mTitleStatusLabel.border = BorderFactory.createLineBorder(Color.DARK_GRAY)
-                mTitleStatusLabel.preferredSize =  Dimension(200, 30)
                 mValueStatusLabel = JLabel("Good")
-                mValueStatusLabel.foreground = Color.BLUE
-                mValueStatusLabel.border = BorderFactory.createLineBorder(Color.DARK_GRAY)
-                mValueStatusLabel.preferredSize =  Dimension(200, 30)
 
-                val titlePanel = JPanel()
-                titlePanel.add(mTitleLabel)
-                titlePanel.add(mTitleTF)
-                titlePanel.add(mTitleStatusLabel)
+                val titleStatusPanel = JPanel(FlowLayout(FlowLayout.CENTER))
+                titleStatusPanel.border = BorderFactory.createLineBorder(Color.LIGHT_GRAY)
+                titleStatusPanel.add(mTitleStatusLabel)
+                titleStatusPanel.preferredSize = Dimension(200, 30)
 
-                val valuePanel = JPanel()
-                valuePanel.add(mValueLable)
-                valuePanel.add(mValueTF)
-                valuePanel.add(mValueStatusLabel)
+                val valueStatusPanel = JPanel(FlowLayout(FlowLayout.CENTER))
+                valueStatusPanel.border = BorderFactory.createLineBorder(Color.LIGHT_GRAY)
+                valueStatusPanel.add(mValueStatusLabel)
+                valueStatusPanel.preferredSize = Dimension(200, 30)
+
+
+                val panel1 = JPanel(GridLayout(2, 1, 0, 2))
+                panel1.add(mTitleLabel)
+                panel1.add(mValueLabel)
+
+                val panel2 = JPanel(GridLayout(2, 1, 0, 2))
+                panel2.add(mTitleTF)
+                panel2.add(mValueTF)
+
+                val panel3 = JPanel(GridLayout(2, 1, 0, 2))
+                panel3.add(titleStatusPanel)
+                panel3.add(valueStatusPanel)
+
+                val titleValuePanel = JPanel()
+                titleValuePanel.add(panel1)
+                titleValuePanel.add(panel2)
+                titleValuePanel.add(panel3)
 
                 val tableBarPanel = JPanel()
                 tableBarPanel.add(mTableBarLabel)
                 tableBarPanel.add(mTableBarCheck)
 
                 val confirmPanel = JPanel()
-                confirmPanel.preferredSize = Dimension(400, 30)
+                confirmPanel.preferredSize = Dimension(400, 40)
                 confirmPanel.add(mOkBtn)
                 confirmPanel.add(mCancelBtn)
 
-                val panel = JPanel(GridLayout(4, 1))
-                panel.add(titlePanel)
-                panel.add(valuePanel)
+                val panel = JPanel()
+                panel.layout = BoxLayout(panel, BoxLayout.Y_AXIS)
+                panel.add(titleValuePanel)
                 panel.add(tableBarPanel)
                 panel.add(confirmPanel)
 
@@ -402,25 +443,50 @@ abstract class CustomListManager (mainUI: MainUI, logPanel: LogPanel){
 
                 var isValid = true
                 if (mTitleTF.text.trim().isEmpty()) {
-                    mTitleStatusLabel.foreground = Color.RED
                     mTitleStatusLabel.text = "Empty"
                     isValid = false
                 }
                 else if (mFirstElement != null && mFirstElement!!.mTitle == mTitleTF.text.trim()) {
-                    mTitleStatusLabel.foreground = Color.RED
                     mTitleStatusLabel.text = "Not allow : ${mFirstElement!!.mTitle}"
                     isValid = false
                 }
                 else if (cmd == CMD_COPY) {
-                    mTitleStatusLabel.foreground = Color.RED
                     mTitleStatusLabel.text = "Copy : duplicated"
                     isValid = false
                 }
 
+                if (isValid) {
+                    if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+                        mTitleStatusLabel.foreground = Color(0x7070C0)
+                    } else {
+                        mTitleStatusLabel.foreground = Color.BLUE
+                    }
+                }
+                else {
+                    if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+                        mTitleStatusLabel.foreground = Color(0xC07070)
+                    }
+                    else {
+                        mTitleStatusLabel.foreground = Color.RED
+                    }
+                }
+
                 if (mValueTF.text.trim().isEmpty()) {
-                    mValueStatusLabel.foreground = Color.RED
+                    if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+                        mValueStatusLabel.foreground = Color(0xC07070)
+                    }
+                    else {
+                        mValueStatusLabel.foreground = Color.RED
+                    }
                     mValueStatusLabel.text = "Empty"
                     isValid = false
+                }
+                else {
+                    if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+                        mValueStatusLabel.foreground = Color(0x7070C0)
+                    } else {
+                        mValueStatusLabel.foreground = Color.BLUE
+                    }
                 }
 
                 mOkBtn.isEnabled = isValid
@@ -453,12 +519,10 @@ abstract class CustomListManager (mainUI: MainUI, logPanel: LogPanel){
                     var isValid = true
                     val title = mTitleTF.text.trim()
                     if (title.isEmpty()) {
-                        mTitleStatusLabel.foreground = Color.RED
                         mTitleStatusLabel.text = "Empty"
                         isValid = false
                     }
                     else if (mFirstElement != null && mFirstElement!!.mTitle == title) {
-                        mTitleStatusLabel.foreground = Color.RED
                         mTitleStatusLabel.text = "Not allow : ${mFirstElement!!.mTitle}"
                         isValid = false
                     }
@@ -466,7 +530,6 @@ abstract class CustomListManager (mainUI: MainUI, logPanel: LogPanel){
                         for (item in mModel.elements()) {
                             if (item.mTitle == title) {
                                 if (mCmd != CMD_EDIT || (mCmd == CMD_EDIT && mPrevTitle != title)) {
-                                    mTitleStatusLabel.foreground = Color.RED
                                     mTitleStatusLabel.text = "Duplicated"
                                     isValid = false
                                 }
@@ -476,8 +539,21 @@ abstract class CustomListManager (mainUI: MainUI, logPanel: LogPanel){
                     }
 
                     if (isValid) {
-                        mTitleStatusLabel.foreground = Color.BLUE
+                        if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+                            mTitleStatusLabel.foreground = Color(0x7070C0)
+                        }
+                        else {
+                            mTitleStatusLabel.foreground = Color.BLUE
+                        }
                         mTitleStatusLabel.text = "Good"
+                    }
+                    else {
+                        if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+                            mTitleStatusLabel.foreground = Color(0xC07070)
+                        }
+                        else {
+                            mTitleStatusLabel.foreground = Color.RED
+                        }
                     }
 
                     mOkBtn.isEnabled = mTitleStatusLabel.text == "Good" && mValueStatusLabel.text == "Good"
@@ -501,14 +577,26 @@ abstract class CustomListManager (mainUI: MainUI, logPanel: LogPanel){
 
                     val value = mValueTF.text.trim()
                     if (value.isEmpty()) {
-                        mValueStatusLabel.foreground = Color.RED
                         mValueStatusLabel.text = "Empty"
                         isValid = false
                     }
 
                     if (isValid) {
-                        mValueStatusLabel.foreground = Color.BLUE
+                        if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+                            mValueStatusLabel.foreground = Color(0x7070C0)
+                        }
+                        else {
+                            mValueStatusLabel.foreground = Color.BLUE
+                        }
                         mValueStatusLabel.text = "Good"
+                    }
+                    else {
+                        if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+                            mValueStatusLabel.foreground = Color(0xC07070)
+                        }
+                        else {
+                            mValueStatusLabel.foreground = Color.RED
+                        }
                     }
 
                     mOkBtn.isEnabled = mTitleStatusLabel.text == "Good" && mValueStatusLabel.text == "Good"

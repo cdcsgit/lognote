@@ -12,6 +12,7 @@ import java.time.format.DateTimeFormatter
 import javax.swing.*
 import javax.swing.event.PopupMenuEvent
 import javax.swing.event.PopupMenuListener
+import javax.swing.plaf.ColorUIResource
 import javax.swing.plaf.basic.BasicScrollBarUI
 import javax.swing.text.JTextComponent
 import kotlin.system.exitProcess
@@ -543,6 +544,12 @@ class MainUI(title: String) : JFrame() {
         }
 
         setLaF(laf)
+        if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
+            UIManager.put("ScrollBar.thumb", ColorUIResource(Color(0xE0, 0xE0, 0xE0)))
+            UIManager.put("ScrollBar.thumbHighlight", ColorUIResource(Color(0xE5, 0xE5, 0xE5)))
+            UIManager.put("ScrollBar.thumbShadow", ColorUIResource(Color(0xE5, 0xE5, 0xE5)))
+            UIManager.put("ComboBox.buttonDarkShadow", ColorUIResource(Color.black))
+        }
 
         addMouseListener(mFrameMouseListener)
         addMouseMotionListener(mFrameMouseListener)
@@ -1170,7 +1177,7 @@ class MainUI(title: String) : JFrame() {
                 }
             }
         }
-        SwingUtilities.updateComponentTreeUI(this);
+        SwingUtilities.updateComponentTreeUI(this)
     }
 
     private fun addVSeparator(panel:JPanel) {
@@ -1674,14 +1681,14 @@ class MainUI(title: String) : JFrame() {
     fun setDeviceComboColor(isConnected: Boolean) {
         if (isConnected) {
             if (ConfigManager.LaF == FLAT_DARK_LAF) {
-                mDeviceCombo.editor.editorComponent.foreground = Color(0x70, 0x70, 0xC0)
+                mDeviceCombo.editor.editorComponent.foreground = Color(0x7070C0)
             }
             else {
                 mDeviceCombo.editor.editorComponent.foreground = Color.BLUE
             }
         } else {
             if (ConfigManager.LaF == FLAT_DARK_LAF) {
-                mDeviceCombo.editor.editorComponent.foreground = Color(0xC0, 0x70, 0x70)
+                mDeviceCombo.editor.editorComponent.foreground = Color(0xC07070)
             }
             else {
                 mDeviceCombo.editor.editorComponent.foreground = Color.RED

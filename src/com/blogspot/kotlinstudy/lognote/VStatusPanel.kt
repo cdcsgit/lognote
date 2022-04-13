@@ -20,15 +20,24 @@ class VStatusPanel(logTable: LogTable) : JPanel() {
     }
     init {
         preferredSize = Dimension(VIEW_RECT_WIDTH, VIEW_RECT_HEIGHT)
-        background = Color.WHITE
+        if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+            background = Color(0x46494B)
+        }
+        else {
+            background = Color.WHITE
+        }
         border = BorderFactory.createLineBorder(Color.DARK_GRAY)
         addMouseListener(MouseHandler())
     }
 
     override fun paintComponent(g: Graphics?) {
         super.paintComponent(g)
-//        g?.color = mBookmarkManager.mBackground
-        g?.color = Color(0x00, 0x00, 0x00)
+        if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+            g?.color = Color(0xFFFFFF)
+        }
+        else {
+            g?.color = Color(0x000000)
+        }
         for (row in 0 until mLogTable.rowCount) {
             val num = mLogTable.getValueAt(row, 0).toString().trim().toInt()
             if (mBookmarkManager.mBookmarks.contains(num)) {
@@ -39,7 +48,12 @@ class VStatusPanel(logTable: LogTable) : JPanel() {
         val visibleY:Long = (mLogTable.visibleRect.y).toLong()
         val totalHeight:Long = (mLogTable.rowHeight * mLogTable.rowCount).toLong()
         if (mLogTable.rowCount != 0 && height != 0) {
-            g?.color = Color(0xA0, 0xA0, 0xA0, 0x50)
+            if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+                g?.color = Color(0xC0, 0xC0, 0xC0, 0x50)
+            }
+            else {
+                g?.color = Color(0xA0, 0xA0, 0xA0, 0x50)
+            }
             var viewHeight = mLogTable.visibleRect.height * height / totalHeight
             if (viewHeight < VIEW_RECT_HEIGHT) {
                 viewHeight = VIEW_RECT_HEIGHT.toLong()

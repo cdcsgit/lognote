@@ -181,14 +181,14 @@ class FilterComboBox(mode: Mode) : JComboBox<String>() {
         override fun insertUpdate(e: DocumentEvent?) {
             if (mEnabledTfTooltip && !isPopupVisible) {
                 updateTooltip()
-                ToolTipManager.sharedInstance().mouseMoved(MouseEvent(mEditorComponent, 0, 0, 0, 0, preferredSize.height / 3, 0, false))
+//                ToolTipManager.sharedInstance().mouseMoved(MouseEvent(mEditorComponent, 0, 0, 0, 0, preferredSize.height / 3, 0, false))
             }
         }
 
         override fun removeUpdate(e: DocumentEvent?) {
             if (mEnabledTfTooltip && !isPopupVisible) {
                 updateTooltip()
-                ToolTipManager.sharedInstance().mouseMoved(MouseEvent(mEditorComponent, 0, 0, 0, 0, preferredSize.height / 3, 0, false))
+//                ToolTipManager.sharedInstance().mouseMoved(MouseEvent(mEditorComponent, 0, 0, 0, 0, preferredSize.height / 3, 0, false))
             }
         }
 

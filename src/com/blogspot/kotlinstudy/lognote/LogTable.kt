@@ -304,23 +304,32 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
 
     private fun showSelected() {
         val log = StringBuilder("")
-        var value:String
-        var startIdx = selectedRow - 2
-        if (startIdx < 0) {
-            startIdx = 0
-        }
-        var endIdx = selectedRow + 3
-        if (endIdx > rowCount) {
-            endIdx = rowCount
-        }
-
         var caretPos = 0
-        for (idx in startIdx until endIdx) {
-            if (idx == selectedRow) {
-                caretPos = log.length
+        var value:String
+
+        if (selectedRowCount > 1) {
+            for (row in selectedRows) {
+                value = mTableModel.getValueAt(row, 1).toString() + "\n"
+                log.append(value)
             }
-            value = mTableModel.getValueAt(idx, 1).toString() + "\n"
-            log.append(value)
+        }
+        else {
+            var startIdx = selectedRow - 2
+            if (startIdx < 0) {
+                startIdx = 0
+            }
+            var endIdx = selectedRow + 3
+            if (endIdx > rowCount) {
+                endIdx = rowCount
+            }
+
+            for (idx in startIdx until endIdx) {
+                if (idx == selectedRow) {
+                    caretPos = log.length
+                }
+                value = mTableModel.getValueAt(idx, 1).toString() + "\n"
+                log.append(value)
+            }
         }
 
         val frame = SwingUtilities.windowForComponent(this@LogTable) as JFrame

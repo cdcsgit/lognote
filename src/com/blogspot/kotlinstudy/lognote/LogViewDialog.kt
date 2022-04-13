@@ -1,6 +1,7 @@
 package com.blogspot.kotlinstudy.lognote
 
 import java.awt.Color
+import java.awt.Dimension
 import java.awt.event.*
 import javax.swing.*
 
@@ -8,6 +9,7 @@ import javax.swing.*
 class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent, "Log", false) {
 
     val mTextArea = JTextArea()
+    private val mScrollPane = JScrollPane(mTextArea)
     private val mMainUI = parent as MainUI
     private val mPopupMenu = PopUpLogViewDialog()
 
@@ -16,7 +18,9 @@ class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent
         mTextArea.isEditable = false
         mTextArea.caret.isVisible = true
         mTextArea.lineWrap = true
-        mTextArea.background = Color(0xFF, 0xFA, 0xE3)
+        if (ConfigManager.LaF != MainUI.FLAT_DARK_LAF) {
+            mTextArea.background = Color(0xFF, 0xFA, 0xE3)
+        }
         mTextArea.font = mMainUI.mFont
 
         mTextArea.addKeyListener(KeyHandler())
@@ -31,7 +35,13 @@ class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent
         mTextArea.setSize(width, 100)
         mTextArea.border = BorderFactory.createEmptyBorder(7, 7, 7, 7)
 
-        contentPane.add(mTextArea)
+        var height = parent.height - 100
+        if (height > mTextArea.preferredSize.height) {
+            height = mTextArea.preferredSize.height + 2
+        }
+        mScrollPane.preferredSize = Dimension(width, height)
+
+        contentPane.add(mScrollPane)
         pack()
 
         Utils.installKeyStrokeEscClosing(this)
