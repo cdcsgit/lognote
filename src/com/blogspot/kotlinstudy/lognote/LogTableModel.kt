@@ -1033,6 +1033,7 @@ class LogTableModel() : AbstractTableModel() {
 
     private var mScanThread:Thread? = null
     private var mFileWriter:FileWriter? = null
+    private var mIsPause = false
     fun startScan() {
         sIsLogcatLog = true
         if (mLogFile == null) {
@@ -1103,35 +1104,40 @@ class LogTableModel() : AbstractTableModel() {
                         }
                     }
 
-                    while (line != null) {
-                        if (currLogFile != mLogFile) {
-                            try {
-                                mFileWriter?.flush()
-                            } catch(e:IOException) {
-                                e.printStackTrace()
+                    if (!mIsPause) {
+                        while (line != null) {
+                            if (currLogFile != mLogFile) {
+                                try {
+                                    mFileWriter?.flush()
+                                } catch(e:IOException) {
+                                    e.printStackTrace()
+                                }
+                                mFileWriter?.close()
+                                mFileWriter = null
+                                currLogFile = mLogFile
+                                saveNum = 0
                             }
-                            mFileWriter?.close()
-                            mFileWriter = null
-                            currLogFile = mLogFile
-                            saveNum = 0
-                        }
 
-                        if (mFileWriter == null) {
-                            mFileWriter = FileWriter(mLogFile)
-                        }
-                        mFileWriter?.write(line + "\n")
-                        saveNum++
+                            if (mFileWriter == null) {
+                                mFileWriter = FileWriter(mLogFile)
+                            }
+                            mFileWriter?.write(line + "\n")
+                            saveNum++
 
-                        if (mScrollbackSplitFile && mScrollback > 0 && saveNum >= mScrollback) {
-                            mMainUI?.setSaveLogFile()
-                            println("Change save file : ${mLogFile?.absolutePath}")
-                        }
+                            if (mScrollbackSplitFile && mScrollback > 0 && saveNum >= mScrollback) {
+                                mMainUI?.setSaveLogFile()
+                                println("Change save file : ${mLogFile?.absolutePath}")
+                            }
 
-                        logLines.add(line)
-                        line = bufferedReader.readLine()
-                        if (System.currentTimeMillis() > nextUpdateTime) {
-                            break
+                            logLines.add(line)
+                            line = bufferedReader.readLine()
+                            if (System.currentTimeMillis() > nextUpdateTime) {
+                                break
+                            }
                         }
+                    }
+                    else {
+                        Thread.sleep(1000)
                     }
 
                     synchronized(this) {
@@ -1265,5 +1271,10 @@ class LogTableModel() : AbstractTableModel() {
             mFileWriter = null
         }
         return
+    }
+
+    fun pauseScan(pause:Boolean) {
+        println("Pause adb scan $pause")
+        mIsPause = pause
     }
 }

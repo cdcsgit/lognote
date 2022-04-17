@@ -73,7 +73,7 @@ class MainUI(title: String) : JFrame() {
     private lateinit var mStartBtn: ColorButton
     private lateinit var mRetryAdbToggle: ColorToggleButton
     private lateinit var mStopBtn: ColorButton
-    private lateinit var mPauseBtn: ColorButton
+    private lateinit var mPauseToggle: ColorToggleButton
     private lateinit var mClearBtn: ColorButton
     private lateinit var mSaveBtn: ColorButton
     private lateinit var mRotationBtn: ColorButton
@@ -601,15 +601,18 @@ class MainUI(title: String) : JFrame() {
         mRetryAdbToggle.toolTipText = TooltipStrings.RETRY_ADB_TOGGLE
         mRetryAdbToggle.margin = Insets(mRetryAdbToggle.margin.top, 0, mRetryAdbToggle.margin.bottom, 0)
         mRetryAdbToggle.addItemListener(mItemHandler)
+
+        mPauseToggle = ColorToggleButton(Strings.PAUSE)
+//        mPauseToggle.toolTipText = TooltipStrings.BOLD_TOGGLE
+        mPauseToggle.margin = Insets(mPauseToggle.margin.top, 0, mPauseToggle.margin.bottom, 0)
+        mPauseToggle.addItemListener(mItemHandler)
+
+
         mStopBtn = ColorButton(Strings.STOP)
         mStopBtn.margin = btnMargin
         mStopBtn.toolTipText = TooltipStrings.STOP_BTN
         mStopBtn.addActionListener(mActionHandler)
         mStopBtn.addMouseListener(mMouseHandler)
-        mPauseBtn = ColorButton(Strings.PAUSE)
-        mPauseBtn.margin = btnMargin
-        mPauseBtn.addActionListener(mActionHandler)
-        mPauseBtn.addMouseListener(mMouseHandler)
         mClearBtn = ColorButton(Strings.CLEAR)
         mClearBtn.margin = btnMargin
         mClearBtn.toolTipText = TooltipStrings.CLEAR_BTN
@@ -851,6 +854,7 @@ class MainUI(title: String) : JFrame() {
         mLogToolBar.add(mStartBtn)
         mLogToolBar.add(mRetryAdbToggle)
         addVSeparator2(mLogToolBar)
+        mLogToolBar.add(mPauseToggle)
         mLogToolBar.add(mStopBtn)
         mLogToolBar.add(mClearBtn)
         mLogToolBar.add(mSaveBtn)
@@ -1339,6 +1343,7 @@ class MainUI(title: String) : JFrame() {
 
     fun startAdbScan(reconnect: Boolean) {
         mFilteredTableModel.stopScan()
+        mPauseToggle.isSelected = false
         setSaveLogFile()
         if (reconnect) {
             mAdbManager.mTargetDevice = mDeviceCombo.selectedItem!!.toString()
@@ -1356,6 +1361,10 @@ class MainUI(title: String) : JFrame() {
         mAdbManager.stop()
         mAdbManager.mTargetDevice = mDeviceCombo.selectedItem!!.toString()
         mAdbManager.startLogcat()
+    }
+
+    fun pauseAdbScan(pause: Boolean) {
+        mFilteredTableModel.pauseScan(pause)
     }
 
     internal inner class ActionHandler : ActionListener {
@@ -1875,6 +1884,14 @@ class MainUI(title: String) : JFrame() {
                 }
                 mRetryAdbToggle -> {
                     mConfigManager.saveItem(ConfigManager.ITEM_RETRY_ADB, mRetryAdbToggle.isSelected.toString())
+                }
+                mPauseToggle -> {
+                    if (mPauseToggle.isSelected) {
+                        pauseAdbScan(true)
+                    }
+                    else {
+                        pauseAdbScan(false)
+                    }
                 }
             }
         }
