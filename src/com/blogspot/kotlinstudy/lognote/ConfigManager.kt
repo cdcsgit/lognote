@@ -38,6 +38,7 @@ class ConfigManager private constructor() {
         const val ITEM_LOG_LEVEL = "LOG_LEVEL"
 
         const val ITEM_LOOK_AND_FEEL = "LOOK_AND_FEEL"
+        const val ITEM_UI_FONT_SIZE = "UI_FONT_SIZE"
 
         const val ITEM_ADB_DEVICE = "ADB_DEVICE"
         const val ITEM_ADB_CMD = "ADB_CMD"

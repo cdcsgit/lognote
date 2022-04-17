@@ -9,12 +9,15 @@ import java.awt.event.*
 import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.*
 import javax.swing.*
 import javax.swing.event.PopupMenuEvent
 import javax.swing.event.PopupMenuListener
 import javax.swing.plaf.ColorUIResource
+import javax.swing.plaf.FontUIResource
 import javax.swing.plaf.basic.BasicScrollBarUI
 import javax.swing.text.JTextComponent
+import kotlin.math.roundToInt
 import kotlin.system.exitProcess
 
 
@@ -58,8 +61,7 @@ class MainUI(title: String) : JFrame() {
     private lateinit var mItemFilterStyle: JMenuItem
     private lateinit var mMenuLogLevel: JMenu
     private lateinit var mLogLevelGroup: ButtonGroup
-    private lateinit var mMenuLaF: JMenu
-    private lateinit var mLaFGroup: ButtonGroup
+    private lateinit var mItemLaF: JMenuItem
     private lateinit var mMenuHelp: JMenu
     private lateinit var mItemHelp: JMenuItem
     private lateinit var mItemAbout: JMenuItem
@@ -80,7 +82,8 @@ class MainUI(title: String) : JFrame() {
 
     private lateinit var mLogPanel: JPanel
     private lateinit var mShowLogPanel: JPanel
-    private lateinit var mMatchCaseBtn: ColorToggleButton
+    private lateinit var mMatchCaseToggle: ColorToggleButton
+    private lateinit var mMatchCaseTogglePanel: JPanel
     private lateinit var mShowLogCombo: FilterComboBox
     var mShowLogComboStyle: FilterComboBox.Mode
     private lateinit var mShowLogToggle: ColorToggleButton
@@ -140,7 +143,6 @@ class MainUI(title: String) : JFrame() {
     private val mKeyHandler = KeyHandler()
     private val mItemHandler = ItemHandler()
     private val mLevelItemHandler = LevelItemHandler()
-    private val mLaFItemHandler = LaFItemHandler()
     private val mActionHandler = ActionHandler()
     private val mPopupMenuHandler = PopupMenuHandler()
     private val mMouseHandler = MouseHandler()
@@ -171,8 +173,34 @@ class MainUI(title: String) : JFrame() {
             }
         }
 
+    var mUIFontPercent = 100
+
     init {
         loadConfigOnCreate()
+
+        val laf = mConfigManager.getItem(ConfigManager.ITEM_LOOK_AND_FEEL)
+
+        if (laf == null) {
+            ConfigManager.LaF = FLAT_LIGHT_LAF
+        }
+        else {
+            ConfigManager.LaF = laf
+        }
+
+        val uiFontSize = mConfigManager.getItem(ConfigManager.ITEM_UI_FONT_SIZE)
+        if (!uiFontSize.isNullOrEmpty()) {
+            mUIFontPercent = uiFontSize.toInt()
+        }
+
+        if (ConfigManager.LaF == FLAT_LIGHT_LAF || ConfigManager.LaF == FLAT_DARK_LAF) {
+            System.setProperty("flatlaf.uiScale", "$mUIFontPercent%");
+        }
+        else {
+            initFontSize(mUIFontPercent)
+        }
+
+        setLaF(ConfigManager.LaF)
+
         val cmd = mConfigManager.getItem(ConfigManager.ITEM_ADB_CMD)
         if (!cmd.isNullOrEmpty()) {
             mAdbManager.mAdbCmd = cmd
@@ -486,32 +514,9 @@ class MainUI(title: String) : JFrame() {
 
         mMenuSettings.addSeparator()
 
-        mMenuLaF = JMenu(Strings.LOOK_AND_FEEL)
-        mMenuLaF.addActionListener(mActionHandler)
-        mMenuSettings.add(mMenuLaF)
-
-        mLaFGroup = ButtonGroup()
-
-        var lafItem = JRadioButtonMenuItem(CROSS_PLATFORM_LAF)
-        mLaFGroup.add(lafItem)
-        mMenuLaF.add(lafItem)
-        lafItem.addItemListener(mLaFItemHandler)
-
-        lafItem = JRadioButtonMenuItem(SYSTEM_LAF)
-        mLaFGroup.add(lafItem)
-        mMenuLaF.add(lafItem)
-        lafItem.addItemListener(mLaFItemHandler)
-
-        lafItem = JRadioButtonMenuItem(FLAT_LIGHT_LAF)
-        mLaFGroup.add(lafItem)
-        mMenuLaF.add(lafItem)
-        lafItem.isSelected = true
-        lafItem.addItemListener(mLaFItemHandler)
-
-        lafItem = JRadioButtonMenuItem(FLAT_DARK_LAF)
-        mLaFGroup.add(lafItem)
-        mMenuLaF.add(lafItem)
-        lafItem.addItemListener(mLaFItemHandler)
+        mItemLaF = JMenuItem(Strings.LOOK_AND_FEEL)
+        mItemLaF.addActionListener(mActionHandler)
+        mMenuSettings.add(mItemLaF)
 
         mMenuBar.add(mMenuSettings)
 
@@ -531,19 +536,6 @@ class MainUI(title: String) : JFrame() {
 
         jMenuBar = mMenuBar
 
-        var laf = mConfigManager.getItem(ConfigManager.ITEM_LOOK_AND_FEEL)
-
-        if (laf == null) {
-            laf = FLAT_LIGHT_LAF
-        }
-        for (item in mLaFGroup.elements) {
-            if (laf == item.text) {
-                item.isSelected = true
-                break
-            }
-        }
-
-        setLaF(laf)
         if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
             UIManager.put("ScrollBar.thumb", ColorUIResource(Color(0xE0, 0xE0, 0xE0)))
             UIManager.put("ScrollBar.thumbHighlight", ColorUIResource(Color(0xE5, 0xE5, 0xE5)))
@@ -593,13 +585,15 @@ class MainUI(title: String) : JFrame() {
         mFilterPanel = JPanel()
         mFilterLeftPanel = JPanel()
 
-        mLogToolBar = JPanel(FlowLayout(FlowLayout.LEFT, 0, 0))
+        mLogToolBar = JPanel(FlowLayout(FlowLayout.LEFT, 2, 0))
         mLogToolBar.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
         mLogToolBar.addMouseListener(mMouseHandler)
 
+        val btnMargin = Insets(2, 5, 2, 5)
 //        mLogToolBar = JPanel()
 //        mLogToolBar.background = Color(0xE5, 0xE5, 0xE5)
         mStartBtn = ColorButton(Strings.START)
+        mStartBtn.margin = btnMargin
         mStartBtn.toolTipText = TooltipStrings.START_BTN
         mStartBtn.addActionListener(mActionHandler)
         mStartBtn.addMouseListener(mMouseHandler)
@@ -608,29 +602,36 @@ class MainUI(title: String) : JFrame() {
         mRetryAdbToggle.margin = Insets(mRetryAdbToggle.margin.top, 0, mRetryAdbToggle.margin.bottom, 0)
         mRetryAdbToggle.addItemListener(mItemHandler)
         mStopBtn = ColorButton(Strings.STOP)
+        mStopBtn.margin = btnMargin
         mStopBtn.toolTipText = TooltipStrings.STOP_BTN
         mStopBtn.addActionListener(mActionHandler)
         mStopBtn.addMouseListener(mMouseHandler)
         mPauseBtn = ColorButton(Strings.PAUSE)
+        mPauseBtn.margin = btnMargin
         mPauseBtn.addActionListener(mActionHandler)
         mPauseBtn.addMouseListener(mMouseHandler)
         mClearBtn = ColorButton(Strings.CLEAR)
+        mClearBtn.margin = btnMargin
         mClearBtn.toolTipText = TooltipStrings.CLEAR_BTN
         mClearBtn.addActionListener(mActionHandler)
         mClearBtn.addMouseListener(mMouseHandler)
         mSaveBtn = ColorButton(Strings.SAVE)
+        mSaveBtn.margin = btnMargin
         mSaveBtn.toolTipText = TooltipStrings.SAVE_BTN
         mSaveBtn.addActionListener(mActionHandler)
         mSaveBtn.addMouseListener(mMouseHandler)
         mRotationBtn = ColorButton(Strings.ROTATION)
+        mRotationBtn.margin = btnMargin
         mRotationBtn.toolTipText = TooltipStrings.ROTATION_BTN
         mRotationBtn.addActionListener(mActionHandler)
         mRotationBtn.addMouseListener(mMouseHandler)
         mFiltersBtn = ColorButton(Strings.FILTERS)
+        mFiltersBtn.margin = btnMargin
         mFiltersBtn.toolTipText = TooltipStrings.FILTER_LIST_BTN
         mFiltersBtn.addActionListener(mActionHandler)
         mFiltersBtn.addMouseListener(mMouseHandler)
         mCmdsBtn = ColorButton(Strings.CMDS)
+        mCmdsBtn.margin = btnMargin
         mCmdsBtn.toolTipText = TooltipStrings.CMD_LIST_BTN
         mCmdsBtn.addActionListener(mActionHandler)
         mCmdsBtn.addMouseListener(mMouseHandler)
@@ -720,6 +721,7 @@ class MainUI(title: String) : JFrame() {
 
         mDeviceStatus = JLabel("None", JLabel.LEFT)
         mDeviceStatus.isEnabled = false
+        val deviceComboPanel = JPanel(BorderLayout())
         mDeviceCombo = ColorComboBox()
         mDeviceCombo.toolTipText = TooltipStrings.DEVICES_COMBO
         mDeviceCombo.isEditable = true
@@ -727,20 +729,28 @@ class MainUI(title: String) : JFrame() {
         mDeviceCombo.editor.editorComponent.addKeyListener(mKeyHandler)
         mDeviceCombo.addItemListener(mItemHandler)
         mDeviceCombo.editor.editorComponent.addMouseListener(mMouseHandler)
+        deviceComboPanel.add(mDeviceCombo, BorderLayout.CENTER)
         mAdbConnectBtn = ColorButton(Strings.CONNECT)
+        mAdbConnectBtn.margin = btnMargin
         mAdbConnectBtn.toolTipText = TooltipStrings.CONNECT_BTN
         mAdbConnectBtn.addActionListener(mActionHandler)
+        deviceComboPanel.add(mAdbConnectBtn, BorderLayout.EAST)
         mAdbRefreshBtn = ColorButton(Strings.REFRESH)
+        mAdbRefreshBtn.margin = btnMargin
         mAdbRefreshBtn.addActionListener(mActionHandler)
         mAdbRefreshBtn.toolTipText = TooltipStrings.REFRESH_BTN
         mAdbDisconnectBtn = ColorButton(Strings.DISCONNECT)
+        mAdbDisconnectBtn.margin = btnMargin
         mAdbDisconnectBtn.addActionListener(mActionHandler)
         mAdbDisconnectBtn.toolTipText = TooltipStrings.DISCONNECT_BTN
 
-        mMatchCaseBtn = ColorToggleButton("Aa")
-        mMatchCaseBtn.toolTipText = TooltipStrings.CASE_TOGGLE
-        mMatchCaseBtn.margin = Insets(0, 0, 0, 0)
-        mMatchCaseBtn.addItemListener(mItemHandler)
+        mMatchCaseToggle = ColorToggleButton("Aa")
+        mMatchCaseToggle.toolTipText = TooltipStrings.CASE_TOGGLE
+        mMatchCaseToggle.margin = Insets(0, 0, 0, 0)
+        mMatchCaseToggle.addItemListener(mItemHandler)
+        mMatchCaseTogglePanel = JPanel(GridLayout(1, 1))
+        mMatchCaseTogglePanel.add(mMatchCaseToggle)
+        mMatchCaseTogglePanel.border = BorderFactory.createEmptyBorder(3,3,3,3)
 
         mShowLogPanel.layout = BorderLayout()
         mShowLogPanel.add(mShowLogTogglePanel, BorderLayout.WEST)
@@ -785,7 +795,7 @@ class MainUI(title: String) : JFrame() {
         mShowTidPanel.add(mShowTidCombo, BorderLayout.CENTER)
 //        mTidPanel.add(mShowTidPanel)
 
-        mDeviceCombo.preferredSize = Dimension(200, 30)
+        mDeviceCombo.preferredSize = Dimension(200, mDeviceCombo.preferredSize.height)
         if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
             mDeviceCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 5)
         }
@@ -794,6 +804,7 @@ class MainUI(title: String) : JFrame() {
         mDeviceStatus.horizontalAlignment = JLabel.CENTER
 
         mScrollbackApplyBtn = ColorButton(Strings.APPLY)
+        mScrollbackApplyBtn.margin = btnMargin
         mScrollbackApplyBtn.toolTipText = TooltipStrings.SCROLLBACK_APPLY_BTN
         mScrollbackApplyBtn.addActionListener(mActionHandler)
         mScrollbackKeepToggle = ColorToggleButton(Strings.KEEP)
@@ -812,7 +823,7 @@ class MainUI(title: String) : JFrame() {
 
         mScrollbackTF = JTextField()
         mScrollbackTF.toolTipText = TooltipStrings.SCROLLBACK_TF
-        mScrollbackTF.preferredSize = Dimension(80, 25)
+        mScrollbackTF.preferredSize = Dimension(80, mScrollbackTF.preferredSize.height)
         mScrollbackTF.addKeyListener(mKeyHandler)
         mScrollbackSplitFileCheck = JCheckBox(Strings.SPLIT_FILE, false)
         mScrollbackSplitFileCheck.toolTipText = TooltipStrings.SCROLLBACK_SPLIT_CHK
@@ -823,7 +834,7 @@ class MainUI(title: String) : JFrame() {
         itemFilterPanel.add(mShowPidPanel)
         itemFilterPanel.add(mShowTidPanel)
         itemFilterPanel.add(mBoldLogPanel)
-        itemFilterPanel.add(mMatchCaseBtn)
+        itemFilterPanel.add(mMatchCaseTogglePanel)
 
         mLogPanel.layout = BorderLayout()
         mLogPanel.add(mShowLogPanel, BorderLayout.CENTER)
@@ -846,9 +857,7 @@ class MainUI(title: String) : JFrame() {
 
         addVSeparator(mLogToolBar)
 
-        mLogToolBar.add(mDeviceCombo)
-//        mLogToolBar.add(mDeviceStatus)
-        mLogToolBar.add(mAdbConnectBtn)
+        mLogToolBar.add(deviceComboPanel)
         mLogToolBar.add(mAdbRefreshBtn)
         mLogToolBar.add(mAdbDisconnectBtn)
 
@@ -1118,11 +1127,11 @@ class MainUI(title: String) : JFrame() {
 
         check = mConfigManager.getItem(ConfigManager.ITEM_MATCH_CASE)
         if (!check.isNullOrEmpty()) {
-            mMatchCaseBtn.isSelected = check.toBoolean()
+            mMatchCaseToggle.isSelected = check.toBoolean()
         } else {
-            mMatchCaseBtn.isSelected = false
+            mMatchCaseToggle.isSelected = false
         }
-        mFilteredTableModel.mMatchCase = mMatchCaseBtn.isSelected
+        mFilteredTableModel.mMatchCase = mMatchCaseToggle.isSelected
 
         check = mConfigManager.getItem(ConfigManager.ITEM_RETRY_ADB)
         if (!check.isNullOrEmpty()) {
@@ -1183,26 +1192,64 @@ class MainUI(title: String) : JFrame() {
     private fun addVSeparator(panel:JPanel) {
         val separator1 = JSeparator(SwingConstants.VERTICAL)
         separator1.preferredSize = Dimension(separator1.preferredSize.width, 20)
-        separator1.foreground = Color.DARK_GRAY
-        separator1.background = Color.DARK_GRAY
+        if (ConfigManager.LaF == FLAT_DARK_LAF) {
+            separator1.foreground = Color.GRAY
+            separator1.background = Color.GRAY
+        }
+        else {
+            separator1.foreground = Color.DARK_GRAY
+            separator1.background = Color.DARK_GRAY
+        }
         val separator2 = JSeparator(SwingConstants.VERTICAL)
         separator2.preferredSize = Dimension(separator2.preferredSize.width, 20)
-        separator2.background = Color.DARK_GRAY
-        separator2.foreground = Color.DARK_GRAY
+        if (ConfigManager.LaF == FLAT_DARK_LAF) {
+            separator2.foreground = Color.GRAY
+            separator2.background = Color.GRAY
+        }
+        else {
+            separator2.background = Color.DARK_GRAY
+            separator2.foreground = Color.DARK_GRAY
+        }
         panel.add(Box.createHorizontalStrut(5))
         panel.add(separator1)
-        panel.add(separator2)
+        if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
+            panel.add(separator2)
+        }
         panel.add(Box.createHorizontalStrut(5))
     }
 
     private fun addVSeparator2(panel:JPanel) {
         val separator1 = JSeparator(SwingConstants.VERTICAL)
         separator1.preferredSize = Dimension(separator1.preferredSize.width / 2, 20)
-        separator1.foreground = Color.DARK_GRAY
-        separator1.background = Color.DARK_GRAY
+        if (ConfigManager.LaF == FLAT_DARK_LAF) {
+            separator1.foreground = Color.GRAY
+            separator1.background = Color.GRAY
+        }
+        else {
+            separator1.foreground = Color.DARK_GRAY
+            separator1.background = Color.DARK_GRAY
+        }
         panel.add(Box.createHorizontalStrut(2))
         panel.add(separator1)
         panel.add(Box.createHorizontalStrut(2))
+    }
+
+    private fun initFontSize(fontSize: Int) {
+        val multiplier = fontSize / 100.0f
+        val defaults = UIManager.getDefaults()
+        val e: Enumeration<*> = defaults.keys()
+        while (e.hasMoreElements()) {
+            val key = e.nextElement()
+            val value = defaults[key]
+            if (value is Font) {
+                val newSize = (value.size * multiplier).roundToInt()
+                if (value is FontUIResource) {
+                    defaults[key] = FontUIResource(value.name, value.style, newSize)
+                } else {
+                    defaults[key] = Font(value.name, value.style, newSize)
+                }
+            }
+        }
     }
 
     fun windowedModeLogPanel(logPanel: LogPanel) {
@@ -1380,6 +1427,10 @@ class MainUI(title: String) : JFrame() {
                 val filterStyleDialog = FilterStyleDialog(this@MainUI)
                 filterStyleDialog.setLocationRelativeTo(this@MainUI)
                 filterStyleDialog.isVisible = true
+            } else if (p0?.source == mItemLaF) {
+                val laFDialog = LaFDialog(this@MainUI)
+                laFDialog.setLocationRelativeTo(this@MainUI)
+                laFDialog.isVisible = true
             } else if (p0?.source == mItemAbout) {
                 val aboutDialog = AboutDialog(this@MainUI)
                 aboutDialog.setLocationRelativeTo(this@MainUI)
@@ -1815,9 +1866,9 @@ class MainUI(title: String) : JFrame() {
                     }
                     mConfigManager.saveItem(ConfigManager.ITEM_SHOW_TID_CHECK, mShowTidToggle.isSelected.toString())
                 }
-                mMatchCaseBtn -> {
-                    mFilteredTableModel.mMatchCase = mMatchCaseBtn.isSelected
-                    mConfigManager.saveItem(ConfigManager.ITEM_MATCH_CASE, mMatchCaseBtn.isSelected.toString())
+                mMatchCaseToggle -> {
+                    mFilteredTableModel.mMatchCase = mMatchCaseToggle.isSelected
+                    mConfigManager.saveItem(ConfigManager.ITEM_MATCH_CASE, mMatchCaseToggle.isSelected.toString())
                 }
                 mScrollbackKeepToggle -> {
                     mFilteredTableModel.mScrollbackKeep = mScrollbackKeepToggle.isSelected
@@ -1841,14 +1892,6 @@ class MainUI(title: String) : JFrame() {
                 FATAL->mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_FATAL
             }
             mConfigManager.saveItem(ConfigManager.ITEM_LOG_LEVEL, item.text)
-        }
-    }
-
-    internal inner class LaFItemHandler : ItemListener {
-        override fun itemStateChanged(p0: ItemEvent?) {
-            val item = p0?.source as JRadioButtonMenuItem
-//            setLaF(item.text)
-            mConfigManager.saveItem(ConfigManager.ITEM_LOOK_AND_FEEL, item.text)
         }
     }
 

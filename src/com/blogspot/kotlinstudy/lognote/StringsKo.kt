@@ -46,7 +46,7 @@ class StringsKo private constructor() {
             , "분할 저장"
             , "색"
             , "필터s"
-            , "유지"
+            , "로그 유지"
             , "확인"
             , "취소"
             , "새로"

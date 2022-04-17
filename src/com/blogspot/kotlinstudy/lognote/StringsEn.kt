@@ -46,7 +46,7 @@ class StringsEn private constructor() {
             , "Split File"
             , "Color"
             , "Filters"
-            , "Keep"
+            , "Keep Log"
             , "OK"
             , "Cancel"
             , "New"

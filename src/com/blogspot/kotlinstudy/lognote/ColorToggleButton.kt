@@ -15,13 +15,11 @@ class ColorToggleButton(title:String) : JToggleButton(title){
     var mUnselectedBg: Color? = null
 
     init {
-        if (ConfigManager.LaF != MainUI.CROSS_PLATFORM_LAF) {
-            var imgIcon = ImageIcon(this.javaClass.getResource("/images/toggle_off.png"))
-            icon = imgIcon
+        var imgIcon = ImageIcon(this.javaClass.getResource("/images/toggle_off.png"))
+        icon = imgIcon
 
-            imgIcon = ImageIcon(this.javaClass.getResource("/images/toggle_on.png"))
-            selectedIcon = imgIcon
-        }
+        imgIcon = ImageIcon(this.javaClass.getResource("/images/toggle_on.png"))
+        selectedIcon = imgIcon
     }
 
     override fun paintComponent(g: Graphics) {
@@ -42,7 +40,6 @@ class ColorToggleButton(title:String) : JToggleButton(title){
 
         val thickness = 2
         if (isSelected || model.isPressed) {
-
             if (mSelectedBg != null) {
                 graphics2D.color = mSelectedBg
             } else {
@@ -59,12 +56,22 @@ class ColorToggleButton(title:String) : JToggleButton(title){
             } else {
                 graphics2D.color = Color(0xFF, 0xFF, 0xFF)
             }
-            graphics2D.drawString(
-                text,
-                (width - graphics2D.fontMetrics.stringWidth(text)) / 2,
-                (height + graphics2D.fontMetrics.ascent) / 2 - 2
-            )
 
+            if (selectedIcon != null) {
+                selectedIcon.paintIcon(this, g, margin.left + insets.left, (height - selectedIcon.iconHeight) / 2)
+                graphics2D.drawString(
+                    text,
+                    margin.left + insets.left + selectedIcon.iconWidth + 2,
+                    (height + graphics2D.fontMetrics.ascent) / 2 - 2
+                )
+            }
+            else {
+                graphics2D.drawString(
+                    text,
+                    (width - graphics2D.fontMetrics.stringWidth(text)) / 2,
+                    (height + graphics2D.fontMetrics.ascent) / 2 - 2
+                )
+            }
         } else {
             if (mUnselectedBg != null) {
                 graphics2D.color = mUnselectedBg
@@ -79,11 +86,22 @@ class ColorToggleButton(title:String) : JToggleButton(title){
             } else {
                 graphics2D.color = Color(0xBB, 0x84, 0x4C)
             }
-            graphics2D.drawString(
-                text,
-                (width - graphics2D.fontMetrics.stringWidth(text)) / 2,
-                (height + graphics2D.fontMetrics.ascent) / 2 - 2
-            )
+
+            if (icon != null) {
+                icon.paintIcon(this, g, margin.left + insets.left, (height - icon.iconHeight) / 2)
+                graphics2D.drawString(
+                    text,
+                    margin.left + insets.left + icon.iconWidth + 2,
+                    (height + graphics2D.fontMetrics.ascent) / 2 - 2
+                )
+            }
+            else {
+                graphics2D.drawString(
+                    text,
+                    (width - graphics2D.fontMetrics.stringWidth(text)) / 2,
+                    (height + graphics2D.fontMetrics.ascent) / 2 - 2
+                )
+            }
         }
     }
 }
