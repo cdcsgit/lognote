@@ -13,9 +13,9 @@ Aging Test : Save split file by lines
 <br/>
 
 # Run
-Windows : start javaw -Dfile.encoding=utf8 -Xmx4096m -jar LogNote.jar\
-Linux : java -Dfile.encoding=utf8 -Xmx4096m -jar LogNote.jar\
-Mac : java -Dfile.encoding=utf8 -Xmx4096m -jar LogNote.jar
+Windows : start javaw -Dfile.encoding=utf8 -Xmx1024m -jar LogNote.jar\
+Linux : java -Dfile.encoding=utf8 -Xmx2048m -jar LogNote.jar\
+Mac : java -Dfile.encoding=utf8 -Xmx2048m -jar LogNote.jar
 
 <br/>
 
@@ -27,7 +27,7 @@ Default current path
 
 # Adb setting
 Set the adb path(to view online log) \
-![Lognote_adb_setting.png](https://user-images.githubusercontent.com/75207513/162198088-90d0f2de-f811-44b6-bc36-d9ab230b461c.png)
+![lognote_adb_setting](https://user-images.githubusercontent.com/75207513/166401425-faaa46a9-da64-44df-bfd4-21733b694929.png)
 
 <br/>
 
