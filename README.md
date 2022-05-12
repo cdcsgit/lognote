@@ -42,6 +42,11 @@ Setting > Filter Style : set style, color
 
 Highlight color : Include text, Exclude text, Separator
 
+<br/>
+
+# Filter combobox size
+![lognote_filtercombo_disable](https://user-images.githubusercontent.com/75207513/167983195-848e7aba-123f-44c8-ba7a-944d9923a1a1.gif)
+
 
 <br/>
 
