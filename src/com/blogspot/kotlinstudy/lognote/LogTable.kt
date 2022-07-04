@@ -193,7 +193,7 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
 
             val newValue:String
             newValue = if (value != null) {
-                mTableModel.getPrintValue(value.toString(), row)
+                mTableModel.getPrintValue(value.toString(), row, isSelected)
             } else {
                 ""
             }

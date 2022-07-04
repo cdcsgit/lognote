@@ -2106,7 +2106,7 @@ class MainUI(title: String) : JFrame() {
         goToLine(mSelectedLine)
     }
 
-    fun updateUIAfterVisible() {
+    fun updateUIAfterVisible(args: Array<String>) {
         if (mShowLogCombo.selectedIndex >= 0 && (mShowLogComboStyle == FilterComboBox.Mode.MULTI_LINE || mShowLogComboStyle == FilterComboBox.Mode.MULTI_LINE_HIGHLIGHT)) {
             val selectedItem = mShowLogCombo.selectedItem
             mShowLogCombo.selectedItem = ""
@@ -2134,6 +2134,19 @@ class MainUI(title: String) : JFrame() {
         mShowTagCombo.mEnabledTfTooltip = true
         mShowPidCombo.mEnabledTfTooltip = true
         mShowTidCombo.mEnabledTfTooltip = true
+
+        var isFirst = true
+        for (fileName in args) {
+            val file = File(fileName)
+            if (file.isFile) {
+                if (isFirst) {
+                    openFile(file.absolutePath, false)
+                    isFirst = false
+                } else {
+                    openFile(file.absolutePath, true)
+                }
+            }
+        }
     }
 
     internal inner class StatusTextField(text: String?) : JTextField(text) {

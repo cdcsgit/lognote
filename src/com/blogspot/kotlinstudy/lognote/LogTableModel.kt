@@ -683,7 +683,7 @@ class LogTableModel() : AbstractTableModel() {
     }
 
     private var mPatternPrintValue:Pattern? = null
-    fun getPrintValue(value:String, row: Int) : String {
+    fun getPrintValue(value:String, row: Int, isSelected: Boolean) : String {
         val starts = Stack<Int>()
         val ends = Stack<Int>()
         var newValue = value
@@ -785,6 +785,10 @@ class LogTableModel() : AbstractTableModel() {
                                     }
                                 }
                             }
+                        }
+
+                        if (isSelected) {
+                            bgColor = mTableColor.StrSelectedBG
                         }
 
                         stringBuilder.replace(
