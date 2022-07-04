@@ -20,11 +20,11 @@ class VStatusPanel(logTable: LogTable) : JPanel() {
     }
     init {
         preferredSize = Dimension(VIEW_RECT_WIDTH, VIEW_RECT_HEIGHT)
-        if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
-            background = Color(0x46494B)
+        background = if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+            Color(0x46494B)
         }
         else {
-            background = Color.WHITE
+            Color.WHITE
         }
         border = BorderFactory.createLineBorder(Color.DARK_GRAY)
         addMouseListener(MouseHandler())

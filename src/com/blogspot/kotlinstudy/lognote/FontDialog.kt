@@ -201,7 +201,7 @@ class FontDialog (parent: MainUI) : JDialog(parent, Strings.FONT + " & " + Strin
 
         val sizeSchemePanel = JPanel()
         sizeSchemePanel.layout = BoxLayout(sizeSchemePanel, BoxLayout.Y_AXIS)
-        sizeSchemePanel.add(sizePanel);
+        sizeSchemePanel.add(sizePanel)
         sizeSchemePanel.add(schemePanel)
 
         val namePanel = JPanel()
@@ -346,7 +346,7 @@ class FontDialog (parent: MainUI) : JDialog(parent, Strings.FONT + " & " + Strin
     }
 
     class ColorLabel(type: ColorManager.TableColorType, idx: Int) :JLabel() {
-        val mType = type;
+        val mType = type
         val mIdx = idx
     }
 

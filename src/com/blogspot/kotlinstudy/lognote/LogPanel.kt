@@ -163,7 +163,7 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
             val button = TableBarButton(Strings.ADD_FILTER)
             button.toolTipText = TooltipStrings.ADD_FILTER_BTN
             button.margin = Insets(0, 3, 0, 3)
-            button.addActionListener(ActionListener { e: ActionEvent? ->
+            button.addActionListener(ActionListener {
                 val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
                 frame.mFiltersBtn.doClick()
             })
@@ -203,7 +203,7 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
             val button = TableBarButton(Strings.ADD_CMD)
             button.toolTipText = TooltipStrings.ADD_CMD_BTN
             button.margin = Insets(0, 3, 0, 3)
-            button.addActionListener(ActionListener { e: ActionEvent? ->
+            button.addActionListener(ActionListener {
                 val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
                 frame.mCmdsBtn.doClick()
             })
@@ -441,39 +441,48 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
 
     internal inner class ActionHandler : ActionListener {
         override fun actionPerformed(p0: ActionEvent?) {
-            if (p0?.source == mFirstBtn) {
-                goToFirst()
-            } else if (p0?.source == mLastBtn) {
-                goToLast()
-            } else if (p0?.source == mWindowedModeBtn) {
-                val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
-                frame.windowedModeLogPanel(this@LogPanel)
-            } else if (p0?.source == mTagBtn) {
-                val selected = mTagBtn.model.isSelected
-                mTable.mTableModel.mBoldTag = selected
-                mTable.repaint()
-            } else if (p0?.source == mPidBtn) {
-                val selected = mPidBtn.model.isSelected
-                mTable.mTableModel.mBoldPid = selected
-                mTable.repaint()
-            } else if (p0?.source == mTidBtn) {
-                val selected = mTidBtn.model.isSelected
-                mTable.mTableModel.mBoldTid = selected
-                mTable.repaint()
-            } else if (p0?.source == mBookmarksBtn) {
-                val selected = mBookmarksBtn.model.isSelected
-                if (selected) {
-                    mFullBtn.model.isSelected = false
+            when (p0?.source) {
+                mFirstBtn -> {
+                    goToFirst()
                 }
-                mTable.mTableModel.mBookmarkMode = selected
-                mTable.repaint()
-            } else if (p0?.source == mFullBtn) {
-                val selected = mFullBtn.model.isSelected
-                if (selected) {
-                    mBookmarksBtn.model.isSelected = false
+                mLastBtn -> {
+                    goToLast()
                 }
-                mTable.mTableModel.mFullMode = selected
-                mTable.repaint()
+                mWindowedModeBtn -> {
+                    val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
+                    frame.windowedModeLogPanel(this@LogPanel)
+                }
+                mTagBtn -> {
+                    val selected = mTagBtn.model.isSelected
+                    mTable.mTableModel.mBoldTag = selected
+                    mTable.repaint()
+                }
+                mPidBtn -> {
+                    val selected = mPidBtn.model.isSelected
+                    mTable.mTableModel.mBoldPid = selected
+                    mTable.repaint()
+                }
+                mTidBtn -> {
+                    val selected = mTidBtn.model.isSelected
+                    mTable.mTableModel.mBoldTid = selected
+                    mTable.repaint()
+                }
+                mBookmarksBtn -> {
+                    val selected = mBookmarksBtn.model.isSelected
+                    if (selected) {
+                        mFullBtn.model.isSelected = false
+                    }
+                    mTable.mTableModel.mBookmarkMode = selected
+                    mTable.repaint()
+                }
+                mFullBtn -> {
+                    val selected = mFullBtn.model.isSelected
+                    if (selected) {
+                        mBookmarksBtn.model.isSelected = false
+                    }
+                    mTable.mTableModel.mFullMode = selected
+                    mTable.repaint()
+                }
             }
         }
     }
@@ -629,21 +638,27 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
 
         internal inner class ActionHandler : ActionListener {
             override fun actionPerformed(p0: ActionEvent?) {
-                if (p0?.source == mReconnectItem) {
-                    val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
-                    frame.reconnectAdb()
-                } else if (p0?.source == mStartItem) {
-                    val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
-                    frame.startAdbLog()
-                } else if (p0?.source == mStopItem) {
-                    val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
-                    frame.stopAdbLog()
-                } else if (p0?.source == mClearItem) {
-                    val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
-                    frame.clearAdbLog()
-                } else if (p0?.source == mClearSaveItem) {
-                    val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
-                    frame.clearSaveAdbLog()
+                when (p0?.source) {
+                    mReconnectItem -> {
+                        val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
+                        frame.reconnectAdb()
+                    }
+                    mStartItem -> {
+                        val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
+                        frame.startAdbLog()
+                    }
+                    mStopItem -> {
+                        val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
+                        frame.stopAdbLog()
+                    }
+                    mClearItem -> {
+                        val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
+                        frame.clearAdbLog()
+                    }
+                    mClearSaveItem -> {
+                        val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
+                        frame.clearSaveAdbLog()
+                    }
                 }
             }
         }

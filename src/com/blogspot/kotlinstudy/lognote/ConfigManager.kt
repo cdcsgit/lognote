@@ -216,10 +216,10 @@ class ConfigManager private constructor() {
             }
 
             check = mProperties[ITEM_FILTERS_TABLEBAR + i] as? String
-            if (!check.isNullOrEmpty()) {
-                tableBar = check.toBoolean()
+            tableBar = if (!check.isNullOrEmpty()) {
+                check.toBoolean()
             } else {
-                tableBar = false
+                false
             }
             filters.add(CustomListManager.CustomElement(title, filter, tableBar))
         }
@@ -273,10 +273,10 @@ class ConfigManager private constructor() {
             }
 
             check = mProperties[ITEM_CMDS_TABLEBAR + i] as? String
-            if (!check.isNullOrEmpty()) {
-                tableBar = check.toBoolean()
+            tableBar = if (!check.isNullOrEmpty()) {
+                check.toBoolean()
             } else {
-                tableBar = false
+                false
             }
             cmds.add(CustomListManager.CustomElement(title, cmd, tableBar))
         }
@@ -313,12 +313,12 @@ class ConfigManager private constructor() {
     }
 
     private fun manageVersion() {
-        var confVer: String? = null
         loadConfig()
-        confVer = mProperties[ITEM_CONFIG_VERSION] as String?
+        var confVer = mProperties[ITEM_CONFIG_VERSION] as String?
         if (confVer == null) {
             updateConfigFromV0ToV1()
             confVer = mProperties[ITEM_CONFIG_VERSION] as String?
+            println("manageVersion : $confVer applied")
         }
 
 //        if (confVer != null && confVer == "1") {
@@ -333,15 +333,17 @@ class ConfigManager private constructor() {
         for (idx: Int in 0..22) {
             val item = mProperties["${ITEM_COLOR_MANAGER}$idx"] as String?
             if (item != null) {
-                if (idx == 2) {
-                    mProperties["${ITEM_COLOR_MANAGER}${ColorManager.TableColorType.FULL_LOG_TABLE}_${ColorManager.TableColorIdx.LOG_BG.value}"] = item
-                }
-                else if (idx == 3) {
-                    mProperties["${ITEM_COLOR_MANAGER}${ColorManager.TableColorType.FILTER_LOG_TABLE}_${ColorManager.TableColorIdx.LOG_BG.value}"] = item
-                }
-                else {
-                    mProperties["${ITEM_COLOR_MANAGER}${ColorManager.TableColorType.FULL_LOG_TABLE}_$idx"] = item
-                    mProperties["${ITEM_COLOR_MANAGER}${ColorManager.TableColorType.FILTER_LOG_TABLE}_$idx"] = item
+                when (idx) {
+                    2 -> {
+                        mProperties["${ITEM_COLOR_MANAGER}${ColorManager.TableColorType.FULL_LOG_TABLE}_${ColorManager.TableColorIdx.LOG_BG.value}"] = item
+                    }
+                    3 -> {
+                        mProperties["${ITEM_COLOR_MANAGER}${ColorManager.TableColorType.FILTER_LOG_TABLE}_${ColorManager.TableColorIdx.LOG_BG.value}"] = item
+                    }
+                    else -> {
+                        mProperties["${ITEM_COLOR_MANAGER}${ColorManager.TableColorType.FULL_LOG_TABLE}_$idx"] = item
+                        mProperties["${ITEM_COLOR_MANAGER}${ColorManager.TableColorType.FILTER_LOG_TABLE}_$idx"] = item
+                    }
                 }
 
                 mProperties.remove("${ITEM_COLOR_MANAGER}$idx")

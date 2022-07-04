@@ -28,7 +28,7 @@ class FilterComboBox(mode: Mode) : JComboBox<String>() {
         }
     }
 
-    var mEditorComponent: JTextComponent
+    private var mEditorComponent: JTextComponent
     var mEnabledTfTooltip = false
     private val mMode = mode
 

@@ -5,10 +5,10 @@ class TooltipStrings private constructor() {
         private var currStrings = TooltipStringsEn.STRINGS
         var lang = Strings.EN
             set(value) {
-                if (value == Strings.KO) {
-                    currStrings = TooltipStringsKo.STRINGS
+                currStrings = if (value == Strings.KO) {
+                    TooltipStringsKo.STRINGS
                 } else {
-                    currStrings = TooltipStringsEn.STRINGS
+                    TooltipStringsEn.STRINGS
                 }
                 field = value
             }

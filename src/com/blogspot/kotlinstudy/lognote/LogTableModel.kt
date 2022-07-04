@@ -42,7 +42,7 @@ class LogTableModel() : AbstractTableModel() {
     private val mAdbManager = AdbManager.getInstance()
     private val mBookmarkManager = BookmarkManager.getInstance()
 
-    val mEventListeners = ArrayList<LogTableModelListener>()
+    private val mEventListeners = ArrayList<LogTableModelListener>()
 
     private val COLUMN_NUM = 0
     private val COLUMN_LOGLINE = 1
@@ -224,10 +224,10 @@ class LogTableModel() : AbstractTableModel() {
     var mMatchCase: Boolean = false
         set(value) {
             if (field != value) {
-                if (value == false) {
-                    mPatternCase = Pattern.CASE_INSENSITIVE
+                mPatternCase = if (!value) {
+                    Pattern.CASE_INSENSITIVE
                 } else {
-                    mPatternCase = 0
+                    0
                 }
 
                 mPatternShowLog = Pattern.compile(mFilterShowLog, mPatternCase)
@@ -320,15 +320,12 @@ class LogTableModel() : AbstractTableModel() {
         mBaseModel = baseModel
         loadItems(false)
 
-        if (isFullDataModel()) {
-            mTableColor = ColorManager.getInstance().mFullTableColor
+        mTableColor = if (isFullDataModel()) {
+            ColorManager.getInstance().mFullTableColor
         }
         else {
-            mTableColor = ColorManager.getInstance().mFilterTableColor
+            ColorManager.getInstance().mFilterTableColor
         }
-    }
-
-    init {
     }
 
 //    override fun isCellEditable(rowIndex: Int, columnIndex: Int): Boolean {
@@ -828,7 +825,7 @@ class LogTableModel() : AbstractTableModel() {
                     filterS = highlightE
                 }
 
-                if (boldS < highlightE && boldE > highlightE) {
+                if (highlightE in (boldS + 1) until boldE) {
                     boldS = highlightE
                 }
                 starts.push(highlightS)
@@ -893,14 +890,16 @@ class LogTableModel() : AbstractTableModel() {
                 starts.push(boldS)
                 ends.push(boldE)
 
-                if (boldS in boldStartTag until boldEndTag) {
-                    types.push(TYPE_BOLD_TAG)
-                }
-                else if (boldS in boldStartPid until boldEndPid) {
-                    types.push(TYPE_BOLD_PID)
-                }
-                else if (boldS in boldStartTid until boldEndTid) {
-                    types.push(TYPE_BOLD_TID)
+                when (boldS) {
+                    in boldStartTag until boldEndTag -> {
+                        types.push(TYPE_BOLD_TAG)
+                    }
+                    in boldStartPid until boldEndPid -> {
+                        types.push(TYPE_BOLD_PID)
+                    }
+                    in boldStartTid until boldEndTid -> {
+                        types.push(TYPE_BOLD_TID)
+                    }
                 }
 
                 if (boldS < boldSNext) {
@@ -1150,11 +1149,10 @@ class LogTableModel() : AbstractTableModel() {
                             var isFound = false
                             if (normalShowLog.isNotEmpty()) {
                                 var logLine = ""
-                                if (mPatternCase == Pattern.CASE_INSENSITIVE) {
-                                    logLine = item.mLogLine.uppercase()
-                                }
-                                else {
-                                    logLine = item.mLogLine
+                                logLine = if (mPatternCase == Pattern.CASE_INSENSITIVE) {
+                                    item.mLogLine.uppercase()
+                                } else {
+                                    item.mLogLine
                                 }
                                 for (sp in normalShowLogSplit) {
                                     if (logLine.contains(sp)) {
@@ -1242,7 +1240,7 @@ class LogTableModel() : AbstractTableModel() {
             makePattenPrintValue()
 
             var currLogFile: File? = mLogFile
-            var bufferedReader = BufferedReader(InputStreamReader(mAdbManager.mProcessLogcat?.inputStream))
+            var bufferedReader = BufferedReader(InputStreamReader(mAdbManager.mProcessLogcat!!.inputStream))
             var line: String?
             var num = 0
             var saveNum = 0
@@ -1252,16 +1250,10 @@ class LogTableModel() : AbstractTableModel() {
             var tid:String
 
             var isShow: Boolean
-            var nextItemCount = 0
-            var nextBaseItemCount = 0
             var nextUpdateTime:Long = 0
-            var nextBaseUpdateTime:Long = 0
 
             var removedCount = 0
             var baseRemovedCount = 0
-
-            var nextCount = 200
-            var nextBaseCount = 500
 
             var item:LogItem
             val logLines:MutableList<String> = mutableListOf()
@@ -1331,11 +1323,10 @@ class LogTableModel() : AbstractTableModel() {
                                 pid = textSplited[PID_INDEX]
                                 tid = textSplited[TID_INDEX]
                             } else {
-                                if (tempLine.startsWith("LogNote")) {
-                                    level = LEVEL_ERROR
-                                }
-                                else {
-                                    level = LEVEL_VERBOSE
+                                level = if (tempLine.startsWith("LogNote")) {
+                                    LEVEL_ERROR
+                                } else {
+                                    LEVEL_VERBOSE
                                 }
                                 tag = ""
                                 pid = ""

@@ -111,7 +111,7 @@ class AdbSettingsDialog(parent: JFrame) :JDialog(parent, "ADB " + Strings.SETTIN
         } else if (e?.source == mOkBtn) {
             mAdbManager.mAdbCmd = mAdbCmdTF.text
             mAdbManager.mLogSavePath = mAdbSaveTF.text
-            var prefix = mPrefixTF.text.trim()
+            val prefix = mPrefixTF.text.trim()
 
             mPrefixLabel2 = JLabel("Default : LogNote, Do not use \\ / : * ? \" < > |")
             if (prefix.contains('\\')

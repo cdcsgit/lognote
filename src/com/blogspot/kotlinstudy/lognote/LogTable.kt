@@ -41,12 +41,12 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
 
         addMouseListener(MouseHandler())
         addKeyListener(TableKeyHandler())
-        
-        if (mTableModel.isFullDataModel()) {
-            mTableColor = ColorManager.getInstance().mFullTableColor
+
+        mTableColor = if (mTableModel.isFullDataModel()) {
+            ColorManager.getInstance().mFullTableColor
         }
         else {
-            mTableColor = ColorManager.getInstance().mFilterTableColor
+            ColorManager.getInstance().mFilterTableColor
         }
     }
 
@@ -178,9 +178,6 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
     }
 
     internal inner class LogCellRenderer : DefaultTableCellRenderer() {
-        init {
-
-        }
         override fun getTableCellRendererComponent(
             table: JTable?,
             value: Any?,
@@ -191,8 +188,7 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         ): Component {
 //            println("LogCellRenderer getTableCellRendererComponent $isSelected, $hasFocus, $row, $col, ${isRowSelected(row)}")
 
-            val newValue:String
-            newValue = if (value != null) {
+            val newValue:String = if (value != null) {
                 mTableModel.getPrintValue(value.toString(), row, isSelected)
             } else {
                 ""

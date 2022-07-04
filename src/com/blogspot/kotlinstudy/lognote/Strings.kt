@@ -7,10 +7,10 @@ class Strings private constructor() {
         private var currStrings = StringsEn.STRINGS
         var lang = EN
             set(value) {
-                if (value == KO) {
-                    currStrings = StringsKo.STRINGS
+                currStrings = if (value == KO) {
+                    StringsKo.STRINGS
                 } else {
-                    currStrings = StringsEn.STRINGS
+                    StringsEn.STRINGS
                 }
                 field = value
                 TooltipStrings.lang = value

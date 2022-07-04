@@ -22,7 +22,7 @@ class BookmarkManager private constructor(){
     }
 
     val mBookmarks = ArrayList<Int>()
-    val mEventListeners = ArrayList<BookmarkEventListener>()
+    private val mEventListeners = ArrayList<BookmarkEventListener>()
 
     fun addBookmarkEventListener(listener:BookmarkEventListener) {
         mEventListeners.add(listener)

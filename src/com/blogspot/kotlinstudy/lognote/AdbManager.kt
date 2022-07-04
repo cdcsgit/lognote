@@ -13,7 +13,7 @@ class AdbManager private constructor(){
     var mLogSavePath:String = "."
     var mTargetDevice: String = ""
     var mDevices = ArrayList<String>()
-    val mEventListeners = ArrayList<AdbEventListener>()
+    private val mEventListeners = ArrayList<AdbEventListener>()
 
     companion object {
         const val EVENT_NONE = 0
@@ -229,6 +229,7 @@ class AdbManager private constructor(){
                     listener.processFinished(process)
                 }
             } catch (e: InterruptedException) {
+                e.printStackTrace()
             }
         }
 

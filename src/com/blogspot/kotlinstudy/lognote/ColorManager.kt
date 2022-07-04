@@ -136,7 +136,7 @@ class ColorManager private constructor(){
     )
 
     inner class TableColor(type: TableColorType) {
-        val mType = type
+        private val mType = type
 
         var StrFilteredFG = "#000000"
             set(value) {

@@ -193,7 +193,7 @@ class MainUI(title: String) : JFrame() {
         }
 
         if (ConfigManager.LaF == FLAT_LIGHT_LAF || ConfigManager.LaF == FLAT_DARK_LAF) {
-            System.setProperty("flatlaf.uiScale", "$mUIFontPercent%");
+            System.setProperty("flatlaf.uiScale", "$mUIFontPercent%")
         }
         else {
             initFontSize(mUIFontPercent)
@@ -262,43 +262,43 @@ class MainUI(title: String) : JFrame() {
         }
 
         prop = mConfigManager.getItem(ConfigManager.ITEM_SHOW_LOG_STYLE)
-        if (!prop.isNullOrEmpty()) {
-            mShowLogComboStyle = FilterComboBox.Mode.fromInt(prop.toInt())
+        mShowLogComboStyle = if (!prop.isNullOrEmpty()) {
+            FilterComboBox.Mode.fromInt(prop.toInt())
         }
         else {
-            mShowLogComboStyle = FilterComboBox.Mode.MULTI_LINE_HIGHLIGHT
+            FilterComboBox.Mode.MULTI_LINE_HIGHLIGHT
         }
 
         prop = mConfigManager.getItem(ConfigManager.ITEM_BOLD_LOG_STYLE)
-        if (!prop.isNullOrEmpty()) {
-            mBoldLogComboStyle = FilterComboBox.Mode.fromInt(prop.toInt())
+        mBoldLogComboStyle = if (!prop.isNullOrEmpty()) {
+            FilterComboBox.Mode.fromInt(prop.toInt())
         }
         else {
-            mBoldLogComboStyle = FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT
+            FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT
         }
 
         prop = mConfigManager.getItem(ConfigManager.ITEM_SHOW_TAG_STYLE)
-        if (!prop.isNullOrEmpty()) {
-            mShowTagComboStyle = FilterComboBox.Mode.fromInt(prop.toInt())
+        mShowTagComboStyle = if (!prop.isNullOrEmpty()) {
+            FilterComboBox.Mode.fromInt(prop.toInt())
         }
         else {
-            mShowTagComboStyle = FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT
+            FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT
         }
 
         prop = mConfigManager.getItem(ConfigManager.ITEM_SHOW_PID_STYLE)
-        if (!prop.isNullOrEmpty()) {
-            mShowPidComboStyle = FilterComboBox.Mode.fromInt(prop.toInt())
+        mShowPidComboStyle = if (!prop.isNullOrEmpty()) {
+            FilterComboBox.Mode.fromInt(prop.toInt())
         }
         else {
-            mShowPidComboStyle = FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT
+            FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT
         }
 
         prop = mConfigManager.getItem(ConfigManager.ITEM_SHOW_TID_STYLE)
-        if (!prop.isNullOrEmpty()) {
-            mShowTidComboStyle = FilterComboBox.Mode.fromInt(prop.toInt())
+        mShowTidComboStyle = if (!prop.isNullOrEmpty()) {
+            FilterComboBox.Mode.fromInt(prop.toInt())
         }
         else {
-            mShowTidComboStyle = FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT
+            FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT
         }
 
         createUI(title)
@@ -555,34 +555,32 @@ class MainUI(title: String) : JFrame() {
             }
         })
 
-        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(object : KeyEventDispatcher {
-            override fun dispatchKeyEvent(p0: KeyEvent?): Boolean {
-                if (p0?.keyCode == KeyEvent.VK_PAGE_DOWN && (p0.modifiers and KeyEvent.CTRL_MASK) != 0) {
-                    mFilteredLogPanel.goToLast()
-                    mFullLogPanel.goToLast()
-                } else if (p0?.keyCode == KeyEvent.VK_PAGE_UP && (p0.modifiers and KeyEvent.CTRL_MASK) != 0) {
-                    mFilteredLogPanel.goToFirst()
-                    mFullLogPanel.goToFirst()
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher { p0 ->
+            if (p0?.keyCode == KeyEvent.VK_PAGE_DOWN && (p0.modifiers and KeyEvent.CTRL_MASK) != 0) {
+                mFilteredLogPanel.goToLast()
+                mFullLogPanel.goToLast()
+            } else if (p0?.keyCode == KeyEvent.VK_PAGE_UP && (p0.modifiers and KeyEvent.CTRL_MASK) != 0) {
+                mFilteredLogPanel.goToFirst()
+                mFullLogPanel.goToFirst()
 //                } else if (p0?.keyCode == KeyEvent.VK_N && (p0.modifiers and KeyEvent.CTRL_MASK) != 0) {
 
-                } else if (p0?.keyCode == KeyEvent.VK_L && (p0.modifiers and KeyEvent.CTRL_MASK) != 0) {
-                    mDeviceCombo.requestFocus()
-                } else if (p0?.keyCode == KeyEvent.VK_R && (p0.modifiers and KeyEvent.CTRL_MASK) != 0) {
-                    reconnectAdb()
-                } else if (p0?.keyCode == KeyEvent.VK_G && (p0.modifiers and KeyEvent.CTRL_MASK) != 0) {
-                    val goToDialog = GoToDialog(this@MainUI)
-                    goToDialog.setLocationRelativeTo(this@MainUI)
-                    goToDialog.isVisible = true
-                    if (goToDialog.line != -1) {
-                        goToLine(goToDialog.line)
-                    } else {
-                        println("Cancel Goto Line")
-                    }
+            } else if (p0?.keyCode == KeyEvent.VK_L && (p0.modifiers and KeyEvent.CTRL_MASK) != 0) {
+                mDeviceCombo.requestFocus()
+            } else if (p0?.keyCode == KeyEvent.VK_R && (p0.modifiers and KeyEvent.CTRL_MASK) != 0) {
+                reconnectAdb()
+            } else if (p0?.keyCode == KeyEvent.VK_G && (p0.modifiers and KeyEvent.CTRL_MASK) != 0) {
+                val goToDialog = GoToDialog(this@MainUI)
+                goToDialog.setLocationRelativeTo(this@MainUI)
+                goToDialog.isVisible = true
+                if (goToDialog.line != -1) {
+                    goToLine(goToDialog.line)
+                } else {
+                    println("Cancel Goto Line")
                 }
-
-                return false
             }
-        })
+
+            false
+        }
 
         mFilterPanel = JPanel()
         mFilterLeftPanel = JPanel()
@@ -1330,7 +1328,7 @@ class MainUI(title: String) : JFrame() {
             mAdbManager.mPrefix = mAdbManager.DEFAULT_PREFIX
         }
 
-        var filePath = "${mAdbManager.mLogSavePath}/${mAdbManager.mPrefix}_${device}_${dtf.format(LocalDateTime.now())}.txt"
+        val filePath = "${mAdbManager.mLogSavePath}/${mAdbManager.mPrefix}_${device}_${dtf.format(LocalDateTime.now())}.txt"
         var file = File(filePath)
         var idx = 1
         var filePathSaved = filePath
