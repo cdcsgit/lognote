@@ -80,6 +80,58 @@ class ColorManager private constructor(){
         }
     }
 
+    var mColorSchemeLight = arrayOf(
+            "#FF0000",
+            "#E0E0E0",
+            "#FFFAFA",
+            "#FFFAFA",
+            "#D0D0D0",
+            "#E0E0FF",
+            "#000000",
+            "#000000",
+            "#209000",
+            "#0080DF",
+            "#F07000",
+            "#D00000",
+            "#700000",
+            "#0000FF",
+            "#0000FF",
+            "#0000FF",
+            "#0000FF",
+            "#333333",
+            "#FFFFFF",
+            "#D0D0DF",
+            "#C0C0CF",
+            "#E0E0EF",
+            "#C0C0C0"
+    )
+
+    var mColorSchemeDark = arrayOf(
+            "#00CC00",
+            "#3A3D41",
+            "#151515",
+            "#151515",
+            "#151515",
+            "#501010",
+            "#F0F0F0",
+            "#F0F0F0",
+            "#6C9876",
+            "#5084C4",
+            "#CB8742",
+            "#CD6C79",
+            "#ED3030",
+            "#FFFFCC",
+            "#FFCCFF",
+            "#CCFFFF",
+            "#CCCC00",
+            "#F0F0F0",
+            "#A0A0A0",
+            "#503030",
+            "#503030",
+            "#301010",
+            "#3A3D41"
+    )
+
     inner class TableColor(type: TableColorType) {
         val mType = type
 
@@ -270,7 +322,7 @@ class ColorManager private constructor(){
         var mColorArray = arrayOf(
                 ColorItem(0, "Filtered FG", "#FF0000"),
                 ColorItem(13, "Selected BG", "#E0E0E0"),
-                ColorItem(14, "Filtered BG", "#FAFAFF"),
+                ColorItem(14, "Filtered BG", "#FFFAFA"),
                 ColorItem(15, "Log BG", "#FFFAFA"),
                 ColorItem(16, "LineNum BG", "#D0D0D0"),
                 ColorItem(17, "Bookmark BG", "#E0E0FF"),

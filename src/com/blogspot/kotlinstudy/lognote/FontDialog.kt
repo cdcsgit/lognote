@@ -172,15 +172,42 @@ class FontDialog (parent: MainUI) : JDialog(parent, Strings.FONT + " & " + Strin
         updateLabelColor(ColorManager.TableColorType.FULL_LOG_TABLE)
         updateLabelColor(ColorManager.TableColorType.FILTER_LOG_TABLE)
 
+
         val sizePanel = JPanel()
         sizePanel.add(mSizeLabel)
         sizePanel.add(mSizeSpinner)
         sizePanel.add(mExampleLabel)
 
+        val schemePanel = JPanel()
+        val schemeLabel = JLabel("Built-in schemes : ")
+        val radioLight = JRadioButton("Light")
+        val radioDark = JRadioButton("Dark")
+        val buttonGroup = ButtonGroup()
+        val schemeBtn = JButton(Strings.APPLY)
+
+        schemeBtn.addActionListener(ActionListener { if (radioLight.isSelected) {
+            applyColorScheme(ColorManager.getInstance().mColorSchemeLight)
+        } else if (radioDark.isSelected) {
+            applyColorScheme(ColorManager.getInstance().mColorSchemeDark)
+        }
+        })
+        
+        buttonGroup.add(radioLight)
+        buttonGroup.add(radioDark)
+        schemePanel.add(schemeLabel)
+        schemePanel.add(radioLight)
+        schemePanel.add(radioDark)
+        schemePanel.add(schemeBtn)
+
+        val sizeSchemePanel = JPanel()
+        sizeSchemePanel.layout = BoxLayout(sizeSchemePanel, BoxLayout.Y_AXIS)
+        sizeSchemePanel.add(sizePanel);
+        sizeSchemePanel.add(schemePanel)
+
         val namePanel = JPanel()
         namePanel.layout = GridLayout(1, 2, 3, 3)
         namePanel.add(mNameScrollPane)
-        namePanel.add(sizePanel)
+        namePanel.add(sizeSchemePanel)
 
         val confirmPanel = JPanel(FlowLayout(FlowLayout.RIGHT))
         confirmPanel.preferredSize = Dimension(300, 40)
@@ -218,6 +245,39 @@ class FontDialog (parent: MainUI) : JDialog(parent, Strings.FONT + " & " + Strin
 
         pack()
         Utils.installKeyStrokeEscClosing(this)
+    }
+
+    private fun applyColorScheme(type: ColorManager.TableColorType, scheme: Array<String>) {
+        val colorLabelArray = if (type == ColorManager.TableColorType.FULL_LOG_TABLE) {
+            mFullColorLabelArray
+        } else {
+            mFilterColorLabelArray
+        }
+
+        val tableColor = if (type == ColorManager.TableColorType.FULL_LOG_TABLE) {
+            mFullTableColor
+        } else {
+            mFilterTableColor
+        }
+        
+        for (idx in colorLabelArray.indices) {
+            tableColor.mColorArray[idx].mStrColor = scheme[idx]
+            colorLabelArray[idx]!!.text = " ${mFullTableColor.mColorArray[idx].mName} ${scheme[idx]} "
+
+            if (colorLabelArray[idx]!!.text.contains("BG")) {
+                colorLabelArray[idx]!!.background = Color.decode(scheme[idx])
+            } else {
+                colorLabelArray[idx]!!.foreground = Color.decode(scheme[idx])
+            }
+            tableColor.applyColor()
+            updateLabelColor(type)
+        }
+    }
+
+    private fun applyColorScheme(scheme: Array<String>) {
+        applyColorScheme(ColorManager.TableColorType.FULL_LOG_TABLE, scheme)
+        applyColorScheme(ColorManager.TableColorType.FILTER_LOG_TABLE, scheme)
+        setFont()
     }
 
     fun updateLabelColor(type: ColorManager.TableColorType) {
