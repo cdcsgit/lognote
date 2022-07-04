@@ -1040,7 +1040,14 @@ class LogTableModel() : AbstractTableModel() {
             return
         }
 
-        mScanThread?.interrupt()
+        if (SwingUtilities.isEventDispatchThread()) {
+            mScanThread?.interrupt()
+        }
+        else {
+            SwingUtilities.invokeAndWait {
+                mScanThread?.interrupt()
+            }
+        }
 
         mGoToLast = true
         mBaseModel?.mGoToLast = true
@@ -1258,7 +1265,14 @@ class LogTableModel() : AbstractTableModel() {
     }
 
     fun stopScan(){
-        mScanThread?.interrupt()
+        if (SwingUtilities.isEventDispatchThread()) {
+            mScanThread?.interrupt()
+        }
+        else {
+            SwingUtilities.invokeAndWait {
+                mScanThread?.interrupt()
+            }
+        }
         mScanThread = null
         if (mFileWriter != null) {
             try {

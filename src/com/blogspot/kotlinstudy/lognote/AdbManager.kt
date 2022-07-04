@@ -1,6 +1,8 @@
 package com.blogspot.kotlinstudy.lognote
 
+import java.io.BufferedReader
 import java.io.IOException
+import java.io.InputStreamReader
 import java.util.*
 
 
@@ -53,6 +55,19 @@ class AdbManager private constructor(){
     fun stop() {
         println("Stop all processes")
         mProcessLogcat?.destroy()
+        try {
+            val reader = BufferedReader(InputStreamReader(mProcessLogcat?.inputStream))
+            var line: String?
+            line = reader.readLine()
+            while (line != null) {
+                println("Stopping $line")
+                line = reader.readLine()
+                // do nothing, clear process stream
+            }
+        } catch(e:Exception) {
+            println("stop $e")
+        }
+
         mProcessLogcat = null
         mCurrentExecuter?.interrupt()
         mCurrentExecuter = null
@@ -204,11 +219,11 @@ class AdbManager private constructor(){
     }
 
     class ProcessExitDetector(process: Process) : Thread() {
-        var process: Process? = null
+        var process: Process
         private val listeners: MutableList<ProcessListener> = ArrayList<ProcessListener>()
         override fun run() {
             try {
-                process!!.waitFor()
+                process.waitFor()
                 for (listener in listeners) {
                     listener.processFinished(process)
                 }
