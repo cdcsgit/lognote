@@ -21,18 +21,24 @@ class FontDialog (parent: MainUI) : JDialog(parent, Strings.FONT + " & " + Strin
     private var mCancelBtn: ColorButton
     private var mParent = parent
     private val mPrevFont = mParent.mFont
+    
     private val mColorManager = ColorManager.getInstance()
-    private val mTitleLabelArray = arrayOfNulls<ColorLabel>(mColorManager.mColorArray.size)
-    private val mColorLabelArray = arrayOfNulls<ColorLabel>(mColorManager.mColorArray.size)
+    private val mFullTableColor = mColorManager.mFullTableColor
+    private val mFilterTableColor = mColorManager.mFilterTableColor
+    
+    private val mTitleLabelArray = arrayOfNulls<ColorLabel>(mFullTableColor.mColorArray.size)
+    private val mFullColorLabelArray = arrayOfNulls<ColorLabel>(mFullTableColor.mColorArray.size)
+    private val mFullPrevColorArray = arrayOfNulls<String>(mFullTableColor.mColorArray.size)
+    private val mFilterColorLabelArray = arrayOfNulls<ColorLabel>(mFilterTableColor.mColorArray.size)
+    private val mFilterPrevColorArray = arrayOfNulls<String>(mFilterTableColor.mColorArray.size)
     private val mMouseHandler = MouseHandler()
-    private val mPrevColorArray = arrayOfNulls<String>(mColorManager.mColorArray.size)
     private var mIsNeedRestore = true
 
     init {
         mNameList = JList(GraphicsEnvironment.getLocalGraphicsEnvironment().availableFontFamilyNames)
         mNameList.selectionMode = SINGLE_SELECTION
         mNameScrollPane = JScrollPane(mNameList)
-        mNameScrollPane.preferredSize = Dimension(550, 200)
+        mNameScrollPane.preferredSize = Dimension(400, 150)
         mNameList.setSelectedValue(parent.mFont.family, true)
         mNameScrollPane.verticalScrollBar.ui = BasicScrollBarUI()
         mNameScrollPane.horizontalScrollBar.ui = BasicScrollBarUI()
@@ -52,38 +58,60 @@ class FontDialog (parent: MainUI) : JDialog(parent, Strings.FONT + " & " + Strin
         mExampleLabel.border = BorderFactory.createLineBorder(Color(0x50, 0x50, 0x50))
         mExampleLabel.preferredSize = Dimension(250, 30)
 
-        val colorLabelPanel = JPanel()
-        colorLabelPanel.layout = BoxLayout(colorLabelPanel, BoxLayout.Y_AXIS)
+        val fullColorLabelPanel = JPanel()
+        fullColorLabelPanel.layout = BoxLayout(fullColorLabelPanel, BoxLayout.Y_AXIS)
+
+        val filterColorLabelPanel = JPanel()
+        filterColorLabelPanel.layout = BoxLayout(filterColorLabelPanel, BoxLayout.Y_AXIS)
 
         val titleLabelPanel = JPanel()
         titleLabelPanel.layout = BoxLayout(titleLabelPanel, BoxLayout.Y_AXIS)
 
-        for (idx in mColorLabelArray.indices) {
-            mPrevColorArray[idx] = mColorManager.mColorArray[idx].mStrColor
-            mColorLabelArray[idx] = ColorLabel(idx)
-            mColorLabelArray[idx]!!.text = " ${mColorManager.mColorArray[idx].mName} ${mColorManager.mColorArray[idx].mStrColor} "
-            mColorLabelArray[idx]!!.toolTipText = mColorLabelArray[idx]!!.text
-            mColorLabelArray[idx]!!.isOpaque = true
-            if (mColorManager.mColorArray[idx].mName.contains("BG")) {
-                mColorLabelArray[idx]!!.horizontalAlignment = JLabel.RIGHT
+        for (idx in mTitleLabelArray.indices) {
+            mFullPrevColorArray[idx] = mFullTableColor.mColorArray[idx].mStrColor
+            mFullColorLabelArray[idx] = ColorLabel(ColorManager.TableColorType.FULL_LOG_TABLE, idx)
+            mFullColorLabelArray[idx]!!.text = " ${mFullTableColor.mColorArray[idx].mName} ${mFullTableColor.mColorArray[idx].mStrColor} "
+            mFullColorLabelArray[idx]!!.toolTipText = mFullColorLabelArray[idx]!!.text
+            mFullColorLabelArray[idx]!!.isOpaque = true
+            if (mFullTableColor.mColorArray[idx].mName.contains("BG")) {
+                mFullColorLabelArray[idx]!!.horizontalAlignment = JLabel.RIGHT
             }
             else {
-                mColorLabelArray[idx]!!.horizontalAlignment = JLabel.LEFT
+                mFullColorLabelArray[idx]!!.horizontalAlignment = JLabel.LEFT
             }
 
-            mColorLabelArray[idx]!!.verticalAlignment = JLabel.CENTER
-            mColorLabelArray[idx]!!.border = BorderFactory.createLineBorder(Color.BLACK)
-            mColorLabelArray[idx]!!.minimumSize = Dimension(330, 20)
-            mColorLabelArray[idx]!!.preferredSize = Dimension(330, 20)
-            mColorLabelArray[idx]!!.maximumSize = Dimension(330, 20)
-            mColorLabelArray[idx]!!.addMouseListener(mMouseHandler)
+            mFullColorLabelArray[idx]!!.verticalAlignment = JLabel.CENTER
+            mFullColorLabelArray[idx]!!.border = BorderFactory.createLineBorder(Color.BLACK)
+            mFullColorLabelArray[idx]!!.minimumSize = Dimension(330, 20)
+            mFullColorLabelArray[idx]!!.preferredSize = Dimension(330, 20)
+            mFullColorLabelArray[idx]!!.maximumSize = Dimension(330, 20)
+            mFullColorLabelArray[idx]!!.addMouseListener(mMouseHandler)
 
-            mTitleLabelArray[idx] = ColorLabel(idx)
-            mTitleLabelArray[idx]!!.text = " ${mColorManager.mColorArray[idx].mName}"
-            mTitleLabelArray[idx]!!.toolTipText = mColorLabelArray[idx]!!.text
+            mFilterPrevColorArray[idx] = mFilterTableColor.mColorArray[idx].mStrColor
+            mFilterColorLabelArray[idx] = ColorLabel(ColorManager.TableColorType.FILTER_LOG_TABLE, idx)
+            mFilterColorLabelArray[idx]!!.text = " ${mFilterTableColor.mColorArray[idx].mName} ${mFilterTableColor.mColorArray[idx].mStrColor} "
+            mFilterColorLabelArray[idx]!!.toolTipText = mFilterColorLabelArray[idx]!!.text
+            mFilterColorLabelArray[idx]!!.isOpaque = true
+            if (mFilterTableColor.mColorArray[idx].mName.contains("BG")) {
+                mFilterColorLabelArray[idx]!!.horizontalAlignment = JLabel.RIGHT
+            }
+            else {
+                mFilterColorLabelArray[idx]!!.horizontalAlignment = JLabel.LEFT
+            }
+
+            mFilterColorLabelArray[idx]!!.verticalAlignment = JLabel.CENTER
+            mFilterColorLabelArray[idx]!!.border = BorderFactory.createLineBorder(Color.BLACK)
+            mFilterColorLabelArray[idx]!!.minimumSize = Dimension(330, 20)
+            mFilterColorLabelArray[idx]!!.preferredSize = Dimension(330, 20)
+            mFilterColorLabelArray[idx]!!.maximumSize = Dimension(330, 20)
+            mFilterColorLabelArray[idx]!!.addMouseListener(mMouseHandler)
+            
+            mTitleLabelArray[idx] = ColorLabel(ColorManager.TableColorType.FULL_LOG_TABLE, idx)
+            mTitleLabelArray[idx]!!.text = " ${mFullTableColor.mColorArray[idx].mName}"
+            mTitleLabelArray[idx]!!.toolTipText = mFullColorLabelArray[idx]!!.text
             mTitleLabelArray[idx]!!.isOpaque = true
             mTitleLabelArray[idx]!!.horizontalAlignment = JLabel.LEFT
-            if (mColorManager.mColorArray[idx].mName.contains("BG")) {
+            if (mTitleLabelArray[idx]!!.text.contains("BG")) {
                 mTitleLabelArray[idx]!!.foreground = Color.WHITE
                 mTitleLabelArray[idx]!!.background = Color.DARK_GRAY
             }
@@ -94,19 +122,42 @@ class FontDialog (parent: MainUI) : JDialog(parent, Strings.FONT + " & " + Strin
 
             mTitleLabelArray[idx]!!.verticalAlignment = JLabel.CENTER
             mTitleLabelArray[idx]!!.border = BorderFactory.createLineBorder(Color.BLACK)
-            mTitleLabelArray[idx]!!.minimumSize = Dimension(220, 20)
-            mTitleLabelArray[idx]!!.preferredSize = Dimension(220, 20)
-            mTitleLabelArray[idx]!!.maximumSize = Dimension(220, 20)
-            mTitleLabelArray[idx]!!.addMouseListener(mMouseHandler)
+            mTitleLabelArray[idx]!!.minimumSize = Dimension(250, 20)
+            mTitleLabelArray[idx]!!.preferredSize = Dimension(250, 20)
+            mTitleLabelArray[idx]!!.maximumSize = Dimension(250, 20)
         }
 
-        for (order in mColorLabelArray.indices) {
-            for (idx in mColorLabelArray.indices) {
-                if (order == mColorManager.mColorArray[idx].mOrder) {
-                    colorLabelPanel.add(mColorLabelArray[idx])
-                    colorLabelPanel.add(Box.createRigidArea(Dimension(5, 3)))
+        var label = JLabel("Color Name")
+        label.horizontalAlignment = JLabel.CENTER
+        label.maximumSize = Dimension(250, 20)
+        titleLabelPanel.add(label)
+        titleLabelPanel.add(Box.createRigidArea(Dimension(5, 3)))
+
+        label = JLabel("Full Log Table")
+        label.horizontalAlignment = JLabel.CENTER
+        label.maximumSize = Dimension(330, 20)
+        fullColorLabelPanel.add(label)
+        fullColorLabelPanel.add(Box.createRigidArea(Dimension(5, 3)))
+
+        label = JLabel("Filter Log Table")
+        label.horizontalAlignment = JLabel.CENTER
+        label.maximumSize = Dimension(330, 20)
+        filterColorLabelPanel.add(label)
+        filterColorLabelPanel.add(Box.createRigidArea(Dimension(5, 3)))
+
+
+        for (order in mTitleLabelArray.indices) {
+            for (idx in mTitleLabelArray.indices) {
+                if (order == mFullTableColor.mColorArray[idx].mOrder) {
                     titleLabelPanel.add(mTitleLabelArray[idx])
                     titleLabelPanel.add(Box.createRigidArea(Dimension(5, 3)))
+
+                    fullColorLabelPanel.add(mFullColorLabelArray[idx])
+                    fullColorLabelPanel.add(Box.createRigidArea(Dimension(5, 3)))
+
+                    filterColorLabelPanel.add(mFilterColorLabelArray[idx])
+                    filterColorLabelPanel.add(Box.createRigidArea(Dimension(5, 3)))
+
                     break
                 }
             }
@@ -115,18 +166,21 @@ class FontDialog (parent: MainUI) : JDialog(parent, Strings.FONT + " & " + Strin
         val colorPanel = JPanel()
         colorPanel.layout = FlowLayout(FlowLayout.LEFT, 0, 0)
         colorPanel.add(titleLabelPanel)
-        colorPanel.add(colorLabelPanel)
+        colorPanel.add(fullColorLabelPanel)
+        colorPanel.add(filterColorLabelPanel)
 
-        updateLabelColor()
-
-        val namePanel = JPanel()
-        namePanel.layout = FlowLayout(FlowLayout.LEFT, 3, 0)
-        namePanel.add(mNameScrollPane)
+        updateLabelColor(ColorManager.TableColorType.FULL_LOG_TABLE)
+        updateLabelColor(ColorManager.TableColorType.FILTER_LOG_TABLE)
 
         val sizePanel = JPanel()
         sizePanel.add(mSizeLabel)
         sizePanel.add(mSizeSpinner)
         sizePanel.add(mExampleLabel)
+
+        val namePanel = JPanel()
+        namePanel.layout = GridLayout(1, 2, 3, 3)
+        namePanel.add(mNameScrollPane)
+        namePanel.add(sizePanel)
 
         val confirmPanel = JPanel(FlowLayout(FlowLayout.RIGHT))
         confirmPanel.preferredSize = Dimension(300, 40)
@@ -135,7 +189,6 @@ class FontDialog (parent: MainUI) : JDialog(parent, Strings.FONT + " & " + Strin
         confirmPanel.add(mCancelBtn)
 
         val bottomPanel = JPanel(BorderLayout())
-        bottomPanel.add(sizePanel, BorderLayout.NORTH)
         bottomPanel.add(colorPanel, BorderLayout.CENTER)
         bottomPanel.add(confirmPanel, BorderLayout.SOUTH)
         val panel = JPanel(BorderLayout())
@@ -149,10 +202,12 @@ class FontDialog (parent: MainUI) : JDialog(parent, Strings.FONT + " & " + Strin
                 println("exit Font Color dialog, restore $mIsNeedRestore")
 
                 if (mIsNeedRestore) {
-                    for (idx in mColorLabelArray.indices) {
-                        mColorManager.mColorArray[idx].mStrColor = mPrevColorArray[idx]!!
+                    for (idx in mFullColorLabelArray.indices) {
+                        mFullTableColor.mColorArray[idx].mStrColor = mFullPrevColorArray[idx]!!
+                        mFilterTableColor.mColorArray[idx].mStrColor = mFilterPrevColorArray[idx]!!
                     }
-                    mColorManager.applyColor()
+                    mFullTableColor.applyColor()
+                    mFilterTableColor.applyColor()
                     mParent.mFont = mPrevFont
                 }
                 else {
@@ -165,18 +220,30 @@ class FontDialog (parent: MainUI) : JDialog(parent, Strings.FONT + " & " + Strin
         Utils.installKeyStrokeEscClosing(this)
     }
 
-    fun updateLabelColor() {
+    fun updateLabelColor(type: ColorManager.TableColorType) {
         var commonBg:Color? = null
         var commonFg:Color? = null
         var lineNumBg:Color? = null
         var lineNumFg:Color? = null
 
-        for (idx in mColorLabelArray.indices) {
-            when (mColorManager.mColorArray[idx].mName) {
-                "FullLog BG"->commonBg = Color.decode(mColorManager.mColorArray[idx].mStrColor)
-                "Log Level None"->commonFg = Color.decode(mColorManager.mColorArray[idx].mStrColor)
-                "LineNum BG"->lineNumBg = Color.decode(mColorManager.mColorArray[idx].mStrColor)
-                "LineNum FG"->lineNumFg = Color.decode(mColorManager.mColorArray[idx].mStrColor)
+        val colorLabelArray = if (type == ColorManager.TableColorType.FULL_LOG_TABLE) {
+            mFullColorLabelArray
+        } else {
+            mFilterColorLabelArray
+        }
+
+        val tableColor = if (type == ColorManager.TableColorType.FULL_LOG_TABLE) {
+            mFullTableColor
+        } else {
+            mFilterTableColor
+        }
+
+        for (idx in colorLabelArray.indices) {
+            when (tableColor.mColorArray[idx].mName) {
+                "FullLog BG"->commonBg = Color.decode(tableColor.mColorArray[idx].mStrColor)
+                "Log Level None"->commonFg = Color.decode(tableColor.mColorArray[idx].mStrColor)
+                "LineNum BG"->lineNumBg = Color.decode(tableColor.mColorArray[idx].mStrColor)
+                "LineNum FG"->lineNumFg = Color.decode(tableColor.mColorArray[idx].mStrColor)
             }
         }
 
@@ -196,30 +263,31 @@ class FontDialog (parent: MainUI) : JDialog(parent, Strings.FONT + " & " + Strin
             lineNumBg = Color.WHITE
         }
 
-        for (idx in mColorLabelArray.indices) {
-            if (mColorManager.mColorArray[idx].mName.contains("BG")) {
-                mColorLabelArray[idx]!!.background = Color.decode(mColorManager.mColorArray[idx].mStrColor)
-                if (mColorManager.mColorArray[idx].mName == "LineNum BG") {
-                    mColorLabelArray[idx]!!.foreground = lineNumFg
+        for (idx in colorLabelArray.indices) {
+            if (tableColor.mColorArray[idx].mName.contains("BG")) {
+                colorLabelArray[idx]!!.background = Color.decode(tableColor.mColorArray[idx].mStrColor)
+                if (tableColor.mColorArray[idx].mName == "LineNum BG") {
+                    colorLabelArray[idx]!!.foreground = lineNumFg
                 }
                 else {
-                    mColorLabelArray[idx]!!.foreground = commonFg
+                    colorLabelArray[idx]!!.foreground = commonFg
                 }
             }
             else {
-                mColorLabelArray[idx]!!.foreground = Color.decode(mColorManager.mColorArray[idx].mStrColor)
-                if (mColorManager.mColorArray[idx].mName == "LineNum FG") {
-                    mColorLabelArray[idx]!!.background = lineNumBg
+                colorLabelArray[idx]!!.foreground = Color.decode(tableColor.mColorArray[idx].mStrColor)
+                if (tableColor.mColorArray[idx].mName == "LineNum FG") {
+                    colorLabelArray[idx]!!.background = lineNumBg
                 }
                 else {
-                    mColorLabelArray[idx]!!.background = commonBg
+                    colorLabelArray[idx]!!.background = commonBg
                 }
             }
         }
     }
 
-    class ColorLabel(idx: Int) :JLabel() {
-        val mIdx: Int = idx
+    class ColorLabel(type: ColorManager.TableColorType, idx: Int) :JLabel() {
+        val mType = type;
+        val mIdx = idx
     }
 
     override fun actionPerformed(e: ActionEvent?) {
@@ -265,9 +333,7 @@ class FontDialog (parent: MainUI) : JDialog(parent, Strings.FONT + " & " + Strin
             }
 
             if (rgbPanel != null) {
-                val tmpColorLabel = e!!.source as ColorLabel
-                val idx = tmpColorLabel.mIdx
-                val colorLabel = mColorLabelArray[idx]!!
+                val colorLabel = e!!.source as ColorLabel
                 if (colorLabel.text.contains("BG")) {
                     colorChooser.color = colorLabel.background
                 } else {
@@ -277,15 +343,21 @@ class FontDialog (parent: MainUI) : JDialog(parent, Strings.FONT + " & " + Strin
                 val ret = JOptionPane.showConfirmDialog(this@FontDialog, rgbPanel, "Color Chooser", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
                 if (ret == JOptionPane.OK_OPTION) {
                     val hex = "#" + Integer.toHexString(colorChooser.color.rgb).substring(2).uppercase()
-                    colorLabel.text = " ${mColorManager.mColorArray[idx].mName} $hex "
-                    mColorManager.mColorArray[idx].mStrColor = hex
+                    colorLabel.text = " ${mFullTableColor.mColorArray[colorLabel.mIdx].mName} $hex "
+                    val tableColor = if (colorLabel.mType == ColorManager.TableColorType.FULL_LOG_TABLE) {
+                        mFullTableColor
+                    }
+                    else {
+                        mFilterTableColor
+                    }
+                    tableColor.mColorArray[colorLabel.mIdx].mStrColor = hex
                     if (colorLabel.text.contains("BG")) {
                         colorLabel.background = colorChooser.color
                     } else {
                         colorLabel.foreground = colorChooser.color
                     }
-                    mColorManager.applyColor()
-                    updateLabelColor()
+                    tableColor.applyColor()
+                    updateLabelColor(colorLabel.mType)
                     setFont() // refresh log table
                 }
             }

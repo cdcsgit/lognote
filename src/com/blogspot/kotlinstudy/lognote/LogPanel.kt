@@ -243,18 +243,20 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
             mTable.font = value
             mTable.rowHeight = value.size + 4
 
+            var bg = Color.WHITE
             if (mBasePanel != null) {
-                if (ColorManager.FilterLogBG != background) {
-                    println("Color filter ${ColorManager.FilterLogBG}")
-                    background =  ColorManager.FilterLogBG
-                }
+                bg = ColorManager.getInstance().mFilterTableColor.LogBG
+                println("Color filter log bg $bg")
             }
             else {
-                if (ColorManager.FullLogBG != background) {
-                    println("Color full ${ColorManager.FullLogBG}")
-                    background =  ColorManager.FullLogBG
-                }
+                bg = ColorManager.getInstance().mFullTableColor.LogBG
+                println("Color full log bg $bg")
             }
+
+            if (bg != background) {
+                background =  bg
+            }
+
             repaint()
         }
 

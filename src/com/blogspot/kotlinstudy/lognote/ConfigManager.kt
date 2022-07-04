@@ -9,6 +9,7 @@ class ConfigManager private constructor() {
     companion object {
         private const val CONFIG_FILE = "lognote.xml"
         val LOGNOTE_HOME: String? = System.getenv("LOGNOTE_HOME")
+        const val ITEM_CONFIG_VERSION = "CONFIG_VERSION"
         const val ITEM_FRAME_X = "FRAME_X"
         const val ITEM_FRAME_Y = "FRAME_Y"
         const val ITEM_FRAME_WIDTH = "FRAME_WIDTH"
@@ -88,14 +89,14 @@ class ConfigManager private constructor() {
     init {
         if (LOGNOTE_HOME != null) {
             val os = System.getProperty("os.name")
-            if (os.lowercase().contains("windows")) {
-                mConfigPath = "$LOGNOTE_HOME\\$CONFIG_FILE"
-            }
-            else {
-                mConfigPath = "$LOGNOTE_HOME/$CONFIG_FILE"
+            mConfigPath = if (os.lowercase().contains("windows")) {
+                "$LOGNOTE_HOME\\$CONFIG_FILE"
+            } else {
+                "$LOGNOTE_HOME/$CONFIG_FILE"
             }
         }
         println("Config Path : $mConfigPath")
+        manageVersion()
     }
 
     private fun setDefaultConfig() {
@@ -184,7 +185,8 @@ class ConfigManager private constructor() {
 
         mProperties[ITEM_FONT_NAME] = family
         mProperties[ITEM_FONT_SIZE] = size.toString()
-        ColorManager.getInstance().putConfig()
+        ColorManager.getInstance().mFullTableColor.putConfig()
+        ColorManager.getInstance().mFilterTableColor.putConfig()
 
         saveConfig()
     }
@@ -308,6 +310,45 @@ class ConfigManager private constructor() {
 
         saveConfig()
         return
+    }
+
+    private fun manageVersion() {
+        var confVer: String? = null
+        loadConfig()
+        confVer = mProperties[ITEM_CONFIG_VERSION] as String?
+        if (confVer == null) {
+            updateConfigFromV0ToV1()
+            confVer = mProperties[ITEM_CONFIG_VERSION] as String?
+        }
+
+//        if (confVer != null && confVer == "1") {
+//            updateConfigFromV1ToV2()
+//        }
+
+        saveConfig()
+    }
+
+    private fun updateConfigFromV0ToV1() {
+        println("updateConfigFromV0ToV1 : change color manager properties ++")
+        for (idx: Int in 0..22) {
+            val item = mProperties["${ITEM_COLOR_MANAGER}$idx"] as String?
+            if (item != null) {
+                if (idx == 2) {
+                    mProperties["${ITEM_COLOR_MANAGER}${ColorManager.TableColorType.FULL_LOG_TABLE}_${ColorManager.TableColorIdx.LOG_BG.value}"] = item
+                }
+                else if (idx == 3) {
+                    mProperties["${ITEM_COLOR_MANAGER}${ColorManager.TableColorType.FILTER_LOG_TABLE}_${ColorManager.TableColorIdx.LOG_BG.value}"] = item
+                }
+                else {
+                    mProperties["${ITEM_COLOR_MANAGER}${ColorManager.TableColorType.FULL_LOG_TABLE}_$idx"] = item
+                    mProperties["${ITEM_COLOR_MANAGER}${ColorManager.TableColorType.FILTER_LOG_TABLE}_$idx"] = item
+                }
+
+                mProperties.remove("${ITEM_COLOR_MANAGER}$idx")
+            }
+        }
+        mProperties[ITEM_CONFIG_VERSION] = "1"
+        println("updateConfigFromV0ToV1 : --")
     }
 }
 

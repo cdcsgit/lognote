@@ -9,6 +9,7 @@ import javax.swing.table.DefaultTableCellRenderer
 
 class LogTable(tableModel:LogTableModel) : JTable(tableModel){
     var mTableModel = tableModel
+    private val mTableColor: ColorManager.TableColor
     private val mBookmarkManager = BookmarkManager.getInstance()
 
     companion object {
@@ -40,6 +41,13 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
 
         addMouseListener(MouseHandler())
         addKeyListener(TableKeyHandler())
+        
+        if (mTableModel.isFullDataModel()) {
+            mTableColor = ColorManager.getInstance().mFullTableColor
+        }
+        else {
+            mTableColor = ColorManager.getInstance().mFilterTableColor
+        }
     }
 
     fun updateColumnWidth(width: Int) {
@@ -149,20 +157,20 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
 //            println("NumCellRenderer getTableCellRendererComponent $isSelected, $hasFocus, $row, $col, ${isRowSelected(row)}")
             val label = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col) as JLabel
 
-            label.border = LineNumBorder(ColorManager.NumLogSeperatorBG, 1)
+            label.border = LineNumBorder(mTableColor.NumLogSeperatorBG, 1)
 
-            foreground = ColorManager.LineNumFG
+            foreground = mTableColor.LineNumFG
             background = if (mBookmarkManager.mBookmarks.contains(num)) {
                 if (isRowSelected(row)) {
-                    ColorManager.NumBookmarkSelectedBG
+                    mTableColor.NumBookmarkSelectedBG
                 }
                 else {
-                    ColorManager.NumBookmarkBG
+                    mTableColor.NumBookmarkBG
                 }
             } else if (isRowSelected(row)) {
-                ColorManager.NumSelectedBG
+                mTableColor.NumSelectedBG
             } else {
-                ColorManager.LineNumBG
+                mTableColor.LineNumBG
             }
 
             return label
@@ -203,17 +211,15 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
             val num = numValue.toString().trim().toInt()
             if (mBookmarkManager.mBookmarks.contains(num)) {
                 if (isRowSelected(row)) {
-                    background = ColorManager.BookmarkSelectedBG
+                    background = mTableColor.BookmarkSelectedBG
                 }
                 else {
-                    background = ColorManager.BookmarkBG
+                    background = mTableColor.BookmarkBG
                 }
             } else if (isRowSelected(row)) {
-                background = ColorManager.SelectedBG
-            } else if (mTableModel.isFullDataModel()) {
-                background = ColorManager.FullLogBG
+                background = mTableColor.SelectedBG
             } else {
-                background = ColorManager.FilterLogBG
+                background = mTableColor.LogBG
             }
 
             return label

@@ -316,8 +316,10 @@ class MainUI(title: String) : JFrame() {
 
     private fun loadConfigOnCreate() {
         mConfigManager.loadConfig()
-        mColorManager.getConfig()
-        mColorManager.applyColor()
+        mColorManager.mFullTableColor.getConfig()
+        mColorManager.mFullTableColor.applyColor()
+        mColorManager.mFilterTableColor.getConfig()
+        mColorManager.mFilterTableColor.applyColor()
         mColorManager.getConfigFilterStyle()
         mConfigManager.saveConfig()
     }

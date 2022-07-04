@@ -34,6 +34,7 @@ class LogTableModel() : AbstractTableModel() {
         var sIsLogcatLog = false
     }
 
+    private lateinit var mTableColor: ColorManager.TableColor
     private val mColumnNames = arrayOf("line", "log")
     private var mLogItems:MutableList<LogItem> = mutableListOf()
     private var mBaseModel:LogTableModel? = null
@@ -318,6 +319,16 @@ class LogTableModel() : AbstractTableModel() {
     constructor(baseModel: LogTableModel?) : this() {
         mBaseModel = baseModel
         loadItems(false)
+
+        if (isFullDataModel()) {
+            mTableColor = ColorManager.getInstance().mFullTableColor
+        }
+        else {
+            mTableColor = ColorManager.getInstance().mFilterTableColor
+        }
+    }
+
+    init {
     }
 
 //    override fun isCellEditable(rowIndex: Int, columnIndex: Int): Boolean {
@@ -624,25 +635,25 @@ class LogTableModel() : AbstractTableModel() {
     fun getFgColor(row: Int) : Color {
         return when (checkLevel(mLogItems[row])) {
             LEVEL_VERBOSE -> {
-                ColorManager.LogLevelVerbose
+                mTableColor.LogLevelVerbose
             }
             LEVEL_DEBUG -> {
-                ColorManager.LogLevelDebug
+                mTableColor.LogLevelDebug
             }
             LEVEL_INFO -> {
-                ColorManager.LogLevelInfo
+                mTableColor.LogLevelInfo
             }
             LEVEL_WARNING -> {
-                ColorManager.LogLevelWarning
+                mTableColor.LogLevelWarning
             }
             LEVEL_ERROR -> {
-                ColorManager.LogLevelError
+                mTableColor.LogLevelError
             }
             LEVEL_FATAL -> {
-                ColorManager.LogLevelFatal
+                mTableColor.LogLevelFatal
             }
             else -> {
-                ColorManager.LogLevelNone
+                mTableColor.LogLevelNone
             }
         }
     }
@@ -650,24 +661,24 @@ class LogTableModel() : AbstractTableModel() {
     private fun getFgStrColor(row: Int) : String {
         return when (checkLevel(mLogItems[row])) {
             LEVEL_VERBOSE -> {
-                ColorManager.StrLogLevelVerbose
+                mTableColor.StrLogLevelVerbose
             }
             LEVEL_DEBUG -> {
-                ColorManager.StrLogLevelDebug
+                mTableColor.StrLogLevelDebug
             }
             LEVEL_INFO -> {
-                ColorManager.StrLogLevelInfo
+                mTableColor.StrLogLevelInfo
             }
             LEVEL_WARNING -> {
-                ColorManager.StrLogLevelWarning
+                mTableColor.StrLogLevelWarning
             }
             LEVEL_ERROR -> {
-                ColorManager.StrLogLevelError
+                mTableColor.StrLogLevelError
             }
             LEVEL_FATAL -> {
-                ColorManager.StrLogLevelFatal
+                mTableColor.StrLogLevelFatal
             }
-            else -> ColorManager.StrLogLevelNone
+            else -> mTableColor.StrLogLevelNone
         }
     }
 
@@ -690,7 +701,7 @@ class LogTableModel() : AbstractTableModel() {
             val item = mLogItems[row]
             if (item.mTag.isNotEmpty()) {
                 val start = newValue.indexOf(item.mTag)
-                stringBuilder.replace(start, start + item.mTag.length, "<b><font color=${ColorManager.StrTagFG}>" + item.mTag + "</font></b>")
+                stringBuilder.replace(start, start + item.mTag.length, "<b><font color=${mTableColor.StrTagFG}>" + item.mTag + "</font></b>")
                 newValue = stringBuilder.toString()
             }
         }
@@ -699,7 +710,7 @@ class LogTableModel() : AbstractTableModel() {
             val item = mLogItems[row]
             if (item.mPid.isNotEmpty()) {
                 val start = newValue.indexOf(item.mPid)
-                stringBuilder.replace(start, start + item.mPid.length, "<b><font color=${ColorManager.StrPidFG}>" + item.mPid + "</font></b>")
+                stringBuilder.replace(start, start + item.mPid.length, "<b><font color=${mTableColor.StrPidFG}>" + item.mPid + "</font></b>")
                 newValue = stringBuilder.toString()
             }
         }
@@ -711,7 +722,7 @@ class LogTableModel() : AbstractTableModel() {
                 if (item.mTid == item.mPid) {
                     start = newValue.indexOf(item.mTid, start + 1)
                 }
-                stringBuilder.replace(start, start + item.mTid.length, "<b><font color=${ColorManager.StrTidFG}>" + item.mTid + "</font></b>")
+                stringBuilder.replace(start, start + item.mTid.length, "<b><font color=${mTableColor.StrTidFG}>" + item.mTid + "</font></b>")
                 newValue = stringBuilder.toString()
             }
         }
@@ -754,19 +765,19 @@ class LogTableModel() : AbstractTableModel() {
                         )
                     }
                     if (start >= 0 && end >= 0) {
-                        var fgColor = ColorManager.StrFilteredFG
+                        var fgColor = mTableColor.StrFilteredFG
                         val colorString = newValue.substring(start, end)
 
                         if (!mFilterHighlightSplit.isNullOrEmpty()) {
                             for (highlight in mFilterHighlightSplit!!) {
                                 if (!mMatchCase) {
                                     if (colorString.uppercase() == highlight.uppercase()) {
-                                        fgColor = ColorManager.StrHighlightFG
+                                        fgColor = mTableColor.StrHighlightFG
                                         break
                                     }
                                 } else {
                                     if (colorString == highlight) {
-                                        fgColor = ColorManager.StrHighlightFG
+                                        fgColor = mTableColor.StrHighlightFG
                                         break
                                     }
                                 }
