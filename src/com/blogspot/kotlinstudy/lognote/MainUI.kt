@@ -1680,12 +1680,15 @@ class MainUI(title: String) : JFrame() {
     fun reconnectAdb() {
         println("Reconnect ADB")
         if (mDeviceCombo.selectedItem!!.toString().isNotEmpty()) {
-            mAdbConnectBtn.doClick()
             mStopBtn.doClick()
+            Thread.sleep(200)
+            mAdbConnectBtn.doClick()
+            Thread.sleep(200)
             Thread(Runnable {
                 run {
-                    Thread.sleep(100)
+                    Thread.sleep(200)
                     mClearBtn.doClick()
+                    Thread.sleep(200)
                     mStartBtn.doClick()
                 }
             }).start()
