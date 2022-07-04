@@ -682,12 +682,10 @@ class LogTableModel() : AbstractTableModel() {
         }
     }
 
-    private var mPatternPrintValue:Pattern? = null
+    private var mPatternPrintHighlight:Pattern? = null
+    private var mPatternPrintFilter:Pattern? = null
     fun getPrintValue(value:String, row: Int, isSelected: Boolean) : String {
-        val starts = Stack<Int>()
-        val ends = Stack<Int>()
         var newValue = value
-
         if (newValue.indexOf("<") >= 0) {
             newValue = newValue.replace("<", "&lt;")
         }
@@ -697,128 +695,306 @@ class LogTableModel() : AbstractTableModel() {
 
         val stringBuilder = StringBuilder(newValue)
 
-        if (mBoldTag) {
-            val item = mLogItems[row]
-            if (item.mTag.isNotEmpty()) {
-                val start = newValue.indexOf(item.mTag)
-                stringBuilder.replace(start, start + item.mTag.length, "<b><font color=${mTableColor.StrTagFG}>" + item.mTag + "</font></b>")
-                newValue = stringBuilder.toString()
+        val highlightStarts: Queue<Int> = LinkedList()
+        val highlightEnds: Queue<Int> = LinkedList()
+        if (mPatternPrintHighlight != null) {
+            val matcher = mPatternPrintHighlight!!.matcher(stringBuilder.toString())
+            while (matcher.find()) {
+                highlightStarts.add(matcher.start(0))
+                highlightEnds.add(matcher.end(0))
             }
         }
+
+        val filterStarts: Queue<Int> = LinkedList()
+        val filterEnds: Queue<Int> = LinkedList()
+        if (mPatternPrintFilter != null) {
+            val matcher = mPatternPrintFilter!!.matcher(stringBuilder.toString())
+            while (matcher.find()) {
+                filterStarts.add(matcher.start(0))
+                filterEnds.add(matcher.end(0))
+            }
+        }
+
+        val boldStarts: Queue<Int> = LinkedList()
+        val boldEnds: Queue<Int> = LinkedList()
+        var boldStartTag = -1
+        var boldEndTag = -1
+        var boldStartPid = -1
+        var boldEndPid = -1
+        var boldStartTid = -1
+        var boldEndTid = -1
 
         if (mBoldPid) {
             val item = mLogItems[row]
             if (item.mPid.isNotEmpty()) {
-                val start = newValue.indexOf(item.mPid)
-                stringBuilder.replace(start, start + item.mPid.length, "<b><font color=${mTableColor.StrPidFG}>" + item.mPid + "</font></b>")
-                newValue = stringBuilder.toString()
+                boldStartPid = newValue.indexOf(item.mPid)
+                boldEndPid = boldStartPid + item.mPid.length
+                boldStarts.add(boldStartPid)
+                boldEnds.add(boldEndPid)
             }
         }
 
         if (mBoldTid) {
             val item = mLogItems[row]
             if (item.mTid.isNotEmpty()) {
-                var start = newValue.indexOf(item.mTid)
-                if (item.mTid == item.mPid) {
-                    start = newValue.indexOf(item.mTid, start + 1)
-                }
-                stringBuilder.replace(start, start + item.mTid.length, "<b><font color=${mTableColor.StrTidFG}>" + item.mTid + "</font></b>")
-                newValue = stringBuilder.toString()
+                boldStartTid = newValue.indexOf(item.mTid, newValue.indexOf(item.mPid) + 1)
+                boldEndTid = boldStartTid + item.mTid.length
+                boldStarts.add(boldStartTid)
+                boldEnds.add(boldEndTid)
             }
         }
 
-        if (mPatternPrintValue != null) {
-            val matcher = mPatternPrintValue!!.matcher(stringBuilder.toString())
-            while (matcher.find()) {
-                starts.push(matcher.start(0))
-                ends.push(matcher.end(0))
+        if (mBoldTag) {
+            val item = mLogItems[row]
+            if (item.mTag.isNotEmpty()) {
+                boldStartTag = newValue.indexOf(item.mTag)
+                boldEndTag = boldStartTag + item.mTag.length
+                boldStarts.add(boldStartTag)
+                boldEnds.add(boldEndTag)
             }
+        }
 
-            if (starts.size == 0) {
-                if (newValue == value) {
-                    return ""
+        val TYPE_HIGHLIGHT = 1
+        val TYPE_FILTER = 2
+        val TYPE_BOLD_TAG = 3
+        val TYPE_BOLD_PID = 4
+        val TYPE_BOLD_TID = 5
+        val starts = Stack<Int>()
+        val ends = Stack<Int>()
+        val types = Stack<Int>()
+
+        var highlightS = -1
+        var highlightE = -1
+        var filterS = -1
+        var filterSNext = -1
+        var filterENext = -1
+        var filterE = -1
+        var boldS = -1
+        var boldE = -1
+        var boldSNext = -1
+        var boldENext = -1
+        var boldSCheck = -1
+        var boldECheck = -1
+
+        for (idx in newValue.indices) {
+            while (highlightE <= idx) {
+                if (highlightStarts.size > 0) {
+                    highlightS = highlightStarts.poll()
+                    highlightE = highlightEnds.poll()
+
+                    if (idx in (highlightS + 1) until highlightE) {
+                        highlightS = idx
+                    }
                 }
-                stringBuilder.replace(0, newValue.length, newValue.replace(" ", "&nbsp;"))
-            }
-            else {
-                var beforeStart = 0
-                var isFirst = true
-                while (!starts.isEmpty()) {
-                    val start = starts.pop()
-                    val end = ends.pop()
-
-                    if (isFirst) {
-                        if (end < newValue.length) {
-                            stringBuilder.replace(
-                                end,
-                                newValue.length,
-                                newValue.substring(end, newValue.length).replace(" ", "&nbsp;")
-                            )
-                        }
-                        isFirst = false
-                    }
-                    if (beforeStart > end) {
-                        stringBuilder.replace(
-                            end,
-                            beforeStart,
-                            newValue.substring(end, beforeStart).replace(" ", "&nbsp;")
-                        )
-                    }
-                    if (start >= 0 && end >= 0) {
-                        var fgColor = mTableColor.StrFilteredFG
-                        var bgColor = mTableColor.StrFilteredBG
-                        val colorString = newValue.substring(start, end)
-
-                        if (!mFilterHighlightSplit.isNullOrEmpty()) {
-                            for (highlight in mFilterHighlightSplit!!) {
-                                if (!mMatchCase) {
-                                    if (colorString.uppercase() == highlight.uppercase()) {
-                                        fgColor = mTableColor.StrHighlightFG
-                                        bgColor = mTableColor.StrHighlightBG
-                                        break
-                                    }
-                                } else {
-                                    if (colorString == highlight) {
-                                        fgColor = mTableColor.StrHighlightFG
-                                        bgColor = mTableColor.StrHighlightBG
-                                        break
-                                    }
-                                }
-                            }
-                        }
-
-                        if (isSelected) {
-                            bgColor = mTableColor.StrSelectedBG
-                        }
-
-                        stringBuilder.replace(
-                            end,
-                            end,
-                            newValue.substring(end, end) + "</font></b>"
-                        )
-
-                        stringBuilder.replace(
-                            start,
-                            end,
-                            newValue.substring(start, end).replace(" ", "&nbsp;")
-                        )
-                        stringBuilder.replace(
-                            start,
-                            start,
-                        "<b><font style=\"color: $fgColor; background-color: $bgColor\">" + newValue.substring(start, start)
-                        )
-                    }
-                    beforeStart = start
-                }
-                if (beforeStart > 0) {
-                    stringBuilder.replace(0, beforeStart, newValue.substring(0, beforeStart).replace(" ", "&nbsp;"))
+                else {
+                    highlightS = -1
+                    highlightE = -1
+                    break
                 }
             }
-        } else {
+            while (filterE <= idx) {
+                if (filterStarts.size > 0) {
+                    filterS = filterStarts.poll()
+                    filterE = filterEnds.poll()
+
+                    if (idx in (filterS + 1) until filterE) {
+                        filterS = idx
+                    }
+                }
+                else {
+                    filterS = -1
+                    filterE = -1
+                    break
+                }
+            }
+            while (boldE <= idx) {
+                if (boldStarts.size > 0) {
+                    boldS = boldStarts.poll()
+                    boldE = boldEnds.poll()
+
+                    if (idx in (boldS + 1) until boldE) {
+                        boldS = idx
+                    }
+                }
+                else {
+                    boldS = -1
+                    boldE = -1
+                    break
+                }
+            }
+
+            if (idx == highlightS) {
+                if (highlightE in (filterS + 1) until filterE) {
+                    filterS = highlightE
+                }
+
+                if (boldS < highlightE && boldE > highlightE) {
+                    boldS = highlightE
+                }
+                starts.push(highlightS)
+                ends.push(highlightE)
+                types.push(TYPE_HIGHLIGHT)
+            }
+
+            if (idx in highlightS until highlightE) {
+                continue
+            }
+
+            if (idx == filterS) {
+                if (filterE in (boldS + 1) until boldE) {
+                    boldS = filterE
+                }
+
+                if (highlightS in 1 until filterE) {
+                    if (filterE > highlightE) {
+                        filterSNext = highlightE
+                        filterENext = filterE
+                    }
+                    filterE = highlightS
+                }
+
+                starts.push(filterS)
+                ends.push(filterE)
+                types.push(TYPE_FILTER)
+
+                if (filterS < filterSNext) {
+                    filterS = filterSNext
+                }
+                if (filterE < filterENext) {
+                    filterE = filterENext
+                }
+            }
+
+            if (idx in filterS until filterE) {
+                continue
+            }
+
+            if (idx == boldS) {
+                boldSCheck = -1
+                boldECheck = -1
+                if (highlightS in (boldS + 1) until boldE) {
+                    boldSCheck = highlightS
+                    boldECheck = highlightE
+                }
+
+                if (filterS in (boldS + 1) until boldE && filterS < highlightS) {
+                    boldSCheck = filterS
+                    boldECheck = filterE
+                }
+
+                if (boldSCheck in 1 until boldE) {
+                    if (boldE > boldECheck) {
+                        boldSNext = boldECheck
+                        boldENext = boldE
+                    }
+                    boldE = boldSCheck
+                }
+
+                starts.push(boldS)
+                ends.push(boldE)
+
+                if (boldS in boldStartTag until boldEndTag) {
+                    types.push(TYPE_BOLD_TAG)
+                }
+                else if (boldS in boldStartPid until boldEndPid) {
+                    types.push(TYPE_BOLD_PID)
+                }
+                else if (boldS in boldStartTid until boldEndTid) {
+                    types.push(TYPE_BOLD_TID)
+                }
+
+                if (boldS < boldSNext) {
+                    boldS = boldSNext
+                }
+                if (boldE < boldENext) {
+                    boldE = boldENext
+                }
+            }
+        }
+
+        if (starts.size == 0) {
             if (newValue == value) {
                 return ""
             }
             stringBuilder.replace(0, newValue.length, newValue.replace(" ", "&nbsp;"))
+        }
+        else {
+            var beforeStart = 0
+            var isFirst = true
+            while (!starts.isEmpty()) {
+                val start = starts.pop()
+                val end = ends.pop()
+                val type = types.pop()
+
+                if (isFirst) {
+                    if (end < newValue.length) {
+                        stringBuilder.replace(
+                                end,
+                                newValue.length,
+                                newValue.substring(end, newValue.length).replace(" ", "&nbsp;")
+                        )
+                    }
+                    isFirst = false
+                }
+                if (beforeStart > end) {
+                    stringBuilder.replace(
+                            end,
+                            beforeStart,
+                            newValue.substring(end, beforeStart).replace(" ", "&nbsp;")
+                    )
+                }
+                if (start >= 0 && end >= 0) {
+                    var fgColor = mTableColor.StrFilteredFG
+                    var bgColor = mTableColor.StrFilteredBG
+
+                    when (type) {
+                        TYPE_HIGHLIGHT -> {
+                            fgColor = mTableColor.StrHighlightFG
+                            bgColor = mTableColor.StrHighlightBG
+                        }
+                        TYPE_FILTER -> {
+                            fgColor = mTableColor.StrFilteredFG
+                            bgColor = mTableColor.StrFilteredBG
+                        }
+                        TYPE_BOLD_TAG -> {
+                            fgColor = mTableColor.StrTagFG
+                            bgColor = mTableColor.StrLogBG
+                        }
+                        TYPE_BOLD_PID -> {
+                            fgColor = mTableColor.StrPidFG
+                            bgColor = mTableColor.StrLogBG
+                        }
+                        TYPE_BOLD_TID -> {
+                            fgColor = mTableColor.StrTidFG
+                            bgColor = mTableColor.StrLogBG
+                        }
+                    }
+
+                    if (isSelected) {
+                        bgColor = mTableColor.StrSelectedBG
+                    }
+
+                    stringBuilder.replace(
+                            end,
+                            end,
+                            newValue.substring(end, end) + "</font></b>"
+                    )
+                    stringBuilder.replace(
+                            start,
+                            end,
+                            newValue.substring(start, end).replace(" ", "&nbsp;")
+                    )
+                    stringBuilder.replace(
+                            start,
+                            start,
+                            "<b><font style=\"color: $fgColor; background-color: $bgColor\">" + newValue.substring(start, start)
+                    )
+                }
+                beforeStart = start
+            }
+            if (beforeStart > 0) {
+                stringBuilder.replace(0, beforeStart, newValue.substring(0, beforeStart).replace(" ", "&nbsp;"))
+            }
         }
 
         val color = getFgStrColor(row)
@@ -841,70 +1017,51 @@ class LogTableModel() : AbstractTableModel() {
             return
         }
 
-        var filterPrintValue = ""
-        if (mFilterShowLog.isNotEmpty()) {
-            if (filterPrintValue.isNotEmpty()) {
-                filterPrintValue += "|$mFilterShowLog"
-            }
-            else {
-                filterPrintValue += mFilterShowLog
-            }
-        }
-        if (mFilterHighlightLog.isNotEmpty()) {
-            if (filterPrintValue.isNotEmpty()) {
-                filterPrintValue += "|$mFilterHighlightLog"
-            }
-            else {
-                filterPrintValue += mFilterHighlightLog
-            }
-        }
         mBaseModel?.mFilterHighlightLog = mFilterHighlightLog
 
-//        if (!mFilterShowTag.isEmpty()) {
-//            if (filterPrintValue.length > 0) {
-//                filterPrintValue += "|" + mFilterShowTag
-//            }
-//            else {
-//                filterPrintValue += mFilterShowTag
-//            }
-//        }
-//        if (!mFilterShowPid.isEmpty()) {
-//            if (filterPrintValue.length > 0) {
-//                filterPrintValue += "|" + mFilterShowPid
-//            }
-//            else {
-//                filterPrintValue += mFilterShowPid
-//            }
-//        }
-//        if (!mFilterShowTid.isEmpty()) {
-//            if (filterPrintValue.length > 0) {
-//                filterPrintValue += "|" + mFilterShowTid
-//            }
-//            else {
-//                filterPrintValue += mFilterShowTid
-//            }
-//        }
-
-        if (filterPrintValue.isEmpty()) {
-            mPatternPrintValue = null
-            mBaseModel?.mPatternPrintValue = null
+        if (mFilterHighlightLog.isEmpty()) {
+            mPatternPrintHighlight = null
+            mBaseModel?.mPatternPrintHighlight = null
         } else {
             var start = 0
             var index = 0
             var skip = false
 
             while (index != -1) {
-                index = filterPrintValue.indexOf('|', start)
+                index = mFilterHighlightLog.indexOf('|', start)
                 start = index + 1
-                if (index == 0 || index == filterPrintValue.lastIndex || filterPrintValue[index + 1] == '|') {
+                if (index == 0 || index == mFilterHighlightLog.lastIndex || mFilterHighlightLog[index + 1] == '|') {
                     skip = true
                     break
                 }
             }
 
             if (!skip) {
-                mPatternPrintValue = Pattern.compile(filterPrintValue, mPatternCase)
-                mBaseModel?.mPatternPrintValue = mPatternPrintValue
+                mPatternPrintHighlight = Pattern.compile(mFilterHighlightLog, mPatternCase)
+                mBaseModel?.mPatternPrintHighlight = mPatternPrintHighlight
+            }
+        }
+
+        if (mFilterShowLog.isEmpty()) {
+            mPatternPrintFilter = null
+            mBaseModel?.mPatternPrintFilter = null
+        } else {
+            var start = 0
+            var index = 0
+            var skip = false
+
+            while (index != -1) {
+                index = mFilterShowLog.indexOf('|', start)
+                start = index + 1
+                if (index == 0 || index == mFilterShowLog.lastIndex || mFilterShowLog[index + 1] == '|') {
+                    skip = true
+                    break
+                }
+            }
+
+            if (!skip) {
+                mPatternPrintFilter = Pattern.compile(mFilterShowLog, mPatternCase)
+                mBaseModel?.mPatternPrintFilter = mPatternPrintFilter
             }
         }
 
