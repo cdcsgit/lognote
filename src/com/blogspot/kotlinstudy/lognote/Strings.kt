@@ -86,6 +86,11 @@ class Strings private constructor() {
         private val IDX_RETRY_ADB = idx++
         private val IDX_FILTER_STYLE = idx++
         private val IDX_LOOK_AND_FEEL = idx++
+        private val IDX_FULL_LOG_TABLE = idx++
+        private val IDX_FILTER_LOG_TABLE = idx++
+        private val IDX_BUILT_IN_SCHEMES = idx++
+        private val IDX_LIGHT = idx++
+        private val IDX_DARK = idx++
 //        private val IDX_ = idx++
 
         val FILE: String
@@ -224,5 +229,15 @@ class Strings private constructor() {
             get() { return currStrings[IDX_FILTER_STYLE] }
         val LOOK_AND_FEEL: String
             get() { return currStrings[IDX_LOOK_AND_FEEL] }
+        val FULL_LOG_TABLE: String
+            get() { return currStrings[IDX_FULL_LOG_TABLE] }
+        val FILTER_LOG_TABLE: String
+            get() { return currStrings[IDX_FILTER_LOG_TABLE] }
+        val BUILT_IN_SCHEMES: String
+            get() { return currStrings[IDX_BUILT_IN_SCHEMES] }
+        val LIGHT: String
+            get() { return currStrings[IDX_LIGHT] }
+        val DARK: String
+            get() { return currStrings[IDX_DARK] }
     }
 }

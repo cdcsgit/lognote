@@ -71,6 +71,11 @@ class StringsEn private constructor() {
             , "Retry"
             , "Filter Style"
             , "Look and Feel"
+            , "Full Log Table"
+            , "Filter Log Table"
+            , "Built-in schemes"
+            , "Light"
+            , "Dark"
 //            , ""
         )
     }

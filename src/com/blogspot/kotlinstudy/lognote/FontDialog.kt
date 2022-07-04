@@ -127,19 +127,19 @@ class FontDialog (parent: MainUI) : JDialog(parent, Strings.FONT + " & " + Strin
             mTitleLabelArray[idx]!!.maximumSize = Dimension(250, 20)
         }
 
-        var label = JLabel("Color Name")
+        var label = JLabel("  ")
         label.horizontalAlignment = JLabel.CENTER
         label.maximumSize = Dimension(250, 20)
         titleLabelPanel.add(label)
         titleLabelPanel.add(Box.createRigidArea(Dimension(5, 3)))
 
-        label = JLabel("Full Log Table")
+        label = JLabel(Strings.FULL_LOG_TABLE)
         label.horizontalAlignment = JLabel.CENTER
         label.maximumSize = Dimension(330, 20)
         fullColorLabelPanel.add(label)
         fullColorLabelPanel.add(Box.createRigidArea(Dimension(5, 3)))
 
-        label = JLabel("Filter Log Table")
+        label = JLabel(Strings.FILTER_LOG_TABLE)
         label.horizontalAlignment = JLabel.CENTER
         label.maximumSize = Dimension(330, 20)
         filterColorLabelPanel.add(label)
@@ -179,9 +179,9 @@ class FontDialog (parent: MainUI) : JDialog(parent, Strings.FONT + " & " + Strin
         sizePanel.add(mExampleLabel)
 
         val schemePanel = JPanel()
-        val schemeLabel = JLabel("Built-in schemes : ")
-        val radioLight = JRadioButton("Light")
-        val radioDark = JRadioButton("Dark")
+        val schemeLabel = JLabel("${Strings.BUILT_IN_SCHEMES} : ")
+        val radioLight = JRadioButton(Strings.LIGHT)
+        val radioDark = JRadioButton(Strings.DARK)
         val buttonGroup = ButtonGroup()
         val schemeBtn = JButton(Strings.APPLY)
 

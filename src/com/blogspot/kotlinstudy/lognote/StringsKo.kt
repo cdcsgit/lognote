@@ -71,6 +71,11 @@ class StringsKo private constructor() {
             , "재시도"
             , "필터 스타일"
             , "Look and Feel"
+            , "전체 로그 테이블"
+            , "필터 로그 테이블"
+            , "내장 색상표"
+            , "밝음"
+            , "어두움"
 //            , ""
         )
     }
