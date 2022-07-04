@@ -73,7 +73,8 @@ class ColorManager private constructor(){
         BOOKMARK_SELECTED_BG(19),
         NUM_BOOKMARK_SELECTED_BG(20),
         NUM_BOOKMARK_BG(21),
-        NUM_SELECTED_BG(22);
+        NUM_SELECTED_BG(22),
+        HIGHLIGHT_BG(23),;
 
         companion object {
             fun fromInt(value: Int) = values().first { it.value == value }
@@ -103,7 +104,8 @@ class ColorManager private constructor(){
             "#D0D0DF",
             "#C0C0CF",
             "#E0E0EF",
-            "#C0C0C0"
+            "#C0C0C0",
+            "#FFFAFA"
     )
 
     var mColorSchemeDark = arrayOf(
@@ -129,7 +131,8 @@ class ColorManager private constructor(){
             "#503030",
             "#503030",
             "#301010",
-            "#3A3D41"
+            "#3A3D41",
+            "#151515"
     )
 
     inner class TableColor(type: TableColorType) {
@@ -319,6 +322,14 @@ class ColorManager private constructor(){
         var NumSelectedBG: Color = Color.decode(StrNumSelectedBG)
             private set
 
+        var StrHighlightBG = "#000000"
+            set(value) {
+                field = value
+                HighlightBG = Color.decode(value)
+            }
+        var HighlightBG: Color = Color.decode(StrHighlightBG)
+            private set
+
         var mColorArray = arrayOf(
                 ColorItem(0, "Filtered FG", "#FF0000"),
                 ColorItem(13, "Selected BG", "#E0E0E0"),
@@ -342,7 +353,8 @@ class ColorManager private constructor(){
                 ColorItem(19, "Bookmark Selected BG", "#D0D0DF"),
                 ColorItem(20, "LineNum Bookmark Selected BG", "#C0C0CF"),
                 ColorItem(21, "LineNum Bookmark BG", "#E0E0EF"),
-                ColorItem(22, "LineNum Selected BG", "#C0C0C0")
+                ColorItem(22, "LineNum Selected BG", "#C0C0C0"),
+                ColorItem(23, "Highlight BG", "#FFFAFA"),
         )
 
         fun getConfig() {
@@ -384,6 +396,7 @@ class ColorManager private constructor(){
             StrNumBookmarkSelectedBG = mColorArray[TableColorIdx.NUM_BOOKMARK_SELECTED_BG.value].mStrColor
             StrNumBookmarkBG = mColorArray[TableColorIdx.NUM_BOOKMARK_BG.value].mStrColor
             StrNumSelectedBG = mColorArray[TableColorIdx.NUM_SELECTED_BG.value].mStrColor
+            StrHighlightBG = mColorArray[TableColorIdx.HIGHLIGHT_BG.value].mStrColor
 
             for (listener in mColorEventListeners) {
                 listener.colorChanged(ColorEvent(0))

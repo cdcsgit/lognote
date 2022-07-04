@@ -766,6 +766,7 @@ class LogTableModel() : AbstractTableModel() {
                     }
                     if (start >= 0 && end >= 0) {
                         var fgColor = mTableColor.StrFilteredFG
+                        var bgColor = mTableColor.StrFilteredBG
                         val colorString = newValue.substring(start, end)
 
                         if (!mFilterHighlightSplit.isNullOrEmpty()) {
@@ -773,11 +774,13 @@ class LogTableModel() : AbstractTableModel() {
                                 if (!mMatchCase) {
                                     if (colorString.uppercase() == highlight.uppercase()) {
                                         fgColor = mTableColor.StrHighlightFG
+                                        bgColor = mTableColor.StrHighlightBG
                                         break
                                     }
                                 } else {
                                     if (colorString == highlight) {
                                         fgColor = mTableColor.StrHighlightFG
+                                        bgColor = mTableColor.StrHighlightBG
                                         break
                                     }
                                 }
@@ -798,7 +801,7 @@ class LogTableModel() : AbstractTableModel() {
                         stringBuilder.replace(
                             start,
                             start,
-                            "<b><font color=$fgColor>" + newValue.substring(start, start)
+                        "<b><font style=\"color: $fgColor; background-color: $bgColor\">" + newValue.substring(start, start)
                         )
                     }
                     beforeStart = start
