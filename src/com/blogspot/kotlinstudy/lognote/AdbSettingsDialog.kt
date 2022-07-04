@@ -39,7 +39,7 @@ class AdbSettingsDialog(parent: JFrame) :JDialog(parent, "ADB " + Strings.SETTIN
         mAdbCmdLabel.preferredSize = Dimension(mAdbCmdLabel.preferredSize.width, rowHeight)
         mAdbSaveLabel = JLabel(Strings.LOG_PATH)
         mPrefixLabel = JLabel("Prefix")
-        mPrefixLabel2 = JLabel("Default : device, Do not use \\ / : * ? \" < > |")
+        mPrefixLabel2 = JLabel("Default : LogNote, Do not use \\ / : * ? \" < > |")
 
         mAdbCmdTF = JTextField(mAdbManager.mAdbCmd)
         mAdbCmdTF.preferredSize = Dimension(488, rowHeight)
@@ -111,7 +111,28 @@ class AdbSettingsDialog(parent: JFrame) :JDialog(parent, "ADB " + Strings.SETTIN
         } else if (e?.source == mOkBtn) {
             mAdbManager.mAdbCmd = mAdbCmdTF.text
             mAdbManager.mLogSavePath = mAdbSaveTF.text
-            mAdbManager.mPrefix = mPrefixTF.text
+            var prefix = mPrefixTF.text.trim()
+
+            mPrefixLabel2 = JLabel("Default : LogNote, Do not use \\ / : * ? \" < > |")
+            if (prefix.contains('\\')
+                    || prefix.contains('/')
+                    || prefix.contains(':')
+                    || prefix.contains('*')
+                    || prefix.contains('?')
+                    || prefix.contains('"')
+                    || prefix.contains("<")
+                    || prefix.contains(">")
+                    || prefix.contains("|")) {
+                JOptionPane.showMessageDialog(this, "Invalid prefix : ${mPrefixTF.text}", "Error", JOptionPane.ERROR_MESSAGE)
+                return
+            }
+
+            if (prefix.isEmpty()) {
+                mAdbManager.mPrefix = mAdbManager.DEFAULT_PREFIX
+            }
+            else {
+                mAdbManager.mPrefix = prefix
+            }
 
             val keys = arrayOf(ConfigManager.ITEM_ADB_CMD, ConfigManager.ITEM_ADB_LOG_SAVE_PATH, ConfigManager.ITEM_ADB_PREFIX)
             val values = arrayOf(mAdbManager.mAdbCmd, mAdbManager.mLogSavePath, mAdbManager.mPrefix)

@@ -223,7 +223,7 @@ class MainUI(title: String) : JFrame() {
 
         val prefix = mConfigManager.getItem(ConfigManager.ITEM_ADB_PREFIX)
         if (prefix.isNullOrEmpty()) {
-            mAdbManager.mPrefix = ""
+            mAdbManager.mPrefix = mAdbManager.DEFAULT_PREFIX
         } else {
             mAdbManager.mPrefix = prefix
         }
@@ -1324,23 +1324,24 @@ class MainUI(title: String) : JFrame() {
 
     fun setSaveLogFile() {
         val dtf = DateTimeFormatter.ofPattern("yyyyMMdd_HH.mm.ss")
-        var prefix = mDeviceCombo.selectedItem!!.toString()
-        prefix = prefix.substringBefore(":")
-        if (mAdbManager.mPrefix.isNotEmpty()) {
-            prefix = mAdbManager.mPrefix
+        var device = mDeviceCombo.selectedItem!!.toString()
+        device = device.substringBefore(":")
+        if (mAdbManager.mPrefix.isEmpty()) {
+            mAdbManager.mPrefix = mAdbManager.DEFAULT_PREFIX
         }
 
-        var filePath = mAdbManager.mLogSavePath + "/" + prefix + "_" + dtf.format(LocalDateTime.now()) + ".txt"
+        var filePath = "${mAdbManager.mLogSavePath}/${mAdbManager.mPrefix}_${device}_${dtf.format(LocalDateTime.now())}.txt"
         var file = File(filePath)
         var idx = 1
+        var filePathSaved = filePath
         while (file.isFile) {
-            filePath = mAdbManager.mLogSavePath + "/" + prefix + "_" + dtf.format(LocalDateTime.now()) + "-" + idx + ".txt"
-            file = File(filePath)
+            filePathSaved = "${filePath}-$idx.txt"
+            file = File(filePathSaved)
             idx++
         }
 
-        mFilteredTableModel.setLogFile(filePath)
-        mStatusTF.text = filePath
+        mFilteredTableModel.setLogFile(filePathSaved)
+        mStatusTF.text = filePathSaved
     }
 
     fun startAdbScan(reconnect: Boolean) {

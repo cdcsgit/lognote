@@ -7,7 +7,8 @@ import java.util.*
 
 
 class AdbManager private constructor(){
-    var mPrefix: String =""
+    val DEFAULT_PREFIX = "LogNote"
+    var mPrefix: String = DEFAULT_PREFIX
     var mAdbCmd = "adb"
     var mLogSavePath:String = "."
     var mTargetDevice: String = ""
