@@ -119,10 +119,12 @@ class AppearanceSettingsDialog (mainUI: MainUI) : JDialog(mainUI, Strings.APPEAR
             lafItem = JRadioButton(MainUI.FLAT_LIGHT_LAF)
             mLaFGroup.add(lafItem)
             lafPanel.add(lafItem)
+            lafPanel.add(ImagePanel("/images/appearance_flatlight.png"))
 
             lafItem = JRadioButton(MainUI.FLAT_DARK_LAF)
             mLaFGroup.add(lafItem)
             lafPanel.add(lafItem)
+            lafPanel.add(ImagePanel("/images/appearance_flatdark.png"))
 
             lafPanel.add(JLabel("   (Restart)"))
 
@@ -190,6 +192,19 @@ class AppearanceSettingsDialog (mainUI: MainUI) : JDialog(mainUI, Strings.APPEAR
             panel.add(dialogPanel, BorderLayout.CENTER)
 
             add(panel)
+        }
+
+        inner class ImagePanel(imageResource: String) : JPanel() {
+            private val mImgIcon = ImageIcon(this.javaClass.getResource(imageResource))
+            init {
+                preferredSize = Dimension(150, 106)
+                background = Color.RED
+            }
+
+            override fun paint(g: Graphics?) {
+                super.paint(g)
+                g?.drawImage(mImgIcon.image, 0, 0, mImgIcon.iconWidth, mImgIcon.iconHeight, null)
+            }
         }
 
         fun actionBtn(isOK: Boolean) {
@@ -910,8 +925,8 @@ class AppearanceSettingsDialog (mainUI: MainUI) : JDialog(mainUI, Strings.APPEAR
             }
         }
 
-        val optionFullCheckbox = JCheckBox()
-        val optionFilterCheckbox = JCheckBox()
+        val optionFullCheckbox = JCheckBox(Strings.FULL_LOG_TABLE)
+        val optionFilterCheckbox = JCheckBox(Strings.FILTER_LOG_TABLE)
         internal inner class MouseHandler: MouseAdapter() {
             override fun mouseClicked(e: MouseEvent?) {
                 val colorChooser = JColorChooser()
@@ -933,8 +948,6 @@ class AppearanceSettingsDialog (mainUI: MainUI) : JDialog(mainUI, Strings.APPEAR
 
                     val optionPanel = JPanel()
                     val optionTitleLabel = JLabel("${mTitleLabelArray[colorLabel.mIdx]!!.text} : ")
-                    val optionFullLabel = JLabel("${Strings.FULL_LOG_TABLE}  ")
-                    val optionFilterLabel = JLabel(Strings.FILTER_LOG_TABLE)
                     if (!optionFullCheckbox.isSelected || !optionFilterCheckbox.isSelected) {
                         if (colorLabel.mType == ColorManager.TableColorType.FULL_LOG_TABLE) {
                             optionFullCheckbox.isSelected = true
@@ -947,9 +960,7 @@ class AppearanceSettingsDialog (mainUI: MainUI) : JDialog(mainUI, Strings.APPEAR
 
                     optionPanel.add(optionTitleLabel)
                     optionPanel.add(optionFullCheckbox)
-                    optionPanel.add(optionFullLabel)
                     optionPanel.add(optionFilterCheckbox)
-                    optionPanel.add(optionFilterLabel)
 
                     val colorPanel = JPanel(BorderLayout())
                     colorPanel.add(rgbPanel, BorderLayout.CENTER)
