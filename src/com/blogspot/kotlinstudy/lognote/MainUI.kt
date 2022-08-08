@@ -1607,14 +1607,13 @@ class MainUI(title: String) : JFrame() {
                         mCombo?.editor?.selectAll()
                     }
                     mCopyItem -> {
-                        val editorCom: JTextComponent = mCombo?.editor?.editorComponent as JTextField
-                        editorCom.selectedText
+                        val editorCom = mCombo?.editor?.editorComponent as JTextComponent
                         val stringSelection = StringSelection(editorCom.selectedText)
                         val clipboard: Clipboard = Toolkit.getDefaultToolkit().systemClipboard
                         clipboard.setContents(stringSelection, null)
                     }
                     mPasteItem -> {
-                        val editorCom: JTextComponent = mCombo?.editor?.editorComponent as JTextField
+                        val editorCom = mCombo?.editor?.editorComponent as JTextComponent
                         editorCom.paste()
                     }
                     mReconnectItem -> {
