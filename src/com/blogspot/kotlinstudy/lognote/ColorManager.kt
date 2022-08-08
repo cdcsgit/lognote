@@ -11,9 +11,6 @@ class ColorManager private constructor(){
         fun colorChanged(event:ColorEvent?)
     }
 
-    val mFullTableColor = TableColor(TableColorType.FULL_LOG_TABLE)
-    val mFilterTableColor = TableColor(TableColorType.FILTER_LOG_TABLE)
-
     companion object {
         private val mInstance: ColorManager = ColorManager()
 
@@ -82,9 +79,9 @@ class ColorManager private constructor(){
     }
 
     var mColorSchemeLight = arrayOf(
-            "#FF0000",
+            "#FFFFFF",
             "#E0E0E0",
-            "#FFFAFA",
+            "#20B020",
             "#FFFAFA",
             "#D0D0D0",
             "#E0E0FF",
@@ -98,20 +95,20 @@ class ColorManager private constructor(){
             "#0000FF",
             "#0000FF",
             "#0000FF",
-            "#0000FF",
+            "#FFFFFF",
             "#333333",
             "#FFFFFF",
             "#D0D0DF",
             "#C0C0CF",
             "#E0E0EF",
             "#C0C0C0",
-            "#FFFAFA"
+            "#3030B0"
     )
 
     var mColorSchemeDark = arrayOf(
-            "#00CC00",
+            "#000000",
             "#3A3D41",
-            "#151515",
+            "#00A000",
             "#151515",
             "#151515",
             "#501010",
@@ -125,15 +122,19 @@ class ColorManager private constructor(){
             "#FFFFCC",
             "#FFCCFF",
             "#CCFFFF",
-            "#CCCC00",
+            "#000000",
             "#F0F0F0",
             "#A0A0A0",
             "#503030",
             "#503030",
             "#301010",
             "#3A3D41",
-            "#151515"
+            "#B0B0B0"
     )
+
+    // Must be declared after mColorSchemeLight (internally mColorSchemeLight is used)
+    val mFullTableColor = TableColor(TableColorType.FULL_LOG_TABLE)
+    val mFilterTableColor = TableColor(TableColorType.FILTER_LOG_TABLE)
 
     inner class TableColor(type: TableColorType) {
         private val mType = type
@@ -331,30 +332,30 @@ class ColorManager private constructor(){
             private set
 
         var mColorArray = arrayOf(
-                ColorItem(0, "Filtered FG", "#FF0000"),
-                ColorItem(13, "Selected BG", "#E0E0E0"),
-                ColorItem(14, "Filtered BG", "#FFFAFA"),
-                ColorItem(15, "Log BG", "#FFFAFA"),
-                ColorItem(16, "LineNum BG", "#D0D0D0"),
-                ColorItem(17, "Bookmark BG", "#E0E0FF"),
-                ColorItem(1, "Log Level None", "#000000"),
-                ColorItem(2, "Log Level Verbose", "#000000"),
-                ColorItem(3, "Log Level Debug", "#209000"),
-                ColorItem(4, "Log Level Info", "#0080DF"),
-                ColorItem(5, "Log Level Warning", "#F07000"),
-                ColorItem(6, "Log Level Error", "#D00000"),
-                ColorItem(7, "Log Level Fatal", "#700000"),
-                ColorItem(8, "PID FG", "#0000FF"),
-                ColorItem(9, "TID FG", "#0000FF"),
-                ColorItem(10, "Tag FG", "#0000FF"),
-                ColorItem(11, "Highlight FG", "#0000FF"),
-                ColorItem(12, "LineNum FG", "#333333"),
-                ColorItem(18, "NumLogSeperator BG", "#FFFFFF"),
-                ColorItem(19, "Bookmark Selected BG", "#D0D0DF"),
-                ColorItem(20, "LineNum Bookmark Selected BG", "#C0C0CF"),
-                ColorItem(21, "LineNum Bookmark BG", "#E0E0EF"),
-                ColorItem(22, "LineNum Selected BG", "#C0C0C0"),
-                ColorItem(23, "Highlight BG", "#FFFAFA"),
+                ColorItem(0, "Filtered FG", mColorSchemeLight[0]),
+                ColorItem(13, "Selected BG", mColorSchemeLight[1]),
+                ColorItem(14, "Filtered BG", mColorSchemeLight[2]),
+                ColorItem(15, "Log BG", mColorSchemeLight[3]),
+                ColorItem(16, "LineNum BG", mColorSchemeLight[4]),
+                ColorItem(17, "Bookmark BG", mColorSchemeLight[5]),
+                ColorItem(1, "Log Level None", mColorSchemeLight[6]),
+                ColorItem(2, "Log Level Verbose", mColorSchemeLight[7]),
+                ColorItem(3, "Log Level Debug", mColorSchemeLight[8]),
+                ColorItem(4, "Log Level Info", mColorSchemeLight[9]),
+                ColorItem(5, "Log Level Warning", mColorSchemeLight[10]),
+                ColorItem(6, "Log Level Error", mColorSchemeLight[11]),
+                ColorItem(7, "Log Level Fatal", mColorSchemeLight[12]),
+                ColorItem(8, "PID FG", mColorSchemeLight[13]),
+                ColorItem(9, "TID FG", mColorSchemeLight[14]),
+                ColorItem(10, "Tag FG", mColorSchemeLight[15]),
+                ColorItem(11, "Highlight FG", mColorSchemeLight[16]),
+                ColorItem(12, "LineNum FG", mColorSchemeLight[17]),
+                ColorItem(18, "NumLogSeperator BG", mColorSchemeLight[18]),
+                ColorItem(19, "Bookmark Selected BG", mColorSchemeLight[19]),
+                ColorItem(20, "LineNum Bookmark Selected BG", mColorSchemeLight[20]),
+                ColorItem(21, "LineNum Bookmark BG", mColorSchemeLight[21]),
+                ColorItem(22, "LineNum Selected BG", mColorSchemeLight[22]),
+                ColorItem(23, "Highlight BG", mColorSchemeLight[23]),
         )
 
         fun getConfig() {
