@@ -405,11 +405,24 @@ class ColorManager private constructor(){
         }
     }
 
-    var mFilterStyle = arrayOf(
-            ColorItem(0, "Include Text", "#FFFFFF"),
-            ColorItem(1, "Exclude Text", "#FFA0A0"),
-            ColorItem(2, "Separator", "#00FF00"),
+    var mFilterColorSchemeLight = arrayOf(
+            "#FFFFFF",
+            "#FFA0A0",
+            "#00FF00",
     )
+
+    var mFilterColorSchemeDark = arrayOf(
+            "#46494B",
+            "#AA5050",
+            "#007700",
+    )
+
+    var mFilterStyle = arrayOf(
+            ColorItem(0, "Include Text", mFilterColorSchemeLight[0]),
+            ColorItem(1, "Exclude Text", mFilterColorSchemeLight[1]),
+            ColorItem(2, "Separator", mFilterColorSchemeLight[2]),
+    )
+
     var mFilterStyleInclude: Color = Color.decode(mFilterStyle[0].mStrColor)
     var mFilterStyleExclude: Color = Color.decode(mFilterStyle[1].mStrColor)
     var mFilterStyleSeparator: Color = Color.decode(mFilterStyle[2].mStrColor)

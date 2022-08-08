@@ -56,12 +56,10 @@ class MainUI(title: String) : JFrame() {
     private lateinit var mMenuSettings: JMenu
     private lateinit var mItemAdb: JMenuItem
     private lateinit var mItemLogFile: JMenuItem
-    private lateinit var mItemFont: JMenuItem
     private lateinit var mItemFilterIncremental: JCheckBoxMenuItem
-    private lateinit var mItemFilterStyle: JMenuItem
     private lateinit var mMenuLogLevel: JMenu
     private lateinit var mLogLevelGroup: ButtonGroup
-    private lateinit var mItemLaF: JMenuItem
+    private lateinit var mItemAppearance: JMenuItem
     private lateinit var mMenuHelp: JMenu
     private lateinit var mItemHelp: JMenuItem
     private lateinit var mItemAbout: JMenuItem
@@ -460,20 +458,9 @@ class MainUI(title: String) : JFrame() {
 
         mMenuSettings.addSeparator()
 
-        mItemFont = JMenuItem(Strings.FONT + " & " + Strings.COLOR)
-//        mItemFont = JMenuItem(Strings.FONT)
-        mItemFont.addActionListener(mActionHandler)
-        mMenuSettings.add(mItemFont)
-
-        mMenuSettings.addSeparator()
-
         mItemFilterIncremental = JCheckBoxMenuItem(Strings.FILTER + "-" + Strings.INCREMENTAL)
         mItemFilterIncremental.addActionListener(mActionHandler)
         mMenuSettings.add(mItemFilterIncremental)
-
-        mItemFilterStyle = JMenuItem(Strings.FILTER_STYLE)
-        mItemFilterStyle.addActionListener(mActionHandler)
-        mMenuSettings.add(mItemFilterStyle)
 
         mMenuSettings.addSeparator()
 
@@ -516,9 +503,9 @@ class MainUI(title: String) : JFrame() {
 
         mMenuSettings.addSeparator()
 
-        mItemLaF = JMenuItem(Strings.APPEARANCE)
-        mItemLaF.addActionListener(mActionHandler)
-        mMenuSettings.add(mItemLaF)
+        mItemAppearance = JMenuItem(Strings.APPEARANCE)
+        mItemAppearance.addActionListener(mActionHandler)
+        mMenuSettings.add(mItemAppearance)
 
         mMenuBar.add(mMenuSettings)
 
@@ -1424,10 +1411,6 @@ class MainUI(title: String) : JFrame() {
                 val settingsDialog = AdbSettingsDialog(this@MainUI)
                 settingsDialog.setLocationRelativeTo(this@MainUI)
                 settingsDialog.isVisible = true
-            } else if (p0?.source == mItemFont) {
-                val fontDialog = FontDialog(this@MainUI)
-                fontDialog.setLocationRelativeTo(this@MainUI)
-                fontDialog.isVisible = true
             } else if (p0?.source == mItemFull) {
                 if (mItemFull.state) {
                     attachLogPanel(mFullLogPanel)
@@ -1438,14 +1421,10 @@ class MainUI(title: String) : JFrame() {
                 mConfigManager.saveItem(ConfigManager.ITEM_VIEW_FULL, mItemFull.state.toString())
             } else if (p0?.source == mItemFilterIncremental) {
                 mConfigManager.saveItem(ConfigManager.ITEM_FILTER_INCREMENTAL, mItemFilterIncremental.state.toString())
-            } else if (p0?.source == mItemFilterStyle) {
-                val filterStyleDialog = FilterStyleDialog(this@MainUI)
-                filterStyleDialog.setLocationRelativeTo(this@MainUI)
-                filterStyleDialog.isVisible = true
-            } else if (p0?.source == mItemLaF) {
-                val appearanceDialog = AppearanceDialog(this@MainUI)
-                appearanceDialog.setLocationRelativeTo(this@MainUI)
-                appearanceDialog.isVisible = true
+            } else if (p0?.source == mItemAppearance) {
+                val appearanceSettingsDialog = AppearanceSettingsDialog(this@MainUI)
+                appearanceSettingsDialog.setLocationRelativeTo(this@MainUI)
+                appearanceSettingsDialog.isVisible = true
             } else if (p0?.source == mItemAbout) {
                 val aboutDialog = AboutDialog(this@MainUI)
                 aboutDialog.setLocationRelativeTo(this@MainUI)
