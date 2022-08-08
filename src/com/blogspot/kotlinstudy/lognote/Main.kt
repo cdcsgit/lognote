@@ -4,7 +4,7 @@ import javax.swing.SwingUtilities
 
 class Main {
     companion object {
-        const val VERSION: String = "0.2.5"
+        const val VERSION: String = "0.2.6"
 
         @JvmStatic
         fun main(args: Array<String>) {
