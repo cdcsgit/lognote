@@ -108,20 +108,12 @@ class LogTableModel() : AbstractTableModel() {
 
     var mFilterHighlightLog: String = ""
         set(value) {
-//            try {
-//                mPatternHighlightLog = Pattern.compile(value, mPatternCase)
-                mFilterHighlightSplit = if (value.isNotEmpty()) value.split("|") else null
-
-                if (field != value) {
-                    mIsFilterUpdated = true
-                }
-                field = value
-//            } catch(ex: java.util.regex.PatternSyntaxException) {
-//                ex.printStackTrace()
-//            }
+            val patterns = parsePattern(value)
+            if (field != patterns[0]) {
+                mIsFilterUpdated = true
+                field = patterns[0]
+            }
         }
-
-    private var mFilterHighlightSplit: List<String>? = null
 
     var mFilterTag: String = ""
         set(value) {
@@ -970,7 +962,13 @@ class LogTableModel() : AbstractTableModel() {
                     }
 
                     if (isSelected) {
-                        bgColor = mTableColor.StrSelectedBG
+                        val tmpColor = Color.decode(bgColor)
+                        Color(tmpColor.red / 2 + mTableColor.SelectedBG.red / 2, tmpColor.green / 2 + mTableColor.SelectedBG.green / 2, tmpColor.blue / 2 + mTableColor.SelectedBG.blue / 2)
+                        bgColor = "#" + Integer.toHexString(Color(
+                                tmpColor.red / 2 + mTableColor.SelectedBG.red / 2,
+                                tmpColor.green / 2 + mTableColor.SelectedBG.green / 2,
+                                tmpColor.blue / 2 + mTableColor.SelectedBG.blue / 2).rgb).substring(2).uppercase()
+//                        bgColor = "#" + Integer.toHexString(mTableColor.SelectedBG.brighter().rgb).substring(2).uppercase()
                     }
 
                     stringBuilder.replace(

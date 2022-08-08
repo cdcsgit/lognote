@@ -381,6 +381,8 @@ class FontDialog (parent: MainUI) : JDialog(parent, Strings.FONT + " & " + Strin
         }
     }
 
+    val optionFullCheckbox = JCheckBox()
+    val optionFilterCheckbox = JCheckBox()
     internal inner class MouseHandler: MouseAdapter() {
         override fun mouseClicked(e: MouseEvent?) {
             val colorChooser = JColorChooser()
@@ -400,29 +402,62 @@ class FontDialog (parent: MainUI) : JDialog(parent, Strings.FONT + " & " + Strin
                     colorChooser.color = colorLabel.foreground
                 }
 
-                val ret = JOptionPane.showConfirmDialog(this@FontDialog, rgbPanel, "Color Chooser", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
-                if (ret == JOptionPane.OK_OPTION) {
-                    val hex = "#" + Integer.toHexString(colorChooser.color.rgb).substring(2).uppercase()
-                    colorLabel.text = " ${mFullTableColor.mColorArray[colorLabel.mIdx].mName} $hex "
-                    val tableColor = if (colorLabel.mType == ColorManager.TableColorType.FULL_LOG_TABLE) {
-                        mFullTableColor
-                    }
-                    else {
-                        mFilterTableColor
-                    }
-                    tableColor.mColorArray[colorLabel.mIdx].mStrColor = hex
-                    if (colorLabel.text.contains("BG")) {
-                        colorLabel.background = colorChooser.color
+                val optionPanel = JPanel()
+                val optionTitleLabel = JLabel("${mTitleLabelArray[colorLabel.mIdx]!!.text} : ")
+                val optionFullLabel = JLabel("${Strings.FULL_LOG_TABLE}  ")
+                val optionFilterLabel = JLabel(Strings.FILTER_LOG_TABLE)
+                if (!optionFullCheckbox.isSelected || !optionFilterCheckbox.isSelected) {
+                    if (colorLabel.mType == ColorManager.TableColorType.FULL_LOG_TABLE) {
+                        optionFullCheckbox.isSelected = true
+                        optionFilterCheckbox.isSelected = false
                     } else {
-                        colorLabel.foreground = colorChooser.color
+                        optionFullCheckbox.isSelected = false
+                        optionFilterCheckbox.isSelected = true
                     }
-                    tableColor.applyColor()
-                    updateLabelColor(colorLabel.mType)
+                }
+
+                optionPanel.add(optionTitleLabel)
+                optionPanel.add(optionFullCheckbox)
+                optionPanel.add(optionFullLabel)
+                optionPanel.add(optionFilterCheckbox)
+                optionPanel.add(optionFilterLabel)
+
+                val colorPanel = JPanel(BorderLayout())
+                colorPanel.add(rgbPanel, BorderLayout.CENTER)
+                colorPanel.add(optionPanel, BorderLayout.SOUTH)
+
+                val ret = JOptionPane.showConfirmDialog(this@FontDialog, colorPanel, "Color Chooser", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
+                if (ret == JOptionPane.OK_OPTION) {
+                    if (optionFullCheckbox.isSelected) {
+                        updateColor(mFullColorLabelArray[colorLabel.mIdx]!!, colorChooser.color)
+                    }
+                    if (optionFilterCheckbox.isSelected) {
+                        updateColor(mFilterColorLabelArray[colorLabel.mIdx]!!, colorChooser.color)
+                    }
                     setFont() // refresh log table
                 }
             }
 
             super.mouseClicked(e)
+        }
+
+        private fun updateColor(colorLabel: ColorLabel, color: Color) {
+            val hex = "#" + Integer.toHexString(color.rgb).substring(2).uppercase()
+            colorLabel.text = " ${mFullTableColor.mColorArray[colorLabel.mIdx].mName} $hex "
+            val tableColor = if (colorLabel.mType == ColorManager.TableColorType.FULL_LOG_TABLE) {
+                mFullTableColor
+            }
+            else {
+                mFilterTableColor
+            }
+            tableColor.mColorArray[colorLabel.mIdx].mStrColor = hex
+            if (colorLabel.text.contains("BG")) {
+                colorLabel.background = color
+            } else {
+                colorLabel.foreground = color
+            }
+            tableColor.applyColor()
+            updateLabelColor(colorLabel.mType)
         }
     }
 }

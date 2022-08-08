@@ -700,7 +700,7 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
         }
         var mLastComponent: Component? = null
         init {
-            layout = ButtonFlowLayout(FlowLayout.LEFT, 0, 0)
+            layout = ButtonFlowLayout(FlowLayout.LEFT, 2, 0)
             addComponentListener(
                 object : ComponentAdapter() {
                     var mPrevPoint: Point? = null
