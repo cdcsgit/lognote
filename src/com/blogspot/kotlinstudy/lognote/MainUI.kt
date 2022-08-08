@@ -42,6 +42,8 @@ class MainUI(title: String) : JFrame() {
         const val SYSTEM_LAF = "System"
         const val FLAT_LIGHT_LAF = "Flat Light"
         const val FLAT_DARK_LAF = "Flat Dark"
+
+        var IsCreatingUI = true
     }
 
     private lateinit var mMenuBar: JMenuBar
@@ -148,7 +150,6 @@ class MainUI(title: String) : JFrame() {
 
     val mConfigManager = ConfigManager.getInstance()
     private val mColorManager = ColorManager.getInstance()
-    private var mIsCreatingUI = true
 
     private val mAdbManager = AdbManager.getInstance()
     private lateinit var mFiltersManager:FiltersManager
@@ -165,7 +166,7 @@ class MainUI(title: String) : JFrame() {
     var mFont: Font = Font("Dialog", Font.PLAIN, 12)
         set(value) {
             field = value
-            if (!mIsCreatingUI) {
+            if (!IsCreatingUI) {
                 mFilteredLogPanel.mFont = value
                 mFullLogPanel.mFont = value
             }
@@ -175,6 +176,7 @@ class MainUI(title: String) : JFrame() {
 
     init {
         loadConfigOnCreate()
+        mAdbManager.setMainUI(this)
 
         val laf = mConfigManager.getItem(ConfigManager.ITEM_LOOK_AND_FEEL)
 
@@ -1140,7 +1142,7 @@ class MainUI(title: String) : JFrame() {
         add(mLogSplitPane, BorderLayout.CENTER)
         add(mStatusBar, BorderLayout.SOUTH)
 
-        mIsCreatingUI = false
+        IsCreatingUI = false
     }
 
     private fun setLaF(laf:String) {
@@ -1818,7 +1820,7 @@ class MainUI(title: String) : JFrame() {
                 }
             }
 
-            if (mIsCreatingUI) {
+            if (IsCreatingUI) {
                 return
             }
             when (p0?.source) {
@@ -1906,7 +1908,7 @@ class MainUI(title: String) : JFrame() {
                     mAdbManager.getDevices()
                 }
                 AdbManager.CMD_GET_DEVICES -> {
-                    if (mIsCreatingUI) {
+                    if (IsCreatingUI) {
                         return
                     }
                     var selectedItem = mDeviceCombo.selectedItem
@@ -2071,7 +2073,7 @@ class MainUI(title: String) : JFrame() {
     }
 
     fun markLine() {
-        if (mIsCreatingUI) {
+        if (IsCreatingUI) {
             return
         }
         mSelectedLine = mFilteredLogPanel.getSelectedLine()
@@ -2082,7 +2084,7 @@ class MainUI(title: String) : JFrame() {
     }
 
     fun goToMarkedLine() {
-        if (mIsCreatingUI) {
+        if (IsCreatingUI) {
             return
         }
         goToLine(mSelectedLine)

@@ -4,6 +4,7 @@ import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
 import java.util.*
+import javax.swing.JOptionPane
 
 
 class AdbManager private constructor(){
@@ -14,6 +15,7 @@ class AdbManager private constructor(){
     var mTargetDevice: String = ""
     var mDevices = ArrayList<String>()
     private val mEventListeners = ArrayList<AdbEventListener>()
+    private var mMainUI: MainUI? = null
 
     companion object {
         const val EVENT_NONE = 0
@@ -30,6 +32,10 @@ class AdbManager private constructor(){
         fun getInstance(): AdbManager {
             return mInstance
         }
+    }
+
+    fun setMainUI(mainUI: MainUI) {
+        mMainUI = mainUI
     }
 
     fun getDevices() {
@@ -102,6 +108,8 @@ class AdbManager private constructor(){
                         Scanner(process.inputStream)
                     } catch (e:IOException) {
                         println("Failed run $cmd")
+                        e.printStackTrace()
+                        JOptionPane.showMessageDialog(mMainUI, e.message, "Error", JOptionPane.ERROR_MESSAGE)
                         val adbEvent = AdbEvent(CMD_CONNECT, EVENT_FAIL)
                         sendEvent(adbEvent)
                         return@run
@@ -139,6 +147,7 @@ class AdbManager private constructor(){
                         Scanner(process.inputStream)
                     } catch (e:IOException) {
                         println("Failed run $cmd")
+                        e.printStackTrace()
                         val adbEvent = AdbEvent(CMD_GET_DEVICES, EVENT_FAIL)
                         sendEvent(adbEvent)
                         return@run
@@ -178,6 +187,8 @@ class AdbManager private constructor(){
                         processExitDetector.start()
                     } catch (e:IOException) {
                         println("Failed run $cmd")
+                        e.printStackTrace()
+                        JOptionPane.showMessageDialog(mMainUI, e.message, "Error", JOptionPane.ERROR_MESSAGE)
                         mProcessLogcat = null
                         return@run
                     }
@@ -192,6 +203,8 @@ class AdbManager private constructor(){
                         runtime.exec(cmd)
                     } catch (e: IOException) {
                         println("Failed run $cmd")
+                        e.printStackTrace()
+                        JOptionPane.showMessageDialog(mMainUI, e.message, "Error", JOptionPane.ERROR_MESSAGE)
                         val adbEvent = AdbEvent(CMD_DISCONNECT, EVENT_FAIL)
                         sendEvent(adbEvent)
                         return@run
