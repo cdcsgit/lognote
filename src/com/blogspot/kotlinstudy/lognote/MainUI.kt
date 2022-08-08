@@ -130,7 +130,7 @@ class MainUI(title: String) : JFrame() {
 
     private lateinit var mFullTableModel: LogTableModel
 
-    private lateinit var mLogSplitPane: JSplitPane
+    lateinit var mLogSplitPane: JSplitPane
 
     lateinit var mFilteredLogPanel: LogPanel
     lateinit var mFullLogPanel: LogPanel
@@ -516,7 +516,7 @@ class MainUI(title: String) : JFrame() {
 
         mMenuSettings.addSeparator()
 
-        mItemLaF = JMenuItem(Strings.LOOK_AND_FEEL)
+        mItemLaF = JMenuItem(Strings.APPEARANCE)
         mItemLaF.addActionListener(mActionHandler)
         mMenuSettings.add(mItemLaF)
 
@@ -919,7 +919,12 @@ class MainUI(title: String) : JFrame() {
                 mLogSplitPane.resizeWeight = 1 - SPLIT_WEIGHT
             }
         }
-        mLogSplitPane.dividerSize = 2
+
+        val dividerSize = mConfigManager.getItem(ConfigManager.ITEM_APPEARANCE_DIVIDER_SIZE)
+        if (!dividerSize.isNullOrEmpty()) {
+            mLogSplitPane.dividerSize = dividerSize.toInt()
+        }
+
         mLogSplitPane.isOneTouchExpandable = false
 
         mStatusBar = JPanel(BorderLayout())
@@ -1438,9 +1443,9 @@ class MainUI(title: String) : JFrame() {
                 filterStyleDialog.setLocationRelativeTo(this@MainUI)
                 filterStyleDialog.isVisible = true
             } else if (p0?.source == mItemLaF) {
-                val laFDialog = LaFDialog(this@MainUI)
-                laFDialog.setLocationRelativeTo(this@MainUI)
-                laFDialog.isVisible = true
+                val appearanceDialog = AppearanceDialog(this@MainUI)
+                appearanceDialog.setLocationRelativeTo(this@MainUI)
+                appearanceDialog.isVisible = true
             } else if (p0?.source == mItemAbout) {
                 val aboutDialog = AboutDialog(this@MainUI)
                 aboutDialog.setLocationRelativeTo(this@MainUI)

@@ -76,6 +76,8 @@ class StringsKo private constructor() {
             , "내장 색상표"
             , "밝음"
             , "어두움"
+            , "모양"
+            , "옵션"
 //            , ""
         )
     }

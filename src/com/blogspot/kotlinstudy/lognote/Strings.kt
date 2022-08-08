@@ -91,6 +91,8 @@ class Strings private constructor() {
         private val IDX_BUILT_IN_SCHEMES = idx++
         private val IDX_LIGHT = idx++
         private val IDX_DARK = idx++
+        private val IDX_APPEARANCE = idx++
+        private val IDX_OPTIONS = idx++
 //        private val IDX_ = idx++
 
         val FILE: String
@@ -239,5 +241,9 @@ class Strings private constructor() {
             get() { return currStrings[IDX_LIGHT] }
         val DARK: String
             get() { return currStrings[IDX_DARK] }
+        val APPEARANCE: String
+            get() { return currStrings[IDX_APPEARANCE] }
+        val OPTIONS: String
+            get() { return currStrings[IDX_OPTIONS] }
     }
 }

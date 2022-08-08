@@ -76,6 +76,8 @@ class StringsEn private constructor() {
             , "Built-in schemes"
             , "Light"
             , "Dark"
+            , "Appearance"
+            , "Options"
 //            , ""
         )
     }
