@@ -10,6 +10,7 @@ Online / offline log view
 
 Aging Test : Save split file by lines
 
+![lognote_light_scheme](https://user-images.githubusercontent.com/75207513/183441920-7d9b8674-70dd-4e59-9514-f19b9b751453.png)
 <br/>
 
 # Run
@@ -52,14 +53,14 @@ Highlight color : Include text, Exclude text, Separator
 
 # Color settings
 Light(default) \
-<img src="https://user-images.githubusercontent.com/75207513/148026944-d965a90e-f2e4-478d-a763-f9d229d36f4c.png" width="600">
+![lognote_light_scheme](https://user-images.githubusercontent.com/75207513/183441920-7d9b8674-70dd-4e59-9514-f19b9b751453.png)
 
 Dark \
-<img src="https://user-images.githubusercontent.com/75207513/148026947-e713661d-a876-41c6-99c3-877596c098ad.png" width="600">
+![lognote_dark_scheme](https://user-images.githubusercontent.com/75207513/183442611-28b45287-12a8-4e8a-8366-abb6024e73a8.png)
 
 \
-Setting > Font & Color \
-<img src="https://user-images.githubusercontent.com/75207513/160410523-afcb82c2-78de-4695-a372-ac7d32533464.png" width="300">
+Setting > Appearance \
+![lognote_appearance_settings](https://user-images.githubusercontent.com/75207513/183441901-de5dbfb4-1b4d-4dca-97a6-cee050d4bd28.png)
 
 <br/>
 
