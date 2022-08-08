@@ -250,11 +250,9 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
         var bg = Color.WHITE
         if (mBasePanel != null) {
             bg = ColorManager.getInstance().mFilterTableColor.LogBG
-            println("Color filter log bg $bg")
         }
         else {
             bg = ColorManager.getInstance().mFullTableColor.LogBG
-            println("Color full log bg $bg")
         }
 
         if (bg != background) {
