@@ -9,11 +9,12 @@ import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
 import javax.swing.plaf.basic.BasicScrollBarUI
 
+
 class AppearanceSettingsDialog (mainUI: MainUI) : JDialog(mainUI, Strings.APPEARANCE, true), ActionListener {
     private var mMainUI = mainUI
 
     private val mSettingsPanel = JPanel()
-    private val mScrollPane = JScrollPane(mSettingsPanel)
+    private val mScrollPane = JScrollPane()
     private val mLnFPanel = LnFPanel()
     private val mFilterComboPanel = FilterComboPanel()
     private val mFontColorPanel = FontColorPanel()
@@ -41,6 +42,10 @@ class AppearanceSettingsDialog (mainUI: MainUI) : JDialog(mainUI, Strings.APPEAR
         val bottomPanel = JPanel()
         bottomPanel.add(mOkBtn)
         bottomPanel.add(mCancelBtn)
+
+        val settingsPanelWrapper = JPanel(BorderLayout())
+        settingsPanelWrapper.add(mSettingsPanel, BorderLayout.NORTH)
+        mScrollPane.setViewportView(settingsPanelWrapper)
 
         contentPane.layout = BorderLayout()
         contentPane.add(mScrollPane, BorderLayout.CENTER)
@@ -697,24 +702,56 @@ class AppearanceSettingsDialog (mainUI: MainUI) : JDialog(mainUI, Strings.APPEAR
 
             val schemePanel = JPanel()
             val schemeLabel = JLabel("${Strings.BUILT_IN_SCHEMES} : ")
+            val fullCheckbox = JCheckBox("${Strings.FULL} ${Strings.LOG}", true)
+            val filterCheckbox = JCheckBox("${Strings.FILTER} ${Strings.LOG}", true)
             val radioLight = JRadioButton(Strings.LIGHT)
             val radioDark = JRadioButton(Strings.DARK)
             val buttonGroup = ButtonGroup()
             val schemeBtn = JButton(Strings.APPLY)
 
-            schemeBtn.addActionListener(ActionListener { if (radioLight.isSelected) {
-                applyColorScheme(ColorManager.getInstance().mColorSchemeLight)
-            } else if (radioDark.isSelected) {
-                applyColorScheme(ColorManager.getInstance().mColorSchemeDark)
-            }
+            schemeBtn.addActionListener(ActionListener {
+                val scheme: Array<String> = if (radioLight.isSelected) {
+                    ColorManager.getInstance().mColorSchemeLight
+                } else if (radioDark.isSelected) {
+                    ColorManager.getInstance().mColorSchemeDark
+                } else {
+                    println("Scheme is not selected")
+                    return@ActionListener
+                }
+
+                if (fullCheckbox.isSelected && filterCheckbox.isSelected) {
+                    applyColorScheme(scheme)
+                }
+                else if (fullCheckbox.isSelected) {
+                    applyColorScheme(ColorManager.TableColorType.FULL_LOG_TABLE, scheme, true)
+                }
+                else if (filterCheckbox.isSelected) {
+                    applyColorScheme(ColorManager.TableColorType.FILTER_LOG_TABLE, scheme, true)
+                }
+                else {
+                    println("Target log(full/filter) is not selected")
+                }
             })
 
             buttonGroup.add(radioLight)
             buttonGroup.add(radioDark)
+
+            val schemePanelSub = JPanel(BorderLayout())
+            val schemePanelSubNorth = JPanel()
+            val schemePanelSubSouth = JPanel()
+
+            schemePanelSubNorth.add(fullCheckbox)
+            schemePanelSubNorth.add(filterCheckbox)
+            schemePanelSubSouth.add(radioLight)
+            schemePanelSubSouth.add(radioDark)
+            schemePanelSubSouth.add(schemeBtn)
+
+            schemePanelSub.add(schemePanelSubNorth, BorderLayout.NORTH)
+            schemePanelSub.add(schemePanelSubSouth, BorderLayout.SOUTH)
+
             schemePanel.add(schemeLabel)
-            schemePanel.add(radioLight)
-            schemePanel.add(radioDark)
-            schemePanel.add(schemeBtn)
+            schemePanel.add(schemePanelSub)
+
 
             val sizeSchemePanel = JPanel()
             sizeSchemePanel.layout = BoxLayout(sizeSchemePanel, BoxLayout.Y_AXIS)
@@ -777,7 +814,7 @@ class AppearanceSettingsDialog (mainUI: MainUI) : JDialog(mainUI, Strings.APPEAR
             // nothing
         }
 
-        private fun applyColorScheme(type: ColorManager.TableColorType, scheme: Array<String>) {
+        private fun applyColorScheme(type: ColorManager.TableColorType, scheme: Array<String>, isUpdateUI: Boolean) {
             val colorLabelArray = if (type == ColorManager.TableColorType.FULL_LOG_TABLE) {
                 mFullColorLabelArray
             } else {
@@ -802,12 +839,16 @@ class AppearanceSettingsDialog (mainUI: MainUI) : JDialog(mainUI, Strings.APPEAR
                 tableColor.applyColor()
                 updateLabelColor(type)
             }
+
+            if (isUpdateUI) {
+                SwingUtilities.updateComponentTreeUI(mMainUI)
+            }
         }
 
         private fun applyColorScheme(scheme: Array<String>) {
-            applyColorScheme(ColorManager.TableColorType.FULL_LOG_TABLE, scheme)
-            applyColorScheme(ColorManager.TableColorType.FILTER_LOG_TABLE, scheme)
-            setFont()
+            applyColorScheme(ColorManager.TableColorType.FULL_LOG_TABLE, scheme, false)
+            applyColorScheme(ColorManager.TableColorType.FILTER_LOG_TABLE, scheme, false)
+            SwingUtilities.updateComponentTreeUI(mMainUI)
         }
 
         fun updateLabelColor(type: ColorManager.TableColorType) {
@@ -907,7 +948,6 @@ class AppearanceSettingsDialog (mainUI: MainUI) : JDialog(mainUI, Strings.APPEAR
             val selection = mNameList.selectedValue
             val size = mSizeSpinner.model.value as Int
             mExampleLabel.font = Font(selection.toString(), Font.PLAIN, size)
-
             mMainUI.mFont = Font(selection.toString(), Font.PLAIN, size)
         }
 
@@ -974,7 +1014,8 @@ class AppearanceSettingsDialog (mainUI: MainUI) : JDialog(mainUI, Strings.APPEAR
                         if (optionFilterCheckbox.isSelected) {
                             updateColor(mFilterColorLabelArray[colorLabel.mIdx]!!, colorChooser.color)
                         }
-                        setFont() // refresh log table
+
+                        SwingUtilities.updateComponentTreeUI(mMainUI)
                     }
                 }
 

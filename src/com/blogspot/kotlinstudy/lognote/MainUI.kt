@@ -2131,6 +2131,9 @@ class MainUI(title: String) : JFrame() {
         }
     }
 
+    fun repaintUI() {
+    }
+
     internal inner class StatusTextField(text: String?) : JTextField(text) {
         private var mPrevText = ""
         override fun getToolTipText(event: MouseEvent?): String? {
