@@ -10,7 +10,7 @@ Online / offline log view
 
 Aging Test : Save split file by lines
 
-![lognote_light_scheme](https://user-images.githubusercontent.com/75207513/183441920-7d9b8674-70dd-4e59-9514-f19b9b751453.png)
+![lognote_light_scheme](https://user-images.githubusercontent.com/75207513/191988798-b0bf7fbd-1625-4606-9c53-bfd0ddeac6d3.png)
 <br/>
 
 # Run
@@ -32,6 +32,11 @@ Set the adb path(to view online log) \
 
 <br/>
 
+# Filter combobox color tag
+![Lognote_ColorTag](https://user-images.githubusercontent.com/75207513/191993351-396498bc-d5f7-4b92-9a4b-e1b85cb87305.gif)
+
+<br/>
+
 # Filter combobox style
 Setting > Filter Style : set style, color
 1. Single line
@@ -48,15 +53,19 @@ Highlight color : Include text, Exclude text, Separator
 # Filter combobox size
 ![lognote_filtercombo_disable](https://user-images.githubusercontent.com/75207513/167983195-848e7aba-123f-44c8-ba7a-944d9923a1a1.gif)
 
+<br/>
+
+# Filter manager
+![Lognote_FilterManager](https://user-images.githubusercontent.com/75207513/191995297-2417f744-4247-4a33-9914-90ca6a758fc3.gif)
 
 <br/>
 
 # Color settings
 Light(default) \
-![lognote_light_scheme](https://user-images.githubusercontent.com/75207513/183441920-7d9b8674-70dd-4e59-9514-f19b9b751453.png)
+![lognote_light_scheme](https://user-images.githubusercontent.com/75207513/191988798-b0bf7fbd-1625-4606-9c53-bfd0ddeac6d3.png)
 
 Dark \
-![lognote_dark_scheme](https://user-images.githubusercontent.com/75207513/183442611-28b45287-12a8-4e8a-8366-abb6024e73a8.png)
+![lognote_dark_scheme](https://user-images.githubusercontent.com/75207513/191988787-03f75360-8caa-4e7f-8eb7-a769b17a9677.png)
 
 \
 Setting > Appearance \
