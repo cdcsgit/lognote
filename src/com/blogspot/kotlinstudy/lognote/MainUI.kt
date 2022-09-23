@@ -882,8 +882,8 @@ class MainUI(title: String) : JFrame() {
         mFilteredTableModel = LogTableModel(mFullTableModel)
         mFilteredTableModel.mMainUI = this@MainUI
 
-        mFullLogPanel = LogPanel(mFullTableModel, null)
-        mFilteredLogPanel = LogPanel(mFilteredTableModel, mFullLogPanel)
+        mFullLogPanel = LogPanel(this, mFullTableModel, null)
+        mFilteredLogPanel = LogPanel(this, mFilteredTableModel, mFullLogPanel)
         mFullLogPanel.updateTableBar(mConfigManager.loadCmds())
         mFilteredLogPanel.updateTableBar(mConfigManager.loadFilters())
 

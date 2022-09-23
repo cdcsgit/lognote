@@ -62,7 +62,23 @@ class FiltersManager (mainUI: MainUI, logPanel: LogPanel): CustomListManager (ma
             if (p0?.clickCount == 2) {
                 val list = p0.source as JList<CustomElement>
                 val selection = list.selectedValue
-                mMainUI.setTextShowLogCombo(selection.mValue)
+                if ((ActionEvent.CTRL_MASK and p0.modifiers) != 0) {
+                    val filterText = mMainUI.getTextShowLogCombo()
+                    if (filterText.isEmpty()) {
+                        mMainUI.setTextShowLogCombo(selection.mValue)
+                    }
+                    else {
+                        if (filterText.substring(filterText.length - 1) == "|") {
+                            mMainUI.setTextShowLogCombo(filterText + selection.mValue)
+                        }
+                        else {
+                            mMainUI.setTextShowLogCombo(filterText + "|" + selection.mValue)
+                        }
+                    }
+                }
+                else {
+                    mMainUI.setTextShowLogCombo(selection.mValue)
+                }
                 mMainUI.applyShowLogCombo()
             }
         }
@@ -74,7 +90,23 @@ class FiltersManager (mainUI: MainUI, logPanel: LogPanel): CustomListManager (ma
             if (p0?.keyCode == KeyEvent.VK_ENTER) {
                 val list = p0.source as JList<CustomElement>
                 val selection = list.selectedValue
-                mMainUI.setTextShowLogCombo(selection.mValue)
+                if ((ActionEvent.CTRL_MASK and p0.modifiers) != 0) {
+                    val filterText = mMainUI.getTextShowLogCombo()
+                    if (filterText.isEmpty()) {
+                        mMainUI.setTextShowLogCombo(selection.mValue)
+                    }
+                    else {
+                        if (filterText.substring(filterText.length - 1) == "|") {
+                            mMainUI.setTextShowLogCombo(filterText + selection.mValue)
+                        }
+                        else {
+                            mMainUI.setTextShowLogCombo(filterText + "|" + selection.mValue)
+                        }
+                    }
+                }
+                else {
+                    mMainUI.setTextShowLogCombo(selection.mValue)
+                }
                 mMainUI.applyShowLogCombo()
             }
         }

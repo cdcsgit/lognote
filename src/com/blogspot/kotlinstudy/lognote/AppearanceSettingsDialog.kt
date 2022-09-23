@@ -27,7 +27,7 @@ class AppearanceSettingsDialog (mainUI: MainUI) : JDialog(mainUI, Strings.APPEAR
         addWindowListener(mFontColorPanel)
         mScrollPane.verticalScrollBar.unitIncrement = 10
         mSettingsPanel.layout = BoxLayout(mSettingsPanel, BoxLayout.Y_AXIS)
-        mScrollPane.horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER;
+        mScrollPane.horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
         addHSeparator(mSettingsPanel, " ${Strings.LOOK_AND_FEEL}, ${Strings.OPTIONS} ")
         mSettingsPanel.add(mLnFPanel)
         addHEmptySeparator(mSettingsPanel, 20)
@@ -827,6 +827,12 @@ class AppearanceSettingsDialog (mainUI: MainUI) : JDialog(mainUI, Strings.APPEAR
                 mFilterTableColor
             }
 
+            val logPanel = if (type == ColorManager.TableColorType.FULL_LOG_TABLE) {
+                mMainUI.mFullLogPanel
+            } else {
+                mMainUI.mFilteredLogPanel
+            }
+
             for (idx in colorLabelArray.indices) {
                 tableColor.mColorArray[idx].mStrColor = scheme[idx]
                 colorLabelArray[idx]!!.text = " ${mFullTableColor.mColorArray[idx].mName} ${scheme[idx]} "
@@ -841,14 +847,15 @@ class AppearanceSettingsDialog (mainUI: MainUI) : JDialog(mainUI, Strings.APPEAR
             }
 
             if (isUpdateUI) {
-                SwingUtilities.updateComponentTreeUI(mMainUI)
+                logPanel.repaint()
             }
         }
 
         private fun applyColorScheme(scheme: Array<String>) {
             applyColorScheme(ColorManager.TableColorType.FULL_LOG_TABLE, scheme, false)
             applyColorScheme(ColorManager.TableColorType.FILTER_LOG_TABLE, scheme, false)
-            SwingUtilities.updateComponentTreeUI(mMainUI)
+            mMainUI.mFullLogPanel.repaint()
+            mMainUI.mFilteredLogPanel.repaint()
         }
 
         fun updateLabelColor(type: ColorManager.TableColorType) {

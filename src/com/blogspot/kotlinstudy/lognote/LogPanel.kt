@@ -12,7 +12,7 @@ import javax.swing.event.ListSelectionListener
 import javax.swing.plaf.basic.BasicScrollBarUI
 
 
-class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
+class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
     private val mBasePanel = basePanel
     private val mCtrlPanel: ButtonPanel
     private var mFirstBtn: ColorButton
@@ -39,6 +39,7 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
     private var mOldLogVPos = -1
     private var mOldLogHPos = -1
     private var mIsCreatingUI = true
+    val mMainUI = mainUI
 
     var mIsWindowedMode = false
         set(value) {
@@ -148,12 +149,27 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
                 }
                 val button = TableBarButton(item.mTitle)
                 button.mValue = item.mValue
-                button.toolTipText = "${item.mTitle} : ${item.mValue}"
+                button.toolTipText = "<html>${item.mTitle} : <b>\"${item.mValue}\"</b><br><br>* Append : Ctrl + Click</html>"
                 button.margin = Insets(0, 3, 0, 3)
                 button.addActionListener(ActionListener { e: ActionEvent? ->
-                    val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
-                    frame.setTextShowLogCombo((e?.source as TableBarButton).mValue)
-                    frame.applyShowLogCombo()
+                    if ((ActionEvent.CTRL_MASK and e!!.modifiers) != 0) {
+                        val filterText = mMainUI.getTextShowLogCombo()
+                        if (filterText.isEmpty()) {
+                            mMainUI.setTextShowLogCombo((e.source as TableBarButton).mValue)
+                        }
+                        else {
+                            if (filterText.substring(filterText.length - 1) == "|") {
+                                mMainUI.setTextShowLogCombo(filterText + (e.source as TableBarButton).mValue)
+                            }
+                            else {
+                                mMainUI.setTextShowLogCombo(filterText + "|" + (e.source as TableBarButton).mValue)
+                            }
+                        }
+                    }
+                    else {
+                        mMainUI.setTextShowLogCombo((e.source as TableBarButton).mValue)
+                    }
+                    mMainUI.applyShowLogCombo()
                 })
                 mCtrlPanel.add(button)
                 isAdded = true
@@ -164,8 +180,7 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
             button.toolTipText = TooltipStrings.ADD_FILTER_BTN
             button.margin = Insets(0, 3, 0, 3)
             button.addActionListener(ActionListener {
-                val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
-                frame.mFiltersBtn.doClick()
+                mMainUI.mFiltersBtn.doClick()
             })
             mCtrlPanel.add(button)
         }
@@ -204,8 +219,7 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
             button.toolTipText = TooltipStrings.ADD_CMD_BTN
             button.margin = Insets(0, 3, 0, 3)
             button.addActionListener(ActionListener {
-                val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
-                frame.mCmdsBtn.doClick()
+                mMainUI.mCmdsBtn.doClick()
             })
             mCtrlPanel.add(button)
         }
@@ -390,8 +404,7 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
                 }
             } else if (event?.mDataChange == LogTableModelEvent.EVENT_FILTERED) {
                 if (mBasePanel != null) {
-                    val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
-                    val selectedLine = frame.getMarkLine()
+                    val selectedLine = mMainUI.getMarkLine()
                     if (selectedLine >= 0) {
                         var num = 0
                         for (idx in 0 until mTable.rowCount) {
@@ -451,8 +464,7 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
                     goToLast()
                 }
                 mWindowedModeBtn -> {
-                    val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
-                    frame.windowedModeLogPanel(this@LogPanel)
+                    mMainUI.windowedModeLogPanel(this@LogPanel)
                 }
                 mTagBtn -> {
                     val selected = mTagBtn.model.isSelected
@@ -554,7 +566,6 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
                 }
             }
 
-            val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
             if (fileList.size > 0) {
                 val os = System.getProperty("os.name").lowercase(Locale.getDefault())
                 println("os = $os, drop = ${info.dropAction}, source drop = ${info.sourceDropActions}, user drop = ${info.userDropAction}")
@@ -572,7 +583,7 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
                         Strings.CANCEL
                     )
                     value = JOptionPane.showOptionDialog(
-                        frame, Strings.MSG_SELECT_OPEN_MODE,
+                        mMainUI, Strings.MSG_SELECT_OPEN_MODE,
                         "",
                         JOptionPane.YES_NO_CANCEL_OPTION,
                         JOptionPane.PLAIN_MESSAGE,
@@ -585,17 +596,17 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
                 when (value) {
                     0 -> {
                         for (file in fileList) {
-                            frame.openFile(file.absolutePath, true)
+                            mMainUI.openFile(file.absolutePath, true)
                         }
                     }
                     1 -> {
                         var isFirst = true
                         for (file in fileList) {
                             if (isFirst) {
-                                frame.openFile(file.absolutePath, false)
+                                mMainUI.openFile(file.absolutePath, false)
                                 isFirst = false
                             } else {
-                                frame.openFile(file.absolutePath, true)
+                                mMainUI.openFile(file.absolutePath, true)
                             }
                         }
                     }
@@ -642,24 +653,19 @@ class LogPanel(tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
             override fun actionPerformed(p0: ActionEvent?) {
                 when (p0?.source) {
                     mReconnectItem -> {
-                        val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
-                        frame.reconnectAdb()
+                        mMainUI.reconnectAdb()
                     }
                     mStartItem -> {
-                        val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
-                        frame.startAdbLog()
+                        mMainUI.startAdbLog()
                     }
                     mStopItem -> {
-                        val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
-                        frame.stopAdbLog()
+                        mMainUI.stopAdbLog()
                     }
                     mClearItem -> {
-                        val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
-                        frame.clearAdbLog()
+                        mMainUI.clearAdbLog()
                     }
                     mClearSaveItem -> {
-                        val frame = SwingUtilities.windowForComponent(this@LogPanel) as MainUI
-                        frame.clearSaveAdbLog()
+                        mMainUI.clearSaveAdbLog()
                     }
                 }
             }
