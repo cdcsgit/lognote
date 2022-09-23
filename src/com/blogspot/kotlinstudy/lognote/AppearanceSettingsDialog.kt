@@ -263,7 +263,7 @@ class AppearanceSettingsDialog (mainUI: MainUI) : JDialog(mainUI, Strings.APPEAR
             mConfirmLabel = JLabel("To apply \"Style\" need to restart")
 
             mExampleLabel = JLabel("Ex : ")
-            mExampleCombo = FilterComboBox(FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT)
+            mExampleCombo = FilterComboBox(FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT, true)
             mExampleCombo.isEditable = true
             mExampleCombo.preferredSize = Dimension(250, 30)
             mExampleCombo.addItem("ABC|DEF|-GHI|JKL")
@@ -842,9 +842,9 @@ class AppearanceSettingsDialog (mainUI: MainUI) : JDialog(mainUI, Strings.APPEAR
                 } else {
                     colorLabelArray[idx]!!.foreground = Color.decode(scheme[idx])
                 }
-                tableColor.applyColor()
-                updateLabelColor(type)
             }
+            tableColor.applyColor()
+            updateLabelColor(type)
 
             if (isUpdateUI) {
                 logPanel.repaint()
@@ -889,7 +889,7 @@ class AppearanceSettingsDialog (mainUI: MainUI) : JDialog(mainUI, Strings.APPEAR
                     "Filtered BG"->filteredBg = Color.decode(tableColor.mColorArray[idx].mStrColor)
                     "Filtered FG"->filteredFg = Color.decode(tableColor.mColorArray[idx].mStrColor)
                     "Highlight BG"->highlightBg = Color.decode(tableColor.mColorArray[idx].mStrColor)
-                    "Highlight FG"->highlightBg = Color.decode(tableColor.mColorArray[idx].mStrColor)
+                    "Highlight FG"->highlightFg = Color.decode(tableColor.mColorArray[idx].mStrColor)
                 }
             }
 
@@ -916,7 +916,20 @@ class AppearanceSettingsDialog (mainUI: MainUI) : JDialog(mainUI, Strings.APPEAR
                             colorLabelArray[idx]!!.foreground = highlightFg
                         }
                         else -> {
-                            colorLabelArray[idx]!!.foreground = logFg
+                            if ((tableColor.mColorArray[idx].mName == "Filtered 1 BG")
+                                    || (tableColor.mColorArray[idx].mName == "Filtered 2 BG")
+                                    || (tableColor.mColorArray[idx].mName == "Filtered 3 BG")
+                                    || (tableColor.mColorArray[idx].mName == "Filtered 4 BG")
+                                    || (tableColor.mColorArray[idx].mName == "Filtered 5 BG")
+                                    || (tableColor.mColorArray[idx].mName == "Filtered 6 BG")
+                                    || (tableColor.mColorArray[idx].mName == "Filtered 7 BG")
+                                    || (tableColor.mColorArray[idx].mName == "Filtered 8 BG")
+                                    || (tableColor.mColorArray[idx].mName == "Filtered 9 BG")) {
+                                colorLabelArray[idx]!!.foreground = Color.decode(tableColor.mColorArray[idx - 9].mStrColor)
+                            }
+                            else {
+                                colorLabelArray[idx]!!.foreground = logFg
+                            }
                         }
                     }
                 }
@@ -933,7 +946,20 @@ class AppearanceSettingsDialog (mainUI: MainUI) : JDialog(mainUI, Strings.APPEAR
                             colorLabelArray[idx]!!.background = highlightBg
                         }
                         else -> {
-                            colorLabelArray[idx]!!.background = logBg
+                            if ((tableColor.mColorArray[idx].mName == "Filtered 1 FG")
+                                    || (tableColor.mColorArray[idx].mName == "Filtered 2 FG")
+                                    || (tableColor.mColorArray[idx].mName == "Filtered 3 FG")
+                                    || (tableColor.mColorArray[idx].mName == "Filtered 4 FG")
+                                    || (tableColor.mColorArray[idx].mName == "Filtered 5 FG")
+                                    || (tableColor.mColorArray[idx].mName == "Filtered 6 FG")
+                                    || (tableColor.mColorArray[idx].mName == "Filtered 7 FG")
+                                    || (tableColor.mColorArray[idx].mName == "Filtered 8 FG")
+                                    || (tableColor.mColorArray[idx].mName == "Filtered 9 FG")) {
+                                colorLabelArray[idx]!!.background = Color.decode(tableColor.mColorArray[idx + 9].mStrColor)
+                            }
+                            else {
+                                colorLabelArray[idx]!!.background = logBg
+                            }
                         }
                     }
                 }

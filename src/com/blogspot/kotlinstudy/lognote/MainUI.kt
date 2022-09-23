@@ -630,7 +630,7 @@ class MainUI(title: String) : JFrame() {
 
         mLogPanel = JPanel()
         mShowLogPanel = JPanel()
-        mShowLogCombo = FilterComboBox(mShowLogComboStyle)
+        mShowLogCombo = FilterComboBox(mShowLogComboStyle, true)
         mShowLogCombo.toolTipText = TooltipStrings.LOG_COMBO
         mShowLogCombo.isEditable = true
         mShowLogCombo.renderer = FilterComboBox.ComboBoxRenderer()
@@ -647,7 +647,7 @@ class MainUI(title: String) : JFrame() {
         mShowLogToggle.addItemListener(mItemHandler)
 
         mBoldLogPanel = JPanel()
-        mBoldLogCombo = FilterComboBox(mBoldLogComboStyle)
+        mBoldLogCombo = FilterComboBox(mBoldLogComboStyle, false)
         mBoldLogCombo.toolTipText = TooltipStrings.BOLD_COMBO
         mBoldLogCombo.mEnabledTfTooltip = false
         mBoldLogCombo.isEditable = true
@@ -664,7 +664,7 @@ class MainUI(title: String) : JFrame() {
         mBoldLogToggle.addItemListener(mItemHandler)
 
         mShowTagPanel = JPanel()
-        mShowTagCombo = FilterComboBox(mShowTagComboStyle)
+        mShowTagCombo = FilterComboBox(mShowTagComboStyle, false)
         mShowTagCombo.toolTipText = TooltipStrings.TAG_COMBO
         mShowTagCombo.isEditable = true
         mShowTagCombo.renderer = FilterComboBox.ComboBoxRenderer()
@@ -680,7 +680,7 @@ class MainUI(title: String) : JFrame() {
         mShowTagToggle.addItemListener(mItemHandler)
 
         mShowPidPanel = JPanel()
-        mShowPidCombo = FilterComboBox(mShowPidComboStyle)
+        mShowPidCombo = FilterComboBox(mShowPidComboStyle, false)
         mShowPidCombo.toolTipText = TooltipStrings.PID_COMBO
         mShowPidCombo.isEditable = true
         mShowPidCombo.renderer = FilterComboBox.ComboBoxRenderer()
@@ -696,7 +696,7 @@ class MainUI(title: String) : JFrame() {
         mShowPidToggle.addItemListener(mItemHandler)
 
         mShowTidPanel = JPanel()
-        mShowTidCombo = FilterComboBox(mShowTidComboStyle)
+        mShowTidCombo = FilterComboBox(mShowTidComboStyle, false)
         mShowTidCombo.toolTipText = TooltipStrings.TID_COMBO
         mShowTidCombo.isEditable = true
         mShowTidCombo.renderer = FilterComboBox.ComboBoxRenderer()
@@ -1605,6 +1605,94 @@ class MainUI(title: String) : JFrame() {
         }
     }
 
+    internal inner class PopUpFilterCombobox(combo: FilterComboBox) : JPopupMenu() {
+        var mSelectAllItem: JMenuItem
+        var mCopyItem: JMenuItem
+        var mPasteItem: JMenuItem
+        var mRemoveColorTagsItem: JMenuItem
+        lateinit var mRemoveOneColorTagItem: JMenuItem
+        lateinit var mAddColorTagItems: ArrayList<JMenuItem>
+        var mCombo: FilterComboBox
+        private val mActionHandler = ActionHandler()
+
+        init {
+            mCombo = combo
+            mSelectAllItem = JMenuItem("Select All")
+            mSelectAllItem.addActionListener(mActionHandler)
+            add(mSelectAllItem)
+            mCopyItem = JMenuItem("Copy")
+            mCopyItem.addActionListener(mActionHandler)
+            add(mCopyItem)
+            mPasteItem = JMenuItem("Paste")
+            mPasteItem.addActionListener(mActionHandler)
+            add(mPasteItem)
+            mRemoveColorTagsItem = JMenuItem("Remove All Color Tags")
+            mRemoveColorTagsItem.addActionListener(mActionHandler)
+            add(mRemoveColorTagsItem)
+
+
+            if (mCombo.mUseColorTag) {
+                mRemoveOneColorTagItem = JMenuItem("Remove Color Tag")
+                mRemoveOneColorTagItem.addActionListener(mActionHandler)
+                add(mRemoveOneColorTagItem)
+                mAddColorTagItems = arrayListOf()
+                for (idx in 0..8) {
+                    val num = idx + 1
+                    val item = JMenuItem("Add Color Tag : #$num")
+                    item.isOpaque = true
+                    item.foreground = Color.decode(ColorManager.getInstance().mFilterTableColor.StrFilteredFGs[num])
+                    item.background = Color.decode(ColorManager.getInstance().mFilterTableColor.StrFilteredBGs[num])
+                    item.addActionListener(mActionHandler)
+                    mAddColorTagItems.add(item)
+                    add(item)
+                }
+            }
+        }
+        internal inner class ActionHandler : ActionListener {
+            override fun actionPerformed(p0: ActionEvent?) {
+                when (p0?.source) {
+                    mSelectAllItem -> {
+                        mCombo.editor?.selectAll()
+                    }
+                    mCopyItem -> {
+                        val editorCom = mCombo.editor?.editorComponent as JTextComponent
+                        val stringSelection = StringSelection(editorCom.selectedText)
+                        val clipboard: Clipboard = Toolkit.getDefaultToolkit().systemClipboard
+                        clipboard.setContents(stringSelection, null)
+                    }
+                    mPasteItem -> {
+                        val editorCom = mCombo.editor?.editorComponent as JTextComponent
+                        editorCom.paste()
+                    }
+                    mRemoveColorTagsItem -> {
+                        mCombo.removeAllColorTags()
+                        if (mCombo == mShowLogCombo) {
+                            applyShowLogComboEditor()
+                        }
+                    }
+                    mRemoveOneColorTagItem -> {
+                        mCombo.removeColorTag()
+                        if (mCombo == mShowLogCombo) {
+                            applyShowLogComboEditor()
+                        }
+                    }
+                    else -> {
+                        val item = p0?.source as JMenuItem
+                        if (mAddColorTagItems.contains(item)) {
+                            val textSplit = item.text.split(":")
+                            if (textSplit.size == 2) {
+                                mCombo.addColorTag(textSplit[1].trim())
+                                if (mCombo == mShowLogCombo) {
+                                    applyShowLogComboEditor()
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     internal inner class MouseHandler : MouseAdapter() {
         override fun mouseClicked(p0: MouseEvent?) {
             super.mouseClicked(p0)
@@ -1618,41 +1706,39 @@ class MainUI(title: String) : JFrame() {
             }
 
             if (SwingUtilities.isRightMouseButton(p0)) {
-                if (p0.source == mDeviceCombo.editor.editorComponent
-                        || p0.source == mShowLogCombo.editor.editorComponent
-                        || p0.source == mBoldLogCombo.editor.editorComponent
-                        || p0.source == mShowTagCombo.editor.editorComponent
-                        || p0.source == mShowPidCombo.editor.editorComponent
-                        || p0.source == mShowTidCombo.editor.editorComponent) {
-                    var combo: JComboBox<String>? = null
-                    when (p0.source) {
-                        mDeviceCombo.editor.editorComponent -> {
-                            combo = mDeviceCombo
-                        }
-                        mShowLogCombo.editor.editorComponent -> {
-                            combo = mShowLogCombo
-                        }
-                        mBoldLogCombo.editor.editorComponent -> {
-                            combo = mBoldLogCombo
-                        }
-                        mShowTagCombo.editor.editorComponent -> {
-                            combo = mShowTagCombo
-                        }
-                        mShowPidCombo.editor.editorComponent -> {
-                            combo = mShowPidCombo
-                        }
-                        mShowTidCombo.editor.editorComponent -> {
-                            combo = mShowTidCombo
-                        }
+                when (p0.source) {
+                    mDeviceCombo.editor.editorComponent -> {
+                        popupMenu = PopUpCombobox(mDeviceCombo)
+                        popupMenu?.show(p0.component, p0.x, p0.y)
                     }
-                    popupMenu = PopUpCombobox(combo)
-                    popupMenu?.show(p0.component, p0.x, p0.y)
-                }
-                else {
-                    val compo = p0.source as JComponent
-                    val event = MouseEvent(compo.parent, p0.id, p0.`when`, p0.modifiers, p0.x + compo.x, p0.y + compo.y, p0.clickCount, p0.isPopupTrigger)
+                    mShowLogCombo.editor.editorComponent, mBoldLogCombo.editor.editorComponent, mShowTagCombo.editor.editorComponent, mShowPidCombo.editor.editorComponent, mShowTidCombo.editor.editorComponent -> {
+                        lateinit var combo: FilterComboBox
+                        when (p0.source) {
+                            mShowLogCombo.editor.editorComponent -> {
+                                combo = mShowLogCombo
+                            }
+                            mBoldLogCombo.editor.editorComponent -> {
+                                combo = mBoldLogCombo
+                            }
+                            mShowTagCombo.editor.editorComponent -> {
+                                combo = mShowTagCombo
+                            }
+                            mShowPidCombo.editor.editorComponent -> {
+                                combo = mShowPidCombo
+                            }
+                            mShowTidCombo.editor.editorComponent -> {
+                                combo = mShowTidCombo
+                            }
+                        }
+                        popupMenu = PopUpFilterCombobox(combo)
+                        popupMenu?.show(p0.component, p0.x, p0.y)
+                    }
+                    else -> {
+                        val compo = p0.source as JComponent
+                        val event = MouseEvent(compo.parent, p0.id, p0.`when`, p0.modifiers, p0.x + compo.x, p0.y + compo.y, p0.clickCount, p0.isPopupTrigger)
 
-                    compo.parent.dispatchEvent(event)
+                        compo.parent.dispatchEvent(event)
+                    }
                 }
             }
             else {
@@ -1727,6 +1813,12 @@ class MainUI(title: String) : JFrame() {
         mFilteredTableModel.mFilterLog = item
     }
 
+    fun applyShowLogComboEditor() {
+        val editorCom = mShowLogCombo.editor?.editorComponent as JTextComponent
+        val text = editorCom.text
+        setTextShowLogCombo(text)
+        applyShowLogCombo()
+    }
     fun setDeviceComboColor(isConnected: Boolean) {
         if (isConnected) {
             if (ConfigManager.LaF == FLAT_DARK_LAF) {

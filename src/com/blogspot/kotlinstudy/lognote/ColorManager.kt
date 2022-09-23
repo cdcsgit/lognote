@@ -71,7 +71,10 @@ class ColorManager private constructor(){
         NUM_BOOKMARK_SELECTED_BG(20),
         NUM_BOOKMARK_BG(21),
         NUM_SELECTED_BG(22),
-        HIGHLIGHT_BG(23),;
+        HIGHLIGHT_BG(23),
+        FILTERED_START_FG(24),
+        FILTERED_START_BG(33),
+        ;
 
         companion object {
             fun fromInt(value: Int) = values().first { it.value == value }
@@ -89,7 +92,7 @@ class ColorManager private constructor(){
             "#000000",
             "#209000",
             "#0080DF",
-            "#F07000",
+            "#F07000",    // 10
             "#D00000",
             "#700000",
             "#0000FF",
@@ -99,10 +102,28 @@ class ColorManager private constructor(){
             "#333333",
             "#FFFFFF",
             "#D0D0DF",
-            "#C0C0CF",
+            "#C0C0CF",   // 20
             "#E0E0EF",
             "#C0C0C0",
-            "#3030B0"
+            "#3030B0",
+            "#FFFFFF",
+            "#FFFFFF",
+            "#FFFFFF",
+            "#FFFFFF",
+            "#FFFFFF",
+            "#FFFFFF",
+            "#FFFFFF",   // 30
+            "#FFFFFF",
+            "#FFFFFF",
+            "#2070C0",
+            "#E07020",
+            "#10C050",
+            "#B09020",
+            "#B02020",
+            "#2020B0",
+            "#A050C0",
+            "#2050A0",   // 40
+            "#707020",
     )
 
     var mColorSchemeDark = arrayOf(
@@ -116,7 +137,7 @@ class ColorManager private constructor(){
             "#F0F0F0",
             "#6C9876",
             "#5084C4",
-            "#CB8742",
+            "#CB8742",   // 10
             "#CD6C79",
             "#ED3030",
             "#FFFFCC",
@@ -126,10 +147,28 @@ class ColorManager private constructor(){
             "#F0F0F0",
             "#A0A0A0",
             "#503030",
-            "#503030",
+            "#503030",   // 20
             "#301010",
             "#3A3D41",
-            "#B0B0B0"
+            "#B0B0B0",
+            "#000000",
+            "#000000",
+            "#000000",
+            "#000000",
+            "#000000",
+            "#000000",
+            "#000000",   // 30
+            "#000000",
+            "#000000",
+            "#E06000",
+            "#0090E0",
+            "#A0A000",
+            "#F070A0",
+            "#E0E0E0",
+            "#00C060",
+            "#20B0A0",
+            "#9050E0",   // 40
+            "#C0C060",
     )
 
     // Must be declared after mColorSchemeLight (internally mColorSchemeLight is used)
@@ -331,6 +370,30 @@ class ColorManager private constructor(){
         var HighlightBG: Color = Color.decode(StrHighlightBG)
             private set
 
+        var StrFilteredFGs = arrayOf(mColorSchemeLight[0],
+                mColorSchemeLight[24],
+                mColorSchemeLight[25],
+                mColorSchemeLight[26],
+                mColorSchemeLight[27],
+                mColorSchemeLight[28],
+                mColorSchemeLight[29],
+                mColorSchemeLight[30],
+                mColorSchemeLight[31],
+                mColorSchemeLight[32],
+        )
+
+        var StrFilteredBGs = arrayOf(mColorSchemeLight[2],
+                mColorSchemeLight[33],
+                mColorSchemeLight[34],
+                mColorSchemeLight[35],
+                mColorSchemeLight[36],
+                mColorSchemeLight[37],
+                mColorSchemeLight[38],
+                mColorSchemeLight[39],
+                mColorSchemeLight[40],
+                mColorSchemeLight[41],
+        )
+
         var mColorArray = arrayOf(
                 ColorItem(0, "Filtered FG", mColorSchemeLight[0]),
                 ColorItem(13, "Selected BG", mColorSchemeLight[1]),
@@ -356,6 +419,24 @@ class ColorManager private constructor(){
                 ColorItem(21, "LineNum Bookmark BG", mColorSchemeLight[21]),
                 ColorItem(22, "LineNum Selected BG", mColorSchemeLight[22]),
                 ColorItem(23, "Highlight BG", mColorSchemeLight[23]),
+                ColorItem(24, "Filtered 1 FG", mColorSchemeLight[24]),
+                ColorItem(25, "Filtered 2 FG", mColorSchemeLight[25]),
+                ColorItem(26, "Filtered 3 FG", mColorSchemeLight[26]),
+                ColorItem(27, "Filtered 4 FG", mColorSchemeLight[27]),
+                ColorItem(28, "Filtered 5 FG", mColorSchemeLight[28]),
+                ColorItem(29, "Filtered 6 FG", mColorSchemeLight[29]),
+                ColorItem(30, "Filtered 7 FG", mColorSchemeLight[30]),
+                ColorItem(31, "Filtered 8 FG", mColorSchemeLight[31]),
+                ColorItem(32, "Filtered 9 FG", mColorSchemeLight[32]),
+                ColorItem(33, "Filtered 1 BG", mColorSchemeLight[33]),
+                ColorItem(34, "Filtered 2 BG", mColorSchemeLight[34]),
+                ColorItem(35, "Filtered 3 BG", mColorSchemeLight[35]),
+                ColorItem(36, "Filtered 4 BG", mColorSchemeLight[36]),
+                ColorItem(37, "Filtered 5 BG", mColorSchemeLight[37]),
+                ColorItem(38, "Filtered 6 BG", mColorSchemeLight[38]),
+                ColorItem(39, "Filtered 7 BG", mColorSchemeLight[39]),
+                ColorItem(40, "Filtered 8 BG", mColorSchemeLight[40]),
+                ColorItem(41, "Filtered 9 BG", mColorSchemeLight[41]),
         )
 
         fun getConfig() {
@@ -398,6 +479,17 @@ class ColorManager private constructor(){
             StrNumBookmarkBG = mColorArray[TableColorIdx.NUM_BOOKMARK_BG.value].mStrColor
             StrNumSelectedBG = mColorArray[TableColorIdx.NUM_SELECTED_BG.value].mStrColor
             StrHighlightBG = mColorArray[TableColorIdx.HIGHLIGHT_BG.value].mStrColor
+
+            for (idx in StrFilteredFGs.indices) {
+                if (idx == 0) {
+                    StrFilteredFGs[idx] = StrFilteredFG
+                    StrFilteredBGs[idx] = StrFilteredBG
+                }
+                else {
+                    StrFilteredFGs[idx] = mColorArray[TableColorIdx.FILTERED_START_FG.value + idx - 1].mStrColor
+                    StrFilteredBGs[idx] = mColorArray[TableColorIdx.FILTERED_START_BG.value + idx - 1].mStrColor
+                }
+            }
 
             for (listener in mColorEventListeners) {
                 listener.colorChanged(ColorEvent(0))

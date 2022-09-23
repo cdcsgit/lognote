@@ -43,6 +43,8 @@ class LogTableModel() : AbstractTableModel() {
     private val mBookmarkManager = BookmarkManager.getInstance()
 
     private val mEventListeners = ArrayList<LogTableModelListener>()
+    private val mFilteredFGMap = mutableMapOf<String, String>()
+    private val mFilteredBGMap = mutableMapOf<String, String>()
 
     private val COLUMN_NUM = 0
     private val COLUMN_LOGLINE = 1
@@ -75,18 +77,26 @@ class LogTableModel() : AbstractTableModel() {
 
     var mFilterLog: String = ""
         set(value) {
-            val patterns = parsePattern(value)
+            if (field != value) {
+                mIsFilterUpdated = true
+            }
+            val patterns = parsePattern(value, true)
             mFilterShowLog = patterns[0]
             mFilterHideLog = patterns[1]
+            field = value
+
+            if (mBaseModel != null) {
+                mBaseModel!!.mFilterLog = value
+            }
         }
 
     private var mFilterShowLog: String = ""
         set(value) {
             try {
                 mPatternShowLog = Pattern.compile(value, mPatternCase)
-                if (field != value) {
-                    mIsFilterUpdated = true
-                }
+//                if (field != value) {
+//                    mIsFilterUpdated = true
+//                }
                 field = value
             } catch(ex: java.util.regex.PatternSyntaxException) {
                 ex.printStackTrace()
@@ -97,9 +107,9 @@ class LogTableModel() : AbstractTableModel() {
         set(value) {
             try {
                 mPatternHideLog = Pattern.compile(value, mPatternCase)
-                if (field != value) {
-                    mIsFilterUpdated = true
-                }
+//                if (field != value) {
+//                    mIsFilterUpdated = true
+//                }
                 field = value
             } catch(ex: java.util.regex.PatternSyntaxException) {
                 ex.printStackTrace()
@@ -108,7 +118,7 @@ class LogTableModel() : AbstractTableModel() {
 
     var mFilterHighlightLog: String = ""
         set(value) {
-            val patterns = parsePattern(value)
+            val patterns = parsePattern(value, false)
             if (field != patterns[0]) {
                 mIsFilterUpdated = true
                 field = patterns[0]
@@ -117,7 +127,7 @@ class LogTableModel() : AbstractTableModel() {
 
     var mFilterTag: String = ""
         set(value) {
-            val patterns = parsePattern(value)
+            val patterns = parsePattern(value, false)
             mFilterShowTag = patterns[0]
             mFilterHideTag = patterns[1]
         }
@@ -149,7 +159,7 @@ class LogTableModel() : AbstractTableModel() {
 
     var mFilterPid: String = ""
         set(value) {
-            val patterns = parsePattern(value)
+            val patterns = parsePattern(value, false)
             mFilterShowPid = patterns[0]
             mFilterHidePid = patterns[1]
         }
@@ -182,7 +192,7 @@ class LogTableModel() : AbstractTableModel() {
 
     var mFilterTid: String = ""
         set(value) {
-            val patterns = parsePattern(value)
+            val patterns = parsePattern(value, false)
             patterns[0].let { mFilterShowTid = it}
             patterns[1].let { mFilterHideTid = it}
         }
@@ -318,6 +328,15 @@ class LogTableModel() : AbstractTableModel() {
         else {
             ColorManager.getInstance().mFilterTableColor
         }
+
+        val colorEventListener = object: ColorManager.ColorEventListener{
+            override fun colorChanged(event: ColorManager.ColorEvent?) {
+                parsePattern(mFilterLog, true) // update color
+                mIsFilterUpdated = true
+            }
+        }
+
+        ColorManager.getInstance().addColorEventListener(colorEventListener)
     }
 
 //    override fun isCellEditable(rowIndex: Int, columnIndex: Int): Boolean {
@@ -332,17 +351,20 @@ class LogTableModel() : AbstractTableModel() {
         return false
     }
 
-    private fun parsePattern(pattern: String) : Array<String> {
+    private fun parsePattern(pattern: String, isUpdateColor: Boolean) : Array<String> {
         val patterns: Array<String> = Array(2) { "" }
 
         val strs = pattern.split("|")
         var prevPatternIdx = -1
+        if (isUpdateColor) {
+            mFilteredFGMap.clear()
+            mFilteredBGMap.clear()
+        }
 
         for (item in strs) {
             if (prevPatternIdx != -1) {
                 patterns[prevPatternIdx] += "|"
                 patterns[prevPatternIdx] += item
-
                 if (item.substring(item.length - 1) != "\\") {
                     prevPatternIdx = -1
                 }
@@ -353,22 +375,35 @@ class LogTableModel() : AbstractTableModel() {
                 if (item[0] != '-') {
                     if (patterns[0].isNotEmpty()) {
                         patterns[0] += "|"
-                        patterns[0] += item
+                    }
+
+                    if (2 < item.length && item[0] == '#' && item[1].isDigit()) {
+                        val key = item.substring(2)
+                        patterns[0] += key
+                        if (isUpdateColor) {
+                            mFilteredFGMap[key.uppercase()] = mTableColor.StrFilteredFGs[item[1].digitToInt()]
+                            mFilteredBGMap[key.uppercase()] = mTableColor.StrFilteredBGs[item[1].digitToInt()]
+                        }
                     }
                     else {
-                        patterns[0] = item
+                        patterns[0] += item
                     }
+
                     if (item.substring(item.length - 1) == "\\") {
                         prevPatternIdx = 0
                     }
                 } else {
                     if (patterns[1].isNotEmpty()) {
                         patterns[1] += "|"
-                        patterns[1] += item.substring(1)
+                    }
+
+                    if (3 < item.length && item[1] == '#' && item[2].isDigit()) {
+                        patterns[1] += item.substring(3)
                     }
                     else {
-                        patterns[1] = item.substring(1)
+                        patterns[1] += item.substring(1)
                     }
+
                     if (item.substring(item.length - 1) == "\\") {
                         prevPatternIdx = 1
                     }
@@ -743,14 +778,16 @@ class LogTableModel() : AbstractTableModel() {
             }
         }
 
-        val TYPE_HIGHLIGHT = 1
-        val TYPE_FILTER = 2
-        val TYPE_BOLD_TAG = 3
-        val TYPE_BOLD_PID = 4
-        val TYPE_BOLD_TID = 5
+//        val TYPE_HIGHLIGHT = 1
+//        val TYPE_FILTER = 2
+//        val TYPE_BOLD_TAG = 3
+//        val TYPE_BOLD_PID = 4
+//        val TYPE_BOLD_TID = 5
         val starts = Stack<Int>()
         val ends = Stack<Int>()
-        val types = Stack<Int>()
+//        val types = Stack<Int>()
+        val fgColors = Stack<String>()
+        val bgColors = Stack<String>()
 
         var highlightS = -1
         var highlightE = -1
@@ -822,7 +859,9 @@ class LogTableModel() : AbstractTableModel() {
                 }
                 starts.push(highlightS)
                 ends.push(highlightE)
-                types.push(TYPE_HIGHLIGHT)
+//                types.push(TYPE_HIGHLIGHT)
+                fgColors.push(mTableColor.StrHighlightFG)
+                bgColors.push(mTableColor.StrHighlightBG)
             }
 
             if (idx in highlightS until highlightE) {
@@ -844,7 +883,16 @@ class LogTableModel() : AbstractTableModel() {
 
                 starts.push(filterS)
                 ends.push(filterE)
-                types.push(TYPE_FILTER)
+//                types.push(TYPE_FILTER)
+                val key = newValue.substring(filterS, filterE).uppercase()
+                if (mFilteredFGMap[key] != null) {
+                    fgColors.push(mFilteredFGMap[key])
+                    bgColors.push(mFilteredBGMap[key])
+                }
+                else {
+                    fgColors.push(mTableColor.StrFilteredFGs[0])
+                    bgColors.push(mTableColor.StrFilteredBGs[0])
+                }
 
                 if (filterS < filterSNext) {
                     filterS = filterSNext
@@ -884,13 +932,19 @@ class LogTableModel() : AbstractTableModel() {
 
                 when (boldS) {
                     in boldStartTag until boldEndTag -> {
-                        types.push(TYPE_BOLD_TAG)
+//                        types.push(TYPE_BOLD_TAG)
+                        fgColors.push(mTableColor.StrTagFG)
+                        bgColors.push(mTableColor.StrLogBG)
                     }
                     in boldStartPid until boldEndPid -> {
-                        types.push(TYPE_BOLD_PID)
+//                        types.push(TYPE_BOLD_PID)
+                        fgColors.push(mTableColor.StrPidFG)
+                        bgColors.push(mTableColor.StrLogBG)
                     }
                     in boldStartTid until boldEndTid -> {
-                        types.push(TYPE_BOLD_TID)
+//                        types.push(TYPE_BOLD_TID)
+                        fgColors.push(mTableColor.StrTidFG)
+                        bgColors.push(mTableColor.StrLogBG)
                     }
                 }
 
@@ -915,7 +969,10 @@ class LogTableModel() : AbstractTableModel() {
             while (!starts.isEmpty()) {
                 val start = starts.pop()
                 val end = ends.pop()
-                val type = types.pop()
+//                val type = types.pop()
+
+                var fgColor = fgColors.pop()
+                var bgColor = bgColors.pop()
 
                 if (isFirst) {
                     if (end < newValue.length) {
@@ -935,31 +992,31 @@ class LogTableModel() : AbstractTableModel() {
                     )
                 }
                 if (start >= 0 && end >= 0) {
-                    var fgColor = mTableColor.StrFilteredFG
-                    var bgColor = mTableColor.StrFilteredBG
-
-                    when (type) {
-                        TYPE_HIGHLIGHT -> {
-                            fgColor = mTableColor.StrHighlightFG
-                            bgColor = mTableColor.StrHighlightBG
-                        }
-                        TYPE_FILTER -> {
-                            fgColor = mTableColor.StrFilteredFG
-                            bgColor = mTableColor.StrFilteredBG
-                        }
-                        TYPE_BOLD_TAG -> {
-                            fgColor = mTableColor.StrTagFG
-                            bgColor = mTableColor.StrLogBG
-                        }
-                        TYPE_BOLD_PID -> {
-                            fgColor = mTableColor.StrPidFG
-                            bgColor = mTableColor.StrLogBG
-                        }
-                        TYPE_BOLD_TID -> {
-                            fgColor = mTableColor.StrTidFG
-                            bgColor = mTableColor.StrLogBG
-                        }
-                    }
+//                    var fgColor = mTableColor.StrFilteredFG
+//                    var bgColor = mTableColor.StrFilteredBG
+//
+//                    when (type) {
+//                        TYPE_HIGHLIGHT -> {
+//                            fgColor = mTableColor.StrHighlightFG
+//                            bgColor = mTableColor.StrHighlightBG
+//                        }
+//                        TYPE_FILTER -> {
+//                            fgColor = mTableColor.StrFilteredFG
+//                            bgColor = mTableColor.StrFilteredBG
+//                        }
+//                        TYPE_BOLD_TAG -> {
+//                            fgColor = mTableColor.StrTagFG
+//                            bgColor = mTableColor.StrLogBG
+//                        }
+//                        TYPE_BOLD_PID -> {
+//                            fgColor = mTableColor.StrPidFG
+//                            bgColor = mTableColor.StrLogBG
+//                        }
+//                        TYPE_BOLD_TID -> {
+//                            fgColor = mTableColor.StrTidFG
+//                            bgColor = mTableColor.StrLogBG
+//                        }
+//                    }
 
                     if (isSelected) {
                         val tmpColor = Color.decode(bgColor)

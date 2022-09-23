@@ -46,7 +46,7 @@ class FilterStyleDialog (parent: MainUI) : JDialog(parent, "${Strings.FILTER_STY
         mCancelBtn.addActionListener(this)
 
         mExampleLabel = JLabel("Ex : ")
-        mExampleCombo = FilterComboBox(FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT)
+        mExampleCombo = FilterComboBox(FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT, true)
         mExampleCombo.isEditable = true
         mExampleCombo.preferredSize = Dimension(250, 30)
         mExampleCombo.addItem("ABC|DEF|-GHI|JKL")

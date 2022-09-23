@@ -16,7 +16,7 @@ import javax.swing.text.Highlighter
 import javax.swing.text.JTextComponent
 
 
-class FilterComboBox(mode: Mode) : JComboBox<String>() {
+class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
     enum class Mode(val value: Int) {
         SINGLE_LINE(0),
         SINGLE_LINE_HIGHLIGHT(1),
@@ -31,6 +31,7 @@ class FilterComboBox(mode: Mode) : JComboBox<String>() {
     private var mEditorComponent: JTextComponent
     var mEnabledTfTooltip = false
     private val mMode = mode
+    val mUseColorTag = useColorTag
 
     init {
         if (ConfigManager.LaF == MainUI.CROSS_PLATFORM_LAF) {
@@ -89,6 +90,117 @@ class FilterComboBox(mode: Mode) : JComboBox<String>() {
         return isExist
     }
 
+    fun removeAllColorTags(){
+        val textSplit = mEditorComponent.text.split("|")
+        var prevPatternIdx = -1
+        var result = ""
+
+        for (item in textSplit) {
+            if (prevPatternIdx != -1) {
+                result += "|"
+                result += item
+
+                if (item.isEmpty() || item.substring(item.length - 1) != "\\") {
+                    prevPatternIdx = -1
+                }
+                continue
+            }
+
+            if (item.isNotEmpty()) {
+                if (item[0] != '-') {
+                    if (result.isNotEmpty()) {
+                        result += "|"
+                    }
+
+                    if (2 < item.length && item[0] == '#' && item[1].isDigit()) {
+                        result += item.substring(2)
+                    }
+                    else {
+                        result += item
+                    }
+
+                    if (item.substring(item.length - 1) == "\\") {
+                        prevPatternIdx = 0
+                    }
+                } else {
+                    if (result.isNotEmpty()) {
+                        result += "|"
+                    }
+
+                    if (3 < item.length && item[1] == '#' && item[2].isDigit()) {
+                        result += item.substring(3)
+                    }
+                    else {
+                        result += item.substring(1)
+                    }
+
+                    if (item.substring(item.length - 1) == "\\") {
+                        prevPatternIdx = 1
+                    }
+                }
+            }
+        }
+
+        mEditorComponent.text = result
+
+        when (mMode) {
+            Mode.SINGLE_LINE_HIGHLIGHT -> {
+                val editorComponent = mEditorComponent as HighlighterSingleLineEditor.HighlighterTextField
+                editorComponent.setUpdateHighlighter(true)
+            }
+            Mode.MULTI_LINE_HIGHLIGHT -> {
+                val editorComponent = mEditorComponent as HighlighterMultiLineEditor.HighlighterTextArea
+                editorComponent.setUpdateHighlighter(true)
+            }
+        }
+        return
+    }
+
+    fun removeColorTag(){
+        val text = mEditorComponent.selectedText
+        if (text != null) {
+            if (2 <= text.length && text[0] == '#' && text[1].isDigit()) {
+                mEditorComponent.replaceSelection(text.substring(2))
+            }
+        }
+
+        when (mMode) {
+            Mode.SINGLE_LINE_HIGHLIGHT -> {
+                val editorComponent = mEditorComponent as HighlighterSingleLineEditor.HighlighterTextField
+                editorComponent.setUpdateHighlighter(true)
+            }
+            Mode.MULTI_LINE_HIGHLIGHT -> {
+                val editorComponent = mEditorComponent as HighlighterMultiLineEditor.HighlighterTextArea
+                editorComponent.setUpdateHighlighter(true)
+            }
+        }
+        return
+    }
+
+    fun addColorTag(tag: String) {
+        val text = mEditorComponent.selectedText
+        if (text != null) {
+            if (2 <= text.length && text[0] == '#' && text[1].isDigit()) {
+                mEditorComponent.replaceSelection(tag + text.substring(2))
+            }
+            else {
+                mEditorComponent.replaceSelection(tag + text)
+            }
+        }
+
+        when (mMode) {
+            Mode.SINGLE_LINE_HIGHLIGHT -> {
+                val editorComponent = mEditorComponent as HighlighterSingleLineEditor.HighlighterTextField
+                editorComponent.setUpdateHighlighter(true)
+            }
+            Mode.MULTI_LINE_HIGHLIGHT -> {
+                val editorComponent = mEditorComponent as HighlighterMultiLineEditor.HighlighterTextArea
+                editorComponent.setUpdateHighlighter(true)
+            }
+        }
+        return
+    }
+
     private fun parsePattern(pattern: String) : Array<String> {
         val patterns: Array<String> = Array(2) { "" }
 
@@ -110,20 +222,30 @@ class FilterComboBox(mode: Mode) : JComboBox<String>() {
                 if (item[0] != '-') {
                     if (patterns[0].isNotEmpty()) {
                         patterns[0] += "|"
-                        patterns[0] += item
-                    } else {
-                        patterns[0] = item
                     }
+
+                    if (2 < item.length && item[0] == '#' && item[1].isDigit()) {
+                        patterns[0] += item.substring(2)
+                    }
+                    else {
+                        patterns[0] += item
+                    }
+
                     if (item.substring(item.length - 1) == "\\") {
                         prevPatternIdx = 0
                     }
                 } else {
                     if (patterns[1].isNotEmpty()) {
                         patterns[1] += "|"
-                        patterns[1] += item.substring(1)
-                    } else {
-                        patterns[1] = item.substring(1)
                     }
+
+                    if (3 < item.length && item[1] == '#' && item[2].isDigit()) {
+                        patterns[1] += item.substring(3)
+                    }
+                    else {
+                        patterns[1] += item.substring(1)
+                    }
+
                     if (item.substring(item.length - 1) == "\\") {
                         prevPatternIdx = 1
                     }
@@ -218,7 +340,7 @@ class FilterComboBox(mode: Mode) : JComboBox<String>() {
         }
     }
 
-    internal abstract class HighlighterEditor : ComboBoxEditor {
+    internal abstract inner class HighlighterEditor : ComboBoxEditor {
         val mColorManager = ColorManager.getInstance()
         fun updateHighlighter(textComponent: JTextComponent) {
             if (textComponent.selectedText == null) {
@@ -241,6 +363,12 @@ class FilterComboBox(mode: Mode) : JComboBox<String>() {
                             if (text[startPos] == '-') {
                                 textComponent.highlighter.addHighlight(startPos, endPos, painterExclude)
                             }
+                            else if (mUseColorTag && text[startPos] == '#' && startPos < (endPos - 1) && text[startPos + 1].isDigit()) {
+                                val color = Color.decode(mColorManager.mFilterTableColor.StrFilteredBGs[text[startPos + 1].digitToInt()])
+                                val painterColor: Highlighter.HighlightPainter = DefaultHighlighter.DefaultHighlightPainter(color)
+                                textComponent.highlighter.addHighlight(startPos, startPos + 2, painterColor)
+                                textComponent.highlighter.addHighlight(startPos + 2, endPos, painterInclude)
+                            }
                             else {
                                 textComponent.highlighter.addHighlight(startPos, endPos, painterInclude)
                             }
@@ -257,7 +385,7 @@ class FilterComboBox(mode: Mode) : JComboBox<String>() {
         }
     }
 
-    internal class HighlighterSingleLineEditor : HighlighterEditor() {
+    internal inner class HighlighterSingleLineEditor : HighlighterEditor() {
         private val textEditor: HighlighterTextField = HighlighterTextField()
         override fun getEditorComponent(): Component {
             return textEditor
@@ -307,12 +435,15 @@ class FilterComboBox(mode: Mode) : JComboBox<String>() {
                     }
                 })
 
-                mColorManager.addFilterStyleEventListener(object: ColorManager.ColorEventListener{
+                val colorEventListener = object: ColorManager.ColorEventListener{
                     override fun colorChanged(event: ColorManager.ColorEvent?) {
                         setUpdateHighlighter(true)
                         repaint()
                     }
-                })
+                }
+
+                mColorManager.addFilterStyleEventListener(colorEventListener)
+                mColorManager.addColorEventListener(colorEventListener)
             }
 
             fun setUpdateHighlighter(mUpdateHighlighter: Boolean) {
@@ -335,7 +466,7 @@ class FilterComboBox(mode: Mode) : JComboBox<String>() {
         }
     }
 
-    internal class HighlighterMultiLineEditor : HighlighterEditor() {
+    internal inner class HighlighterMultiLineEditor : HighlighterEditor() {
         private val textEditor: HighlighterTextArea = HighlighterTextArea()
         override fun getEditorComponent(): Component {
             return textEditor
@@ -456,12 +587,15 @@ class FilterComboBox(mode: Mode) : JComboBox<String>() {
                     }
                 })
 
-                mColorManager.addFilterStyleEventListener(object: ColorManager.ColorEventListener{
+                val colorEventListener = object: ColorManager.ColorEventListener{
                     override fun colorChanged(event: ColorManager.ColorEvent?) {
                         setUpdateHighlighter(true)
                         repaint()
                     }
-                })
+                }
+
+                mColorManager.addFilterStyleEventListener(colorEventListener)
+                mColorManager.addColorEventListener(colorEventListener)
             }
 
             fun setUpdateHighlighter(mUpdateHighlighter: Boolean) {
