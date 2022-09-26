@@ -56,6 +56,8 @@ Highlight color : Include text, Exclude text, Separator
 <br/>
 
 # Filter manager
+Click : replace\
+Ctrl + Click : append\
 ![Lognote_FilterManager](https://user-images.githubusercontent.com/75207513/191995297-2417f744-4247-4a33-9914-90ca6a758fc3.gif)
 
 <br/>
