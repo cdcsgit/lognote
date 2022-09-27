@@ -4,7 +4,7 @@ Android logcat viewer for Windows, Linux, Mac
 
 Online / offline logcat view
 
-Offline log(text) view
+Text file view(log viewer)
 
 Regular expression filter
 
