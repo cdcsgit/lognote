@@ -2,13 +2,15 @@
 
 Android logcat viewer for Windows, Linux, Mac
 
-Kotlin + swing
+Online / offline logcat view
+
+Offline log(text) view
 
 Regular expression filter
 
-Online / offline log view
-
 Aging Test : Save split file by lines
+
+Kotlin + swing
 
 ![lognote_light_scheme](https://user-images.githubusercontent.com/75207513/191988798-b0bf7fbd-1625-4606-9c53-bfd0ddeac6d3.png)
 <br/>
