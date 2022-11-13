@@ -1262,6 +1262,11 @@ class LogTableModel() : AbstractTableModel() {
     private var mScanThread:Thread? = null
     private var mFileWriter:FileWriter? = null
     private var mIsPause = false
+
+    fun isScanning(): Boolean {
+        return mScanThread != null
+    }
+
     fun startScan() {
         sIsLogcatLog = true
         if (mLogFile == null) {
@@ -1511,5 +1516,267 @@ class LogTableModel() : AbstractTableModel() {
     fun pauseScan(pause:Boolean) {
         println("Pause adb scan $pause")
         mIsPause = pause
+    }
+
+    private var mFollowThread:Thread? = null
+    private var mIsFollowPause = false
+    private var mIsKeepReading = true
+
+    fun isFollowing(): Boolean {
+        return mFollowThread != null
+    }
+
+    internal inner class MyFileInputStream(currLogFile: File?) : FileInputStream(currLogFile) {
+        override fun read(b: ByteArray, off: Int, len: Int): Int {
+            var input = super.read(b, off, len)
+            while (input == -1) {
+                Thread.sleep(1000);
+                input = super.read(b, off, len)
+            }
+            return input
+        }
+    }
+
+    fun startFollow() {
+        sIsLogcatLog = false
+        if (mLogFile == null) {
+            return
+        }
+
+        if (SwingUtilities.isEventDispatchThread()) {
+            mFollowThread?.interrupt()
+        }
+        else {
+            SwingUtilities.invokeAndWait {
+                mFollowThread?.interrupt()
+            }
+        }
+
+        mGoToLast = true
+        mBaseModel?.mGoToLast = true
+
+        mFollowThread = Thread(Runnable { run {
+            SwingUtilities.invokeAndWait {
+                mIsKeepReading = true
+                mLogItems.clear()
+                mLogItems = mutableListOf()
+                mBaseModel!!.mLogItems.clear()
+                mBaseModel!!.mLogItems = mutableListOf()
+                mBaseModel!!.mBookmarkManager.clear()
+                fireLogTableDataCleared()
+                mBaseModel!!.fireLogTableDataCleared()
+            }
+            fireLogTableDataChanged()
+            mBaseModel!!.fireLogTableDataChanged()
+            makePattenPrintValue()
+
+            val currLogFile: File? = mLogFile
+//            var bufferedReader = BufferedReader(InputStreamReader(FileInputStream(currLogFile)))
+            val scanner = Scanner(MyFileInputStream(currLogFile))
+            var line: String? = null
+            var num = 0
+            var level:Int
+            var tag:String
+            var pid:String
+            var tid:String
+
+            var isShow: Boolean
+            var nextUpdateTime:Long = 0
+
+            var removedCount = 0
+            var baseRemovedCount = 0
+
+            var item:LogItem
+            val logLines:MutableList<String> = mutableListOf()
+            val logFilterItems:MutableList<LogFilterItem> = mutableListOf()
+
+            var logcatLogCount = 0
+
+            while (mIsKeepReading) {
+                try {
+                    nextUpdateTime = System.currentTimeMillis() + 100
+                    logLines.clear()
+                    logFilterItems.clear()
+                    if (!mIsPause) {
+                        while (mIsKeepReading) {
+                            if (scanner.hasNextLine()) {
+                                line = try {
+                                    scanner.nextLine()
+                                } catch (e: NoSuchElementException) {
+                                    null
+                                }
+                            }
+                            else {
+                                line = null
+                            }
+                            if (line == null) {
+                                Thread.sleep(1000);
+                            }
+                            else {
+                                break
+                            }
+                        }
+
+                        while (line != null) {
+                            logLines.add(line)
+
+                            if (scanner.hasNextLine()) {
+                                line = try {
+                                    scanner.nextLine()
+                                } catch (e: NoSuchElementException) {
+                                    null
+                                }
+                            }
+                            else {
+                                line = null
+                            }
+                            if (System.currentTimeMillis() > nextUpdateTime) {
+                                if (line != null) {
+                                    logLines.add(line)
+                                }
+                                break
+                            }
+                        }
+                    }
+                    else {
+                        Thread.sleep(1000)
+                    }
+
+                    synchronized(this) {
+                        for (tempLine in logLines) {
+                            val textSplited = tempLine.trim().split(Regex("\\s+"))
+                            if (textSplited.size > TAG_INDEX) {
+                                level = levelToInt(textSplited[LEVEL_INDEX])
+                                tag = textSplited[TAG_INDEX]
+                                pid = textSplited[PID_INDEX]
+                                tid = textSplited[TID_INDEX]
+                            } else {
+                                level = if (tempLine.startsWith("LogNote")) {
+                                    LEVEL_ERROR
+                                } else {
+                                    LEVEL_VERBOSE
+                                }
+                                tag = ""
+                                pid = ""
+                                tid = ""
+                            }
+
+                            item = LogItem(num.toString(), tempLine, tag, pid, tid, level)
+
+                            isShow = true
+
+                            if (mBookmarkMode) {
+                                isShow = false
+                            }
+
+                            if (!mFullMode) {
+                                if (isShow && item.mLevel < mFilterLevel) {
+                                    isShow = false
+                                }
+                                if (isShow
+                                        && (mFilterHideLog.isNotEmpty() && mPatternHideLog.matcher(item.mLogLine).find())
+                                        || (mFilterShowLog.isNotEmpty() && !mPatternShowLog.matcher(item.mLogLine).find())
+                                ) {
+                                    isShow = false
+                                }
+                                if (isShow
+                                        && ((mFilterHideTag.isNotEmpty() && mPatternHideTag.matcher(item.mTag).find())
+                                                || (mFilterShowTag.isNotEmpty() && !mPatternShowTag.matcher(item.mTag).find()))
+                                ) {
+                                    isShow = false
+                                }
+                                if (isShow
+                                        && ((mFilterHidePid.isNotEmpty() && mPatternHidePid.matcher(item.mPid).find())
+                                                || (mFilterShowPid.isNotEmpty() && !mPatternShowPid.matcher(item.mPid).find()))
+                                ) {
+                                    isShow = false
+                                }
+                                if (isShow
+                                        && ((mFilterHideTid.isNotEmpty() && mPatternHideTid.matcher(item.mTid).find())
+                                                || (mFilterShowTid.isNotEmpty() && !mPatternShowTid.matcher(item.mTid).find()))
+                                ) {
+                                    isShow = false
+                                }
+                            }
+                            logFilterItems.add(LogFilterItem(item, isShow))
+                            num++
+                        }
+                    }
+
+                    SwingUtilities.invokeAndWait {
+                        if (mFollowThread == null) {
+                            return@invokeAndWait
+                        }
+
+                        for (filterItem in logFilterItems) {
+                            if (mSelectionChanged) {
+                                baseRemovedCount = 0
+                                removedCount = 0
+                                mSelectionChanged = false
+                            }
+
+                            if (filterItem.mItem.mLevel != LEVEL_NONE) {
+                                logcatLogCount++
+                            }
+
+                            if (logcatLogCount > 10) {
+                                sIsLogcatLog = true
+                            }
+                            mBaseModel!!.mLogItems.add(filterItem.mItem)
+                            while (!mScrollbackKeep && mScrollback > 0 && mBaseModel!!.mLogItems.count() > mScrollback) {
+                                mBaseModel!!.mLogItems.removeAt(0)
+                                baseRemovedCount++
+                            }
+                            if (filterItem.mIsShow || mBookmarkManager.mBookmarks.contains(filterItem.mItem.mNum.toInt())) {
+                                mLogItems.add(filterItem.mItem)
+                                while (!mScrollbackKeep && mScrollback > 0 && mLogItems.count() > mScrollback) {
+                                    mLogItems.removeAt(0)
+                                    removedCount++
+                                }
+                            }
+                        }
+                    }
+
+                    fireLogTableDataChanged(removedCount)
+                    removedCount = 0
+
+                    mBaseModel!!.fireLogTableDataChanged(baseRemovedCount)
+                    baseRemovedCount = 0
+                } catch (e:Exception) {
+                    println("Start follow : ${e.stackTraceToString()}")
+                    if (e !is InterruptedException) {
+                        JOptionPane.showMessageDialog(mMainUI, e.message, "Error", JOptionPane.ERROR_MESSAGE)
+                    }
+
+                    return@run
+                }
+            }
+            println("Exit follow")
+        }
+        })
+
+        mFollowThread?.start()
+
+        return
+    }
+
+    fun stopFollow(){
+        if (SwingUtilities.isEventDispatchThread()) {
+            mIsKeepReading = false
+            mFollowThread?.interrupt()
+        }
+        else {
+            SwingUtilities.invokeAndWait {
+                mIsKeepReading = false
+                mFollowThread?.interrupt()
+            }
+        }
+        mFollowThread = null
+        return
+    }
+
+    fun pauseFollow(pause:Boolean) {
+        println("Pause file follow $pause")
+        mIsFollowPause = pause
     }
 }

@@ -41,6 +41,8 @@ class TooltipStringsEn private constructor() {
             , "Open cmd list(add cmd)"
             , "Manage frequently used cmds"
             , "Auto retry when failed to receive log"
+            , "Append additional logs as the file grows"
+            , "Stop append logs"
 //            , ""
         )
     }

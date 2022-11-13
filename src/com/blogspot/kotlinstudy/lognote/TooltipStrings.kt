@@ -53,6 +53,8 @@ class TooltipStrings private constructor() {
         private val IDX_ADD_CMD_BTN = idx++
         private val IDX_CMD_LIST_BTN = idx++
         private val IDX_RETRY_ADB_TOGGLE = idx++
+        private val IDX_START_FOLLOW_BTN = idx++
+        private val IDX_STOP_FOLLOW_BTN = idx++
 //        private val IDX_ = idx++
 
         val START_BTN: String
@@ -131,5 +133,9 @@ class TooltipStrings private constructor() {
             get() { return currStrings[IDX_CMD_LIST_BTN] }
         val RETRY_ADB_TOGGLE: String
             get() { return currStrings[IDX_RETRY_ADB_TOGGLE] }
+        val START_FOLLOW_BTN: String
+            get() { return currStrings[IDX_START_FOLLOW_BTN] }
+        val STOP_FOLLOW_BTN: String
+            get() { return currStrings[IDX_STOP_FOLLOW_BTN] }
     }
 }

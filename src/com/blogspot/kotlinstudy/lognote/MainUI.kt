@@ -49,6 +49,7 @@ class MainUI(title: String) : JFrame() {
     private lateinit var mMenuBar: JMenuBar
     private lateinit var mMenuFile: JMenu
     private lateinit var mItemFileOpen: JMenuItem
+    private lateinit var mItemFileFollow: JMenuItem
     private lateinit var mItemFileOpenFiles: JMenuItem
     private lateinit var mItemFileAppendFiles: JMenuItem
 //    private lateinit var mItemFileOpenRecents: JMenu
@@ -74,7 +75,7 @@ class MainUI(title: String) : JFrame() {
     private lateinit var mRetryAdbToggle: ColorToggleButton
     private lateinit var mStopBtn: ColorButton
     private lateinit var mPauseToggle: ColorToggleButton
-    private lateinit var mClearBtn: ColorButton
+    private lateinit var mClearViewsBtn: ColorButton
     private lateinit var mSaveBtn: ColorButton
     private lateinit var mRotationBtn: ColorButton
     lateinit var mFiltersBtn: ColorButton
@@ -137,7 +138,13 @@ class MainUI(title: String) : JFrame() {
     private var mSelectedLine = 0
 
     private lateinit var mStatusBar: JPanel
+    private lateinit var mStatusMethod: JLabel
     private lateinit var mStatusTF: JTextField
+
+    private lateinit var mFollowLabel: JLabel
+    private lateinit var mStartFollowBtn: ColorButton
+    private lateinit var mStopFollowBtn: ColorButton
+    private lateinit var mPauseFollowToggle: ColorToggleButton
 
     private val mFrameMouseListener = FrameMouseListener(this)
     private val mKeyHandler = KeyHandler()
@@ -422,6 +429,10 @@ class MainUI(title: String) : JFrame() {
         mItemFileOpen.addActionListener(mActionHandler)
         mMenuFile.add(mItemFileOpen)
 
+        mItemFileFollow = JMenuItem(Strings.FOLLOW)
+        mItemFileFollow.addActionListener(mActionHandler)
+        mMenuFile.add(mItemFileFollow)
+
         mItemFileOpenFiles = JMenuItem(Strings.OPEN_FILES)
         mItemFileOpenFiles.addActionListener(mActionHandler)
         mMenuFile.add(mItemFileOpenFiles)
@@ -602,11 +613,11 @@ class MainUI(title: String) : JFrame() {
         mStopBtn.toolTipText = TooltipStrings.STOP_BTN
         mStopBtn.addActionListener(mActionHandler)
         mStopBtn.addMouseListener(mMouseHandler)
-        mClearBtn = ColorButton(Strings.CLEAR)
-        mClearBtn.margin = btnMargin
-        mClearBtn.toolTipText = TooltipStrings.CLEAR_BTN
-        mClearBtn.addActionListener(mActionHandler)
-        mClearBtn.addMouseListener(mMouseHandler)
+        mClearViewsBtn = ColorButton(Strings.CLEAR_VIEWS)
+        mClearViewsBtn.margin = btnMargin
+        mClearViewsBtn.toolTipText = TooltipStrings.CLEAR_BTN
+        mClearViewsBtn.addActionListener(mActionHandler)
+        mClearViewsBtn.addMouseListener(mMouseHandler)
         mSaveBtn = ColorButton(Strings.SAVE)
         mSaveBtn.margin = btnMargin
         mSaveBtn.toolTipText = TooltipStrings.SAVE_BTN
@@ -845,7 +856,6 @@ class MainUI(title: String) : JFrame() {
         addVSeparator2(mLogToolBar)
         mLogToolBar.add(mPauseToggle)
         mLogToolBar.add(mStopBtn)
-        mLogToolBar.add(mClearBtn)
         mLogToolBar.add(mSaveBtn)
 
         addVSeparator(mLogToolBar)
@@ -853,6 +863,10 @@ class MainUI(title: String) : JFrame() {
         mLogToolBar.add(deviceComboPanel)
         mLogToolBar.add(mAdbRefreshBtn)
         mLogToolBar.add(mAdbDisconnectBtn)
+
+        addVSeparator(mLogToolBar)
+
+        mLogToolBar.add(mClearViewsBtn)
 
         addVSeparator(mLogToolBar)
 
@@ -918,11 +932,44 @@ class MainUI(title: String) : JFrame() {
 
         mStatusBar = JPanel(BorderLayout())
         mStatusBar.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
+        mStatusMethod = JLabel("")
+        mStatusMethod.isOpaque = true
+        mStatusMethod.background = Color.DARK_GRAY
         mStatusTF = StatusTextField(Strings.NONE)
         mStatusTF.toolTipText = TooltipStrings.SAVED_FILE_TF
         mStatusTF.isEditable = false
         mStatusTF.border = BorderFactory.createEmptyBorder()
-        mStatusBar.add(mStatusTF)
+
+        mStartFollowBtn = ColorButton(Strings.START)
+        mStartFollowBtn.margin = btnMargin
+        mStartFollowBtn.toolTipText = TooltipStrings.START_FOLLOW_BTN
+        mStartFollowBtn.addActionListener(mActionHandler)
+        mStartFollowBtn.addMouseListener(mMouseHandler)
+
+        mPauseFollowToggle = ColorToggleButton(Strings.PAUSE)
+        mPauseFollowToggle.margin = Insets(mPauseFollowToggle.margin.top, 0, mPauseFollowToggle.margin.bottom, 0)
+        mPauseFollowToggle.addItemListener(mItemHandler)
+
+        mStopFollowBtn = ColorButton(Strings.STOP)
+        mStopFollowBtn.margin = btnMargin
+        mStopFollowBtn.toolTipText = TooltipStrings.STOP_FOLLOW_BTN
+        mStopFollowBtn.addActionListener(mActionHandler)
+        mStopFollowBtn.addMouseListener(mMouseHandler)
+
+        val followPanel = JPanel(FlowLayout(FlowLayout.LEFT, 2, 0))
+        followPanel.border = BorderFactory.createEmptyBorder(0, 3, 0, 3)
+        mFollowLabel = JLabel(" ${Strings.FOLLOW} ")
+        mFollowLabel.border = BorderFactory.createDashedBorder(null, 1.0f, 2.0f)
+        followPanel.add(mFollowLabel)
+        followPanel.add(mStartFollowBtn)
+        followPanel.add(mPauseFollowToggle)
+        followPanel.add(mStopFollowBtn)
+
+        enabledFollowBtn(false)
+
+        mStatusBar.add(mStatusMethod, BorderLayout.WEST)
+        mStatusBar.add(mStatusTF, BorderLayout.CENTER)
+        mStatusBar.add(followPanel, BorderLayout.EAST)
 
         val logLevel = mConfigManager.getItem(ConfigManager.ITEM_LOG_LEVEL)
         if (logLevel != null) {
@@ -1300,6 +1347,7 @@ class MainUI(title: String) : JFrame() {
     fun openFile(path: String, isAppend: Boolean) {
         println("Opening: $path, $isAppend")
         mFilteredTableModel.stopScan()
+        mFilteredTableModel.stopFollow()
 
         if (isAppend) {
             mStatusTF.text += "| $path"
@@ -1307,8 +1355,19 @@ class MainUI(title: String) : JFrame() {
             mStatusTF.text = path
         }
         mFullTableModel.setLogFile(path)
+        mFilteredTableModel.setLogFile(path)
         mFullTableModel.loadItems(isAppend)
         mFilteredTableModel.loadItems(isAppend)
+
+        if (ConfigManager.LaF == FLAT_DARK_LAF) {
+            mStatusMethod.background = Color(0x50, 0x50, 0x00)
+        }
+        else {
+            mStatusMethod.background = Color(0xF0, 0xF0, 0x30)
+        }
+        mStatusMethod.text = " ${Strings.OPEN} "
+        enabledFollowBtn(true)
+
         repaint()
 
         return
@@ -1332,12 +1391,14 @@ class MainUI(title: String) : JFrame() {
             idx++
         }
 
+        mFullTableModel.setLogFile(filePathSaved)
         mFilteredTableModel.setLogFile(filePathSaved)
         mStatusTF.text = filePathSaved
     }
 
     fun startAdbScan(reconnect: Boolean) {
         mFilteredTableModel.stopScan()
+        mFilteredTableModel.stopFollow()
         mPauseToggle.isSelected = false
         setSaveLogFile()
         if (reconnect) {
@@ -1345,6 +1406,31 @@ class MainUI(title: String) : JFrame() {
             mAdbManager.startLogcat()
         }
         mFilteredTableModel.startScan()
+        if (ConfigManager.LaF == FLAT_DARK_LAF) {
+            mStatusMethod.background = Color(0x00, 0x50, 0x00)
+        }
+        else {
+            mStatusMethod.background = Color(0x90, 0xE0, 0x90)
+        }
+
+        mStatusMethod.text = " ${Strings.ADB} "
+        enabledFollowBtn(false)
+    }
+
+    fun stopAdbScan() {
+        if (!mFilteredTableModel.isScanning()) {
+            println("stopAdbScan : not adb scanning mode")
+            return
+        }
+        mFilteredTableModel.stopScan()
+        if (ConfigManager.LaF == FLAT_DARK_LAF) {
+            mStatusMethod.background = Color(0x50, 0x50, 0x50)
+        }
+        else {
+            mStatusMethod.background = Color.LIGHT_GRAY
+        }
+        mStatusMethod.text = " ${Strings.ADB} ${Strings.STOP} "
+        enabledFollowBtn(true)
     }
 
     fun isRestartAdbLogcat(): Boolean {
@@ -1359,156 +1445,260 @@ class MainUI(title: String) : JFrame() {
     }
 
     fun pauseAdbScan(pause: Boolean) {
+        if (!mFilteredTableModel.isScanning()) {
+            println("pauseAdbScan : not adb scanning mode")
+            return
+        }
         mFilteredTableModel.pauseScan(pause)
+    }
+
+    fun setFollowLogFile(filePath: String) {
+        mFullTableModel.setLogFile(filePath)
+        mFilteredTableModel.setLogFile(filePath)
+        mStatusTF.text = filePath
+    }
+
+    fun startFileFollow() {
+        mFilteredTableModel.stopScan()
+        mFilteredTableModel.stopFollow()
+        mPauseFollowToggle.isSelected = false
+        mFilteredTableModel.startFollow()
+
+        if (ConfigManager.LaF == FLAT_DARK_LAF) {
+            mStatusMethod.background = Color(0x00, 0x00, 0x50)
+        }
+        else {
+            mStatusMethod.background = Color(0xA0, 0xA0, 0xF0)
+        }
+
+        mStatusMethod.text = " ${Strings.FOLLOW} "
+        enabledFollowBtn(true)
+    }
+
+    fun stopFileFollow() {
+        if (!mFilteredTableModel.isFollowing()) {
+            println("stopAdbScan : not file follow mode")
+            return
+        }
+        mFilteredTableModel.stopFollow()
+        if (ConfigManager.LaF == FLAT_DARK_LAF) {
+            mStatusMethod.background = Color(0x50, 0x50, 0x50)
+        }
+        else {
+            mStatusMethod.background = Color.LIGHT_GRAY
+        }
+        mStatusMethod.text = " ${Strings.FOLLOW} ${Strings.STOP} "
+        enabledFollowBtn(true)
+    }
+
+    fun pauseFileFollow(pause: Boolean) {
+        if (!mFilteredTableModel.isFollowing()) {
+            println("pauseFileFollow : not file follow mode")
+            return
+        }
+        mFilteredTableModel.pauseFollow(pause)
+    }
+
+    private fun enabledFollowBtn(enabled: Boolean) {
+        mFollowLabel.isEnabled = enabled
+        mStartFollowBtn.isEnabled = enabled
+        mPauseFollowToggle.isEnabled = enabled
+        mStopFollowBtn.isEnabled = enabled
     }
 
     internal inner class ActionHandler : ActionListener {
         override fun actionPerformed(p0: ActionEvent?) {
-            if (p0?.source == mItemFileOpen) {
-                val fileDialog = FileDialog(this@MainUI, Strings.FILE + " " + Strings.OPEN, FileDialog.LOAD)
-                fileDialog.isMultipleMode = false
-                fileDialog.directory = mFullTableModel.mLogFile?.parent
-                fileDialog.isVisible = true
-                if (fileDialog.file != null) {
-                    val file = File(fileDialog.directory + fileDialog.file)
-                    openFile(file.absolutePath, false)
-                } else {
-                    println("Cancel Open")
+            when (p0?.source) {
+                mItemFileOpen -> {
+                    val fileDialog = FileDialog(this@MainUI, Strings.FILE + " " + Strings.OPEN, FileDialog.LOAD)
+                    fileDialog.isMultipleMode = false
+                    fileDialog.directory = mFullTableModel.mLogFile?.parent
+                    fileDialog.isVisible = true
+                    if (fileDialog.file != null) {
+                        val file = File(fileDialog.directory + fileDialog.file)
+                        openFile(file.absolutePath, false)
+                    } else {
+                        println("Cancel Open")
+                    }
                 }
-            } else if (p0?.source == mItemFileOpenFiles) {
-                val fileDialog = FileDialog(this@MainUI, Strings.FILE + " " + Strings.OPEN_FILES, FileDialog.LOAD)
-                fileDialog.isMultipleMode = true
-                fileDialog.directory = mFullTableModel.mLogFile?.parent
-                fileDialog.isVisible = true
-                val fileList = fileDialog.files
-                if (fileList != null) {
-                    var isFirst = true
-                    for (file in fileList) {
-                        if (isFirst) {
-                            openFile(file.absolutePath, false)
-                            isFirst = false
-                        } else {
+                mItemFileFollow -> {
+                    val fileDialog = FileDialog(this@MainUI, Strings.FILE + " " + Strings.FOLLOW, FileDialog.LOAD)
+                    fileDialog.isMultipleMode = false
+                    fileDialog.directory = mFullTableModel.mLogFile?.parent
+                    fileDialog.isVisible = true
+                    if (fileDialog.file != null) {
+                        val file = File(fileDialog.directory + fileDialog.file)
+                        setFollowLogFile(file.absolutePath)
+                        startFileFollow()
+                    } else {
+                        println("Cancel Open")
+                    }
+                }
+                mItemFileOpenFiles -> {
+                    val fileDialog = FileDialog(this@MainUI, Strings.FILE + " " + Strings.OPEN_FILES, FileDialog.LOAD)
+                    fileDialog.isMultipleMode = true
+                    fileDialog.directory = mFullTableModel.mLogFile?.parent
+                    fileDialog.isVisible = true
+                    val fileList = fileDialog.files
+                    if (fileList != null) {
+                        var isFirst = true
+                        for (file in fileList) {
+                            if (isFirst) {
+                                openFile(file.absolutePath, false)
+                                isFirst = false
+                            } else {
+                                openFile(file.absolutePath, true)
+                            }
+                        }
+                    } else {
+                        println("Cancel Open")
+                    }
+                }
+                mItemFileAppendFiles -> {
+                    val fileDialog = FileDialog(this@MainUI, Strings.FILE + " " + Strings.APPEND_FILES, FileDialog.LOAD)
+                    fileDialog.isMultipleMode = true
+                    fileDialog.directory = mFullTableModel.mLogFile?.parent
+                    fileDialog.isVisible = true
+                    val fileList = fileDialog.files
+                    if (fileList != null) {
+                        for (file in fileList) {
                             openFile(file.absolutePath, true)
                         }
+                    } else {
+                        println("Cancel Open")
                     }
-                } else {
-                    println("Cancel Open")
                 }
-            } else if (p0?.source == mItemFileAppendFiles) {
-                val fileDialog = FileDialog(this@MainUI, Strings.FILE + " " + Strings.APPEND_FILES, FileDialog.LOAD)
-                fileDialog.isMultipleMode = true
-                fileDialog.directory = mFullTableModel.mLogFile?.parent
-                fileDialog.isVisible = true
-                val fileList = fileDialog.files
-                if (fileList != null) {
-                    for (file in fileList) {
-                        openFile(file.absolutePath, true)
+                mItemFileExit -> {
+                    exit()
+                }
+                mItemAdb, mItemLogFile -> {
+                    val settingsDialog = AdbSettingsDialog(this@MainUI)
+                    settingsDialog.setLocationRelativeTo(this@MainUI)
+                    settingsDialog.isVisible = true
+                }
+                mItemFull -> {
+                    if (mItemFull.state) {
+                        attachLogPanel(mFullLogPanel)
+                    } else {
+                        windowedModeLogPanel(mFullLogPanel)
                     }
-                } else {
-                    println("Cancel Open")
-                }
-            } else if (p0?.source == mItemFileExit) {
-                exit()
-            } else if (p0?.source == mItemAdb || p0?.source == mItemLogFile) {
-                val settingsDialog = AdbSettingsDialog(this@MainUI)
-                settingsDialog.setLocationRelativeTo(this@MainUI)
-                settingsDialog.isVisible = true
-            } else if (p0?.source == mItemFull) {
-                if (mItemFull.state) {
-                    attachLogPanel(mFullLogPanel)
-                } else {
-                    windowedModeLogPanel(mFullLogPanel)
-                }
 
-                mConfigManager.saveItem(ConfigManager.ITEM_VIEW_FULL, mItemFull.state.toString())
-            } else if (p0?.source == mItemFilterIncremental) {
-                mConfigManager.saveItem(ConfigManager.ITEM_FILTER_INCREMENTAL, mItemFilterIncremental.state.toString())
-            } else if (p0?.source == mItemAppearance) {
-                val appearanceSettingsDialog = AppearanceSettingsDialog(this@MainUI)
-                appearanceSettingsDialog.setLocationRelativeTo(this@MainUI)
-                appearanceSettingsDialog.isVisible = true
-            } else if (p0?.source == mItemAbout) {
-                val aboutDialog = AboutDialog(this@MainUI)
-                aboutDialog.setLocationRelativeTo(this@MainUI)
-                aboutDialog.isVisible = true
-            } else if (p0?.source == mItemHelp) {
-                val helpDialog = HelpDialog(this@MainUI)
-                helpDialog.setLocationRelativeTo(this@MainUI)
-                helpDialog.isVisible = true
-            } else if (p0?.source == mAdbConnectBtn) {
-                mFilteredTableModel.stopScan()
-                mAdbManager.mTargetDevice = mDeviceCombo.selectedItem!!.toString()
-                mAdbManager.connect()
-            } else if (p0?.source == mAdbRefreshBtn) {
-                mAdbManager.getDevices()
-            } else if (p0?.source == mAdbDisconnectBtn) {
-                mFilteredTableModel.stopScan()
-                mAdbManager.disconnect()
-            } else if (p0?.source == mScrollbackApplyBtn) {
-                try {
-                    mFilteredTableModel.mScrollback = mScrollbackTF.text.toString().trim().toInt()
-                } catch (e: java.lang.NumberFormatException) {
-                    mFilteredTableModel.mScrollback = 0
-                    mScrollbackTF.text = "0"
+                    mConfigManager.saveItem(ConfigManager.ITEM_VIEW_FULL, mItemFull.state.toString())
                 }
-                mFilteredTableModel.mScrollbackSplitFile = mScrollbackSplitFileCheck.isSelected
-
-                mConfigManager.saveItem(ConfigManager.ITEM_SCROLLBACK, mScrollbackTF.text)
-                mConfigManager.saveItem(ConfigManager.ITEM_SCROLLBACK_SPLIT_FILE, mScrollbackSplitFileCheck.isSelected.toString())
-            } else if (p0?.source == mStartBtn) {
-                startAdbScan(true)
-            } else if (p0?.source == mStopBtn) {
-                mFilteredTableModel.stopScan()
-                mAdbManager.stop()
-//            } else if (p0?.source == mPauseBtn) {
-            } else if (p0?.source == mClearBtn) {
-                mFilteredTableModel.clearItems()
-                repaint()
-            } else if (p0?.source == mSaveBtn) {
-//                mFilteredTableModel.clearItems()
-                setSaveLogFile()
-//                repaint()
-            } else if (p0?.source == mRotationBtn) {
-                mRotationStatus++
-
-                if (mRotationStatus > ROTATION_MAX) {
-                    mRotationStatus = Companion.ROTATION_LEFT_RIGHT
+                mItemFilterIncremental -> {
+                    mConfigManager.saveItem(ConfigManager.ITEM_FILTER_INCREMENTAL, mItemFilterIncremental.state.toString())
                 }
+                mItemAppearance -> {
+                    val appearanceSettingsDialog = AppearanceSettingsDialog(this@MainUI)
+                    appearanceSettingsDialog.setLocationRelativeTo(this@MainUI)
+                    appearanceSettingsDialog.isVisible = true
+                }
+                mItemAbout -> {
+                    val aboutDialog = AboutDialog(this@MainUI)
+                    aboutDialog.setLocationRelativeTo(this@MainUI)
+                    aboutDialog.isVisible = true
+                }
+                mItemHelp -> {
+                    val helpDialog = HelpDialog(this@MainUI)
+                    helpDialog.setLocationRelativeTo(this@MainUI)
+                    helpDialog.isVisible = true
+                }
+                mAdbConnectBtn -> {
+                    stopAdbScan()
+                    mAdbManager.mTargetDevice = mDeviceCombo.selectedItem!!.toString()
+                    mAdbManager.connect()
+                }
+                mAdbRefreshBtn -> {
+                    mAdbManager.getDevices()
+                }
+                mAdbDisconnectBtn -> {
+                    stopAdbScan()
+                    mAdbManager.disconnect()
+                }
+                mScrollbackApplyBtn -> {
+                    try {
+                        mFilteredTableModel.mScrollback = mScrollbackTF.text.toString().trim().toInt()
+                    } catch (e: java.lang.NumberFormatException) {
+                        mFilteredTableModel.mScrollback = 0
+                        mScrollbackTF.text = "0"
+                    }
+                    mFilteredTableModel.mScrollbackSplitFile = mScrollbackSplitFileCheck.isSelected
 
-                mConfigManager.saveItem(ConfigManager.ITEM_ROTATION, mRotationStatus.toString())
+                    mConfigManager.saveItem(ConfigManager.ITEM_SCROLLBACK, mScrollbackTF.text)
+                    mConfigManager.saveItem(ConfigManager.ITEM_SCROLLBACK_SPLIT_FILE, mScrollbackSplitFileCheck.isSelected.toString())
+                }
+                mStartBtn -> {
+                    startAdbScan(true)
+                }
+                mStopBtn -> {
+                    stopAdbScan()
+                    mAdbManager.stop()
+    //            } else if (p0?.source == mPauseBtn) {
+                }
+                mClearViewsBtn -> {
+                    mFilteredTableModel.clearItems()
+                    repaint()
+                }
+                mSaveBtn -> {
+    //                mFilteredTableModel.clearItems()
+                    if (mFilteredTableModel.isScanning()) {
+                        setSaveLogFile()
+                    }
+                    else {
+                        println("SaveBtn : not adb scanning mode")
+                    }
+    //                repaint()
+                }
+                mRotationBtn -> {
+                    mRotationStatus++
 
-                mLogSplitPane.remove(mFilteredLogPanel)
-                mLogSplitPane.remove(mFullLogPanel)
-                when (mRotationStatus) {
-                    Companion.ROTATION_LEFT_RIGHT -> {
-                        mLogSplitPane.orientation = JSplitPane.HORIZONTAL_SPLIT
-                        mLogSplitPane.add(mFilteredLogPanel)
-                        mLogSplitPane.add(mFullLogPanel)
-                        mLogSplitPane.resizeWeight = SPLIT_WEIGHT
+                    if (mRotationStatus > ROTATION_MAX) {
+                        mRotationStatus = Companion.ROTATION_LEFT_RIGHT
                     }
-                    ROTATION_RIGHT_LEFT -> {
-                        mLogSplitPane.orientation = JSplitPane.HORIZONTAL_SPLIT
-                        mLogSplitPane.add(mFullLogPanel)
-                        mLogSplitPane.add(mFilteredLogPanel)
-                        mLogSplitPane.resizeWeight = 1 - SPLIT_WEIGHT
-                    }
-                    ROTATION_TOP_BOTTOM -> {
-                        mLogSplitPane.orientation = JSplitPane.VERTICAL_SPLIT
-                        mLogSplitPane.add(mFilteredLogPanel)
-                        mLogSplitPane.add(mFullLogPanel)
-                        mLogSplitPane.resizeWeight = SPLIT_WEIGHT
-                    }
-                    ROTATION_BOTTOM_TOP -> {
-                        mLogSplitPane.orientation = JSplitPane.VERTICAL_SPLIT
-                        mLogSplitPane.add(mFullLogPanel)
-                        mLogSplitPane.add(mFilteredLogPanel)
-                        mLogSplitPane.resizeWeight = 1 - SPLIT_WEIGHT
+
+                    mConfigManager.saveItem(ConfigManager.ITEM_ROTATION, mRotationStatus.toString())
+
+                    mLogSplitPane.remove(mFilteredLogPanel)
+                    mLogSplitPane.remove(mFullLogPanel)
+                    when (mRotationStatus) {
+                        Companion.ROTATION_LEFT_RIGHT -> {
+                            mLogSplitPane.orientation = JSplitPane.HORIZONTAL_SPLIT
+                            mLogSplitPane.add(mFilteredLogPanel)
+                            mLogSplitPane.add(mFullLogPanel)
+                            mLogSplitPane.resizeWeight = SPLIT_WEIGHT
+                        }
+                        ROTATION_RIGHT_LEFT -> {
+                            mLogSplitPane.orientation = JSplitPane.HORIZONTAL_SPLIT
+                            mLogSplitPane.add(mFullLogPanel)
+                            mLogSplitPane.add(mFilteredLogPanel)
+                            mLogSplitPane.resizeWeight = 1 - SPLIT_WEIGHT
+                        }
+                        ROTATION_TOP_BOTTOM -> {
+                            mLogSplitPane.orientation = JSplitPane.VERTICAL_SPLIT
+                            mLogSplitPane.add(mFilteredLogPanel)
+                            mLogSplitPane.add(mFullLogPanel)
+                            mLogSplitPane.resizeWeight = SPLIT_WEIGHT
+                        }
+                        ROTATION_BOTTOM_TOP -> {
+                            mLogSplitPane.orientation = JSplitPane.VERTICAL_SPLIT
+                            mLogSplitPane.add(mFullLogPanel)
+                            mLogSplitPane.add(mFilteredLogPanel)
+                            mLogSplitPane.resizeWeight = 1 - SPLIT_WEIGHT
+                        }
                     }
                 }
-            } else if (p0?.source == mFiltersBtn) {
-                mFiltersManager.showDialog()
-            } else if (p0?.source == mCmdsBtn) {
-                mCmdsManager.showDialog()
+                mFiltersBtn -> {
+                    mFiltersManager.showDialog()
+                }
+                mCmdsBtn -> {
+                    mCmdsManager.showDialog()
+                }
+                mStartFollowBtn -> {
+                    startFileFollow()
+                }
+                mStopFollowBtn -> {
+                    stopFileFollow()
+                }
             }
         }
     }
@@ -1759,7 +1949,7 @@ class MainUI(title: String) : JFrame() {
             Thread(Runnable {
                 run {
                     Thread.sleep(200)
-                    mClearBtn.doClick()
+                    mClearViewsBtn.doClick()
                     Thread.sleep(200)
                     mStartBtn.doClick()
                 }
@@ -1782,18 +1972,18 @@ class MainUI(title: String) : JFrame() {
     fun clearAdbLog() {
         Thread(Runnable {
             run {
-                mClearBtn.doClick()
+                mClearViewsBtn.doClick()
             }
         }).start()
     }
 
-    fun clearSaveAdbLog() {
-        Thread(Runnable {
-            run {
-                mSaveBtn.doClick()
-            }
-        }).start()
-    }
+//    fun clearSaveAdbLog() {
+//        Thread(Runnable {
+//            run {
+//                mSaveBtn.doClick()
+//            }
+//        }).start()
+//    }
 
     fun getTextShowLogCombo() : String {
         if (mShowLogCombo.selectedItem == null) {
@@ -1840,52 +2030,66 @@ class MainUI(title: String) : JFrame() {
     internal inner class KeyHandler : KeyAdapter() {
         override fun keyReleased(p0: KeyEvent?) {
             if (KeyEvent.VK_ENTER == p0?.keyCode) {
-                if (p0.source == mShowLogCombo.editor.editorComponent && mShowLogToggle.isSelected) {
-                    val combo = mShowLogCombo
-                    val item = combo.selectedItem!!.toString()
-                    resetComboItem(combo, item)
-                    mFilteredTableModel.mFilterLog = item
-                } else if (p0.source == mBoldLogCombo.editor.editorComponent && mBoldLogToggle.isSelected) {
-                    val combo = mBoldLogCombo
-                    val item = combo.selectedItem!!.toString()
-                    resetComboItem(combo, item)
-                    mFilteredTableModel.mFilterHighlightLog = item
-                } else if (p0.source == mShowTagCombo.editor.editorComponent && mShowTagToggle.isSelected) {
-                    val combo = mShowTagCombo
-                    val item = combo.selectedItem!!.toString()
-                    resetComboItem(combo, item)
-                    mFilteredTableModel.mFilterTag = item
-                } else if (p0.source == mShowPidCombo.editor.editorComponent && mShowPidToggle.isSelected) {
-                    val combo = mShowPidCombo
-                    val item = combo.selectedItem!!.toString()
-                    resetComboItem(combo, item)
-                    mFilteredTableModel.mFilterPid = item
-                } else if (p0.source == mShowTidCombo.editor.editorComponent && mShowTidToggle.isSelected) {
-                    val combo = mShowTidCombo
-                    val item = combo.selectedItem!!.toString()
-                    resetComboItem(combo, item)
-                    mFilteredTableModel.mFilterTid = item
-                } else if (p0.source == mDeviceCombo.editor.editorComponent) {
-                    reconnectAdb()
-                } else if (p0.source == mScrollbackTF) {
-                    mScrollbackApplyBtn.doClick()
+                when {
+                    p0.source == mShowLogCombo.editor.editorComponent && mShowLogToggle.isSelected -> {
+                        val combo = mShowLogCombo
+                        val item = combo.selectedItem!!.toString()
+                        resetComboItem(combo, item)
+                        mFilteredTableModel.mFilterLog = item
+                    }
+                    p0.source == mBoldLogCombo.editor.editorComponent && mBoldLogToggle.isSelected -> {
+                        val combo = mBoldLogCombo
+                        val item = combo.selectedItem!!.toString()
+                        resetComboItem(combo, item)
+                        mFilteredTableModel.mFilterHighlightLog = item
+                    }
+                    p0.source == mShowTagCombo.editor.editorComponent && mShowTagToggle.isSelected -> {
+                        val combo = mShowTagCombo
+                        val item = combo.selectedItem!!.toString()
+                        resetComboItem(combo, item)
+                        mFilteredTableModel.mFilterTag = item
+                    }
+                    p0.source == mShowPidCombo.editor.editorComponent && mShowPidToggle.isSelected -> {
+                        val combo = mShowPidCombo
+                        val item = combo.selectedItem!!.toString()
+                        resetComboItem(combo, item)
+                        mFilteredTableModel.mFilterPid = item
+                    }
+                    p0.source == mShowTidCombo.editor.editorComponent && mShowTidToggle.isSelected -> {
+                        val combo = mShowTidCombo
+                        val item = combo.selectedItem!!.toString()
+                        resetComboItem(combo, item)
+                        mFilteredTableModel.mFilterTid = item
+                    }
+                    p0.source == mDeviceCombo.editor.editorComponent -> {
+                        reconnectAdb()
+                    }
+                    p0.source == mScrollbackTF -> {
+                        mScrollbackApplyBtn.doClick()
+                    }
                 }
             } else if (p0 != null && mItemFilterIncremental.state) {
-                if (p0.source == mShowLogCombo.editor.editorComponent && mShowLogToggle.isSelected) {
-                    val item = mShowLogCombo.editor.item.toString()
-                    mFilteredTableModel.mFilterLog = item
-                } else if (p0.source == mBoldLogCombo.editor.editorComponent && mBoldLogToggle.isSelected) {
-                    val item = mBoldLogCombo.editor.item.toString()
-                    mFilteredTableModel.mFilterHighlightLog = item
-                } else if (p0.source == mShowTagCombo.editor.editorComponent && mShowTagToggle.isSelected) {
-                    val item = mShowTagCombo.editor.item.toString()
-                    mFilteredTableModel.mFilterTag = item
-                } else if (p0.source == mShowPidCombo.editor.editorComponent && mShowPidToggle.isSelected) {
-                    val item = mShowPidCombo.editor.item.toString()
-                    mFilteredTableModel.mFilterPid = item
-                } else if (p0.source == mShowTidCombo.editor.editorComponent && mShowTidToggle.isSelected) {
-                    val item = mShowTidCombo.editor.item.toString()
-                    mFilteredTableModel.mFilterTid = item
+                when {
+                    p0.source == mShowLogCombo.editor.editorComponent && mShowLogToggle.isSelected -> {
+                        val item = mShowLogCombo.editor.item.toString()
+                        mFilteredTableModel.mFilterLog = item
+                    }
+                    p0.source == mBoldLogCombo.editor.editorComponent && mBoldLogToggle.isSelected -> {
+                        val item = mBoldLogCombo.editor.item.toString()
+                        mFilteredTableModel.mFilterHighlightLog = item
+                    }
+                    p0.source == mShowTagCombo.editor.editorComponent && mShowTagToggle.isSelected -> {
+                        val item = mShowTagCombo.editor.item.toString()
+                        mFilteredTableModel.mFilterTag = item
+                    }
+                    p0.source == mShowPidCombo.editor.editorComponent && mShowPidToggle.isSelected -> {
+                        val item = mShowPidCombo.editor.item.toString()
+                        mFilteredTableModel.mFilterPid = item
+                    }
+                    p0.source == mShowTidCombo.editor.editorComponent && mShowTidToggle.isSelected -> {
+                        val item = mShowTidCombo.editor.item.toString()
+                        mFilteredTableModel.mFilterTid = item
+                    }
                 }
             }
             super.keyReleased(p0)
@@ -1967,12 +2171,10 @@ class MainUI(title: String) : JFrame() {
                     mConfigManager.saveItem(ConfigManager.ITEM_RETRY_ADB, mRetryAdbToggle.isSelected.toString())
                 }
                 mPauseToggle -> {
-                    if (mPauseToggle.isSelected) {
-                        pauseAdbScan(true)
-                    }
-                    else {
-                        pauseAdbScan(false)
-                    }
+                    pauseAdbScan(mPauseToggle.isSelected)
+                }
+                mPauseFollowToggle -> {
+                    pauseFileFollow(mPauseFollowToggle.isSelected)
                 }
             }
         }

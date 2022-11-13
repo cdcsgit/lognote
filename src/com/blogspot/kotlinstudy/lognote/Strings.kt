@@ -20,6 +20,9 @@ class Strings private constructor() {
         private var idx = 0
         private val IDX_FILE = idx++
         private val IDX_OPEN = idx++
+        private val IDX_FOLLOW = idx++
+        private val IDX_OPEN_FILES = idx++
+        private val IDX_APPEND_FILES = idx++
         private val IDX_OPEN_RECENTS = idx++
         private val IDX_CLOSE = idx++
         private val IDX_EXIT = idx++
@@ -30,7 +33,7 @@ class Strings private constructor() {
         private val IDX_START = idx++
         private val IDX_STOP = idx++
         private val IDX_PAUSE = idx++
-        private val IDX_CLEAR = idx++
+        private val IDX_CLEAR_VIEWS = idx++
         private val IDX_ROTATION = idx++
         private val IDX_FIRST = idx++
         private val IDX_LAST = idx++
@@ -77,8 +80,6 @@ class Strings private constructor() {
         private val IDX_NOT_CONNECTED = idx++
         private val IDX_APPEND = idx++
         private val IDX_MSG_SELECT_OPEN_MODE = idx++
-        private val IDX_OPEN_FILES = idx++
-        private val IDX_APPEND_FILES = idx++
         private val IDX_NONE = idx++
         private val IDX_ADD_FILTER = idx++
         private val IDX_ADD_CMD = idx++
@@ -99,6 +100,12 @@ class Strings private constructor() {
             get() { return currStrings[IDX_FILE] }
         val OPEN: String
             get() { return currStrings[IDX_OPEN] }
+        val FOLLOW: String
+            get() { return currStrings[IDX_FOLLOW] }
+        val OPEN_FILES: String
+            get() { return currStrings[IDX_OPEN_FILES] }
+        val APPEND_FILES: String
+            get() { return currStrings[IDX_APPEND_FILES] }
         val OPEN_RECENTS: String
             get() { return currStrings[IDX_OPEN_RECENTS] }
         val CLOSE: String
@@ -119,8 +126,8 @@ class Strings private constructor() {
             get() { return currStrings[IDX_STOP] }
         val PAUSE: String
             get() { return currStrings[IDX_PAUSE] }
-        val CLEAR: String
-            get() { return currStrings[IDX_CLEAR] }
+        val CLEAR_VIEWS: String
+            get() { return currStrings[IDX_CLEAR_VIEWS] }
         val ROTATION: String
             get() { return currStrings[IDX_ROTATION] }
         val FIRST: String
@@ -213,10 +220,6 @@ class Strings private constructor() {
             get() { return currStrings[IDX_APPEND] }
         val MSG_SELECT_OPEN_MODE: String
             get() { return currStrings[IDX_MSG_SELECT_OPEN_MODE] }
-        val OPEN_FILES: String
-            get() { return currStrings[IDX_OPEN_FILES] }
-        val APPEND_FILES: String
-            get() { return currStrings[IDX_APPEND_FILES] }
         val NONE: String
             get() { return currStrings[IDX_NONE] }
         val ADD_FILTER: String
