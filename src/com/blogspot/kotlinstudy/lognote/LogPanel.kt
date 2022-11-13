@@ -633,7 +633,7 @@ class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?) 
         var mStartItem = JMenuItem("Start")
         var mStopItem = JMenuItem("Stop")
         var mClearItem = JMenuItem("Clear")
-        var mClearSaveItem = JMenuItem("Clear/Save")
+//        var mClearSaveItem = JMenuItem("Clear/Save")
         private val mActionHandler = ActionHandler()
 
         init {
@@ -645,8 +645,8 @@ class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?) 
             add(mStopItem)
             mClearItem.addActionListener(mActionHandler)
             add(mClearItem)
-            mClearSaveItem.addActionListener(mActionHandler)
-            add(mClearSaveItem)
+//            mClearSaveItem.addActionListener(mActionHandler)
+//            add(mClearSaveItem)
         }
 
         internal inner class ActionHandler : ActionListener {
@@ -664,9 +664,9 @@ class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?) 
                     mClearItem -> {
                         mMainUI.clearAdbLog()
                     }
-                    mClearSaveItem -> {
-                        mMainUI.clearSaveAdbLog()
-                    }
+//                    mClearSaveItem -> {
+//                        mMainUI.clearSaveAdbLog()
+//                    }
                 }
             }
         }

@@ -383,7 +383,7 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         var mStartItem = JMenuItem("Start")
         var mStopItem = JMenuItem("Stop")
         var mClearItem = JMenuItem("Clear")
-        var mClearSaveItem = JMenuItem("Clear/Save")
+//        var mClearSaveItem = JMenuItem("Clear/Save")
         private val mActionHandler = ActionHandler()
 
         init {
@@ -402,8 +402,8 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
             add(mStopItem)
             mClearItem.addActionListener(mActionHandler)
             add(mClearItem)
-            mClearSaveItem.addActionListener(mActionHandler)
-            add(mClearSaveItem)
+//            mClearSaveItem.addActionListener(mActionHandler)
+//            add(mClearSaveItem)
         }
         internal inner class ActionHandler : ActionListener {
             override fun actionPerformed(p0: ActionEvent?) {
@@ -433,10 +433,10 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
                         val frame = SwingUtilities.windowForComponent(this@LogTable) as MainUI
                         frame.clearAdbLog()
                     }
-                    mClearSaveItem -> {
-                        val frame = SwingUtilities.windowForComponent(this@LogTable) as MainUI
-                        frame.clearSaveAdbLog()
-                    }
+//                    mClearSaveItem -> {
+//                        val frame = SwingUtilities.windowForComponent(this@LogTable) as MainUI
+//                        frame.clearSaveAdbLog()
+//                    }
                 }
             }
         }
