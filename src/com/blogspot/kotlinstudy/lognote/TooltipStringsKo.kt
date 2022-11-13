@@ -43,7 +43,8 @@ class TooltipStringsKo private constructor() {
             , "로그 수신 실패시 자동 재시도"
             , "파일에서 추가되는 로그를 계속 읽어들임"
             , "로그 추가를 멈춤"
-            //            , ""
+            , "로그 명령 리스트, 편집 : Setting > adb"
+//            , ""
         )
     }
 }

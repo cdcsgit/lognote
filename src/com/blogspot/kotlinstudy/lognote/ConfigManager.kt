@@ -44,6 +44,7 @@ class ConfigManager private constructor() {
 
         const val ITEM_ADB_DEVICE = "ADB_DEVICE"
         const val ITEM_ADB_CMD = "ADB_CMD"
+        const val ITEM_ADB_LOG_CMD = "ADB_LOG_CMD"
         const val ITEM_ADB_LOG_SAVE_PATH = "ADB_LOG_SAVE_PATH"
         const val ITEM_ADB_PREFIX = "ADB_PREFIX"
 

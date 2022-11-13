@@ -79,6 +79,7 @@ class StringsKo private constructor() {
             , "어두움"
             , "모양"
             , "옵션"
+            , "로그 명령"
 //            , ""
         )
     }

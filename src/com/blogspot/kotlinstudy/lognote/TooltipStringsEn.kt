@@ -43,6 +43,7 @@ class TooltipStringsEn private constructor() {
             , "Auto retry when failed to receive log"
             , "Append additional logs as the file grows"
             , "Stop append logs"
+            , "Log command list, Edit : Setting > adb"
 //            , ""
         )
     }

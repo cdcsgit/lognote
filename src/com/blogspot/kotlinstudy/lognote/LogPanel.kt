@@ -141,7 +141,14 @@ class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?) 
     }
 
     private fun updateTableBarFilters(customArray: ArrayList<CustomListManager.CustomElement>?) {
-        var isAdded = false
+        val button = TableBarButton("★${Strings.FILTERS}")
+        button.toolTipText = TooltipStrings.ADD_FILTER_BTN
+        button.margin = Insets(0, 3, 0, 3)
+        button.addActionListener(ActionListener {
+            mMainUI.mFiltersManager.showDialog()
+        })
+        mCtrlPanel.add(button)
+
         if (customArray != null) {
             for (item in customArray) {
                 if (!item.mTableBar) {
@@ -172,22 +179,19 @@ class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?) 
                     mMainUI.applyShowLogCombo()
                 })
                 mCtrlPanel.add(button)
-                isAdded = true
             }
-        }
-        if (!isAdded) {
-            val button = TableBarButton(Strings.ADD_FILTER)
-            button.toolTipText = TooltipStrings.ADD_FILTER_BTN
-            button.margin = Insets(0, 3, 0, 3)
-            button.addActionListener(ActionListener {
-                mMainUI.mFiltersBtn.doClick()
-            })
-            mCtrlPanel.add(button)
         }
     }
 
     private fun updateTableBarCmds(customArray: ArrayList<CustomListManager.CustomElement>?) {
-        var isAdded = false
+        val button = TableBarButton("★${Strings.CMDS}")
+        button.toolTipText = TooltipStrings.ADD_CMD_BTN
+        button.margin = Insets(0, 3, 0, 3)
+        button.addActionListener(ActionListener {
+            mMainUI.mCmdsManager.showDialog()
+        })
+        mCtrlPanel.add(button)
+
         if (customArray != null) {
             for (item in customArray) {
                 if (!item.mTableBar) {
@@ -211,17 +215,7 @@ class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?) 
                     }
                 })
                 mCtrlPanel.add(button)
-                isAdded = true
             }
-        }
-        if (!isAdded) {
-            val button = TableBarButton(Strings.ADD_CMD)
-            button.toolTipText = TooltipStrings.ADD_CMD_BTN
-            button.margin = Insets(0, 3, 0, 3)
-            button.addActionListener(ActionListener {
-                mMainUI.mCmdsBtn.doClick()
-            })
-            mCtrlPanel.add(button)
         }
     }
 

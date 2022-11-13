@@ -79,6 +79,7 @@ class StringsEn private constructor() {
             , "Dark"
             , "Appearance"
             , "Options"
+            , "Log cmd"
 //            , ""
         )
     }

@@ -56,6 +56,7 @@ class MainUI(title: String) : JFrame() {
     private lateinit var mItemFileExit: JMenuItem
     private lateinit var mMenuView: JMenu
     private lateinit var mItemFull: JCheckBoxMenuItem
+    private lateinit var mItemRotation: JMenuItem
     private lateinit var mMenuSettings: JMenu
     private lateinit var mItemAdb: JMenuItem
     private lateinit var mItemLogFile: JMenuItem
@@ -77,9 +78,9 @@ class MainUI(title: String) : JFrame() {
     private lateinit var mPauseToggle: ColorToggleButton
     private lateinit var mClearViewsBtn: ColorButton
     private lateinit var mSaveBtn: ColorButton
-    private lateinit var mRotationBtn: ColorButton
-    lateinit var mFiltersBtn: ColorButton
-    lateinit var mCmdsBtn: ColorButton
+//    private lateinit var mRotationBtn: ColorButton
+//    lateinit var mFiltersBtn: ColorButton
+//    lateinit var mCmdsBtn: ColorButton
 
     private lateinit var mLogPanel: JPanel
     private lateinit var mShowLogPanel: JPanel
@@ -113,6 +114,8 @@ class MainUI(title: String) : JFrame() {
     var mShowTidComboStyle: FilterComboBox.Mode
     private lateinit var mShowTidToggle: ColorToggleButton
     private lateinit var mShowTidTogglePanel: JPanel
+
+    private lateinit var mLogCmdCombo: ColorComboBox<String>
 
     private lateinit var mDeviceCombo: ColorComboBox<String>
     private lateinit var mDeviceStatus: JLabel
@@ -159,8 +162,8 @@ class MainUI(title: String) : JFrame() {
     private val mColorManager = ColorManager.getInstance()
 
     private val mAdbManager = AdbManager.getInstance()
-    private lateinit var mFiltersManager:FiltersManager
-    private lateinit var mCmdsManager:CmdsManager
+    lateinit var mFiltersManager:FiltersManager
+    lateinit var mCmdsManager:CmdsManager
 
     private var mFrameX = 0
     private var mFrameY = 0
@@ -226,6 +229,13 @@ class MainUI(title: String) : JFrame() {
             mAdbManager.mLogSavePath = "."
         } else {
             mAdbManager.mLogSavePath = logSavePath
+        }
+
+        val logCmd = mConfigManager.getItem(ConfigManager.ITEM_ADB_LOG_CMD)
+        if (logCmd.isNullOrEmpty()) {
+            mAdbManager.mLogCmd = AdbManager.LOG_CMD
+        } else {
+            mAdbManager.mLogCmd = logCmd
         }
 
         val prefix = mConfigManager.getItem(ConfigManager.ITEM_ADB_PREFIX)
@@ -399,6 +409,12 @@ class MainUI(title: String) : JFrame() {
             mConfigManager.setItem(ConfigManager.ITEM_ADB_DEVICE, "0.0.0.0")
         }
 
+        try {
+            mConfigManager.setItem(ConfigManager.ITEM_ADB_LOG_CMD, mLogCmdCombo.editor.item.toString())
+        } catch (e: NullPointerException) {
+            mConfigManager.setItem(ConfigManager.ITEM_ADB_LOG_CMD, AdbManager.LOG_CMD)
+        }
+
         mConfigManager.setItem(ConfigManager.ITEM_DIVIDER_LOCATION, mLogSplitPane.dividerLocation.toString())
         if (mLogSplitPane.lastDividerLocation != -1) {
             mConfigManager.setItem(ConfigManager.ITEM_LAST_DIVIDER_LOCATION, mLogSplitPane.lastDividerLocation.toString())
@@ -457,6 +473,11 @@ class MainUI(title: String) : JFrame() {
         mItemFull = JCheckBoxMenuItem(Strings.VIEW_FULL)
         mItemFull.addActionListener(mActionHandler)
         mMenuView.add(mItemFull)
+
+        mItemRotation = JMenuItem(Strings.ROTATION)
+        mItemRotation.addActionListener(mActionHandler)
+        mMenuView.add(mItemRotation)
+
         mMenuBar.add(mMenuView)
 
         mMenuSettings = JMenu(Strings.SETTING)
@@ -623,21 +644,21 @@ class MainUI(title: String) : JFrame() {
         mSaveBtn.toolTipText = TooltipStrings.SAVE_BTN
         mSaveBtn.addActionListener(mActionHandler)
         mSaveBtn.addMouseListener(mMouseHandler)
-        mRotationBtn = ColorButton(Strings.ROTATION)
-        mRotationBtn.margin = btnMargin
-        mRotationBtn.toolTipText = TooltipStrings.ROTATION_BTN
-        mRotationBtn.addActionListener(mActionHandler)
-        mRotationBtn.addMouseListener(mMouseHandler)
-        mFiltersBtn = ColorButton(Strings.FILTERS)
-        mFiltersBtn.margin = btnMargin
-        mFiltersBtn.toolTipText = TooltipStrings.FILTER_LIST_BTN
-        mFiltersBtn.addActionListener(mActionHandler)
-        mFiltersBtn.addMouseListener(mMouseHandler)
-        mCmdsBtn = ColorButton(Strings.CMDS)
-        mCmdsBtn.margin = btnMargin
-        mCmdsBtn.toolTipText = TooltipStrings.CMD_LIST_BTN
-        mCmdsBtn.addActionListener(mActionHandler)
-        mCmdsBtn.addMouseListener(mMouseHandler)
+//        mRotationBtn = ColorButton(Strings.ROTATION)
+//        mRotationBtn.margin = btnMargin
+//        mRotationBtn.toolTipText = TooltipStrings.ROTATION_BTN
+//        mRotationBtn.addActionListener(mActionHandler)
+//        mRotationBtn.addMouseListener(mMouseHandler)
+//        mFiltersBtn = ColorButton(Strings.FILTERS)
+//        mFiltersBtn.margin = btnMargin
+//        mFiltersBtn.toolTipText = TooltipStrings.FILTER_LIST_BTN
+//        mFiltersBtn.addActionListener(mActionHandler)
+//        mFiltersBtn.addMouseListener(mMouseHandler)
+//        mCmdsBtn = ColorButton(Strings.CMDS)
+//        mCmdsBtn.margin = btnMargin
+//        mCmdsBtn.toolTipText = TooltipStrings.CMD_LIST_BTN
+//        mCmdsBtn.addActionListener(mActionHandler)
+//        mCmdsBtn.addMouseListener(mMouseHandler)
 
         mLogPanel = JPanel()
         mShowLogPanel = JPanel()
@@ -722,6 +743,14 @@ class MainUI(title: String) : JFrame() {
         mShowTidTogglePanel.border = BorderFactory.createEmptyBorder(3,3,3,3)
         mShowTidToggle.addItemListener(mItemHandler)
 
+        mLogCmdCombo = ColorComboBox()
+        mLogCmdCombo.toolTipText = TooltipStrings.LOG_CMD_COMBO
+        mLogCmdCombo.isEditable = true
+        mLogCmdCombo.renderer = ColorComboBox.ComboBoxRenderer()
+        mLogCmdCombo.editor.editorComponent.addKeyListener(mKeyHandler)
+        mLogCmdCombo.addItemListener(mItemHandler)
+        mLogCmdCombo.editor.editorComponent.addMouseListener(mMouseHandler)
+        
         mDeviceStatus = JLabel("None", JLabel.LEFT)
         mDeviceStatus.isEnabled = false
         val deviceComboPanel = JPanel(BorderLayout())
@@ -798,6 +827,11 @@ class MainUI(title: String) : JFrame() {
         mShowTidPanel.add(mShowTidCombo, BorderLayout.CENTER)
 //        mTidPanel.add(mShowTidPanel)
 
+        mLogCmdCombo.preferredSize = Dimension(200, mLogCmdCombo.preferredSize.height)
+        if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
+            mLogCmdCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 5)
+        }
+
         mDeviceCombo.preferredSize = Dimension(200, mDeviceCombo.preferredSize.height)
         if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
             mDeviceCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 5)
@@ -860,6 +894,10 @@ class MainUI(title: String) : JFrame() {
 
         addVSeparator(mLogToolBar)
 
+        mLogToolBar.add(mLogCmdCombo)
+
+        addVSeparator(mLogToolBar)
+
         mLogToolBar.add(deviceComboPanel)
         mLogToolBar.add(mAdbRefreshBtn)
         mLogToolBar.add(mAdbDisconnectBtn)
@@ -876,12 +914,12 @@ class MainUI(title: String) : JFrame() {
         mLogToolBar.add(mScrollbackApplyBtn)
         mLogToolBar.add(mScrollbackKeepToggle)
 
-        addVSeparator(mLogToolBar)
-        mLogToolBar.add(mRotationBtn)
+//        addVSeparator(mLogToolBar)
+//        mLogToolBar.add(mRotationBtn)
 
-        addVSeparator(mLogToolBar)
-        mLogToolBar.add(mFiltersBtn)
-        mLogToolBar.add(mCmdsBtn)
+//        addVSeparator(mLogToolBar)
+//        mLogToolBar.add(mFiltersBtn)
+//        mLogToolBar.add(mCmdsBtn)
 
         val toolBarPanel = JPanel(FlowLayout(FlowLayout.LEFT, 0, 0))
         toolBarPanel.addMouseListener(mMouseHandler)
@@ -1064,6 +1102,11 @@ class MainUI(title: String) : JFrame() {
             mBoldLogToggle.isSelected = true
         }
         mBoldLogCombo.setEnabledFilter(mBoldLogToggle.isSelected)
+
+        mLogCmdCombo.insertItemAt(mAdbManager.mLogCmd, 0)
+        mLogCmdCombo.selectedIndex = 0
+        mLogCmdCombo.toolTipText = "\"${mAdbManager.mLogCmd}\"\n\n${TooltipStrings.DEVICES_COMBO}"
+        updateLogCmdComboColor()
 
         val targetDevice = mConfigManager.getItem(ConfigManager.ITEM_ADB_DEVICE)
         mDeviceCombo.insertItemAt(targetDevice, 0)
@@ -1300,7 +1343,7 @@ class MainUI(title: String) : JFrame() {
     fun windowedModeLogPanel(logPanel: LogPanel) {
         if (logPanel.parent == mLogSplitPane) {
             logPanel.mIsWindowedMode = true
-            mRotationBtn.isEnabled = false
+            mItemRotation.isEnabled = false
             mLogSplitPane.remove(logPanel)
             if (mItemFull.state) {
                 val logTableDialog = LogTableDialog(this@MainUI, logPanel)
@@ -1312,7 +1355,7 @@ class MainUI(title: String) : JFrame() {
     fun attachLogPanel(logPanel: LogPanel) {
         if (logPanel.parent != mLogSplitPane) {
             logPanel.mIsWindowedMode = false
-            mRotationBtn.isEnabled = true
+            mItemRotation.isEnabled = true
             mLogSplitPane.remove(mFilteredLogPanel)
             mLogSplitPane.remove(mFullLogPanel)
             when (mRotationStatus) {
@@ -1649,7 +1692,7 @@ class MainUI(title: String) : JFrame() {
                     }
     //                repaint()
                 }
-                mRotationBtn -> {
+                mItemRotation -> {
                     mRotationStatus++
 
                     if (mRotationStatus > ROTATION_MAX) {
@@ -1687,12 +1730,12 @@ class MainUI(title: String) : JFrame() {
                         }
                     }
                 }
-                mFiltersBtn -> {
-                    mFiltersManager.showDialog()
-                }
-                mCmdsBtn -> {
-                    mCmdsManager.showDialog()
-                }
+//                mFiltersBtn -> {
+//                    mFiltersManager.showDialog()
+//                }
+//                mCmdsBtn -> {
+//                    mCmdsManager.showDialog()
+//                }
                 mStartFollowBtn -> {
                     startFileFollow()
                 }
@@ -2027,8 +2070,30 @@ class MainUI(title: String) : JFrame() {
         }
     }
 
+    fun updateLogCmdComboColor() {
+        if (mAdbManager.mLogCmd == mLogCmdCombo.editor.item.toString()) {
+            if (ConfigManager.LaF == FLAT_DARK_LAF) {
+                mLogCmdCombo.editor.editorComponent.foreground = Color(0x7070C0)
+            }
+            else {
+                mLogCmdCombo.editor.editorComponent.foreground = Color.BLUE
+            }
+        } else {
+            if (ConfigManager.LaF == FLAT_DARK_LAF) {
+                mLogCmdCombo.editor.editorComponent.foreground = Color(0xC07070)
+            }
+            else {
+                mLogCmdCombo.editor.editorComponent.foreground = Color.RED
+            }
+        }
+    }
+
     internal inner class KeyHandler : KeyAdapter() {
         override fun keyReleased(p0: KeyEvent?) {
+            if (KeyEvent.VK_ENTER != p0?.keyCode && p0?.source == mLogCmdCombo.editor.editorComponent) {
+                updateLogCmdComboColor()
+            }
+
             if (KeyEvent.VK_ENTER == p0?.keyCode) {
                 when {
                     p0.source == mShowLogCombo.editor.editorComponent && mShowLogToggle.isSelected -> {
@@ -2060,6 +2125,20 @@ class MainUI(title: String) : JFrame() {
                         val item = combo.selectedItem!!.toString()
                         resetComboItem(combo, item)
                         mFilteredTableModel.mFilterTid = item
+                    }
+                    p0.source == mLogCmdCombo.editor.editorComponent -> {
+                        if (mAdbManager.mLogCmd == mLogCmdCombo.editor.item.toString()) {
+                            reconnectAdb()
+                        }
+                        else {
+                            val item = mLogCmdCombo.editor.item.toString().trim()
+
+                            if (item.isEmpty()) {
+                                mLogCmdCombo.editor.item = AdbManager.LOG_CMD
+                            }
+                            mAdbManager.mLogCmd = mLogCmdCombo.editor.item.toString()
+                            updateLogCmdComboColor()
+                        }
                     }
                     p0.source == mDeviceCombo.editor.editorComponent -> {
                         reconnectAdb()

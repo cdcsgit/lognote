@@ -13,6 +13,7 @@ class AdbManager private constructor(){
     var mAdbCmd = "adb"
     var mLogSavePath:String = "."
     var mTargetDevice: String = ""
+    var mLogCmd: String = ""
     var mDevices = ArrayList<String>()
     private val mEventListeners = ArrayList<AdbEventListener>()
     private var mMainUI: MainUI? = null
@@ -26,6 +27,8 @@ class AdbManager private constructor(){
         const val CMD_GET_DEVICES = 2
         const val CMD_LOGCAT = 3
         const val CMD_DISCONNECT = 4
+
+        const val LOG_CMD = "logcat -v threadtime"
 
         private val mInstance: AdbManager = AdbManager()
 
@@ -172,7 +175,12 @@ class AdbManager private constructor(){
             CMD_LOGCAT -> executer = Runnable {
                 run {
                     mProcessLogcat?.destroy()
-                    val cmd = "$mAdbCmd -s $mTargetDevice logcat -v threadtime"
+                    val cmd = if (mTargetDevice.isNotBlank()) {
+                        "$mAdbCmd -s $mTargetDevice $mLogCmd"
+                    }
+                    else {
+                        "$mAdbCmd $mLogCmd"
+                    }
                     println("Start : $cmd")
                     val runtime = Runtime.getRuntime()
                     try {
