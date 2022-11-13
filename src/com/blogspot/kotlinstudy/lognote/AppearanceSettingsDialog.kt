@@ -1048,7 +1048,9 @@ class AppearanceSettingsDialog (mainUI: MainUI) : JDialog(mainUI, Strings.APPEAR
                             updateColor(mFilterColorLabelArray[colorLabel.mIdx]!!, colorChooser.color)
                         }
 
-                        SwingUtilities.updateComponentTreeUI(mMainUI)
+//                        SwingUtilities.updateComponentTreeUI(mMainUI)
+                        mMainUI.mFullLogPanel.repaint()
+                        mMainUI.mFilteredLogPanel.repaint()
                     }
                 }
 
