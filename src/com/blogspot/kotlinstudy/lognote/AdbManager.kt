@@ -29,6 +29,7 @@ class AdbManager private constructor(){
         const val CMD_DISCONNECT = 4
 
         const val LOG_CMD = "logcat -v threadtime"
+        const val LOG_CMD_MAX = 10
 
         private val mInstance: AdbManager = AdbManager()
 

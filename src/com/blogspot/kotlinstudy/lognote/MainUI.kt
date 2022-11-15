@@ -750,6 +750,7 @@ class MainUI(title: String) : JFrame() {
         mLogCmdCombo.editor.editorComponent.addKeyListener(mKeyHandler)
         mLogCmdCombo.addItemListener(mItemHandler)
         mLogCmdCombo.editor.editorComponent.addMouseListener(mMouseHandler)
+        mLogCmdCombo.addPopupMenuListener(mPopupMenuHandler)
         
         mDeviceStatus = JLabel("None", JLabel.LEFT)
         mDeviceStatus.isEnabled = false
@@ -1103,10 +1104,7 @@ class MainUI(title: String) : JFrame() {
         }
         mBoldLogCombo.setEnabledFilter(mBoldLogToggle.isSelected)
 
-        mLogCmdCombo.insertItemAt(mAdbManager.mLogCmd, 0)
-        mLogCmdCombo.selectedIndex = 0
-        mLogCmdCombo.toolTipText = "\"${mAdbManager.mLogCmd}\"\n\n${TooltipStrings.DEVICES_COMBO}"
-        updateLogCmdComboColor()
+        updateLogCmdCombo(true)
 
         val targetDevice = mConfigManager.getItem(ConfigManager.ITEM_ADB_DEVICE)
         mDeviceCombo.insertItemAt(targetDevice, 0)
@@ -1984,20 +1982,22 @@ class MainUI(title: String) : JFrame() {
 
     fun reconnectAdb() {
         println("Reconnect ADB")
-        if (mDeviceCombo.selectedItem!!.toString().isNotEmpty()) {
-            mStopBtn.doClick()
-            Thread.sleep(200)
+        mStopBtn.doClick()
+        Thread.sleep(200)
+
+        if (mDeviceCombo.selectedItem!!.toString().isNotBlank()) {
             mAdbConnectBtn.doClick()
             Thread.sleep(200)
-            Thread(Runnable {
-                run {
-                    Thread.sleep(200)
-                    mClearViewsBtn.doClick()
-                    Thread.sleep(200)
-                    mStartBtn.doClick()
-                }
-            }).start()
         }
+
+        Thread(Runnable {
+            run {
+                Thread.sleep(200)
+                mClearViewsBtn.doClick()
+                Thread.sleep(200)
+                mStartBtn.doClick()
+            }
+        }).start()
     }
 
     fun startAdbLog() {
@@ -2070,7 +2070,30 @@ class MainUI(title: String) : JFrame() {
         }
     }
 
-    fun updateLogCmdComboColor() {
+    fun updateLogCmdCombo(isReload: Boolean) {
+        if (isReload) {
+            var logCmd: String?
+            val currLogCmd = mLogCmdCombo.editor.item.toString()
+            mLogCmdCombo.removeAllItems()
+            for (i in 0 until AdbManager.LOG_CMD_MAX) {
+                logCmd = mConfigManager.getItem("${ConfigManager.ITEM_ADB_LOG_CMD}_$i")
+                if (logCmd.isNullOrBlank()) {
+                    continue
+                }
+
+                mLogCmdCombo.addItem(logCmd)
+            }
+            mLogCmdCombo.selectedIndex = -1
+            if (currLogCmd.isNullOrBlank()) {
+                mLogCmdCombo.editor.item = mAdbManager.mLogCmd
+            }
+            else {
+                mLogCmdCombo.editor.item = currLogCmd
+            }
+        }
+
+        mLogCmdCombo.toolTipText = "\"${mAdbManager.mLogCmd}\"\n\n${TooltipStrings.LOG_CMD_COMBO}"
+
         if (mAdbManager.mLogCmd == mLogCmdCombo.editor.item.toString()) {
             if (ConfigManager.LaF == FLAT_DARK_LAF) {
                 mLogCmdCombo.editor.editorComponent.foreground = Color(0x7070C0)
@@ -2091,7 +2114,7 @@ class MainUI(title: String) : JFrame() {
     internal inner class KeyHandler : KeyAdapter() {
         override fun keyReleased(p0: KeyEvent?) {
             if (KeyEvent.VK_ENTER != p0?.keyCode && p0?.source == mLogCmdCombo.editor.editorComponent) {
-                updateLogCmdComboColor()
+                updateLogCmdCombo(false)
             }
 
             if (KeyEvent.VK_ENTER == p0?.keyCode) {
@@ -2137,7 +2160,7 @@ class MainUI(title: String) : JFrame() {
                                 mLogCmdCombo.editor.item = AdbManager.LOG_CMD
                             }
                             mAdbManager.mLogCmd = mLogCmdCombo.editor.item.toString()
-                            updateLogCmdComboColor()
+                            updateLogCmdCombo(false)
                         }
                     }
                     p0.source == mDeviceCombo.editor.editorComponent -> {
@@ -2383,6 +2406,16 @@ class MainUI(title: String) : JFrame() {
                     resetComboItem(combo, item)
                     mFilteredTableModel.mFilterTid = item
                     combo.updateTooltip()
+                }
+
+                mLogCmdCombo -> {
+                    if (mLogCmdCombo.selectedIndex < 0) {
+                        return
+                    }
+                    val combo = mLogCmdCombo
+                    val item = combo.selectedItem!!.toString()
+                    mAdbManager.mLogCmd = item
+                    updateLogCmdCombo(false)
                 }
             }
         }
