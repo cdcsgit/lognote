@@ -95,6 +95,12 @@ class Strings private constructor() {
         private val IDX_APPEARANCE = idx++
         private val IDX_OPTIONS = idx++
         private val IDX_LOG_CMD = idx++
+        private val IDX_NOT_FOUND = idx++
+        private val IDX_ADD_INCLUDE = idx++
+        private val IDX_ADD_EXCLUDE = idx++
+        private val IDX_ADD_SEARCH = idx++
+        private val IDX_SET_SEARCH = idx++
+        private val IDX_SEARCH = idx++
 //        private val IDX_ = idx++
 
         val FILE: String
@@ -251,5 +257,17 @@ class Strings private constructor() {
             get() { return currStrings[IDX_OPTIONS] }
         val LOG_CMD: String
             get() { return currStrings[IDX_LOG_CMD] }
+        val NOT_FOUND: String
+            get() { return currStrings[IDX_NOT_FOUND] }
+        val ADD_INCLUDE: String
+            get() { return currStrings[IDX_ADD_INCLUDE] }
+        val ADD_EXCLUDE: String
+            get() { return currStrings[IDX_ADD_EXCLUDE] }
+        val ADD_SEARCH: String
+            get() { return currStrings[IDX_ADD_SEARCH] }
+        val SET_SEARCH: String
+            get() { return currStrings[IDX_SET_SEARCH] }
+        val SEARCH: String
+            get() { return currStrings[IDX_SEARCH] }
     }
 }

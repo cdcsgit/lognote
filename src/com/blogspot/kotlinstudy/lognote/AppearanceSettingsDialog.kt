@@ -867,6 +867,8 @@ class AppearanceSettingsDialog (mainUI: MainUI) : JDialog(mainUI, Strings.APPEAR
             var filteredFg:Color? = null
             var highlightBg:Color? = null
             var highlightFg:Color? = null
+            var searchBg:Color? = null
+            var searchFg:Color? = null
 
             val colorLabelArray = if (type == ColorManager.TableColorType.FULL_LOG_TABLE) {
                 mFullColorLabelArray
@@ -890,6 +892,8 @@ class AppearanceSettingsDialog (mainUI: MainUI) : JDialog(mainUI, Strings.APPEAR
                     "Filtered FG"->filteredFg = Color.decode(tableColor.mColorArray[idx].mStrColor)
                     "Highlight BG"->highlightBg = Color.decode(tableColor.mColorArray[idx].mStrColor)
                     "Highlight FG"->highlightFg = Color.decode(tableColor.mColorArray[idx].mStrColor)
+                    "Search BG"->searchBg = Color.decode(tableColor.mColorArray[idx].mStrColor)
+                    "Search FG"->searchFg = Color.decode(tableColor.mColorArray[idx].mStrColor)
                 }
             }
 
@@ -901,6 +905,8 @@ class AppearanceSettingsDialog (mainUI: MainUI) : JDialog(mainUI, Strings.APPEAR
             filteredBg = filteredBg ?: Color.WHITE
             highlightFg = highlightFg ?: Color.BLACK
             highlightBg = highlightBg ?: Color.WHITE
+            searchFg = searchFg ?: Color.BLACK
+            searchBg = searchBg ?: Color.WHITE
 
             for (idx in colorLabelArray.indices) {
                 if (tableColor.mColorArray[idx].mName.contains("BG")) {
@@ -914,6 +920,9 @@ class AppearanceSettingsDialog (mainUI: MainUI) : JDialog(mainUI, Strings.APPEAR
                         }
                         "Highlight BG" -> {
                             colorLabelArray[idx]!!.foreground = highlightFg
+                        }
+                        "Search BG" -> {
+                            colorLabelArray[idx]!!.foreground = searchFg
                         }
                         else -> {
                             if ((tableColor.mColorArray[idx].mName == "Filtered 1 BG")
@@ -944,6 +953,9 @@ class AppearanceSettingsDialog (mainUI: MainUI) : JDialog(mainUI, Strings.APPEAR
                         }
                         "Highlight FG" -> {
                             colorLabelArray[idx]!!.background = highlightBg
+                        }
+                        "Search FG" -> {
+                            colorLabelArray[idx]!!.background = searchBg
                         }
                         else -> {
                             if ((tableColor.mColorArray[idx].mName == "Filtered 1 FG")

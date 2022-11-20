@@ -44,6 +44,12 @@ class TooltipStringsEn private constructor() {
             , "Append additional logs as the file grows"
             , "Stop append logs"
             , "Edit Log commands : Setting > adb"
+            , "Regex support ex text1|text2"
+            , "Search case-sensitive"
+            , "F3 : Move to Previous"
+            , "F4 : Move to Next"
+            , "Searching View : filtered log, full log"
+            , "ESC : Close search bar"
 //            , ""
         )
     }

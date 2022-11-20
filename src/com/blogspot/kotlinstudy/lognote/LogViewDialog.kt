@@ -75,10 +75,12 @@ class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent
     }
 
     internal inner class PopUpLogViewDialog : JPopupMenu() {
-        var mIncludeItem = JMenuItem("Add Include")
-        var mExcludeItem = JMenuItem("Add Exclude")
-        var mCopyItem = JMenuItem("Copy")
-        var mCloseItem = JMenuItem("Close")
+        var mIncludeItem = JMenuItem(Strings.ADD_INCLUDE)
+        var mExcludeItem = JMenuItem(Strings.ADD_EXCLUDE)
+        var mSearchAddItem = JMenuItem(Strings.ADD_SEARCH)
+        var mSearchSetItem = JMenuItem(Strings.SET_SEARCH)
+        var mCopyItem = JMenuItem(Strings.COPY)
+        var mCloseItem = JMenuItem(Strings.CLOSE)
         private val mActionHandler = ActionHandler()
 
         init {
@@ -86,6 +88,10 @@ class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent
             add(mIncludeItem)
             mExcludeItem.addActionListener(mActionHandler)
             add(mExcludeItem)
+            mSearchAddItem.addActionListener(mActionHandler)
+            add(mSearchAddItem)
+            mSearchSetItem.addActionListener(mActionHandler)
+            add(mSearchSetItem)
             mCopyItem.addActionListener(mActionHandler)
             add(mCopyItem)
             mCloseItem.addActionListener(mActionHandler)
@@ -97,18 +103,30 @@ class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent
             override fun actionPerformed(p0: ActionEvent?) {
                 when (p0?.source) {
                     mIncludeItem -> {
-                        val frame = SwingUtilities.windowForComponent(this@LogViewDialog) as MainUI
-                        var text = frame.getTextShowLogCombo()
+                        var text = mMainUI.getTextShowLogCombo()
                         text += "|" + mTextArea.selectedText
-                        frame.setTextShowLogCombo(text)
-                        frame.applyShowLogCombo()
+                        mMainUI.setTextShowLogCombo(text)
+                        mMainUI.applyShowLogCombo()
                     }
                     mExcludeItem -> {
-                        val frame = SwingUtilities.windowForComponent(this@LogViewDialog) as MainUI
-                        var text = frame.getTextShowLogCombo()
-                        text += "|-" + mTextArea.selectedText
-                        frame.setTextShowLogCombo(text)
-                        frame.applyShowLogCombo()
+                        if (!mTextArea.selectedText.isNullOrEmpty()) {
+                            var text = mMainUI.getTextShowLogCombo()
+                            text += "|-" + mTextArea.selectedText
+                            mMainUI.setTextShowLogCombo(text)
+                            mMainUI.applyShowLogCombo()
+                        }
+                    }
+                    mSearchAddItem -> {
+                        if (!mTextArea.selectedText.isNullOrEmpty()) {
+                            var text = mMainUI.getTextSearchCombo()
+                            text += "|" + mTextArea.selectedText
+                            mMainUI.setTextSearchCombo(text)
+                        }
+                    }
+                    mSearchSetItem -> {
+                        if (!mTextArea.selectedText.isNullOrEmpty()) {
+                            mMainUI.setTextSearchCombo(mTextArea.selectedText)
+                        }
                     }
                     mCopyItem -> {
                         mTextArea.copy()

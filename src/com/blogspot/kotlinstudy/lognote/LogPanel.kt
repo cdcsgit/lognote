@@ -12,9 +12,9 @@ import javax.swing.event.ListSelectionListener
 import javax.swing.plaf.basic.BasicScrollBarUI
 
 
-class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?) :JPanel() {
+class LogPanel constructor(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?, focusHandler: MainUI.FocusHandler) :JPanel() {
     private val mBasePanel = basePanel
-    private val mCtrlPanel: ButtonPanel
+    private val mCtrlMainPanel: ButtonPanel
     private var mFirstBtn: ColorButton
     private var mLastBtn: ColorButton
     private var mTagBtn: ColorToggleButton
@@ -35,6 +35,7 @@ class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?) 
     private val mActionHandler = ActionHandler()
     private val mBookmarkHandler = BookmarkHandler()
     private val mComponentHandler = ComponenetHander()
+    private val mFocusHandler = focusHandler
 
     private var mOldLogVPos = -1
     private var mOldLogHPos = -1
@@ -49,14 +50,12 @@ class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?) 
 
     init {
         layout = BorderLayout()
-        mCtrlPanel = ButtonPanel()
-//        mFirstBtn = ColorButton(Strings.FIRST)
+        mCtrlMainPanel = ButtonPanel()
         mFirstBtn = ColorButton("∧") // △ ▲ ▽ ▼ ↑ ↓ ∧ ∨
         mFirstBtn.toolTipText = TooltipStrings.VIEW_FIRST_BTN
         mFirstBtn.margin = Insets(0, 7, 0, 7)
 
         mFirstBtn.addActionListener(mActionHandler)
-//        mLastBtn = ColorButton(Strings.LAST)
         mLastBtn = ColorButton("∨")
         mLastBtn.toolTipText = TooltipStrings.VIEW_LAST_BTN
         mLastBtn.margin = Insets(0, 7, 0, 7)
@@ -90,6 +89,7 @@ class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?) 
 
         tableModel.addLogTableModelListener(mTableModelHandler)
         mTable = LogTable(tableModel)
+        mTable.addFocusListener(mFocusHandler)
 
         mTable.columnSelectionAllowed = true
         mTable.selectionModel.addListSelectionListener(mListSelectionHandler)
@@ -113,7 +113,11 @@ class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?) 
         mScrollPane.isOpaque = false
         mScrollPane.viewport.isOpaque = false
 
-        add(mCtrlPanel, BorderLayout.NORTH)
+        val ctrlPanel = JPanel()
+        ctrlPanel.layout = BoxLayout(ctrlPanel, BoxLayout.Y_AXIS)
+        ctrlPanel.add(mCtrlMainPanel)
+
+        add(ctrlPanel, BorderLayout.NORTH)
         add(mVStatusPanel, BorderLayout.WEST)
         add(mScrollPane, BorderLayout.CENTER)
 
@@ -141,13 +145,13 @@ class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?) 
     }
 
     private fun updateTableBarFilters(customArray: ArrayList<CustomListManager.CustomElement>?) {
-        val button = TableBarButton("★${Strings.FILTERS}")
-        button.toolTipText = TooltipStrings.ADD_FILTER_BTN
-        button.margin = Insets(0, 3, 0, 3)
-        button.addActionListener(ActionListener {
+        val filtersBtn = TableBarButton("★${Strings.FILTERS}")
+        filtersBtn.toolTipText = TooltipStrings.ADD_FILTER_BTN
+        filtersBtn.margin = Insets(0, 3, 0, 3)
+        filtersBtn.addActionListener(ActionListener {
             mMainUI.mFiltersManager.showDialog()
         })
-        mCtrlPanel.add(button)
+        mCtrlMainPanel.add(filtersBtn)
 
         if (customArray != null) {
             for (item in customArray) {
@@ -178,19 +182,19 @@ class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?) 
                     }
                     mMainUI.applyShowLogCombo()
                 })
-                mCtrlPanel.add(button)
+                mCtrlMainPanel.add(button)
             }
         }
     }
 
     private fun updateTableBarCmds(customArray: ArrayList<CustomListManager.CustomElement>?) {
-        val button = TableBarButton("★${Strings.CMDS}")
-        button.toolTipText = TooltipStrings.ADD_CMD_BTN
-        button.margin = Insets(0, 3, 0, 3)
-        button.addActionListener(ActionListener {
+        val cmdsBtn = TableBarButton("★${Strings.CMDS}")
+        cmdsBtn.toolTipText = TooltipStrings.ADD_CMD_BTN
+        cmdsBtn.margin = Insets(0, 3, 0, 3)
+        cmdsBtn.addActionListener(ActionListener {
             mMainUI.mCmdsManager.showDialog()
         })
-        mCtrlPanel.add(button)
+        mCtrlMainPanel.add(cmdsBtn)
 
         if (customArray != null) {
             for (item in customArray) {
@@ -214,35 +218,35 @@ class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?) 
                         runtime.exec(cmd)
                     }
                 })
-                mCtrlPanel.add(button)
+                mCtrlMainPanel.add(button)
             }
         }
     }
 
     fun updateTableBar(customArray: ArrayList<CustomListManager.CustomElement>?) {
-        mCtrlPanel.removeAll()
-        mCtrlPanel.add(mFirstBtn)
-        mCtrlPanel.add(mLastBtn)
-        mCtrlPanel.add(mPidBtn)
-        mCtrlPanel.add(mTidBtn)
-        mCtrlPanel.add(mTagBtn)
+        mCtrlMainPanel.removeAll()
+        mCtrlMainPanel.add(mFirstBtn)
+        mCtrlMainPanel.add(mLastBtn)
+        mCtrlMainPanel.add(mPidBtn)
+        mCtrlMainPanel.add(mTidBtn)
+        mCtrlMainPanel.add(mTagBtn)
 
         if (mBasePanel != null) {
-            mCtrlPanel.add(mFullBtn)
-            mCtrlPanel.add(mBookmarksBtn)
+            mCtrlMainPanel.add(mFullBtn)
+            mCtrlMainPanel.add(mBookmarksBtn)
         }
         if (mBasePanel == null) {
-            mCtrlPanel.add(mWindowedModeBtn)
+            mCtrlMainPanel.add(mWindowedModeBtn)
         }
 
-        addVSeparator(mCtrlPanel)
+        addVSeparator(mCtrlMainPanel)
         if (mBasePanel != null) {
             updateTableBarFilters(customArray)
         }
         else {
             updateTableBarCmds(customArray)
         }
-        mCtrlPanel.updateUI()
+        mCtrlMainPanel.updateUI()
     }
 
     var mFont: Font = Font("Dialog", Font.PLAIN, 12)
@@ -327,6 +331,10 @@ class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?) 
 
     fun getSelectedLine() : Int {
         return mTable.getValueAt(mTable.selectedRow, 0).toString().trim().toInt()
+    }
+
+    fun getSelectedRow() : Int {
+        return mTable.selectedRow
     }
 
     internal inner class AdjustmentHandler : AdjustmentListener {

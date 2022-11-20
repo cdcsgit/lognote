@@ -80,6 +80,12 @@ class StringsEn private constructor() {
             , "Appearance"
             , "Options"
             , "Log cmd"
+            , "Not Found"
+            , "Add Include"
+            , "Add Exclude"
+            , "Add Search"
+            , "Set Search"
+            , "Search"
 //            , ""
         )
     }

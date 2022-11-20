@@ -3,6 +3,7 @@ package com.blogspot.kotlinstudy.lognote
 import java.awt.Color
 import java.io.*
 import java.util.*
+import java.util.regex.Matcher
 import java.util.regex.Pattern
 import javax.swing.JOptionPane
 import javax.swing.SwingUtilities
@@ -29,15 +30,18 @@ interface LogTableModelListener {
     fun tableChanged(event:LogTableModelEvent?)
 }
 
-class LogTableModel() : AbstractTableModel() {
+class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableModel() {
     companion object {
         var sIsLogcatLog = false
     }
 
-    private lateinit var mTableColor: ColorManager.TableColor
+    private var mPatternSearchLog: Pattern? = null
+    private var mMatcherSearchLog: Matcher? = null
+    private var mNormalSearchLogSplit: List<String>? = null
+    private var mTableColor: ColorManager.TableColor
     private val mColumnNames = arrayOf("line", "log")
     private var mLogItems:MutableList<LogItem> = mutableListOf()
-    private var mBaseModel:LogTableModel? = null
+    private var mBaseModel:LogTableModel? = baseModel
     var mLogFile:File? = null
     private val mAdbManager = AdbManager.getInstance()
     private val mBookmarkManager = BookmarkManager.getInstance()
@@ -65,7 +69,7 @@ class LogTableModel() : AbstractTableModel() {
 
     var mSelectionChanged = false
 
-    var mMainUI: MainUI? = null
+    private val mMainUI = mainUI
 
     var mFilterLevel = 0
         set(value) {
@@ -122,6 +126,60 @@ class LogTableModel() : AbstractTableModel() {
             if (field != patterns[0]) {
                 mIsFilterUpdated = true
                 field = patterns[0]
+            }
+        }
+
+    private fun updateFilterSearchLog(field: String) {
+        var normalSearchLog = ""
+        val searchLogSplit = field.split("|")
+
+        for (logUnit in searchLogSplit) {
+            val hasIt: Boolean = logUnit.chars().anyMatch { c -> "\\.[]{}()*+?^$|".indexOf(c.toChar()) >= 0 }
+            if (hasIt) {
+                if (mRegexSearchLog.isEmpty()) {
+                    mRegexSearchLog = logUnit
+                }
+                else {
+                    mRegexSearchLog += "|$logUnit"
+                }
+            }
+            else {
+                if (normalSearchLog.isEmpty()) {
+                    normalSearchLog = logUnit
+                }
+                else {
+                    normalSearchLog += "|$logUnit"
+                }
+
+                if (mSearchPatternCase == Pattern.CASE_INSENSITIVE) {
+                    normalSearchLog = normalSearchLog.uppercase()
+                }
+            }
+        }
+
+        if (mRegexSearchLog.isNotEmpty()) {
+            mPatternSearchLog = Pattern.compile(mRegexSearchLog, mSearchPatternCase)
+            mMatcherSearchLog = mPatternSearchLog?.matcher("")
+        }
+        else {
+            mPatternSearchLog = null
+            mMatcherSearchLog = null
+        }
+        mNormalSearchLogSplit = normalSearchLog.split("|")
+    }
+
+    var mFilterSearchLog: String = ""
+        set(value) {
+            val patterns = parsePattern(value, false)
+            if (field != patterns[0]) {
+                mIsFilterUpdated = true
+                field = patterns[0]
+
+                updateFilterSearchLog(field)
+            }
+
+            if (mBaseModel != null) {
+                mBaseModel!!.mFilterSearchLog = value
             }
         }
 
@@ -234,7 +292,6 @@ class LogTableModel() : AbstractTableModel() {
 
                 mPatternShowLog = Pattern.compile(mFilterShowLog, mPatternCase)
                 mPatternHideLog = Pattern.compile(mFilterHideLog, mPatternCase)
-//                mPatternHighlightLog = Pattern.compile(mFilterHighlightLog, mPatternCase)
                 mPatternShowTag = Pattern.compile(mFilterShowTag, mPatternCase)
                 mPatternHideTag = Pattern.compile(mFilterHideTag, mPatternCase)
                 mPatternShowPid = Pattern.compile(mFilterShowPid, mPatternCase)
@@ -245,6 +302,33 @@ class LogTableModel() : AbstractTableModel() {
                 mIsFilterUpdated = true
 
                 field = value
+            }
+        }
+
+    private var mRegexSearchLog = ""
+    private var mSearchPatternCase = Pattern.CASE_INSENSITIVE
+    var mSearchMatchCase: Boolean = false
+        set(value) {
+            if (field != value) {
+                mSearchPatternCase = if (!value) {
+                    Pattern.CASE_INSENSITIVE
+                } else {
+                    0
+                }
+
+                if (mRegexSearchLog.isNotEmpty()) {
+                    mPatternSearchLog = Pattern.compile(mRegexSearchLog, mSearchPatternCase)
+                    mMatcherSearchLog = mPatternSearchLog?.matcher("")
+                }
+                mIsFilterUpdated = true
+
+                field = value
+
+                updateFilterSearchLog(mFilterSearchLog)
+
+                if (mBaseModel != null) {
+                    mBaseModel!!.mSearchMatchCase = value
+                }
             }
         }
 
@@ -305,7 +389,6 @@ class LogTableModel() : AbstractTableModel() {
 
     private var mPatternShowLog: Pattern = Pattern.compile(mFilterShowLog, mPatternCase)
     private var mPatternHideLog: Pattern = Pattern.compile(mFilterHideLog, mPatternCase)
-//    var mPatternHighlightLog = Pattern.compile(mFilterHighlightLog, mPatternCase)
     private var mPatternShowTag: Pattern = Pattern.compile(mFilterShowTag, mPatternCase)
     private var mPatternHideTag: Pattern = Pattern.compile(mFilterHideTag, mPatternCase)
     private var mPatternShowPid: Pattern = Pattern.compile(mFilterShowPid, mPatternCase)
@@ -318,7 +401,7 @@ class LogTableModel() : AbstractTableModel() {
     private var mPatternInfo: Pattern = Pattern.compile("\\bINFO\\b", Pattern.CASE_INSENSITIVE)
     private var mPatternDebug: Pattern = Pattern.compile("\\bDEBUG\\b", Pattern.CASE_INSENSITIVE)
 
-    constructor(baseModel: LogTableModel?) : this() {
+    init {
         mBaseModel = baseModel
         loadItems(false)
 
@@ -442,7 +525,7 @@ class LogTableModel() : AbstractTableModel() {
                         while (true) {
                             try {
                                 if (mIsFilterUpdated) {
-                                    mMainUI?.markLine()
+                                    mMainUI.markLine()
                                     makeFilteredItems(true)
                                 }
                                 Thread.sleep(100)
@@ -706,6 +789,7 @@ class LogTableModel() : AbstractTableModel() {
         }
     }
 
+    private var mPatternPrintSearch:Pattern? = null
     private var mPatternPrintHighlight:Pattern? = null
     private var mPatternPrintFilter:Pattern? = null
     fun getPrintValue(value:String, row: Int, isSelected: Boolean) : String {
@@ -719,6 +803,16 @@ class LogTableModel() : AbstractTableModel() {
 
         val stringBuilder = StringBuilder(newValue)
 
+        val searchStarts: Queue<Int> = LinkedList()
+        val searchEnds: Queue<Int> = LinkedList()
+        if (mPatternPrintSearch != null) {
+            val matcher = mPatternPrintSearch!!.matcher(stringBuilder.toString())
+            while (matcher.find()) {
+                searchStarts.add(matcher.start(0))
+                searchEnds.add(matcher.end(0))
+            }
+        }
+        
         val highlightStarts: Queue<Int> = LinkedList()
         val highlightEnds: Queue<Int> = LinkedList()
         if (mPatternPrintHighlight != null) {
@@ -789,8 +883,12 @@ class LogTableModel() : AbstractTableModel() {
         val fgColors = Stack<String>()
         val bgColors = Stack<String>()
 
+        var searchS = -1
+        var searchE = -1
         var highlightS = -1
         var highlightE = -1
+        var highlightSNext = -1
+        var highlightENext = -1
         var filterS = -1
         var filterSNext = -1
         var filterENext = -1
@@ -803,6 +901,21 @@ class LogTableModel() : AbstractTableModel() {
         var boldECheck = -1
 
         for (idx in newValue.indices) {
+            while (searchE <= idx) {
+                if (searchStarts.size > 0) {
+                    searchS = searchStarts.poll()
+                    searchE = searchEnds.poll()
+
+                    if (idx in (searchS + 1) until searchE) {
+                        searchS = idx
+                    }
+                }
+                else {
+                    searchS = -1
+                    searchE = -1
+                    break
+                }
+            }
             while (highlightE <= idx) {
                 if (highlightStarts.size > 0) {
                     highlightS = highlightStarts.poll()
@@ -849,6 +962,28 @@ class LogTableModel() : AbstractTableModel() {
                 }
             }
 
+            if (idx == searchS) {
+                if (searchE in (highlightS + 1) until highlightE) {
+                    highlightS = searchE
+                }
+                
+                if (searchE in (filterS + 1) until filterE) {
+                    filterS = searchE
+                }
+
+                if (searchE in (boldS + 1) until boldE) {
+                    boldS = searchE
+                }
+                starts.push(searchS)
+                ends.push(searchE)
+                fgColors.push(mTableColor.StrHighlightFG)
+                bgColors.push(mTableColor.StrHighlightBG)
+            }
+
+            if (idx in searchS until searchE) {
+                continue
+            }
+            
             if (idx == highlightS) {
                 if (highlightE in (filterS + 1) until filterE) {
                     filterS = highlightE
@@ -857,11 +992,26 @@ class LogTableModel() : AbstractTableModel() {
                 if (highlightE in (boldS + 1) until boldE) {
                     boldS = highlightE
                 }
+
+                if (searchS in 1 until highlightE) {
+                    if (highlightE > searchE) {
+                        highlightSNext = searchE
+                        highlightENext = highlightE
+                    }
+                    highlightE = searchS
+                }
+                
                 starts.push(highlightS)
                 ends.push(highlightE)
-//                types.push(TYPE_HIGHLIGHT)
                 fgColors.push(mTableColor.StrHighlightFG)
                 bgColors.push(mTableColor.StrHighlightBG)
+
+                if (highlightS < highlightSNext) {
+                    highlightS = highlightSNext
+                }
+                if (highlightE < highlightENext) {
+                    highlightE = highlightENext
+                }
             }
 
             if (idx in highlightS until highlightE) {
@@ -873,17 +1023,47 @@ class LogTableModel() : AbstractTableModel() {
                     boldS = filterE
                 }
 
-                if (highlightS in 1 until filterE) {
-                    if (filterE > highlightE) {
-                        filterSNext = highlightE
-                        filterENext = filterE
+                if (searchS > filterS && highlightS > filterS) {
+                    if (searchS < highlightS) {
+                        if (searchS in filterS until filterE) {
+                            if (filterE > searchE) {
+                                filterSNext = searchE
+                                filterENext = filterE
+                            }
+                            filterE = searchS
+                        }
                     }
-                    filterE = highlightS
+                    else {
+                        if (highlightS in filterS until filterE) {
+                            if (filterE > highlightE) {
+                                filterSNext = highlightE
+                                filterENext = filterE
+                            }
+                            filterE = highlightS
+                        }
+                    }
+                }
+                else if (searchS > filterS) {
+                    if (searchS in filterS until filterE) {
+                        if (filterE > searchE) {
+                            filterSNext = searchE
+                            filterENext = filterE
+                        }
+                        filterE = searchS
+                    }
+                }
+                else if (highlightS > filterS){
+                    if (highlightS in filterS until filterE) {
+                        if (filterE > highlightE) {
+                            filterSNext = highlightE
+                            filterENext = filterE
+                        }
+                        filterE = highlightS
+                    }
                 }
 
                 starts.push(filterS)
                 ends.push(filterE)
-//                types.push(TYPE_FILTER)
                 val key = newValue.substring(filterS, filterE).uppercase()
                 if (mFilteredFGMap[key] != null) {
                     fgColors.push(mFilteredFGMap[key])
@@ -932,17 +1112,14 @@ class LogTableModel() : AbstractTableModel() {
 
                 when (boldS) {
                     in boldStartTag until boldEndTag -> {
-//                        types.push(TYPE_BOLD_TAG)
                         fgColors.push(mTableColor.StrTagFG)
                         bgColors.push(mTableColor.StrLogBG)
                     }
                     in boldStartPid until boldEndPid -> {
-//                        types.push(TYPE_BOLD_PID)
                         fgColors.push(mTableColor.StrPidFG)
                         bgColors.push(mTableColor.StrLogBG)
                     }
                     in boldStartTid until boldEndTid -> {
-//                        types.push(TYPE_BOLD_TID)
                         fgColors.push(mTableColor.StrTidFG)
                         bgColors.push(mTableColor.StrLogBG)
                     }
@@ -971,7 +1148,7 @@ class LogTableModel() : AbstractTableModel() {
                 val end = ends.pop()
 //                val type = types.pop()
 
-                var fgColor = fgColors.pop()
+                val fgColor = fgColors.pop()
                 var bgColor = bgColors.pop()
 
                 if (isFirst) {
@@ -992,32 +1169,6 @@ class LogTableModel() : AbstractTableModel() {
                     )
                 }
                 if (start >= 0 && end >= 0) {
-//                    var fgColor = mTableColor.StrFilteredFG
-//                    var bgColor = mTableColor.StrFilteredBG
-//
-//                    when (type) {
-//                        TYPE_HIGHLIGHT -> {
-//                            fgColor = mTableColor.StrHighlightFG
-//                            bgColor = mTableColor.StrHighlightBG
-//                        }
-//                        TYPE_FILTER -> {
-//                            fgColor = mTableColor.StrFilteredFG
-//                            bgColor = mTableColor.StrFilteredBG
-//                        }
-//                        TYPE_BOLD_TAG -> {
-//                            fgColor = mTableColor.StrTagFG
-//                            bgColor = mTableColor.StrLogBG
-//                        }
-//                        TYPE_BOLD_PID -> {
-//                            fgColor = mTableColor.StrPidFG
-//                            bgColor = mTableColor.StrLogBG
-//                        }
-//                        TYPE_BOLD_TID -> {
-//                            fgColor = mTableColor.StrTidFG
-//                            bgColor = mTableColor.StrLogBG
-//                        }
-//                    }
-
                     if (isSelected) {
                         val tmpColor = Color.decode(bgColor)
                         Color(tmpColor.red / 2 + mTableColor.SelectedBG.red / 2, tmpColor.green / 2 + mTableColor.SelectedBG.green / 2, tmpColor.blue / 2 + mTableColor.SelectedBG.blue / 2)
@@ -1071,8 +1222,31 @@ class LogTableModel() : AbstractTableModel() {
             return
         }
 
-        mBaseModel?.mFilterHighlightLog = mFilterHighlightLog
+        mBaseModel?.mFilterSearchLog = mFilterSearchLog
+        if (mFilterSearchLog.isEmpty()) {
+            mPatternPrintSearch = null
+            mBaseModel?.mPatternPrintSearch = null
+        } else {
+            var start = 0
+            var index = 0
+            var skip = false
 
+            while (index != -1) {
+                index = mFilterSearchLog.indexOf('|', start)
+                start = index + 1
+                if (index == 0 || index == mFilterSearchLog.lastIndex || mFilterSearchLog[index + 1] == '|') {
+                    skip = true
+                    break
+                }
+            }
+
+            if (!skip) {
+                mPatternPrintSearch = Pattern.compile(mFilterSearchLog, mSearchPatternCase)
+                mBaseModel?.mPatternPrintSearch = mPatternPrintSearch
+            }
+        }
+
+        mBaseModel?.mFilterHighlightLog = mFilterHighlightLog
         if (mFilterHighlightLog.isEmpty()) {
             mPatternPrintHighlight = null
             mBaseModel?.mPatternPrintHighlight = null
@@ -1320,18 +1494,18 @@ class LogTableModel() : AbstractTableModel() {
             val logFilterItems:MutableList<LogFilterItem> = mutableListOf()
 
             line = bufferedReader.readLine()
-            while (line != null || (line == null && mMainUI?.isRestartAdbLogcat() == true)) {
+            while (line != null || (line == null && mMainUI.isRestartAdbLogcat() == true)) {
                 try {
                     nextUpdateTime = System.currentTimeMillis() + 100
                     logLines.clear()
                     logFilterItems.clear()
 
-                    if (line == null && mMainUI?.isRestartAdbLogcat() == true) {
+                    if (line == null && mMainUI.isRestartAdbLogcat() == true) {
                         println("line is Null : $line")
                         if (mAdbManager.mProcessLogcat == null || !mAdbManager.mProcessLogcat!!.isAlive) {
-                            if (mMainUI?.isRestartAdbLogcat() == true) {
+                            if (mMainUI.isRestartAdbLogcat() == true) {
                                 Thread.sleep(5000)
-                                mMainUI?.restartAdbLogcat()
+                                mMainUI.restartAdbLogcat()
                                 bufferedReader = BufferedReader(InputStreamReader(mAdbManager.mProcessLogcat?.inputStream))
                                 line = "LogNote - RESTART LOGCAT"
                             }
@@ -1359,7 +1533,7 @@ class LogTableModel() : AbstractTableModel() {
                             saveNum++
 
                             if (mScrollbackSplitFile && mScrollback > 0 && saveNum >= mScrollback) {
-                                mMainUI?.setSaveLogFile()
+                                mMainUI.setSaveLogFile()
                                 println("Change save file : ${mLogFile?.absolutePath}")
                             }
 
@@ -1778,5 +1952,90 @@ class LogTableModel() : AbstractTableModel() {
     fun pauseFollow(pause:Boolean) {
         println("Pause file follow $pause")
         mIsFollowPause = pause
+    }
+
+    fun moveToNextSearch() {
+        moveToSearch(true)
+    }
+
+    fun moveToPrevSearch() {
+        moveToSearch(false)
+    }
+
+    private infix fun Int.toward(to: Int): IntProgression {
+        val step = if (this > to) -1 else 1
+        return IntProgression.fromClosedRange(this, to, step)
+    }
+
+    private fun moveToSearch(isNext: Boolean) {
+        val selectedRow = if (mBaseModel != null) {
+            mMainUI.mFilteredLogPanel.getSelectedRow()
+        }
+        else {
+            mMainUI.mFullLogPanel.getSelectedRow()
+        }
+
+        var startRow = 0
+        var endRow = 0
+
+        if (isNext) {
+            startRow = selectedRow + 1
+            endRow = mLogItems.count() - 1
+            if (startRow >= endRow) {
+                mMainUI.showSearchResultTooltip(isNext,"\"${mFilterSearchLog}\" ${Strings.NOT_FOUND}")
+                return
+            }
+        }
+        else {
+            startRow = selectedRow - 1
+            endRow = 0
+
+            if (startRow < endRow) {
+                mMainUI.showSearchResultTooltip(isNext,"\"${mFilterSearchLog}\" ${Strings.NOT_FOUND}")
+                return
+            }
+        }
+
+        var idxFound = -1
+        for (idx in startRow toward endRow) {
+            val item = mLogItems[idx]
+            if (mNormalSearchLogSplit != null) {
+                var logLine = ""
+                logLine = if (mSearchPatternCase == Pattern.CASE_INSENSITIVE) {
+                    item.mLogLine.uppercase()
+                } else {
+                    item.mLogLine
+                }
+                for (sp in mNormalSearchLogSplit!!) {
+                    if (sp.isNotEmpty() && logLine.contains(sp)) {
+                        idxFound = idx
+                        break
+                    }
+                }
+            }
+
+            if (idxFound < 0 && mMatcherSearchLog != null) {
+                mMatcherSearchLog!!.reset(item.mLogLine)
+                if (mMatcherSearchLog!!.find()) {
+                    idxFound = idx
+                }
+            }
+
+            if (idxFound >= 0) {
+                break
+            }
+        }
+
+        if (idxFound >= 0) {
+            if (mBaseModel != null) {
+                mMainUI.mFilteredLogPanel.goToRow(idxFound, 0)
+            }
+            else {
+                mMainUI.mFullLogPanel.goToRow(idxFound, 0)
+            }
+        }
+        else {
+            mMainUI.showSearchResultTooltip(isNext,"\"${mFilterSearchLog}\" ${Strings.NOT_FOUND}")
+        }
     }
 }

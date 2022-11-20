@@ -56,6 +56,12 @@ class TooltipStrings private constructor() {
         private val IDX_START_FOLLOW_BTN = idx++
         private val IDX_STOP_FOLLOW_BTN = idx++
         private val IDX_LOG_CMD_COMBO = idx++
+        private val IDX_SEARCH_COMBO = idx++
+        private val IDX_SEARCH_CASE_TOGGLE = idx++
+        private val IDX_SEARCH_PREV_BTN = idx++
+        private val IDX_SEARCH_NEXT_BTN = idx++
+        private val IDX_SEARCH_TARGET_LABEL = idx++
+        private val IDX_SEARCH_CLOSE_BTN = idx++
 //        private val IDX_ = idx++
 
         val START_BTN: String
@@ -140,5 +146,17 @@ class TooltipStrings private constructor() {
             get() { return currStrings[IDX_STOP_FOLLOW_BTN] }
         val LOG_CMD_COMBO: String
             get() { return currStrings[IDX_LOG_CMD_COMBO] }
+        val SEARCH_COMBO: String
+            get() { return currStrings[IDX_SEARCH_COMBO] }
+        val SEARCH_CASE_TOGGLE: String
+            get() { return currStrings[IDX_SEARCH_CASE_TOGGLE] }
+        val SEARCH_PREV_BTN: String
+            get() { return currStrings[IDX_SEARCH_PREV_BTN] }
+        val SEARCH_NEXT_BTN: String
+            get() { return currStrings[IDX_SEARCH_NEXT_BTN] }
+        val SEARCH_TARGET_LABEL: String
+            get() { return currStrings[IDX_SEARCH_TARGET_LABEL] }
+        val SEARCH_CLOSE_BTN: String
+            get() { return currStrings[IDX_SEARCH_CLOSE_BTN] }
     }
 }
