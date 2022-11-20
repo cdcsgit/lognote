@@ -70,8 +70,8 @@ Ctrl + F : show search bar\
 ESC : hide search bar\
 F3 : move to previous\
 F4 : move to next\
-Click Filter or Full View : Set search target view!\
-[Lognote_search_bar](https://user-images.githubusercontent.com/75207513/202911181-62787a4e-2bab-4342-a025-695d69cbb5b6.png)
+Click Filter or Full View : Set search target view\
+![Lognote_search_bar](https://user-images.githubusercontent.com/75207513/202911181-62787a4e-2bab-4342-a025-695d69cbb5b6.png)
 
 <br/>
 
