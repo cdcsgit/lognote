@@ -12,7 +12,7 @@ Aging Test : Save split file by lines
 
 Kotlin + swing
 
-![lognote_light_scheme](https://user-images.githubusercontent.com/75207513/191988798-b0bf7fbd-1625-4606-9c53-bfd0ddeac6d3.png)
+![lognote_light](https://user-images.githubusercontent.com/75207513/202910342-0a94a05f-9942-41f5-a35f-7fb1a90f8b3e.png)
 <br/>
 
 # Run
@@ -29,10 +29,11 @@ Default current path
 <br/>
 
 # Adb setting
-Set the adb path(to view online log) \
-![lognote_adb_setting](https://user-images.githubusercontent.com/75207513/166401425-faaa46a9-da64-44df-bfd4-21733b694929.png)
+Set the adb path(to view online log) and Add logcat cmds \
+![lognote_adb_settings](https://user-images.githubusercontent.com/75207513/202910620-8979f74f-ac1b-4504-857a-2cdcacdc9b06.png)
 
 <br/>
+
 
 # Filter combobox color tag
 ![Lognote_ColorTag](https://user-images.githubusercontent.com/75207513/191993351-396498bc-d5f7-4b92-9a4b-e1b85cb87305.gif)
@@ -64,12 +65,22 @@ Ctrl + Click : append\
 
 <br/>
 
+# Search
+Ctrl + F : show search bar\
+ESC : hide search bar\
+F3 : move to previous\
+F4 : move to next\
+Click Filter or Full View : Set search target view!\
+[Lognote_search_bar](https://user-images.githubusercontent.com/75207513/202911181-62787a4e-2bab-4342-a025-695d69cbb5b6.png)
+
+<br/>
+
 # Color settings
 Light(default) \
-![lognote_light_scheme](https://user-images.githubusercontent.com/75207513/191988798-b0bf7fbd-1625-4606-9c53-bfd0ddeac6d3.png)
+![lognote_light](https://user-images.githubusercontent.com/75207513/202910342-0a94a05f-9942-41f5-a35f-7fb1a90f8b3e.png)
 
 Dark \
-![lognote_dark_scheme](https://user-images.githubusercontent.com/75207513/191988787-03f75360-8caa-4e7f-8eb7-a769b17a9677.png)
+![lognote_dark](https://user-images.githubusercontent.com/75207513/202910351-02db4829-cd77-4e63-bbda-85b501ea7c38.png)
 
 \
 Setting > Appearance \
@@ -78,5 +89,6 @@ Setting > Appearance \
 <br/>
 
 # Save split file by lines for aging test
-![aging](https://user-images.githubusercontent.com/75207513/150263408-d64b7003-6b9c-460f-a4e6-02e6a4ee01e9.png) \
+![lognote_split_file](https://user-images.githubusercontent.com/75207513/202910739-e915688d-bf32-4daa-adef-bf2b537b70bc.png) \
 Each time 100000 lines are saved, it is changed to a new file
+
