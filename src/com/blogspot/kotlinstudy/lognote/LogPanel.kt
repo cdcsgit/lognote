@@ -380,7 +380,7 @@ class LogPanel constructor(mainUI: MainUI, tableModel: LogTableModel, basePanel:
 
         private fun tableChangedInternal(event: LogTableModelEvent?) {
             updateTableUI()
-            mTable.updateColumnWidth(this@LogPanel.width)
+            mTable.updateColumnWidth(this@LogPanel.width, mScrollPane.verticalScrollBar.width)
             if (event?.mDataChange == LogTableModelEvent.EVENT_CHANGED) {
                 if (getGoToLast() && mTable.rowCount > 0) {
                     val viewRect = mTable.getCellRect(mTable.rowCount - 1, 0, true)
@@ -624,7 +624,7 @@ class LogPanel constructor(mainUI: MainUI, tableModel: LogTableModel, basePanel:
     internal inner class ComponenetHander : ComponentAdapter() {
         override fun componentResized(e: ComponentEvent?) {
             if (e != null) {
-                mTable.updateColumnWidth(e.component.width)
+                mTable.updateColumnWidth(e.component.width, mScrollPane.verticalScrollBar.width)
             }
             super.componentResized(e)
         }

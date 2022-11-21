@@ -50,7 +50,7 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         }
     }
 
-    fun updateColumnWidth(width: Int) {
+    fun updateColumnWidth(width: Int, scrollVBarWidth: Int) {
         if (rowCount <= 0) {
             return
         }
@@ -62,13 +62,12 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         if (width < 1920) {
             newWidth = 1920
         }
-        val preferredLogWidth = newWidth - column0Width - 43
+        val preferredLogWidth = newWidth - column0Width - VStatusPanel.VIEW_RECT_WIDTH - scrollVBarWidth - 2
 
         val columnNum = columnModel.getColumn(0)
         val columnLog = columnModel.getColumn(1)
         if (columnNum.preferredWidth != column0Width) {
             columnNum.preferredWidth = column0Width
-
             columnLog.preferredWidth = preferredLogWidth
         }
         else {
@@ -76,7 +75,6 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
                 columnLog.preferredWidth = preferredLogWidth
             }
         }
-
     }
 
     var mScanMode = false
