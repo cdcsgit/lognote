@@ -249,7 +249,7 @@ class LogPanel constructor(mainUI: MainUI, tableModel: LogTableModel, basePanel:
         mCtrlMainPanel.updateUI()
     }
 
-    var mFont: Font = Font("Dialog", Font.PLAIN, 12)
+    var mFont: Font = Font(MainUI.DEFAULT_FONT_NAME, Font.PLAIN, 12)
         set(value) {
             field = value
             mTable.font = value

@@ -31,6 +31,8 @@ class MainUI(title: String) : JFrame() {
         private const val ROTATION_BOTTOM_TOP = 3
         private const val ROTATION_MAX = ROTATION_BOTTOM_TOP
 
+        const val DEFAULT_FONT_NAME = "DialogInput"
+
         const val VERBOSE = "Verbose"
         const val DEBUG = "Debug"
         const val INFO = "Info"
@@ -175,7 +177,7 @@ class MainUI(title: String) : JFrame() {
 
     private var mRotationStatus = ROTATION_LEFT_RIGHT
 
-    var mFont: Font = Font("Dialog", Font.PLAIN, 12)
+    var mFont: Font = Font(DEFAULT_FONT_NAME, Font.PLAIN, 12)
         set(value) {
             field = value
             if (!IsCreatingUI) {
@@ -1159,7 +1161,7 @@ class MainUI(title: String) : JFrame() {
 
         var fontName = mConfigManager.getItem(ConfigManager.ITEM_FONT_NAME)
         if (fontName.isNullOrEmpty()) {
-            fontName = "Dialog"
+            fontName = DEFAULT_FONT_NAME
         }
 
         var fontSize = 12
@@ -2158,7 +2160,7 @@ class MainUI(title: String) : JFrame() {
                 mLogCmdCombo.addItem(logCmd)
             }
             mLogCmdCombo.selectedIndex = -1
-            if (currLogCmd.isNullOrBlank()) {
+            if (currLogCmd.isBlank()) {
                 mLogCmdCombo.editor.item = mAdbManager.mLogCmd
             }
             else {
