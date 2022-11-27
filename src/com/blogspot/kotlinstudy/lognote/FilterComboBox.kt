@@ -30,8 +30,24 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
 
     private var mEditorComponent: JTextComponent
     var mEnabledTfTooltip = false
+        set(value) {
+            field = value
+            if (value) {
+                updateTooltip()
+            }
+        }
     private val mMode = mode
     val mUseColorTag = useColorTag
+    var mErrorMsg: String = ""
+        set(value) {
+            field = value
+            if (value.isEmpty()) {
+                updateTooltip(false)
+            }
+            else {
+                updateTooltip(true)
+            }
+        }
 
     init {
         if (ConfigManager.LaF == MainUI.CROSS_PLATFORM_LAF) {
@@ -152,6 +168,9 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
                 val editorComponent = mEditorComponent as HighlighterMultiLineEditor.HighlighterTextArea
                 editorComponent.setUpdateHighlighter(true)
             }
+            else -> {
+
+            }
         }
         return
     }
@@ -172,6 +191,9 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
             Mode.MULTI_LINE_HIGHLIGHT -> {
                 val editorComponent = mEditorComponent as HighlighterMultiLineEditor.HighlighterTextArea
                 editorComponent.setUpdateHighlighter(true)
+            }
+            else -> {
+
             }
         }
         return
@@ -196,6 +218,9 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
             Mode.MULTI_LINE_HIGHLIGHT -> {
                 val editorComponent = mEditorComponent as HighlighterMultiLineEditor.HighlighterTextArea
                 editorComponent.setUpdateHighlighter(true)
+            }
+            else -> {
+
             }
         }
         return
@@ -257,40 +282,60 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
     }
 
     fun updateTooltip() {
+        updateTooltip(false)
+    }
+
+    fun updateTooltip(isShow: Boolean) {
         if (!mEnabledTfTooltip) {
             return
         }
-        val patterns = parsePattern(mEditorComponent.text)
-        var includeStr = patterns[0]
-        var excludeStr = patterns[1]
 
-        if (includeStr.isNotEmpty()) {
-            includeStr = includeStr.replace("&#09", "&amp;#09")
-            includeStr = includeStr.replace("\t", "&#09;")
-            includeStr = includeStr.replace("&nbsp", "&amp;nbsp")
-            includeStr = includeStr.replace(" ", "&nbsp;")
-            includeStr = includeStr.replace("|", "<font color=#303030><b>|</b></font>")
-        }
-
-        if (excludeStr.isNotEmpty()) {
-            excludeStr = excludeStr.replace("&#09", "&amp;#09")
-            excludeStr = excludeStr.replace("\t", "&#09;")
-            excludeStr = excludeStr.replace("&nbsp", "&amp;nbsp")
-            excludeStr = excludeStr.replace(" ", "&nbsp;")
-            excludeStr = excludeStr.replace("|", "<font color=#303030><b>|</b></font>")
-        }
-
-        var tooltip = "<html><b>$toolTipText</b><br>"
-        if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
-            tooltip += "<font>INCLUDE : </font>\"<font size=5 color=#7070C0>$includeStr</font>\"<br>"
-            tooltip += "<font>EXCLUDE : </font>\"<font size=5 color=#C07070>$excludeStr</font>\"<br>"
+        if (mErrorMsg.isNotEmpty()) {
+            var tooltip = "<html><b>"
+            tooltip += if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+                "<font size=5 color=#C07070>$mErrorMsg</font>"
+            } else {
+                "<font size=5 color=#FF0000>$mErrorMsg</font>"
+            }
+            tooltip += "</b></html>"
+            mEditorComponent.toolTipText = tooltip
         }
         else {
-            tooltip += "<font>INCLUDE : </font>\"<font size=5 color=#0000FF>$includeStr</font>\"<br>"
-            tooltip += "<font>EXCLUDE : </font>\"<font size=5 color=#FF0000>$excludeStr</font>\"<br>"
+            val patterns = parsePattern(mEditorComponent.text)
+            var includeStr = patterns[0]
+            var excludeStr = patterns[1]
+
+            if (includeStr.isNotEmpty()) {
+                includeStr = includeStr.replace("&#09", "&amp;#09")
+                includeStr = includeStr.replace("\t", "&#09;")
+                includeStr = includeStr.replace("&nbsp", "&amp;nbsp")
+                includeStr = includeStr.replace(" ", "&nbsp;")
+                includeStr = includeStr.replace("|", "<font color=#303030><b>|</b></font>")
+            }
+
+            if (excludeStr.isNotEmpty()) {
+                excludeStr = excludeStr.replace("&#09", "&amp;#09")
+                excludeStr = excludeStr.replace("\t", "&#09;")
+                excludeStr = excludeStr.replace("&nbsp", "&amp;nbsp")
+                excludeStr = excludeStr.replace(" ", "&nbsp;")
+                excludeStr = excludeStr.replace("|", "<font color=#303030><b>|</b></font>")
+            }
+
+            var tooltip = "<html><b>$toolTipText</b><br>"
+            if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+                tooltip += "<font>INCLUDE : </font>\"<font size=5 color=#7070C0>$includeStr</font>\"<br>"
+                tooltip += "<font>EXCLUDE : </font>\"<font size=5 color=#C07070>$excludeStr</font>\"<br>"
+            } else {
+                tooltip += "<font>INCLUDE : </font>\"<font size=5 color=#0000FF>$includeStr</font>\"<br>"
+                tooltip += "<font>EXCLUDE : </font>\"<font size=5 color=#FF0000>$excludeStr</font>\"<br>"
+            }
+            tooltip += "</html>"
+            mEditorComponent.toolTipText = tooltip
         }
-        tooltip += "</html>"
-        mEditorComponent.toolTipText = tooltip
+
+        if (isShow) {
+            ToolTipManager.sharedInstance().mouseMoved(MouseEvent(mEditorComponent, 0, 0, 0, 0, 0, 0, false))
+        }
     }
 
     internal inner class KeyHandler : KeyAdapter() {
@@ -416,6 +461,7 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
         }
 
         internal inner class HighlighterTextField : JTextField() {
+            private val mFgColor: Color = foreground
             init {
                 (highlighter as DefaultHighlighter).drawsLayeredHighlights = false
 
@@ -453,6 +499,17 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
             private var mEnableHighlighter = false
             private var mUpdateHighlighter = false
             override fun paint(g: Graphics?) {
+                if (mErrorMsg.isNotEmpty()) {
+                    foreground = if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+                        Color(0xC0, 0x70, 0x70)
+                    } else {
+                        Color(0xFF, 0x00, 0x00)
+                    }
+                }
+                else {
+                    foreground = mFgColor
+                }
+                
                 if (mEnableHighlighter && mUpdateHighlighter) {
                     updateHighlighter(this)
                     mUpdateHighlighter = false
@@ -502,6 +559,8 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
             private var mUpdateHighlighter = false
             private var mPrevCaret = 0
             private val mActionListeners = ArrayList<ActionListener>()
+
+            private val mFgColor = foreground
 
             init {
                 lineWrap = true
@@ -611,6 +670,17 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
             }
 
             override fun paint(g: Graphics?) {
+                if (mErrorMsg.isNotEmpty()) {
+                    foreground = if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+                        Color(0xC0, 0x70, 0x70)
+                    } else {
+                        Color(0xFF, 0x00, 0x00)
+                    }
+                }
+                else {
+                    foreground = mFgColor
+                }
+
                 if (mEnableHighlighter && mUpdateHighlighter) {
                     updateHighlighter(this)
                     mUpdateHighlighter = false

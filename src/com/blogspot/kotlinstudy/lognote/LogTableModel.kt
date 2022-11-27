@@ -35,8 +35,8 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
         var sIsLogcatLog = false
     }
 
-    private var mPatternSearchLog: Pattern? = null
-    private var mMatcherSearchLog: Matcher? = null
+    private var mPatternSearchLog: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
+    private var mMatcherSearchLog: Matcher = mPatternSearchLog.matcher("")
     private var mNormalSearchLogSplit: List<String>? = null
     private var mTableColor: ColorManager.TableColor
     private val mColumnNames = arrayOf("line", "log")
@@ -83,11 +83,12 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
         set(value) {
             if (field != value) {
                 mIsFilterUpdated = true
+                field = value
             }
+            mMainUI.mShowLogCombo.mErrorMsg = ""
             val patterns = parsePattern(value, true)
             mFilterShowLog = patterns[0]
             mFilterHideLog = patterns[1]
-            field = value
 
             if (mBaseModel != null) {
                 mBaseModel!!.mFilterLog = value
@@ -96,28 +97,14 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
 
     private var mFilterShowLog: String = ""
         set(value) {
-            try {
-                mPatternShowLog = Pattern.compile(value, mPatternCase)
-//                if (field != value) {
-//                    mIsFilterUpdated = true
-//                }
-                field = value
-            } catch(ex: java.util.regex.PatternSyntaxException) {
-                ex.printStackTrace()
-            }
+            field = value
+            mPatternShowLog = compilePattern(value, mPatternCase, mPatternShowLog, mMainUI.mShowLogCombo)
         }
 
     private var mFilterHideLog: String = ""
         set(value) {
-            try {
-                mPatternHideLog = Pattern.compile(value, mPatternCase)
-//                if (field != value) {
-//                    mIsFilterUpdated = true
-//                }
-                field = value
-            } catch(ex: java.util.regex.PatternSyntaxException) {
-                ex.printStackTrace()
-            }
+            field = value
+            mPatternHideLog = compilePattern(value, mPatternCase, mPatternHideLog, mMainUI.mShowLogCombo)
         }
 
     var mFilterHighlightLog: String = ""
@@ -132,6 +119,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
     private fun updateFilterSearchLog(field: String) {
         var normalSearchLog = ""
         val searchLogSplit = field.split("|")
+        mRegexSearchLog = ""
 
         for (logUnit in searchLogSplit) {
             val hasIt: Boolean = logUnit.chars().anyMatch { c -> "\\.[]{}()*+?^$|".indexOf(c.toChar()) >= 0 }
@@ -157,14 +145,10 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
             }
         }
 
-        if (mRegexSearchLog.isNotEmpty()) {
-            mPatternSearchLog = Pattern.compile(mRegexSearchLog, mSearchPatternCase)
-            mMatcherSearchLog = mPatternSearchLog?.matcher("")
-        }
-        else {
-            mPatternSearchLog = null
-            mMatcherSearchLog = null
-        }
+        mMainUI.mSearchPanel.mSearchCombo.mErrorMsg = ""
+        mPatternSearchLog = compilePattern(mRegexSearchLog, mSearchPatternCase, mPatternSearchLog, mMainUI.mSearchPanel.mSearchCombo)
+        mMatcherSearchLog = mPatternSearchLog.matcher("")
+
         mNormalSearchLogSplit = normalSearchLog.split("|")
     }
 
@@ -185,6 +169,11 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
 
     var mFilterTag: String = ""
         set(value) {
+            if (field != value) {
+                mIsFilterUpdated = true
+                field = value
+            }
+            mMainUI.mShowTagCombo.mErrorMsg = ""
             val patterns = parsePattern(value, false)
             mFilterShowTag = patterns[0]
             mFilterHideTag = patterns[1]
@@ -192,31 +181,22 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
 
     private var mFilterShowTag: String = ""
         set(value) {
-            try {
-                mPatternShowTag = Pattern.compile(value, mPatternCase)
-                if (field != value) {
-                    mIsFilterUpdated = true
-                }
-                field = value
-            } catch(ex: java.util.regex.PatternSyntaxException) {
-                ex.printStackTrace()
-            }
+            field = value
+            mPatternShowTag = compilePattern(value, mPatternCase, mPatternShowTag, mMainUI.mShowTagCombo)
         }
     private var mFilterHideTag: String = ""
         set(value) {
-            try {
-                mPatternHideTag = Pattern.compile(value, mPatternCase)
-                if (field != value) {
-                    mIsFilterUpdated = true
-                }
-                field = value
-            } catch(ex: java.util.regex.PatternSyntaxException) {
-                ex.printStackTrace()
-            }
+            field = value
+            mPatternHideTag = compilePattern(value, mPatternCase, mPatternHideTag, mMainUI.mShowTagCombo)
         }
 
     var mFilterPid: String = ""
         set(value) {
+            if (field != value) {
+                mIsFilterUpdated = true
+                field = value
+            }
+            mMainUI.mShowPidCombo.mErrorMsg = ""
             val patterns = parsePattern(value, false)
             mFilterShowPid = patterns[0]
             mFilterHidePid = patterns[1]
@@ -224,32 +204,23 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
 
     private var mFilterShowPid: String = ""
         set(value) {
-            try {
-                mPatternShowPid = Pattern.compile(value, mPatternCase)
-                if (field != value) {
-                    mIsFilterUpdated = true
-                }
-                field = value
-            } catch(ex: java.util.regex.PatternSyntaxException) {
-                ex.printStackTrace()
-            }
+            field = value
+            mPatternShowPid = compilePattern(value, mPatternCase, mPatternShowPid, mMainUI.mShowPidCombo)
         }
 
     private var mFilterHidePid: String = ""
         set(value) {
-            try {
-                mPatternHidePid = Pattern.compile(value, mPatternCase)
-                if (field != value) {
-                    mIsFilterUpdated = true
-                }
-                field = value
-            } catch(ex: java.util.regex.PatternSyntaxException) {
-                ex.printStackTrace()
-            }
+            field = value
+            mPatternHidePid = compilePattern(value, mPatternCase, mPatternHidePid, mMainUI.mShowPidCombo)
         }
 
     var mFilterTid: String = ""
         set(value) {
+            if (field != value) {
+                mIsFilterUpdated = true
+                field = value
+            }
+            mMainUI.mShowTidCombo.mErrorMsg = ""
             val patterns = parsePattern(value, false)
             patterns[0].let { mFilterShowTid = it}
             patterns[1].let { mFilterHideTid = it}
@@ -257,27 +228,13 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
 
     private var mFilterShowTid: String = ""
         set(value) {
-            try {
-                mPatternShowTid = Pattern.compile(value, mPatternCase)
-                if (field != value) {
-                    mIsFilterUpdated = true
-                }
-                field = value
-            } catch(ex: java.util.regex.PatternSyntaxException) {
-                ex.printStackTrace()
-            }
+            field = value
+            mPatternShowTid = compilePattern(value, mPatternCase, mPatternShowTid, mMainUI.mShowTidCombo)
         }
     private var mFilterHideTid: String = ""
         set(value) {
-            try {
-                mPatternHideTid = Pattern.compile(value, mPatternCase)
-                if (field != value) {
-                    mIsFilterUpdated = true
-                }
-                field = value
-            } catch(ex: java.util.regex.PatternSyntaxException) {
-                ex.printStackTrace()
-            }
+            field = value
+            mPatternHideTid = compilePattern(value, mPatternCase, mPatternHideTid, mMainUI.mShowTidCombo)
         }
 
     private var mPatternCase = Pattern.CASE_INSENSITIVE
@@ -290,14 +247,18 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                     0
                 }
 
-                mPatternShowLog = Pattern.compile(mFilterShowLog, mPatternCase)
-                mPatternHideLog = Pattern.compile(mFilterHideLog, mPatternCase)
-                mPatternShowTag = Pattern.compile(mFilterShowTag, mPatternCase)
-                mPatternHideTag = Pattern.compile(mFilterHideTag, mPatternCase)
-                mPatternShowPid = Pattern.compile(mFilterShowPid, mPatternCase)
-                mPatternHidePid = Pattern.compile(mFilterHidePid, mPatternCase)
-                mPatternShowTid = Pattern.compile(mFilterShowTid, mPatternCase)
-                mPatternHideTid = Pattern.compile(mFilterHideTid, mPatternCase)
+                mMainUI.mShowLogCombo.mErrorMsg = ""
+                mPatternShowLog = compilePattern(mFilterShowLog, mPatternCase, mPatternShowLog, mMainUI.mShowLogCombo)
+                mPatternHideLog = compilePattern(mFilterHideLog, mPatternCase, mPatternHideLog, mMainUI.mShowLogCombo)
+                mMainUI.mShowTagCombo.mErrorMsg = ""
+                mPatternShowTag = compilePattern(mFilterShowTag, mPatternCase, mPatternShowTag, mMainUI.mShowTagCombo)
+                mPatternHideTag = compilePattern(mFilterHideTag, mPatternCase, mPatternHideTag, mMainUI.mShowTagCombo)
+                mMainUI.mShowPidCombo.mErrorMsg = ""
+                mPatternShowPid = compilePattern(mFilterShowPid, mPatternCase, mPatternShowPid, mMainUI.mShowPidCombo)
+                mPatternHidePid = compilePattern(mFilterHidePid, mPatternCase, mPatternHidePid, mMainUI.mShowPidCombo)
+                mMainUI.mShowTidCombo.mErrorMsg = ""
+                mPatternShowTid = compilePattern(mFilterShowTid, mPatternCase, mPatternShowTid, mMainUI.mShowTidCombo)
+                mPatternHideTid = compilePattern(mFilterHideTid, mPatternCase, mPatternHideTid, mMainUI.mShowTidCombo)
 
                 mIsFilterUpdated = true
 
@@ -316,10 +277,6 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                     0
                 }
 
-                if (mRegexSearchLog.isNotEmpty()) {
-                    mPatternSearchLog = Pattern.compile(mRegexSearchLog, mSearchPatternCase)
-                    mMatcherSearchLog = mPatternSearchLog?.matcher("")
-                }
                 mIsFilterUpdated = true
 
                 field = value
@@ -387,14 +344,14 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
 
     var mScrollbackKeep = false
 
-    private var mPatternShowLog: Pattern = Pattern.compile(mFilterShowLog, mPatternCase)
-    private var mPatternHideLog: Pattern = Pattern.compile(mFilterHideLog, mPatternCase)
-    private var mPatternShowTag: Pattern = Pattern.compile(mFilterShowTag, mPatternCase)
-    private var mPatternHideTag: Pattern = Pattern.compile(mFilterHideTag, mPatternCase)
-    private var mPatternShowPid: Pattern = Pattern.compile(mFilterShowPid, mPatternCase)
-    private var mPatternHidePid: Pattern = Pattern.compile(mFilterHidePid, mPatternCase)
-    private var mPatternShowTid: Pattern = Pattern.compile(mFilterShowTid, mPatternCase)
-    private var mPatternHideTid: Pattern = Pattern.compile(mFilterHideTid, mPatternCase)
+    private var mPatternShowLog: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
+    private var mPatternHideLog: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
+    private var mPatternShowTag: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
+    private var mPatternHideTag: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
+    private var mPatternShowPid: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
+    private var mPatternHidePid: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
+    private var mPatternShowTid: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
+    private var mPatternHideTid: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
 
     private var mPatternError: Pattern = Pattern.compile("\\bERROR\\b", Pattern.CASE_INSENSITIVE)
     private var mPatternWarning: Pattern = Pattern.compile("\\bWARNING\\b", Pattern.CASE_INSENSITIVE)
@@ -494,15 +451,19 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
             }
         }
 
-//        if (patterns[0] == null) {
-//            patterns[0] = ""
-//        }
-//
-//        if (patterns[1] == null) {
-//            patterns[1] = ""
-//        }
-
         return patterns
+    }
+
+    private fun compilePattern(regex: String, flags: Int, prevPattern: Pattern, comboBox: FilterComboBox?): Pattern {
+        var pattern = prevPattern
+        try {
+            pattern = Pattern.compile(regex, flags)
+        } catch(ex: java.util.regex.PatternSyntaxException) {
+            ex.printStackTrace()
+            comboBox?.mErrorMsg = ex.message.toString()
+        }
+
+        return pattern
     }
 
     private var mFilteredItemsThread:Thread? = null
@@ -2020,8 +1981,8 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
             }
 
             if (idxFound < 0 && mMatcherSearchLog != null) {
-                mMatcherSearchLog!!.reset(item.mLogLine)
-                if (mMatcherSearchLog!!.find()) {
+                mMatcherSearchLog.reset(item.mLogLine)
+                if (mMatcherSearchLog.find()) {
                     idxFound = idx
                 }
             }

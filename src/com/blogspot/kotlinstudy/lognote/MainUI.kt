@@ -84,13 +84,13 @@ class MainUI(title: String) : JFrame() {
 //    private lateinit var mRotationBtn: ColorButton
 //    lateinit var mFiltersBtn: ColorButton
 //    lateinit var mCmdsBtn: ColorButton
-    private lateinit var mSearchPanel: SearchPanel
+    internal lateinit var mSearchPanel: SearchPanel
 
     private lateinit var mLogPanel: JPanel
     private lateinit var mShowLogPanel: JPanel
     private lateinit var mMatchCaseToggle: ColorToggleButton
     private lateinit var mMatchCaseTogglePanel: JPanel
-    private lateinit var mShowLogCombo: FilterComboBox
+    lateinit var mShowLogCombo: FilterComboBox
     var mShowLogComboStyle: FilterComboBox.Mode
     private lateinit var mShowLogToggle: ColorToggleButton
     private lateinit var mShowLogTogglePanel: JPanel
@@ -102,19 +102,19 @@ class MainUI(title: String) : JFrame() {
     private lateinit var mBoldLogTogglePanel: JPanel
 
     private lateinit var mShowTagPanel: JPanel
-    private lateinit var mShowTagCombo: FilterComboBox
+    lateinit var mShowTagCombo: FilterComboBox
     var mShowTagComboStyle: FilterComboBox.Mode
     private lateinit var mShowTagToggle: ColorToggleButton
     private lateinit var mShowTagTogglePanel: JPanel
 
     private lateinit var mShowPidPanel: JPanel
-    private lateinit var mShowPidCombo: FilterComboBox
+    lateinit var mShowPidCombo: FilterComboBox
     var mShowPidComboStyle: FilterComboBox.Mode
     private lateinit var mShowPidToggle: ColorToggleButton
     private lateinit var mShowPidTogglePanel: JPanel
 
     private lateinit var mShowTidPanel: JPanel
-    private lateinit var mShowTidCombo: FilterComboBox
+    lateinit var mShowTidCombo: FilterComboBox
     var mShowTidComboStyle: FilterComboBox.Mode
     private lateinit var mShowTidToggle: ColorToggleButton
     private lateinit var mShowTidTogglePanel: JPanel
@@ -2640,7 +2640,7 @@ class MainUI(title: String) : JFrame() {
         }
     }
 
-    internal inner class SearchPanel : JPanel() {
+    inner class SearchPanel : JPanel() {
         var mSearchCombo: FilterComboBox
         var mSearchMatchCaseToggle: ColorToggleButton
         private var mTargetLabel: JLabel
@@ -2657,7 +2657,7 @@ class MainUI(title: String) : JFrame() {
         init {
             mSearchCombo = FilterComboBox(FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT, false)
             mSearchCombo.preferredSize = Dimension(700, mSearchCombo.preferredSize.height)
-            if (ConfigManager.LaF == MainUI.CROSS_PLATFORM_LAF) {
+            if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
                 mSearchCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 5)
             }
 
