@@ -976,8 +976,8 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                 }
                 starts.push(searchS)
                 ends.push(searchE)
-                fgColors.push(mTableColor.StrHighlightFG)
-                bgColors.push(mTableColor.StrHighlightBG)
+                fgColors.push(mTableColor.StrSearchFG)
+                bgColors.push(mTableColor.StrSearchBG)
             }
 
             if (idx in searchS until searchE) {
@@ -1500,13 +1500,18 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                     logLines.clear()
                     logFilterItems.clear()
 
-                    if (line == null && mMainUI.isRestartAdbLogcat() == true) {
+                    if (line == null && mMainUI.isRestartAdbLogcat()) {
                         println("line is Null : $line")
                         if (mAdbManager.mProcessLogcat == null || !mAdbManager.mProcessLogcat!!.isAlive) {
-                            if (mMainUI.isRestartAdbLogcat() == true) {
+                            if (mMainUI.isRestartAdbLogcat()) {
                                 Thread.sleep(5000)
                                 mMainUI.restartAdbLogcat()
-                                bufferedReader = BufferedReader(InputStreamReader(mAdbManager.mProcessLogcat?.inputStream))
+                                if (mAdbManager.mProcessLogcat?.inputStream != null) {
+                                    bufferedReader = BufferedReader(InputStreamReader(mAdbManager.mProcessLogcat?.inputStream!!))
+                                }
+                                else {
+                                    println("startScan : inputStream is Null")
+                                }
                                 line = "LogNote - RESTART LOGCAT"
                             }
                         }
