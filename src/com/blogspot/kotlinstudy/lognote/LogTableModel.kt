@@ -1980,7 +1980,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                 }
             }
 
-            if (idxFound < 0 && mMatcherSearchLog != null) {
+            if (idxFound < 0 && mRegexSearchLog.isNotEmpty() && mMatcherSearchLog != null) {
                 mMatcherSearchLog.reset(item.mLogLine)
                 if (mMatcherSearchLog.find()) {
                     idxFound = idx
