@@ -2786,7 +2786,12 @@ class MainUI(title: String) : JFrame() {
                             val item = mSearchCombo.selectedItem!!.toString()
                             resetComboItem(mSearchCombo, item)
                             mFilteredTableModel.mFilterSearchLog = item
-                            moveToNext()
+                            if (KeyEvent.SHIFT_MASK == p0.modifiers) {
+                                moveToPrev()
+                            }
+                            else {
+                                moveToNext()
+                            }
                         }
                     }
                 }
