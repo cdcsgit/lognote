@@ -86,6 +86,7 @@ class StringsEn private constructor() {
             , "Add Search"
             , "Set Search"
             , "Search"
+            , "Cmd"
 //            , ""
         )
     }

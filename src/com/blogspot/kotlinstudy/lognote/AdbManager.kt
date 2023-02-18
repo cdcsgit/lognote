@@ -1,8 +1,6 @@
 package com.blogspot.kotlinstudy.lognote
 
-import java.io.BufferedReader
 import java.io.IOException
-import java.io.InputStreamReader
 import java.util.*
 import javax.swing.JOptionPane
 
@@ -64,24 +62,12 @@ class AdbManager private constructor(){
     }
 
     fun stop() {
-        println("Stop all processes")
+        println("Stop all processes ++")
         mProcessLogcat?.destroy()
-        try {
-            val reader = BufferedReader(InputStreamReader(mProcessLogcat?.inputStream))
-            var line: String?
-            line = reader.readLine()
-            while (line != null) {
-                println("Stopping $line")
-                line = reader.readLine()
-                // do nothing, clear process stream
-            }
-        } catch(e:Exception) {
-            println("stop $e")
-        }
-
         mProcessLogcat = null
         mCurrentExecuter?.interrupt()
         mCurrentExecuter = null
+        println("Stop all processes --")
     }
 
     fun addEventListener(eventListener:AdbEventListener) {
@@ -176,11 +162,22 @@ class AdbManager private constructor(){
             CMD_LOGCAT -> executer = Runnable {
                 run {
                     mProcessLogcat?.destroy()
+
                     val cmd = if (mTargetDevice.isNotBlank()) {
-                        "$mAdbCmd -s $mTargetDevice $mLogCmd"
+                        if (mLogCmd.startsWith("CMD:")) {
+                            "${mLogCmd.substring(4)} $mTargetDevice"
+                        }
+                        else {
+                            "$mAdbCmd -s $mTargetDevice $mLogCmd"
+                        }
                     }
                     else {
-                        "$mAdbCmd $mLogCmd"
+                        if (mLogCmd.startsWith("CMD:")) {
+                            mLogCmd.substring(4)
+                        }
+                        else {
+                            "$mAdbCmd $mLogCmd"
+                        }
                     }
                     println("Start : $cmd")
                     val runtime = Runtime.getRuntime()
@@ -189,8 +186,7 @@ class AdbManager private constructor(){
                         val processExitDetector = ProcessExitDetector(mProcessLogcat!!)
                         processExitDetector.addProcessListener(object : ProcessListener {
                             override fun processFinished(process: Process?) {
-                                println("The subprocess has finished.")
-                                mProcessLogcat?.inputStream?.close()
+                                println("The subprocess has finished")
                             }
                         })
                         processExitDetector.start()
@@ -264,12 +260,12 @@ class AdbManager private constructor(){
         }
 
         init {
-            try {
-                process.exitValue()
-                throw IllegalArgumentException("The process is already ended")
-            } catch (exc: IllegalThreadStateException) {
+//            try {
+//                process.exitValue()
+//                throw IllegalArgumentException("The process is already ended")
+//            } catch (exc: IllegalThreadStateException) {
                 this.process = process
-            }
+//            }
         }
     }
 }

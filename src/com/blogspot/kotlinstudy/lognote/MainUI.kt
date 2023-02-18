@@ -61,7 +61,7 @@ class MainUI(title: String) : JFrame() {
     private lateinit var mItemSearch: JCheckBoxMenuItem
     private lateinit var mItemRotation: JMenuItem
     private lateinit var mMenuSettings: JMenu
-    private lateinit var mItemAdb: JMenuItem
+    private lateinit var mItemLogCmd: JMenuItem
     private lateinit var mItemLogFile: JMenuItem
     private lateinit var mItemFilterIncremental: JCheckBoxMenuItem
     private lateinit var mMenuLogLevel: JMenu
@@ -507,9 +507,9 @@ class MainUI(title: String) : JFrame() {
         mMenuSettings = JMenu(Strings.SETTING)
         mMenuSettings.mnemonic = KeyEvent.VK_S
 
-        mItemAdb = JMenuItem(Strings.ADB)
-        mItemAdb.addActionListener(mActionHandler)
-        mMenuSettings.add(mItemAdb)
+        mItemLogCmd = JMenuItem("${Strings.LOG_CMD}(${Strings.ADB})")
+        mItemLogCmd.addActionListener(mActionHandler)
+        mMenuSettings.add(mItemLogCmd)
         mItemLogFile = JMenuItem(Strings.LOGFILE)
         mItemLogFile.addActionListener(mActionHandler)
         mMenuSettings.add(mItemLogFile)
@@ -1623,7 +1623,12 @@ class MainUI(title: String) : JFrame() {
             mStatusMethod.background = Color(0x90, 0xE0, 0x90)
         }
 
-        mStatusMethod.text = " ${Strings.ADB} "
+        if (mAdbManager.mLogCmd.startsWith("CMD:")) {
+            mStatusMethod.text = " ${Strings.CMD} "
+        }
+        else {
+            mStatusMethod.text = " ${Strings.ADB} "
+        }
         enabledFollowBtn(false)
     }
 
@@ -1639,7 +1644,13 @@ class MainUI(title: String) : JFrame() {
         else {
             mStatusMethod.background = Color.LIGHT_GRAY
         }
-        mStatusMethod.text = " ${Strings.ADB} ${Strings.STOP} "
+
+        if (mAdbManager.mLogCmd.startsWith("CMD:")) {
+            mStatusMethod.text = " ${Strings.CMD} ${Strings.STOP} "
+        }
+        else {
+            mStatusMethod.text = " ${Strings.ADB} ${Strings.STOP} "
+        }
         enabledFollowBtn(true)
     }
 
@@ -1781,7 +1792,7 @@ class MainUI(title: String) : JFrame() {
                 mItemFileExit -> {
                     exit()
                 }
-                mItemAdb, mItemLogFile -> {
+                mItemLogCmd, mItemLogFile -> {
                     val settingsDialog = AdbSettingsDialog(this@MainUI)
                     settingsDialog.setLocationRelativeTo(this@MainUI)
                     settingsDialog.isVisible = true

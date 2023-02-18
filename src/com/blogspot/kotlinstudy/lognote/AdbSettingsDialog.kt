@@ -9,7 +9,7 @@ import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.DefaultTableModel
 
 
-class AdbSettingsDialog(parent: MainUI) :JDialog(parent, "ADB " + Strings.SETTING, true), ActionListener {
+class AdbSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} ${Strings.SETTING}", true), ActionListener {
     private var mAdbCmdBtn: ColorButton
     private var mAdbSaveBtn: ColorButton
     private var mOkBtn: ColorButton
@@ -26,6 +26,8 @@ class AdbSettingsDialog(parent: MainUI) :JDialog(parent, "ADB " + Strings.SETTIN
 
     private var mLogCmdTable: JTable
     private var mLogCmdTableModel: LogCmdTableModel
+    private var mLogCmdLabel1: JLabel
+    private var mLogCmdLabel2: JLabel
 
     inner class LogCmdTableModel(logCmds: Array<Array<Any>>, columnNames: Array<String>) : DefaultTableModel(logCmds, columnNames) {
         override fun isCellEditable(row: Int, column: Int): Boolean {
@@ -99,6 +101,11 @@ class AdbSettingsDialog(parent: MainUI) :JDialog(parent, "ADB " + Strings.SETTIN
         mLogCmdTable.columnModel.getColumn(0).preferredWidth = 70
         mLogCmdTable.columnModel.getColumn(1).preferredWidth = 330
 
+        mLogCmdLabel1 = JLabel("<html><b><font color=\"#7070FF\">logcat -v threadtime</font></b> <br>&nbsp;&nbsp;&nbsp;&nbsp => RUN : <b><font color=\"#7070FF\">adb -s DEVICE logcat -v threadtime</font></b></html>")
+        mLogCmdLabel1.preferredSize = Dimension(488, mLogCmdLabel1.preferredSize.height)
+        mLogCmdLabel2 = JLabel("<html><b><font color=\"#7070FF\">CMD:cmdABC</font></b> <br>&nbsp;&nbsp;&nbsp;&nbsp => RUN : <b><font color=\"#7070FF\">cmdABC DEVICE</font></b></html>")
+        mLogCmdLabel2.preferredSize = Dimension(488, mLogCmdLabel2.preferredSize.height)
+
         val panel1 = JPanel(GridLayout(4, 1, 0, 2))
         panel1.add(mAdbCmdLabel)
         panel1.add(mAdbSaveLabel)
@@ -130,10 +137,18 @@ class AdbSettingsDialog(parent: MainUI) :JDialog(parent, "ADB " + Strings.SETTIN
         val logCmdTablePanel = JPanel()
         logCmdTablePanel.add(mLogCmdTable)
 
+        val logCmdLable1Panel = JPanel()
+        logCmdLable1Panel.add(mLogCmdLabel1)
+
+        val logCmdLable2Panel = JPanel()
+        logCmdLable2Panel.add(mLogCmdLabel2)
+
         val logCmdPanel = JPanel()
         logCmdPanel.layout = BoxLayout(logCmdPanel, BoxLayout.Y_AXIS)
         addHSeparator(logCmdPanel, Strings.LOG_CMD)
         logCmdPanel.add(logCmdTablePanel)
+        logCmdPanel.add(logCmdLable1Panel)
+        logCmdPanel.add(logCmdLable2Panel)
 
         cmdPanel.add(logCmdPanel, BorderLayout.CENTER)
 
