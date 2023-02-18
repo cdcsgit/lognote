@@ -302,7 +302,7 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         return
     }
 
-    private fun showSelected() {
+    private fun showSelected(targetRow:Int) {
         val log = StringBuilder("")
         var caretPos = 0
         var value:String
@@ -314,17 +314,17 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
             }
         }
         else {
-            var startIdx = selectedRow - 2
+            var startIdx = targetRow - 2
             if (startIdx < 0) {
                 startIdx = 0
             }
-            var endIdx = selectedRow + 3
+            var endIdx = targetRow + 3
             if (endIdx > rowCount) {
                 endIdx = rowCount
             }
 
             for (idx in startIdx until endIdx) {
-                if (idx == selectedRow) {
+                if (idx == targetRow) {
                     caretPos = log.length
                 }
                 value = mTableModel.getValueAt(idx, 1).toString() + "\n"
@@ -338,7 +338,7 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         logViewDialog.isVisible = true
     }
 
-    private fun updateBookmark() {
+    private fun updateBookmark(targetRow:Int) {
         if (selectedRowCount > 1) {
             var isAdd = false
             for (row in selectedRows) {
@@ -367,7 +367,7 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
             }
         }
         else {
-            val value = mTableModel.getValueAt(selectedRow, 0)
+            val value = mTableModel.getValueAt(targetRow, 0)
             val bookmark = value.toString().trim().toInt()
             mBookmarkManager.updateBookmark(bookmark)
         }
@@ -410,10 +410,10 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
                         this@LogTable.processKeyEvent(KeyEvent(this@LogTable, KeyEvent.KEY_PRESSED, p0.`when`, KeyEvent.CTRL_MASK, KeyEvent.VK_C, 'C'))
                     }
                     mShowEntireItem -> {
-                        showSelected()
+                        showSelected(selectedRow)
                     }
                     mBookmarkItem -> {
-                        updateBookmark()
+                        updateBookmark(selectedRow)
                     }
                     mReconnectItem -> {
                         val frame = SwingUtilities.windowForComponent(this@LogTable) as MainUI
@@ -441,6 +441,9 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
     }
 
     internal inner class MouseHandler : MouseAdapter() {
+        var firstClickRow = 0
+        var secondClickRow = 0
+
         override fun mousePressed(p0: MouseEvent?) {
             super.mousePressed(p0)
         }
@@ -466,17 +469,22 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         override fun mouseClicked(p0: MouseEvent?) {
             if (SwingUtilities.isLeftMouseButton(p0)) {
                 if (p0?.clickCount == 2) {
-                    if (columnAtPoint(p0.point) == 0) {
-                        updateBookmark()
+                    secondClickRow = selectedRow
+                    val targetRow = if (firstClickRow > secondClickRow) {
+                        firstClickRow
                     } else {
-                        showSelected()
+                        secondClickRow
+                    }
+                    if (columnAtPoint(p0.point) == 0) {
+                        updateBookmark(targetRow)
+                    } else {
+                        showSelected(targetRow)
                     }
                 }
+                if (p0?.clickCount == 1) {
+                    firstClickRow = selectedRow
+                }
             }
-//            else if (SwingUtilities.isRightMouseButton(p0)) {
-//                if (p0?.clickCount == 1) {
-//                }
-//            }
 
             super.mouseClicked(p0)
         }
@@ -490,7 +498,7 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
 
         override fun keyPressed(p0: KeyEvent?) {
             if (p0?.keyCode == KeyEvent.VK_B && (p0.modifiers and KeyEvent.CTRL_MASK) != 0) {
-                updateBookmark()
+                updateBookmark(selectedRow)
             } else if (p0?.keyCode == KeyEvent.VK_PAGE_DOWN) {
                 downPage()
             } else if (p0?.keyCode == KeyEvent.VK_PAGE_UP) {
@@ -500,7 +508,7 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
             } else if (p0?.keyCode == KeyEvent.VK_UP) {
                 upLine()
             } else if (p0?.keyCode == KeyEvent.VK_ENTER) {
-                showSelected()
+                showSelected(selectedRow)
             }
             super.keyPressed(p0)
         }
