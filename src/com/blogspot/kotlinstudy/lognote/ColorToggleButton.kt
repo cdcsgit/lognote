@@ -15,11 +15,8 @@ class ColorToggleButton(title:String) : JToggleButton(title){
     var mUnselectedBg: Color? = null
 
     init {
-        var imgIcon = ImageIcon(this.javaClass.getResource("/images/toggle_off.png"))
-        icon = imgIcon
-
-        imgIcon = ImageIcon(this.javaClass.getResource("/images/toggle_on.png"))
-        selectedIcon = imgIcon
+        icon = ImageIcon(this.javaClass.getResource("/images/toggle_off.png"))
+        selectedIcon = ImageIcon(this.javaClass.getResource("/images/toggle_on.png"))
     }
 
     override fun paintComponent(g: Graphics) {

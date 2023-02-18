@@ -4,6 +4,7 @@ class TooltipStringsKo private constructor() {
     companion object {
         val STRINGS = listOf(
                 "adb logcat 시작 및 로그 수신"
+                , "adb logcat 일시 중지"
                 , "adb logcat 중지"
                 , "로그 화면 지움"
                 , "새 파일 저장"

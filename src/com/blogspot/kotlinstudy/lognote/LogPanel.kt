@@ -51,14 +51,17 @@ class LogPanel constructor(mainUI: MainUI, tableModel: LogTableModel, basePanel:
     init {
         layout = BorderLayout()
         mCtrlMainPanel = ButtonPanel()
-        mFirstBtn = ColorButton("∧") // △ ▲ ▽ ▼ ↑ ↓ ∧ ∨
+//        mFirstBtn = ColorButton("∧") // △ ▲ ▽ ▼ ↑ ↓ ∧ ∨
+        mFirstBtn = ColorButton("")
+        mFirstBtn.icon = ImageIcon(this.javaClass.getResource("/images/top.png"))
         mFirstBtn.toolTipText = TooltipStrings.VIEW_FIRST_BTN
-        mFirstBtn.margin = Insets(0, 7, 0, 7)
+        mFirstBtn.margin = Insets(2, 3, 1, 3)
 
         mFirstBtn.addActionListener(mActionHandler)
-        mLastBtn = ColorButton("∨")
+        mLastBtn = ColorButton("")
+        mLastBtn.icon = ImageIcon(this.javaClass.getResource("/images/bottom.png"))
         mLastBtn.toolTipText = TooltipStrings.VIEW_LAST_BTN
-        mLastBtn.margin = Insets(0, 7, 0, 7)
+        mLastBtn.margin = Insets(2, 3, 1, 3)
         mLastBtn.addActionListener(mActionHandler)
         mTagBtn = ColorToggleButton(Strings.TAG)
         mTagBtn.toolTipText = TooltipStrings.VIEW_TAG_TOGGLE
@@ -145,7 +148,8 @@ class LogPanel constructor(mainUI: MainUI, tableModel: LogTableModel, basePanel:
     }
 
     private fun updateTableBarFilters(customArray: ArrayList<CustomListManager.CustomElement>?) {
-        val filtersBtn = TableBarButton("★${Strings.FILTERS}")
+        val filtersBtn = TableBarButton(Strings.FILTERS)
+        filtersBtn.icon = ImageIcon(this.javaClass.getResource("/images/filterscmds.png"))
         filtersBtn.toolTipText = TooltipStrings.ADD_FILTER_BTN
         filtersBtn.margin = Insets(0, 3, 0, 3)
         filtersBtn.addActionListener(ActionListener {
@@ -153,12 +157,14 @@ class LogPanel constructor(mainUI: MainUI, tableModel: LogTableModel, basePanel:
         })
         mCtrlMainPanel.add(filtersBtn)
 
+        val icon = ImageIcon(this.javaClass.getResource("/images/filterscmdsitem.png"))
         if (customArray != null) {
             for (item in customArray) {
                 if (!item.mTableBar) {
                     continue
                 }
                 val button = TableBarButton(item.mTitle)
+                button.icon = icon
                 button.mValue = item.mValue
                 button.toolTipText = "<html>${item.mTitle} : <b>\"${item.mValue}\"</b><br><br>* Append : Ctrl + Click</html>"
                 button.margin = Insets(0, 3, 0, 3)
@@ -188,7 +194,8 @@ class LogPanel constructor(mainUI: MainUI, tableModel: LogTableModel, basePanel:
     }
 
     private fun updateTableBarCmds(customArray: ArrayList<CustomListManager.CustomElement>?) {
-        val cmdsBtn = TableBarButton("★${Strings.CMDS}")
+        val cmdsBtn = TableBarButton(Strings.CMDS)
+        cmdsBtn.icon = ImageIcon(this.javaClass.getResource("/images/filterscmds.png"))
         cmdsBtn.toolTipText = TooltipStrings.ADD_CMD_BTN
         cmdsBtn.margin = Insets(0, 3, 0, 3)
         cmdsBtn.addActionListener(ActionListener {
@@ -196,12 +203,14 @@ class LogPanel constructor(mainUI: MainUI, tableModel: LogTableModel, basePanel:
         })
         mCtrlMainPanel.add(cmdsBtn)
 
+        val icon = ImageIcon(this.javaClass.getResource("/images/filterscmdsitem.png"))
         if (customArray != null) {
             for (item in customArray) {
                 if (!item.mTableBar) {
                     continue
                 }
                 val button = TableBarButton(item.mTitle)
+                button.icon = icon
                 button.mValue = item.mValue
                 button.toolTipText = "${item.mTitle} : ${item.mValue}"
                 button.margin = Insets(0, 3, 0, 3)
@@ -259,12 +268,11 @@ class LogPanel constructor(mainUI: MainUI, tableModel: LogTableModel, basePanel:
         }
 
     override fun repaint() {
-        var bg = Color.WHITE
-        if (mBasePanel != null) {
-            bg = ColorManager.getInstance().mFilterTableColor.LogBG
+        val bg = if (mBasePanel != null) {
+            ColorManager.getInstance().mFilterTableColor.LogBG
         }
         else {
-            bg = ColorManager.getInstance().mFullTableColor.LogBG
+            ColorManager.getInstance().mFullTableColor.LogBG
         }
 
         if (bg != background) {
@@ -702,37 +710,4 @@ class LogPanel constructor(mainUI: MainUI, tableModel: LogTableModel, basePanel:
         }
     }
 
-    internal inner class ButtonPanel : JPanel() {
-        internal inner class ButtonFlowLayout(align: Int, hgap: Int, vgap: Int) : FlowLayout(align, hgap, vgap) {
-            override fun minimumLayoutSize(target: Container?): Dimension {
-                return Dimension(0, 0)
-            }
-        }
-        var mLastComponent: Component? = null
-        init {
-            layout = ButtonFlowLayout(FlowLayout.LEFT, 2, 0)
-            addComponentListener(
-                object : ComponentAdapter() {
-                    var mPrevPoint: Point? = null
-                    override fun componentResized(e: ComponentEvent) {
-                        super.componentResized(e)
-                        for (item in components) {
-                            if (mLastComponent == null) {
-                                mLastComponent = item
-                            } else {
-                                if ((item.location.y + item.height) > (mLastComponent!!.location.y + mLastComponent!!.height)) {
-                                    mLastComponent = item
-                                }
-                            }
-                        }
-                        if (mPrevPoint == null || mPrevPoint!!.y != mLastComponent!!.location.y) {
-                            println("lastComonent moved to ${mLastComponent!!.location}")
-                            preferredSize = Dimension(preferredSize.width, mLastComponent!!.location.y + mLastComponent!!.height)
-                            updateUI()
-                        }
-                        mPrevPoint = mLastComponent!!.location
-                    }
-                })
-        }
-    }
 }

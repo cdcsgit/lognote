@@ -74,7 +74,7 @@ class MainUI(title: String) : JFrame() {
     private lateinit var mFilterPanel: JPanel
     private lateinit var mFilterLeftPanel: JPanel
 
-    private lateinit var mLogToolBar: JPanel
+    private lateinit var mLogToolBar: ButtonPanel
     private lateinit var mStartBtn: ColorButton
     private lateinit var mRetryAdbToggle: ColorToggleButton
     private lateinit var mStopBtn: ColorButton
@@ -129,7 +129,7 @@ class MainUI(title: String) : JFrame() {
 
     private lateinit var mScrollbackLabel: JLabel
     private lateinit var mScrollbackTF: JTextField
-    private lateinit var mScrollbackSplitFileCheck: JCheckBox
+    private lateinit var mScrollbackSplitFileToggle: ColorToggleButton
     private lateinit var mScrollbackApplyBtn: ColorButton
     private lateinit var mScrollbackKeepToggle: ColorToggleButton
 
@@ -630,7 +630,7 @@ class MainUI(title: String) : JFrame() {
         mFilterPanel = JPanel()
         mFilterLeftPanel = JPanel()
 
-        mLogToolBar = JPanel(FlowLayout(FlowLayout.LEFT, 2, 0))
+        mLogToolBar = ButtonPanel()
         mLogToolBar.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
         mLogToolBar.addMouseListener(mMouseHandler)
 
@@ -642,16 +642,19 @@ class MainUI(title: String) : JFrame() {
         mStartBtn = ColorButton(Strings.START)
         mStartBtn.margin = btnMargin
         mStartBtn.toolTipText = TooltipStrings.START_BTN
+        mStartBtn.icon = ImageIcon(this.javaClass.getResource("/images/start.png"))
         mStartBtn.addActionListener(mActionHandler)
         mStartBtn.addMouseListener(mMouseHandler)
         mRetryAdbToggle = ColorToggleButton(Strings.RETRY_ADB)
         mRetryAdbToggle.toolTipText = TooltipStrings.RETRY_ADB_TOGGLE
-        mRetryAdbToggle.margin = Insets(mRetryAdbToggle.margin.top, 0, mRetryAdbToggle.margin.bottom, 0)
+        mRetryAdbToggle.margin = btnMargin
+//        mRetryAdbToggle.margin = Insets(mRetryAdbToggle.margin.top, 0, mRetryAdbToggle.margin.bottom, 0)
         mRetryAdbToggle.addItemListener(mItemHandler)
 
         mPauseToggle = ColorToggleButton(Strings.PAUSE)
-//        mPauseToggle.toolTipText = TooltipStrings.BOLD_TOGGLE
-        mPauseToggle.margin = Insets(mPauseToggle.margin.top, 0, mPauseToggle.margin.bottom, 0)
+        mPauseToggle.toolTipText = TooltipStrings.PAUSE_BTN
+        mPauseToggle.margin = btnMargin
+//        mPauseToggle.margin = Insets(mPauseToggle.margin.top, 0, mPauseToggle.margin.bottom, 0)
         mPauseToggle.addItemListener(mItemHandler)
 
 
@@ -663,6 +666,8 @@ class MainUI(title: String) : JFrame() {
         mClearViewsBtn = ColorButton(Strings.CLEAR_VIEWS)
         mClearViewsBtn.margin = btnMargin
         mClearViewsBtn.toolTipText = TooltipStrings.CLEAR_BTN
+        mClearViewsBtn.icon = ImageIcon(this.javaClass.getResource("/images/clear.png"))
+
         mClearViewsBtn.addActionListener(mActionHandler)
         mClearViewsBtn.addMouseListener(mMouseHandler)
         mSaveBtn = ColorButton(Strings.SAVE)
@@ -793,7 +798,7 @@ class MainUI(title: String) : JFrame() {
         mAdbConnectBtn.margin = btnMargin
         mAdbConnectBtn.toolTipText = TooltipStrings.CONNECT_BTN
         mAdbConnectBtn.addActionListener(mActionHandler)
-        deviceComboPanel.add(mAdbConnectBtn, BorderLayout.EAST)
+//        deviceComboPanel.add(mAdbConnectBtn, BorderLayout.EAST)
         mAdbRefreshBtn = ColorButton(Strings.REFRESH)
         mAdbRefreshBtn.margin = btnMargin
         mAdbRefreshBtn.addActionListener(mActionHandler)
@@ -880,7 +885,7 @@ class MainUI(title: String) : JFrame() {
             mScrollbackKeepToggle.selectedIcon = imgIcon
         }
 
-        mScrollbackKeepToggle.margin = Insets(mScrollbackKeepToggle.margin.top, 0, mScrollbackKeepToggle.margin.bottom, 0)
+        mScrollbackKeepToggle.margin = btnMargin
         mScrollbackKeepToggle.addItemListener(mItemHandler)
 
         mScrollbackLabel = JLabel(Strings.SCROLLBACK_LINES)
@@ -889,8 +894,10 @@ class MainUI(title: String) : JFrame() {
         mScrollbackTF.toolTipText = TooltipStrings.SCROLLBACK_TF
         mScrollbackTF.preferredSize = Dimension(80, mScrollbackTF.preferredSize.height)
         mScrollbackTF.addKeyListener(mKeyHandler)
-        mScrollbackSplitFileCheck = JCheckBox(Strings.SPLIT_FILE, false)
-        mScrollbackSplitFileCheck.toolTipText = TooltipStrings.SCROLLBACK_SPLIT_CHK
+        mScrollbackSplitFileToggle = ColorToggleButton(Strings.SPLIT_FILE)
+        mScrollbackSplitFileToggle.toolTipText = TooltipStrings.SCROLLBACK_SPLIT_CHK
+        mScrollbackSplitFileToggle.margin = btnMargin
+        mScrollbackSplitFileToggle.addItemListener(mItemHandler)
 
         val itemFilterPanel = JPanel(FlowLayout(FlowLayout.LEADING, 0, 0))
         itemFilterPanel.border = BorderFactory.createEmptyBorder(0, 0, 0, 0)
@@ -926,31 +933,29 @@ class MainUI(title: String) : JFrame() {
         addVSeparator(mLogToolBar)
 
         mLogToolBar.add(deviceComboPanel)
-        mLogToolBar.add(mAdbRefreshBtn)
+        mLogToolBar.add(mAdbConnectBtn)
         mLogToolBar.add(mAdbDisconnectBtn)
+        mLogToolBar.add(mAdbRefreshBtn)
 
         addVSeparator(mLogToolBar)
 
         mLogToolBar.add(mClearViewsBtn)
 
-        addVSeparator(mLogToolBar)
 
-        mLogToolBar.add(mScrollbackLabel)
-        mLogToolBar.add(mScrollbackTF)
-        mLogToolBar.add(mScrollbackSplitFileCheck)
-        mLogToolBar.add(mScrollbackApplyBtn)
-        mLogToolBar.add(mScrollbackKeepToggle)
-
-//        addVSeparator(mLogToolBar)
-//        mLogToolBar.add(mRotationBtn)
-
-//        addVSeparator(mLogToolBar)
-//        mLogToolBar.add(mFiltersBtn)
-//        mLogToolBar.add(mCmdsBtn)
+        val scrollbackPanel = JPanel(FlowLayout(FlowLayout.LEFT, 2, 0))
+        scrollbackPanel.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
+        addVSeparator(scrollbackPanel)
+        scrollbackPanel.add(mScrollbackLabel)
+        scrollbackPanel.add(mScrollbackTF)
+        scrollbackPanel.add(mScrollbackSplitFileToggle)
+        scrollbackPanel.add(mScrollbackApplyBtn)
+        scrollbackPanel.add(mScrollbackKeepToggle)
 
         val toolBarPanel = JPanel(FlowLayout(FlowLayout.LEFT, 0, 0))
+        toolBarPanel.layout = BorderLayout()
         toolBarPanel.addMouseListener(mMouseHandler)
-        toolBarPanel.add(mLogToolBar)
+        toolBarPanel.add(mLogToolBar, BorderLayout.CENTER)
+        toolBarPanel.add(scrollbackPanel, BorderLayout.EAST)
 
         mFilterPanel.add(toolBarPanel, BorderLayout.NORTH)
         mFilterPanel.add(mSearchPanel, BorderLayout.SOUTH)
@@ -1251,11 +1256,11 @@ class MainUI(title: String) : JFrame() {
 
         check = mConfigManager.getItem(ConfigManager.ITEM_SCROLLBACK_SPLIT_FILE)
         if (!check.isNullOrEmpty()) {
-            mScrollbackSplitFileCheck.isSelected = check.toBoolean()
+            mScrollbackSplitFileToggle.isSelected = check.toBoolean()
         } else {
-            mScrollbackSplitFileCheck.isSelected = false
+            mScrollbackSplitFileToggle.isSelected = false
         }
-        mFilteredTableModel.mScrollbackSplitFile = mScrollbackSplitFileCheck.isSelected
+        mFilteredTableModel.mScrollbackSplitFile = mScrollbackSplitFileToggle.isSelected
 
         check = mConfigManager.getItem(ConfigManager.ITEM_MATCH_CASE)
         if (!check.isNullOrEmpty()) {
@@ -1280,6 +1285,27 @@ class MainUI(title: String) : JFrame() {
             mRetryAdbToggle.isSelected = false
         }
 
+        check = mConfigManager.getItem(ConfigManager.ITEM_ICON_TEXT)
+        if (!check.isNullOrEmpty()) {
+            when (check) {
+                ConfigManager.VALUE_ICON_TEXT_I -> {
+                    setBtnIcons(true)
+                    setBtnTexts(false)
+                }
+                ConfigManager.VALUE_ICON_TEXT_T -> {
+                    setBtnIcons(false)
+                    setBtnTexts(true)
+                }
+                else -> {
+                    setBtnIcons(true)
+                    setBtnTexts(true)
+                }
+            }
+        } else {
+            setBtnIcons(true)
+            setBtnTexts(true)
+        }
+
         add(mFilterPanel, BorderLayout.NORTH)
         add(mLogSplitPane, BorderLayout.CENTER)
         add(mStatusBar, BorderLayout.SOUTH)
@@ -1289,6 +1315,93 @@ class MainUI(title: String) : JFrame() {
         IsCreatingUI = false
     }
 
+    private fun setBtnIcons(isShow:Boolean) {
+        if (isShow) {
+            mStartBtn.icon = ImageIcon(this.javaClass.getResource("/images/start.png"))
+            mStopBtn.icon = ImageIcon(this.javaClass.getResource("/images/stop.png"))
+            mClearViewsBtn.icon = ImageIcon(this.javaClass.getResource("/images/clear.png"))
+            mSaveBtn.icon = ImageIcon(this.javaClass.getResource("/images/save.png"))
+            mAdbConnectBtn.icon = ImageIcon(this.javaClass.getResource("/images/connect.png"))
+            mAdbRefreshBtn.icon = ImageIcon(this.javaClass.getResource("/images/refresh.png"))
+            mAdbDisconnectBtn.icon = ImageIcon(this.javaClass.getResource("/images/disconnect.png"))
+            mScrollbackApplyBtn.icon = ImageIcon(this.javaClass.getResource("/images/apply.png"))
+
+            mRetryAdbToggle.icon = ImageIcon(this.javaClass.getResource("/images/retry_off.png"))
+            mPauseToggle.icon = ImageIcon(this.javaClass.getResource("/images/pause_off.png"))
+            mScrollbackKeepToggle.icon = ImageIcon(this.javaClass.getResource("/images/keeplog_off.png"))
+            mScrollbackSplitFileToggle.icon = ImageIcon(this.javaClass.getResource("/images/splitfile_off.png"))
+
+            if (ConfigManager.LaF == FLAT_DARK_LAF) {
+                mRetryAdbToggle.selectedIcon = ImageIcon(this.javaClass.getResource("/images/retry_on_dark.png"))
+                mPauseToggle.selectedIcon = ImageIcon(this.javaClass.getResource("/images/pause_on_dark.png"))
+                mScrollbackKeepToggle.selectedIcon = ImageIcon(this.javaClass.getResource("/images/keeplog_on_dark.png"))
+                mScrollbackSplitFileToggle.selectedIcon = ImageIcon(this.javaClass.getResource("/images/splitfile_on_dark.png"))
+            }
+            else {
+                mRetryAdbToggle.selectedIcon = ImageIcon(this.javaClass.getResource("/images/retry_on.png"))
+                mPauseToggle.selectedIcon = ImageIcon(this.javaClass.getResource("/images/pause_on.png"))
+                mScrollbackKeepToggle.selectedIcon = ImageIcon(this.javaClass.getResource("/images/keeplog_on.png"))
+                mScrollbackSplitFileToggle.selectedIcon = ImageIcon(this.javaClass.getResource("/images/splitfile_on.png"))
+            }
+
+            mScrollbackLabel.icon = ImageIcon(this.javaClass.getResource("/images/scrollback.png"))
+        }
+        else {
+            mStartBtn.icon = null
+            mStopBtn.icon = null
+            mClearViewsBtn.icon = null
+            mSaveBtn.icon = null
+            mAdbConnectBtn.icon = null
+            mAdbRefreshBtn.icon = null
+            mAdbDisconnectBtn.icon = null
+            mScrollbackApplyBtn.icon = null
+
+            mRetryAdbToggle.icon = ImageIcon(this.javaClass.getResource("/images/toggle_off.png"))
+            mRetryAdbToggle.selectedIcon = ImageIcon(this.javaClass.getResource("/images/toggle_on.png"))
+            mPauseToggle.icon = ImageIcon(this.javaClass.getResource("/images/toggle_off.png"))
+            mPauseToggle.selectedIcon = ImageIcon(this.javaClass.getResource("/images/toggle_on.png"))
+            mScrollbackKeepToggle.icon = ImageIcon(this.javaClass.getResource("/images/toggle_off.png"))
+            mScrollbackKeepToggle.selectedIcon = ImageIcon(this.javaClass.getResource("/images/toggle_on_warn.png"))
+            mScrollbackSplitFileToggle.icon = ImageIcon(this.javaClass.getResource("/images/toggle_off.png"))
+            mScrollbackSplitFileToggle.selectedIcon = ImageIcon(this.javaClass.getResource("/images/toggle_on.png"))
+
+            mScrollbackLabel.icon = null
+        }
+    }
+
+    private fun setBtnTexts(isShow:Boolean) {
+        if (isShow) {
+            mStartBtn.text = Strings.START
+            mRetryAdbToggle.text = Strings.RETRY_ADB
+            mPauseToggle.text = Strings.PAUSE
+            mStopBtn.text = Strings.STOP
+            mClearViewsBtn.text = Strings.CLEAR_VIEWS
+            mSaveBtn.text = Strings.SAVE
+            mAdbConnectBtn.text = Strings.CONNECT
+            mAdbRefreshBtn.text = Strings.REFRESH
+            mAdbDisconnectBtn.text = Strings.DISCONNECT
+            mScrollbackApplyBtn.text = Strings.APPLY
+            mScrollbackKeepToggle.text = Strings.KEEP
+            mScrollbackSplitFileToggle.text = Strings.SPLIT_FILE
+            mScrollbackLabel.text = Strings.SCROLLBACK_LINES
+        }
+        else {
+            mStartBtn.text = null
+            mStopBtn.text = null
+            mClearViewsBtn.text = null
+            mSaveBtn.text = null
+            mAdbConnectBtn.text = null
+            mAdbRefreshBtn.text = null
+            mAdbDisconnectBtn.text = null
+            mScrollbackApplyBtn.text = null
+            mRetryAdbToggle.text = null
+            mPauseToggle.text = null
+            mScrollbackKeepToggle.text = null
+            mScrollbackSplitFileToggle.text = null
+            mScrollbackLabel.text = null
+        }
+    }
+    
     private fun setLaF(laf:String) {
         ConfigManager.LaF = laf
         when (laf) {
@@ -1725,10 +1838,10 @@ class MainUI(title: String) : JFrame() {
                         mFilteredTableModel.mScrollback = 0
                         mScrollbackTF.text = "0"
                     }
-                    mFilteredTableModel.mScrollbackSplitFile = mScrollbackSplitFileCheck.isSelected
+                    mFilteredTableModel.mScrollbackSplitFile = mScrollbackSplitFileToggle.isSelected
 
                     mConfigManager.saveItem(ConfigManager.ITEM_SCROLLBACK, mScrollbackTF.text)
-                    mConfigManager.saveItem(ConfigManager.ITEM_SCROLLBACK_SPLIT_FILE, mScrollbackSplitFileCheck.isSelected.toString())
+                    mConfigManager.saveItem(ConfigManager.ITEM_SCROLLBACK_SPLIT_FILE, mScrollbackSplitFileToggle.isSelected.toString())
                 }
                 mStartBtn -> {
                     startAdbScan(true)
@@ -1807,18 +1920,37 @@ class MainUI(title: String) : JFrame() {
     }
 
     internal inner class FramePopUp : JPopupMenu() {
-        var mReconnectItem: JMenuItem
+        var mItemIconText: JMenuItem = JMenuItem("IconText")
+        var mItemIcon: JMenuItem = JMenuItem("Icon")
+        var mItemText: JMenuItem = JMenuItem("Text")
         private val mActionHandler = ActionHandler()
 
         init {
-            mReconnectItem = JMenuItem("Reconnect " + mDeviceCombo.selectedItem?.toString())
-            mReconnectItem.addActionListener(mActionHandler)
-            add(mReconnectItem)
+            mItemIconText.addActionListener(mActionHandler)
+            add(mItemIconText)
+            mItemIcon.addActionListener(mActionHandler)
+            add(mItemIcon)
+            mItemText.addActionListener(mActionHandler)
+            add(mItemText)
         }
         internal inner class ActionHandler : ActionListener {
             override fun actionPerformed(p0: ActionEvent?) {
-                if (p0?.source == mReconnectItem) {
-                    reconnectAdb()
+                when (p0?.source) {
+                    mItemIconText -> {
+                        setBtnIcons(true)
+                        setBtnTexts(true)
+                        mConfigManager.saveItem(ConfigManager.ITEM_ICON_TEXT, ConfigManager.VALUE_ICON_TEXT_I_T)
+                    }
+                    mItemIcon -> {
+                        setBtnIcons(true)
+                        setBtnTexts(false)
+                        mConfigManager.saveItem(ConfigManager.ITEM_ICON_TEXT, ConfigManager.VALUE_ICON_TEXT_I)
+                    }
+                    mItemText -> {
+                        setBtnIcons(false)
+                        setBtnTexts(true)
+                        mConfigManager.saveItem(ConfigManager.ITEM_ICON_TEXT, ConfigManager.VALUE_ICON_TEXT_I)
+                    }
                 }
             }
         }
