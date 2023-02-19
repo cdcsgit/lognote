@@ -1,0 +1,78 @@
+11-20 23:29:26.908  1376  3136 V Binder  : Caught a RuntimeException from the binder stub implementation.
+11-20 23:29:26.908  1376  3136 D Test  : java.lang.SecurityException: Caller does not hold permission android.permission.MANAGE_ACCESSIBILITY
+11-20 23:29:26.908  1376  3136 I Test2  : 	at com.android.server.accessibility.AccessibilitySecurityPolicy.enforceCallingOrSelfPermission(AccessibilitySecurityPolicy.java:602)
+11-20 23:29:26.908  1376  3136 W Binder  : 	at com.android.server.accessibility.AccessibilityManagerService.unregisterSystemAction(AccessibilityManagerService.java:1271)
+11-20 23:29:26.908  1376  3136 E Test  : 	at android.view.accessibility.IAccessibilityManager$Stub.onTransact(IAccessibilityManager.java:836)
+11-20 23:29:26.908  1376  3136 F Test2  : 	at android.os.Binder.execTransactInternal(Binder.java:1220)
+11-20 23:29:26.908  1376  3136 W Binder  : 	at android.os.Binder.execTransact(Binder.java:1179)
+11-20 23:29:26.908  1376  3136 V Binder  : Caught a RuntimeException from the binder stub implementation.
+11-20 23:29:26.908  1376  3136 D Test  : java.lang.SecurityException: Caller does not hold permission android.permission.MANAGE_ACCESSIBILITY
+11-20 23:29:26.908  1376  3136 I Test2  : 	at com.android.server.accessibility.AccessibilitySecurityPolicy.enforceCallingOrSelfPermission(AccessibilitySecurityPolicy.java:602)
+11-20 23:29:26.908  1376  3136 W Binder  : 	at com.android.server.accessibility.AccessibilityManagerService.unregisterSystemAction(AccessibilityManagerService.java:1271)
+11-20 23:29:26.908  1376  3136 E Test  : 	at android.view.accessibility.IAccessibilityManager$Stub.onTransact(IAccessibilityManager.java:836)
+11-20 23:29:26.908  1376  3136 F Test2  : 	at android.os.Binder.execTransactInternal(Binder.java:1220)
+11-20 23:29:26.908  1376  3136 W Binder  : 	at android.os.Binder.execTransact(Binder.java:1179)
+11-20 23:29:26.908  1376  3136 V Binder  : Caught a RuntimeException from the binder stub implementation.
+11-20 23:29:26.908  1376  3136 D Test  : java.lang.SecurityException: Caller does not hold permission android.permission.MANAGE_ACCESSIBILITY
+11-20 23:29:26.908  1376  3136 I Test2  : 	at com.android.server.accessibility.AccessibilitySecurityPolicy.enforceCallingOrSelfPermission(AccessibilitySecurityPolicy.java:602)
+11-20 23:29:26.908  1376  3136 W Binder  : 	at com.android.server.accessibility.AccessibilityManagerService.unregisterSystemAction(AccessibilityManagerService.java:1271)
+11-20 23:29:26.908  1376  3136 E Test  : 	at android.view.accessibility.IAccessibilityManager$Stub.onTransact(IAccessibilityManager.java:836)
+11-20 23:29:26.908  1376  3136 F Test2  : 	at android.os.Binder.execTransactInternal(Binder.java:1220)
+11-20 23:29:26.908  1376  3136 W Binder  : 	at android.os.Binder.execTransact(Binder.java:1179)
+11-20 23:29:26.908  1376  3136 V Binder  : Caught a RuntimeException from the binder stub implementation.
+11-20 23:29:26.908  1376  3136 D Test  : java.lang.SecurityException: Caller does not hold permission android.permission.MANAGE_ACCESSIBILITY
+11-20 23:29:26.908  1376  3136 I Test2  : 	at com.android.server.accessibility.AccessibilitySecurityPolicy.enforceCallingOrSelfPermission(AccessibilitySecurityPolicy.java:602)
+11-20 23:29:26.908  1376  3136 W Binder  : 	at com.android.server.accessibility.AccessibilityManagerService.unregisterSystemAction(AccessibilityManagerService.java:1271)
+11-20 23:29:26.908  1376  3136 E Test  : 	at android.view.accessibility.IAccessibilityManager$Stub.onTransact(IAccessibilityManager.java:836)
+11-20 23:29:26.908  1376  3136 F Test2  : 	at android.os.Binder.execTransactInternal(Binder.java:1220)
+11-20 23:29:26.908  1376  3136 W Binder  : 	at android.os.Binder.execTransact(Binder.java:1179)
+11-20 23:29:26.908  1376  3136 V Binder  : Caught a RuntimeException from the binder stub implementation.
+11-20 23:29:26.908  1376  3136 D Test  : java.lang.SecurityException: Caller does not hold permission android.permission.MANAGE_ACCESSIBILITY
+11-20 23:29:26.908  1376  3136 I Test2  : 	at com.android.server.accessibility.AccessibilitySecurityPolicy.enforceCallingOrSelfPermission(AccessibilitySecurityPolicy.java:602)
+11-20 23:29:26.908  1376  3136 W Binder  : 	at com.android.server.accessibility.AccessibilityManagerService.unregisterSystemAction(AccessibilityManagerService.java:1271)
+11-20 23:29:26.908  1376  3136 E Test  : 	at android.view.accessibility.IAccessibilityManager$Stub.onTransact(IAccessibilityManager.java:836)
+11-20 23:29:26.908  1376  3136 F Test2  : 	at android.os.Binder.execTransactInternal(Binder.java:1220)
+11-20 23:29:26.908  1376  3136 W Binder  : 	at android.os.Binder.execTransact(Binder.java:1179)
+11-20 23:29:26.908  1376  3136 V Binder  : Caught a RuntimeException from the binder stub implementation.
+11-20 23:29:26.908  1376  3136 D Test  : java.lang.SecurityException: Caller does not hold permission android.permission.MANAGE_ACCESSIBILITY
+11-20 23:29:26.908  1376  3136 I Test2  : 	at com.android.server.accessibility.AccessibilitySecurityPolicy.enforceCallingOrSelfPermission(AccessibilitySecurityPolicy.java:602)
+11-20 23:29:26.908  1376  3136 W Binder  : 	at com.android.server.accessibility.AccessibilityManagerService.unregisterSystemAction(AccessibilityManagerService.java:1271)
+11-20 23:29:26.908  1376  3136 E Test  : 	at android.view.accessibility.IAccessibilityManager$Stub.onTransact(IAccessibilityManager.java:836)
+11-20 23:29:26.908  1376  3136 F Test2  : 	at android.os.Binder.execTransactInternal(Binder.java:1220)
+11-20 23:29:26.908  1376  3136 W Binder  : 	at android.os.Binder.execTransact(Binder.java:1179)
+11-20 23:29:26.908  1376  3136 V Binder  : Caught a RuntimeException from the binder stub implementation.
+11-20 23:29:26.908  1376  3136 D Test  : java.lang.SecurityException: Caller does not hold permission android.permission.MANAGE_ACCESSIBILITY
+11-20 23:29:26.908  1376  3136 I Test2  : 	at com.android.server.accessibility.AccessibilitySecurityPolicy.enforceCallingOrSelfPermission(AccessibilitySecurityPolicy.java:602)
+11-20 23:29:26.908  1376  3136 W Binder  : 	at com.android.server.accessibility.AccessibilityManagerService.unregisterSystemAction(AccessibilityManagerService.java:1271)
+11-20 23:29:26.908  1376  3136 E Test  : 	at android.view.accessibility.IAccessibilityManager$Stub.onTransact(IAccessibilityManager.java:836)
+11-20 23:29:26.908  1376  3136 F Test2  : 	at android.os.Binder.execTransactInternal(Binder.java:1220)
+11-20 23:29:26.908  1376  3136 W Binder  : 	at android.os.Binder.execTransact(Binder.java:1179)
+11-20 23:29:26.908  1376  3136 V Binder  : Caught a RuntimeException from the binder stub implementation.
+11-20 23:29:26.908  1376  3136 D Test  : java.lang.SecurityException: Caller does not hold permission android.permission.MANAGE_ACCESSIBILITY
+11-20 23:29:26.908  1376  3136 I Test2  : 	at com.android.server.accessibility.AccessibilitySecurityPolicy.enforceCallingOrSelfPermission(AccessibilitySecurityPolicy.java:602)
+11-20 23:29:26.908  1376  3136 W Binder  : 	at com.android.server.accessibility.AccessibilityManagerService.unregisterSystemAction(AccessibilityManagerService.java:1271)
+11-20 23:29:26.908  1376  3136 E Test  : 	at android.view.accessibility.IAccessibilityManager$Stub.onTransact(IAccessibilityManager.java:836)
+11-20 23:29:26.908  1376  3136 F Test2  : 	at android.os.Binder.execTransactInternal(Binder.java:1220)
+11-20 23:29:26.908  1376  3136 W Binder  : 	at android.os.Binder.execTransact(Binder.java:1179)
+11-20 23:29:26.908  1376  3136 V Binder  : Caught a RuntimeException from the binder stub implementation.
+11-20 23:29:26.908  1376  3136 D Test  : java.lang.SecurityException: Caller does not hold permission android.permission.MANAGE_ACCESSIBILITY
+11-20 23:29:26.908  1376  3136 I Test2  : 	at com.android.server.accessibility.AccessibilitySecurityPolicy.enforceCallingOrSelfPermission(AccessibilitySecurityPolicy.java:602)
+11-20 23:29:26.908  1376  3136 W Binder  : 	at com.android.server.accessibility.AccessibilityManagerService.unregisterSystemAction(AccessibilityManagerService.java:1271)
+11-20 23:29:26.908  1376  3136 E Test  : 	at android.view.accessibility.IAccessibilityManager$Stub.onTransact(IAccessibilityManager.java:836)
+11-20 23:29:26.908  1376  3136 F Test2  : 	at android.os.Binder.execTransactInternal(Binder.java:1220)
+11-20 23:29:26.908  1376  3136 W Binder  : 	at android.os.Binder.execTransact(Binder.java:1179)
+11-20 23:29:26.908  1376  3136 V Binder  : Caught a RuntimeException from the binder stub implementation.
+11-20 23:29:26.908  1376  3136 D Test  : java.lang.SecurityException: Caller does not hold permission android.permission.MANAGE_ACCESSIBILITY
+11-20 23:29:26.908  1376  3136 I Test2  : 	at com.android.server.accessibility.AccessibilitySecurityPolicy.enforceCallingOrSelfPermission(AccessibilitySecurityPolicy.java:602)
+11-20 23:29:26.908  1376  3136 W Binder  : 	at com.android.server.accessibility.AccessibilityManagerService.unregisterSystemAction(AccessibilityManagerService.java:1271)
+11-20 23:29:26.908  1376  3136 E Test  : 	at android.view.accessibility.IAccessibilityManager$Stub.onTransact(IAccessibilityManager.java:836)
+11-20 23:29:26.908  1376  3136 F Test2  : 	at android.os.Binder.execTransactInternal(Binder.java:1220)
+11-20 23:29:26.908  1376  3136 W Binder  : 	at android.os.Binder.execTransact(Binder.java:1179)
+11-20 23:29:26.908  1376  3136 V Binder  : Caught a RuntimeException from the binder stub implementation.
+11-20 23:29:26.908  1376  3136 D Test  : java.lang.SecurityException: Caller does not hold permission android.permission.MANAGE_ACCESSIBILITY
+11-20 23:29:26.908  1376  3136 I Test2  : 	at com.android.server.accessibility.AccessibilitySecurityPolicy.enforceCallingOrSelfPermission(AccessibilitySecurityPolicy.java:602)
+11-20 23:29:26.908  1376  3136 W Binder  : 	at com.android.server.accessibility.AccessibilityManagerService.unregisterSystemAction(AccessibilityManagerService.java:1271)
+11-20 23:29:26.908  1376  3136 E Test  : 	at android.view.accessibility.IAccessibilityManager$Stub.onTransact(IAccessibilityManager.java:836)
+11-20 23:29:26.908  1376  3136 F Test2  : 	at android.os.Binder.execTransactInternal(Binder.java:1220)
+11-20 23:29:26.908  1376  3136 W Binder  : 	at android.os.Binder.execTransact(Binder.java:1179)
+
