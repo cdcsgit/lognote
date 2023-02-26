@@ -29,6 +29,9 @@ class AdbManager private constructor(){
         const val LOG_CMD = "logcat -v threadtime"
         const val LOG_CMD_MAX = 10
 
+        const val LOG_MOD_LOGCAT = 0
+        const val LOG_MOD_CMD = 0
+
         private val mInstance: AdbManager = AdbManager()
 
         fun getInstance(): AdbManager {
@@ -42,6 +45,15 @@ class AdbManager private constructor(){
 
     fun getDevices() {
         execute(makeExecuter(CMD_GET_DEVICES))
+    }
+
+    fun getLogMode(): Int {
+        if (mLogCmd.startsWith("CMD:")) {
+            return LOG_MOD_CMD
+        }
+        else {
+            return LOG_MOD_LOGCAT
+        }
     }
 
     fun connect() {

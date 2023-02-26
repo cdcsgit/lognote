@@ -6,11 +6,17 @@ import java.awt.*
 import java.awt.datatransfer.Clipboard
 import java.awt.datatransfer.StringSelection
 import java.awt.event.*
+import java.beans.PropertyChangeEvent
+import java.beans.PropertyChangeListener
 import java.io.File
+import java.nio.file.Path
+import java.nio.file.Paths
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 import javax.swing.*
+import javax.swing.event.DocumentEvent
+import javax.swing.event.DocumentListener
 import javax.swing.event.PopupMenuEvent
 import javax.swing.event.PopupMenuListener
 import javax.swing.plaf.ColorUIResource
@@ -161,6 +167,7 @@ class MainUI(title: String) : JFrame() {
     private val mPopupMenuHandler = PopupMenuHandler()
     private val mMouseHandler = MouseHandler()
     private val mComponentHandler = ComponentHandler()
+    private val mStatusChangeListener = StatusChangeListener()
 
     val mConfigManager = ConfigManager.getInstance()
     private val mColorManager = ColorManager.getInstance()
@@ -324,7 +331,9 @@ class MainUI(title: String) : JFrame() {
 
         createUI(title)
 
-        mAdbManager.getDevices()
+        if (mAdbManager.getLogMode() == AdbManager.LOG_MOD_LOGCAT) {
+            mAdbManager.getDevices()
+        }
     }
 
     private fun exit() {
@@ -420,7 +429,7 @@ class MainUI(title: String) : JFrame() {
         }
 
         try {
-            mConfigManager.setItem(ConfigManager.ITEM_ADB_DEVICE, mDeviceCombo.getItemAt(0).toString())
+            mConfigManager.setItem(ConfigManager.ITEM_ADB_DEVICE, mAdbManager.mTargetDevice)
         } catch (e: NullPointerException) {
             mConfigManager.setItem(ConfigManager.ITEM_ADB_DEVICE, "0.0.0.0")
         }
@@ -1007,7 +1016,9 @@ class MainUI(title: String) : JFrame() {
         mStatusMethod = JLabel("")
         mStatusMethod.isOpaque = true
         mStatusMethod.background = Color.DARK_GRAY
+        mStatusMethod.addPropertyChangeListener(mStatusChangeListener)
         mStatusTF = StatusTextField(Strings.NONE)
+        mStatusTF.document.addDocumentListener(mStatusChangeListener)
         mStatusTF.toolTipText = TooltipStrings.SAVED_FILE_TF
         mStatusTF.isEditable = false
         mStatusTF.border = BorderFactory.createEmptyBorder()
@@ -1401,7 +1412,40 @@ class MainUI(title: String) : JFrame() {
             mScrollbackLabel.text = null
         }
     }
-    
+
+    inner class StatusChangeListener : PropertyChangeListener, DocumentListener {
+        private var mMethod = ""
+        override fun propertyChange(evt: PropertyChangeEvent?) {
+            if (evt?.source == mStatusMethod && evt.propertyName == "text") {
+                mMethod = evt.newValue.toString().trim()
+            }
+        }
+
+        override fun insertUpdate(evt: DocumentEvent?) {
+            updateTitleBar(mMethod)
+        }
+
+        override fun removeUpdate(e: DocumentEvent?) {
+        }
+
+        override fun changedUpdate(evt: DocumentEvent?) {
+        }
+    }
+
+    private fun updateTitleBar(statusMethod: String) {
+        title = when (statusMethod) {
+            Strings.OPEN, Strings.FOLLOW, "${Strings.FOLLOW} ${Strings.STOP}" -> {
+                val path: Path = Paths.get(mStatusTF.text)
+                path.fileName.toString()
+            }
+            Strings.ADB, Strings.CMD, "${Strings.ADB} ${Strings.STOP}", "${Strings.CMD} ${Strings.STOP}" -> {
+                mAdbManager.mTargetDevice.ifEmpty { Main.NAME }
+            }
+            else -> {
+                Main.NAME
+            }
+        }
+    }
     private fun setLaF(laf:String) {
         ConfigManager.LaF = laf
         when (laf) {
@@ -1556,6 +1600,7 @@ class MainUI(title: String) : JFrame() {
 
     fun openFile(path: String, isAppend: Boolean) {
         println("Opening: $path, $isAppend")
+        mStatusMethod.text = " ${Strings.OPEN} "
         mFilteredTableModel.stopScan()
         mFilteredTableModel.stopFollow()
 
@@ -1575,7 +1620,6 @@ class MainUI(title: String) : JFrame() {
         else {
             mStatusMethod.background = Color(0xF0, 0xF0, 0x30)
         }
-        mStatusMethod.text = " ${Strings.OPEN} "
         enabledFollowBtn(true)
 
         repaint()
@@ -1607,6 +1651,13 @@ class MainUI(title: String) : JFrame() {
     }
 
     fun startAdbScan(reconnect: Boolean) {
+        if (mAdbManager.mLogCmd.startsWith("CMD:")) {
+            mStatusMethod.text = " ${Strings.CMD} "
+        }
+        else {
+            mStatusMethod.text = " ${Strings.ADB} "
+        }
+
         mFilteredTableModel.stopScan()
         mFilteredTableModel.stopFollow()
         mPauseToggle.isSelected = false
@@ -1623,16 +1674,17 @@ class MainUI(title: String) : JFrame() {
             mStatusMethod.background = Color(0x90, 0xE0, 0x90)
         }
 
-        if (mAdbManager.mLogCmd.startsWith("CMD:")) {
-            mStatusMethod.text = " ${Strings.CMD} "
-        }
-        else {
-            mStatusMethod.text = " ${Strings.ADB} "
-        }
         enabledFollowBtn(false)
     }
 
     fun stopAdbScan() {
+        if (mAdbManager.mLogCmd.startsWith("CMD:")) {
+            mStatusMethod.text = " ${Strings.CMD} ${Strings.STOP} "
+        }
+        else {
+            mStatusMethod.text = " ${Strings.ADB} ${Strings.STOP} "
+        }
+
         if (!mFilteredTableModel.isScanning()) {
             println("stopAdbScan : not adb scanning mode")
             return
@@ -1645,12 +1697,6 @@ class MainUI(title: String) : JFrame() {
             mStatusMethod.background = Color.LIGHT_GRAY
         }
 
-        if (mAdbManager.mLogCmd.startsWith("CMD:")) {
-            mStatusMethod.text = " ${Strings.CMD} ${Strings.STOP} "
-        }
-        else {
-            mStatusMethod.text = " ${Strings.ADB} ${Strings.STOP} "
-        }
         enabledFollowBtn(true)
     }
 
@@ -1680,6 +1726,7 @@ class MainUI(title: String) : JFrame() {
     }
 
     fun startFileFollow() {
+        mStatusMethod.text = " ${Strings.FOLLOW} "
         mFilteredTableModel.stopScan()
         mFilteredTableModel.stopFollow()
         mPauseFollowToggle.isSelected = false
@@ -1692,7 +1739,6 @@ class MainUI(title: String) : JFrame() {
             mStatusMethod.background = Color(0xA0, 0xA0, 0xF0)
         }
 
-        mStatusMethod.text = " ${Strings.FOLLOW} "
         enabledFollowBtn(true)
     }
 
@@ -1701,6 +1747,7 @@ class MainUI(title: String) : JFrame() {
             println("stopAdbScan : not file follow mode")
             return
         }
+        mStatusMethod.text = " ${Strings.FOLLOW} ${Strings.STOP} "
         mFilteredTableModel.stopFollow()
         if (ConfigManager.LaF == FLAT_DARK_LAF) {
             mStatusMethod.background = Color(0x50, 0x50, 0x50)
@@ -1708,7 +1755,6 @@ class MainUI(title: String) : JFrame() {
         else {
             mStatusMethod.background = Color.LIGHT_GRAY
         }
-        mStatusMethod.text = " ${Strings.FOLLOW} ${Strings.STOP} "
         enabledFollowBtn(true)
     }
 
