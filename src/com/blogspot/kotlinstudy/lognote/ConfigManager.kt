@@ -248,7 +248,7 @@ class ConfigManager private constructor() {
         }
 
         for (i in 0 until FiltersManager.MAX_FILTERS) {
-            val title = mProperties[ITEM_CMDS_TITLE + i] as? String
+            val title = mProperties[ITEM_FILTERS_TITLE + i] as? String
             if (title == null) {
                 break
             }
