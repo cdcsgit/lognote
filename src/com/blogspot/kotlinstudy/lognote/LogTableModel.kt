@@ -1523,7 +1523,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                                 pid = textSplited[PID_INDEX]
                                 tid = textSplited[TID_INDEX]
                             } else {
-                                level = if (tempLine.startsWith("LogNote")) {
+                                level = if (tempLine.startsWith(Main.NAME)) {
                                     LEVEL_ERROR
                                 } else {
                                     LEVEL_VERBOSE
@@ -1791,7 +1791,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                                 pid = textSplited[PID_INDEX]
                                 tid = textSplited[TID_INDEX]
                             } else {
-                                level = if (tempLine.startsWith("LogNote")) {
+                                level = if (tempLine.startsWith(Main.NAME)) {
                                     LEVEL_ERROR
                                 } else {
                                     LEVEL_VERBOSE

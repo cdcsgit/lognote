@@ -6,7 +6,7 @@ import javax.swing.JOptionPane
 
 
 class AdbManager private constructor(){
-    val DEFAULT_PREFIX = "LogNote"
+    val DEFAULT_PREFIX = Main.NAME
     var mPrefix: String = DEFAULT_PREFIX
     var mAdbCmd = "adb"
     var mLogSavePath:String = "."

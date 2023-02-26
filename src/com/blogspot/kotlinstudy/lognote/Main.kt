@@ -5,6 +5,7 @@ import javax.swing.SwingUtilities
 class Main {
     companion object {
         const val VERSION: String = "0.2.9"
+        const val NAME: String = "LogNote"
 
         @JvmStatic
         fun main(args: Array<String>) {
@@ -12,7 +13,7 @@ class Main {
             System.setProperty("swing.aatext", "true")
 
             SwingUtilities.invokeLater {
-                val mainUI = MainUI("LogNote")
+                val mainUI = MainUI(NAME)
 
                 mainUI.isVisible = true
                 mainUI.updateUIAfterVisible(args)
