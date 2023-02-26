@@ -28,9 +28,9 @@ Default current path
 
 <br/>
 
-# Adb setting
-Set the adb path(to view online log) and Add logcat cmds \
-![lognote_adb_settings](https://user-images.githubusercontent.com/75207513/202910620-8979f74f-ac1b-4504-857a-2cdcacdc9b06.png)
+# Log cmd setting
+Set the adb path(to view online log) and Add log cmds \
+![lognote_log_cmd_setting](https://user-images.githubusercontent.com/75207513/221393860-31c5efd3-4f5d-4295-b711-d7ec0cd693e1.png)
 
 <br/>
 
@@ -85,6 +85,11 @@ Dark \
 \
 Setting > Appearance \
 ![lognote_appearance_settings](https://user-images.githubusercontent.com/75207513/183441901-de5dbfb4-1b4d-4dca-97a6-cee050d4bd28.png)
+
+<br/>
+
+# Button Icons
+![Lognote_Icon](https://user-images.githubusercontent.com/75207513/221393900-f4f0268f-2085-443a-96f8-fcaae8123dbc.gif)
 
 <br/>
 
