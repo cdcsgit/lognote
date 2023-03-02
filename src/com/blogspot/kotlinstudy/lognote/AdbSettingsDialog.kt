@@ -1,8 +1,7 @@
 package com.blogspot.kotlinstudy.lognote
 
 import java.awt.*
-import java.awt.event.ActionEvent
-import java.awt.event.ActionListener
+import java.awt.event.*
 import java.io.File
 import javax.swing.*
 import javax.swing.table.DefaultTableCellRenderer
@@ -31,7 +30,22 @@ class AdbSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} ${S
 
     inner class LogCmdTableModel(logCmds: Array<Array<Any>>, columnNames: Array<String>) : DefaultTableModel(logCmds, columnNames) {
         override fun isCellEditable(row: Int, column: Int): Boolean {
-            return column != 0 && row != 0
+            return false
+        }
+    }
+
+    inner class LogCmdMouseHandler() : MouseAdapter() {
+        override fun mouseClicked(e: MouseEvent?) {
+            if (e != null) {
+                if (e.clickCount == 2) {
+                    if (mLogCmdTable.selectedRow > 0) {
+                        val logCmdDialog = LogCmdDialog(this@AdbSettingsDialog)
+                        logCmdDialog.setLocationRelativeTo(this@AdbSettingsDialog)
+                        logCmdDialog.isVisible = true
+                    }
+                }
+            }
+            super.mouseClicked(e)
         }
     }
 
@@ -96,6 +110,7 @@ class AdbSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} ${S
         val renderer = DefaultTableCellRenderer()
         renderer.horizontalAlignment = JLabel.CENTER
         mLogCmdTable.columnModel.getColumn(0).cellRenderer = renderer
+        mLogCmdTable.addMouseListener(LogCmdMouseHandler())
 
         mLogCmdTableModel.rowCount = AdbManager.LOG_CMD_MAX
         mLogCmdTable.columnModel.getColumn(0).preferredWidth = 70
@@ -246,6 +261,136 @@ class AdbSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} ${S
             dispose()
         } else if (e?.source == mCancelBtn) {
             dispose()
+        }
+    }
+
+    inner class LogCmdDialog(parent: JDialog) :JDialog(parent, Strings.LOG_CMD, true), ActionListener, FocusListener {
+        private var mAdbRadio: JRadioButton
+        private var mCmdRadio: JRadioButton
+
+        private var mAdbTF: JTextField
+        private var mCmdTF: JTextField
+
+        private var mCmdBtn: ColorButton
+
+        private var mOkBtn: ColorButton
+        private var mCancelBtn: ColorButton
+
+        init {
+            val rowHeight = 30
+            mAdbRadio = JRadioButton(Strings.ADB)
+            mAdbRadio.preferredSize = Dimension(60, rowHeight)
+            mCmdRadio = JRadioButton(Strings.CMD)
+
+            val buttonGroup = ButtonGroup()
+            buttonGroup.add(mAdbRadio)
+            buttonGroup.add(mCmdRadio)
+
+            mAdbTF = JTextField()
+            mAdbTF.preferredSize = Dimension(488, rowHeight)
+            mAdbTF.addFocusListener(this)
+            mCmdTF = JTextField()
+            mCmdTF.addFocusListener(this)
+
+            val initCmd = mLogCmdTable.getValueAt(mLogCmdTable.selectedRow, 1) as String?
+            if (initCmd?.startsWith("CMD:") == true) {
+                mCmdTF.text = initCmd.substring(4)
+                mCmdRadio.isSelected = true
+            } else {
+                mAdbTF.text = initCmd
+                mAdbRadio.isSelected = true
+            }
+
+            mCmdBtn = ColorButton(Strings.SELECT)
+            mCmdBtn.addActionListener(this)
+            mCmdBtn.preferredSize = Dimension(mCmdBtn.preferredSize.width, rowHeight)
+
+            mOkBtn = ColorButton(Strings.OK)
+            mOkBtn.addActionListener(this)
+            mCancelBtn = ColorButton(Strings.CANCEL)
+            mCancelBtn.addActionListener(this)
+
+            val panel1 = JPanel(GridLayout(2, 1, 0, 2))
+            panel1.add(mAdbRadio)
+            panel1.add(mCmdRadio)
+
+            val panel2 = JPanel(GridLayout(2, 1, 0, 2))
+            panel2.add(mAdbTF)
+            panel2.add(mCmdTF)
+
+            val panel3 = JPanel(GridLayout(2, 1, 0, 2))
+            panel3.add(JPanel())
+            panel3.add(mCmdBtn)
+
+            val cmdPathPanel = JPanel(FlowLayout(FlowLayout.LEFT))
+            cmdPathPanel.add(panel1)
+            cmdPathPanel.add(panel2)
+            cmdPathPanel.add(panel3)
+
+            val pathPanel = JPanel()
+            pathPanel.layout = BoxLayout(pathPanel, BoxLayout.Y_AXIS)
+            pathPanel.add(cmdPathPanel, BorderLayout.NORTH)
+
+            val cmdPanel = JPanel(BorderLayout())
+            cmdPanel.add(pathPanel, BorderLayout.NORTH)
+
+            val confirmPanel = JPanel(FlowLayout(FlowLayout.RIGHT))
+            confirmPanel.preferredSize = Dimension(400, 40)
+            confirmPanel.alignmentX = JPanel.RIGHT_ALIGNMENT
+            confirmPanel.add(mOkBtn)
+            confirmPanel.add(mCancelBtn)
+
+            val panel = JPanel(BorderLayout())
+            panel.add(cmdPanel, BorderLayout.CENTER)
+            panel.add(confirmPanel, BorderLayout.SOUTH)
+
+            contentPane.add(panel)
+            pack()
+
+            Utils.installKeyStrokeEscClosing(this)
+        }
+
+        override fun actionPerformed(e: ActionEvent?) {
+            if (e?.source == mCmdBtn) {
+                val fileDialog = FileDialog(this@LogCmdDialog, Strings.CMD, FileDialog.LOAD)
+                fileDialog.isVisible = true
+                if (fileDialog.file != null) {
+                    val file = File(fileDialog.directory + fileDialog.file)
+                    println("command : ${file.absolutePath}")
+                    mCmdTF.text = file.absolutePath
+                } else {
+                    println("Cancel Open")
+                }
+            } else if (e?.source == mOkBtn) {
+                val text = if (mCmdRadio.isSelected) {
+                    if (mCmdTF.text.isNotEmpty()) {
+                        "CMD:${mCmdTF.text}"
+                    }
+                    else {
+                        ""
+                    }
+                }
+                else {
+                    mAdbTF.text
+                }
+                mLogCmdTable.setValueAt(text, mLogCmdTable.selectedRow, 1)
+                dispose()
+            } else if (e?.source == mCancelBtn) {
+                dispose()
+            }
+        }
+
+        override fun focusGained(e: FocusEvent?) {
+            if (e?.source == mAdbTF) {
+                mAdbRadio.isSelected = true
+            }
+            else if (e?.source == mCmdTF) {
+                mCmdRadio.isSelected = true
+            }
+        }
+
+        override fun focusLost(e: FocusEvent?) {
+
         }
     }
 }
