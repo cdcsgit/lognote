@@ -43,7 +43,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
     private var mLogItems:MutableList<LogItem> = mutableListOf()
     private var mBaseModel:LogTableModel? = baseModel
     var mLogFile:File? = null
-    private val mAdbManager = AdbManager.getInstance()
+    private val mLogCmdManager = LogCmdManager.getInstance()
     private val mBookmarkManager = BookmarkManager.getInstance()
 
     private val mEventListeners = ArrayList<LogTableModelListener>()
@@ -1435,7 +1435,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
             makePattenPrintValue()
 
             var currLogFile: File? = mLogFile
-            var bufferedReader = BufferedReader(InputStreamReader(mAdbManager.mProcessLogcat!!.inputStream))
+            var bufferedReader = BufferedReader(InputStreamReader(mLogCmdManager.mProcessLogcat!!.inputStream))
             var line: String?
             var num = 0
             var saveNum = 0
@@ -1463,12 +1463,12 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
 
                     if (line == null && mMainUI.isRestartAdbLogcat()) {
                         println("line is Null : $line")
-                        if (mAdbManager.mProcessLogcat == null || !mAdbManager.mProcessLogcat!!.isAlive) {
+                        if (mLogCmdManager.mProcessLogcat == null || !mLogCmdManager.mProcessLogcat!!.isAlive) {
                             if (mMainUI.isRestartAdbLogcat()) {
                                 Thread.sleep(5000)
                                 mMainUI.restartAdbLogcat()
-                                if (mAdbManager.mProcessLogcat?.inputStream != null) {
-                                    bufferedReader = BufferedReader(InputStreamReader(mAdbManager.mProcessLogcat?.inputStream!!))
+                                if (mLogCmdManager.mProcessLogcat?.inputStream != null) {
+                                    bufferedReader = BufferedReader(InputStreamReader(mLogCmdManager.mProcessLogcat?.inputStream!!))
                                 }
                                 else {
                                     println("startScan : inputStream is Null")

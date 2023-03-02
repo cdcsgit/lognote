@@ -8,7 +8,7 @@ import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.DefaultTableModel
 
 
-class AdbSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} ${Strings.SETTING}", true), ActionListener {
+class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} ${Strings.SETTING}", true), ActionListener {
     private var mAdbCmdBtn: ColorButton
     private var mAdbSaveBtn: ColorButton
     private var mOkBtn: ColorButton
@@ -39,8 +39,8 @@ class AdbSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} ${S
             if (e != null) {
                 if (e.clickCount == 2) {
                     if (mLogCmdTable.selectedRow > 0) {
-                        val logCmdDialog = LogCmdDialog(this@AdbSettingsDialog)
-                        logCmdDialog.setLocationRelativeTo(this@AdbSettingsDialog)
+                        val logCmdDialog = LogCmdDialog(this@LogCmdSettingsDialog)
+                        logCmdDialog.setLocationRelativeTo(this@LogCmdSettingsDialog)
                         logCmdDialog.isVisible = true
                     }
                 }
@@ -49,7 +49,7 @@ class AdbSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} ${S
         }
     }
 
-    private val mAdbManager = AdbManager.getInstance()
+    private val mLogCmdManager = LogCmdManager.getInstance()
     private val mConfigManager = ConfigManager.getInstance()
     private val mMainUI = parent
 
@@ -71,18 +71,18 @@ class AdbSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} ${S
         mPrefixLabel = JLabel("Prefix")
         mPrefixLabel2 = JLabel("Default : LogNote, Do not use \\ / : * ? \" < > |")
 
-        mAdbCmdTF = JTextField(mAdbManager.mAdbCmd)
+        mAdbCmdTF = JTextField(mLogCmdManager.mAdbCmd)
         mAdbCmdTF.preferredSize = Dimension(488, rowHeight)
-        mAdbSaveTF = JTextField(mAdbManager.mLogSavePath)
+        mAdbSaveTF = JTextField(mLogCmdManager.mLogSavePath)
         mAdbSaveTF.preferredSize = Dimension(488, rowHeight)
-        mPrefixTF = JTextField(mAdbManager.mPrefix)
+        mPrefixTF = JTextField(mLogCmdManager.mPrefix)
         mPrefixTF.preferredSize = Dimension(300, rowHeight)
 
         val columnNames = arrayOf("Num", "Cmd")
 
         // logCmds num = AdbManager.LOG_CMD_MAX
         val logCmds = arrayOf(
-                arrayOf<Any>("1(fixed)", AdbManager.LOG_CMD),
+                arrayOf<Any>("1(fixed)", LogCmdManager.LOG_CMD),
                 arrayOf<Any>("2", ""),
                 arrayOf<Any>("3", ""),
                 arrayOf<Any>("4", ""),
@@ -112,7 +112,7 @@ class AdbSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} ${S
         mLogCmdTable.columnModel.getColumn(0).cellRenderer = renderer
         mLogCmdTable.addMouseListener(LogCmdMouseHandler())
 
-        mLogCmdTableModel.rowCount = AdbManager.LOG_CMD_MAX
+        mLogCmdTableModel.rowCount = LogCmdManager.LOG_CMD_MAX
         mLogCmdTable.columnModel.getColumn(0).preferredWidth = 70
         mLogCmdTable.columnModel.getColumn(1).preferredWidth = 330
 
@@ -199,7 +199,7 @@ class AdbSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} ${S
 
     override fun actionPerformed(e: ActionEvent?) {
         if (e?.source == mAdbCmdBtn) {
-            val fileDialog = FileDialog(this@AdbSettingsDialog, "Adb command", FileDialog.LOAD)
+            val fileDialog = FileDialog(this@LogCmdSettingsDialog, "Adb command", FileDialog.LOAD)
             fileDialog.isVisible = true
             if (fileDialog.file != null) {
                 val file = File(fileDialog.directory + fileDialog.file)
@@ -215,15 +215,15 @@ class AdbSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} ${S
             chooser.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
             chooser.isAcceptAllFileFilterUsed = false
 
-            if (chooser.showOpenDialog(this@AdbSettingsDialog) == JFileChooser.APPROVE_OPTION) {
+            if (chooser.showOpenDialog(this@LogCmdSettingsDialog) == JFileChooser.APPROVE_OPTION) {
                 println("getSelectedFile() : ${chooser.selectedFile}")
                 mAdbSaveTF.text = chooser.selectedFile.absolutePath
             } else {
                 println("No Selection ")
             }
         } else if (e?.source == mOkBtn) {
-            mAdbManager.mAdbCmd = mAdbCmdTF.text
-            mAdbManager.mLogSavePath = mAdbSaveTF.text
+            mLogCmdManager.mAdbCmd = mAdbCmdTF.text
+            mLogCmdManager.mLogSavePath = mAdbSaveTF.text
             val prefix = mPrefixTF.text.trim()
 
             mPrefixLabel2 = JLabel("Default : LogNote, Do not use \\ / : * ? \" < > |")
@@ -241,10 +241,10 @@ class AdbSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} ${S
             }
 
             if (prefix.isEmpty()) {
-                mAdbManager.mPrefix = mAdbManager.DEFAULT_PREFIX
+                mLogCmdManager.mPrefix = mLogCmdManager.DEFAULT_PREFIX
             }
             else {
-                mAdbManager.mPrefix = prefix
+                mLogCmdManager.mPrefix = prefix
             }
 
             for (idx in 0 until mLogCmdTable.rowCount) {
@@ -253,7 +253,7 @@ class AdbSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} ${S
             mConfigManager.saveConfig()
 
             val keys = arrayOf(ConfigManager.ITEM_ADB_CMD, ConfigManager.ITEM_ADB_LOG_SAVE_PATH, ConfigManager.ITEM_ADB_PREFIX, ConfigManager.ITEM_ADB_LOG_CMD)
-            val values = arrayOf(mAdbManager.mAdbCmd, mAdbManager.mLogSavePath, mAdbManager.mPrefix, mAdbManager.mLogCmd)
+            val values = arrayOf(mLogCmdManager.mAdbCmd, mLogCmdManager.mLogSavePath, mLogCmdManager.mPrefix, mLogCmdManager.mLogCmd)
 
             mConfigManager.saveItems(keys, values)
             mMainUI.updateLogCmdCombo(true)

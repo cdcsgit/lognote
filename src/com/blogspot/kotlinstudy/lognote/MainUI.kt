@@ -172,7 +172,7 @@ class MainUI(title: String) : JFrame() {
     val mConfigManager = ConfigManager.getInstance()
     private val mColorManager = ColorManager.getInstance()
 
-    private val mAdbManager = AdbManager.getInstance()
+    private val mLogCmdManager = LogCmdManager.getInstance()
     lateinit var mFiltersManager:FiltersManager
     lateinit var mCmdsManager:CmdsManager
 
@@ -197,7 +197,7 @@ class MainUI(title: String) : JFrame() {
 
     init {
         loadConfigOnCreate()
-        mAdbManager.setMainUI(this)
+        mLogCmdManager.setMainUI(this)
 
         val laf = mConfigManager.getItem(ConfigManager.ITEM_LOOK_AND_FEEL)
 
@@ -224,36 +224,36 @@ class MainUI(title: String) : JFrame() {
 
         val cmd = mConfigManager.getItem(ConfigManager.ITEM_ADB_CMD)
         if (!cmd.isNullOrEmpty()) {
-            mAdbManager.mAdbCmd = cmd
+            mLogCmdManager.mAdbCmd = cmd
         } else {
             val os = System.getProperty("os.name")
             println("OS : $os")
             if (os.lowercase().contains("windows")) {
-                mAdbManager.mAdbCmd = "adb.exe"
+                mLogCmdManager.mAdbCmd = "adb.exe"
             } else {
-                mAdbManager.mAdbCmd = "adb"
+                mLogCmdManager.mAdbCmd = "adb"
             }
         }
-        mAdbManager.addEventListener(AdbHandler())
+        mLogCmdManager.addEventListener(AdbHandler())
         val logSavePath = mConfigManager.getItem(ConfigManager.ITEM_ADB_LOG_SAVE_PATH)
         if (logSavePath.isNullOrEmpty()) {
-            mAdbManager.mLogSavePath = "."
+            mLogCmdManager.mLogSavePath = "."
         } else {
-            mAdbManager.mLogSavePath = logSavePath
+            mLogCmdManager.mLogSavePath = logSavePath
         }
 
         val logCmd = mConfigManager.getItem(ConfigManager.ITEM_ADB_LOG_CMD)
         if (logCmd.isNullOrEmpty()) {
-            mAdbManager.mLogCmd = AdbManager.LOG_CMD
+            mLogCmdManager.mLogCmd = LogCmdManager.LOG_CMD
         } else {
-            mAdbManager.mLogCmd = logCmd
+            mLogCmdManager.mLogCmd = logCmd
         }
 
         val prefix = mConfigManager.getItem(ConfigManager.ITEM_ADB_PREFIX)
         if (prefix.isNullOrEmpty()) {
-            mAdbManager.mPrefix = mAdbManager.DEFAULT_PREFIX
+            mLogCmdManager.mPrefix = mLogCmdManager.DEFAULT_PREFIX
         } else {
-            mAdbManager.mPrefix = prefix
+            mLogCmdManager.mPrefix = prefix
         }
 
         var prop = mConfigManager.getItem(ConfigManager.ITEM_FRAME_X)
@@ -331,8 +331,8 @@ class MainUI(title: String) : JFrame() {
 
         createUI(title)
 
-        if (mAdbManager.getLogMode() == AdbManager.LOG_MOD_LOGCAT) {
-            mAdbManager.getDevices()
+        if (mLogCmdManager.getLogMode() == LogCmdManager.LOG_MOD_LOGCAT) {
+            mLogCmdManager.getDevices()
         }
     }
 
@@ -340,7 +340,7 @@ class MainUI(title: String) : JFrame() {
         saveConfigOnDestroy()
         mFilteredTableModel.stopScan()
         mFullTableModel.stopScan()
-        mAdbManager.stop()
+        mLogCmdManager.stop()
         exitProcess(0)
     }
 
@@ -429,7 +429,7 @@ class MainUI(title: String) : JFrame() {
         }
 
         try {
-            mConfigManager.setItem(ConfigManager.ITEM_ADB_DEVICE, mAdbManager.mTargetDevice)
+            mConfigManager.setItem(ConfigManager.ITEM_ADB_DEVICE, mLogCmdManager.mTargetDevice)
         } catch (e: NullPointerException) {
             mConfigManager.setItem(ConfigManager.ITEM_ADB_DEVICE, "0.0.0.0")
         }
@@ -437,7 +437,7 @@ class MainUI(title: String) : JFrame() {
         try {
             mConfigManager.setItem(ConfigManager.ITEM_ADB_LOG_CMD, mLogCmdCombo.editor.item.toString())
         } catch (e: NullPointerException) {
-            mConfigManager.setItem(ConfigManager.ITEM_ADB_LOG_CMD, AdbManager.LOG_CMD)
+            mConfigManager.setItem(ConfigManager.ITEM_ADB_LOG_CMD, LogCmdManager.LOG_CMD)
         }
 
         mConfigManager.setItem(ConfigManager.ITEM_DIVIDER_LOCATION, mLogSplitPane.dividerLocation.toString())
@@ -1167,7 +1167,7 @@ class MainUI(title: String) : JFrame() {
         mDeviceCombo.insertItemAt(targetDevice, 0)
         mDeviceCombo.selectedIndex = 0
 
-        if (mAdbManager.mDevices.contains(targetDevice)) {
+        if (mLogCmdManager.mDevices.contains(targetDevice)) {
             mDeviceStatus.text = Strings.CONNECTED
             setDeviceComboColor(true)
         } else {
@@ -1439,7 +1439,7 @@ class MainUI(title: String) : JFrame() {
                 path.fileName.toString()
             }
             Strings.ADB, Strings.CMD, "${Strings.ADB} ${Strings.STOP}", "${Strings.CMD} ${Strings.STOP}" -> {
-                mAdbManager.mTargetDevice.ifEmpty { Main.NAME }
+                mLogCmdManager.mTargetDevice.ifEmpty { Main.NAME }
             }
             else -> {
                 Main.NAME
@@ -1631,11 +1631,11 @@ class MainUI(title: String) : JFrame() {
         val dtf = DateTimeFormatter.ofPattern("yyyyMMdd_HH.mm.ss")
         var device = mDeviceCombo.selectedItem!!.toString()
         device = device.substringBefore(":")
-        if (mAdbManager.mPrefix.isEmpty()) {
-            mAdbManager.mPrefix = mAdbManager.DEFAULT_PREFIX
+        if (mLogCmdManager.mPrefix.isEmpty()) {
+            mLogCmdManager.mPrefix = mLogCmdManager.DEFAULT_PREFIX
         }
 
-        val filePath = "${mAdbManager.mLogSavePath}/${mAdbManager.mPrefix}_${device}_${dtf.format(LocalDateTime.now())}.txt"
+        val filePath = "${mLogCmdManager.mLogSavePath}/${mLogCmdManager.mPrefix}_${device}_${dtf.format(LocalDateTime.now())}.txt"
         var file = File(filePath)
         var idx = 1
         var filePathSaved = filePath
@@ -1651,7 +1651,7 @@ class MainUI(title: String) : JFrame() {
     }
 
     fun startAdbScan(reconnect: Boolean) {
-        if (mAdbManager.mLogCmd.startsWith("CMD:")) {
+        if (mLogCmdManager.mLogCmd.startsWith("CMD:")) {
             mStatusMethod.text = " ${Strings.CMD} "
         }
         else {
@@ -1663,8 +1663,8 @@ class MainUI(title: String) : JFrame() {
         mPauseToggle.isSelected = false
         setSaveLogFile()
         if (reconnect) {
-            mAdbManager.mTargetDevice = mDeviceCombo.selectedItem!!.toString()
-            mAdbManager.startLogcat()
+            mLogCmdManager.mTargetDevice = mDeviceCombo.selectedItem!!.toString()
+            mLogCmdManager.startLogcat()
         }
         mFilteredTableModel.startScan()
         if (ConfigManager.LaF == FLAT_DARK_LAF) {
@@ -1678,7 +1678,7 @@ class MainUI(title: String) : JFrame() {
     }
 
     fun stopAdbScan() {
-        if (mAdbManager.mLogCmd.startsWith("CMD:")) {
+        if (mLogCmdManager.mLogCmd.startsWith("CMD:")) {
             mStatusMethod.text = " ${Strings.CMD} ${Strings.STOP} "
         }
         else {
@@ -1706,9 +1706,9 @@ class MainUI(title: String) : JFrame() {
 
     fun restartAdbLogcat() {
         println("Restart Adb Logcat")
-        mAdbManager.stop()
-        mAdbManager.mTargetDevice = mDeviceCombo.selectedItem!!.toString()
-        mAdbManager.startLogcat()
+        mLogCmdManager.stop()
+        mLogCmdManager.mTargetDevice = mDeviceCombo.selectedItem!!.toString()
+        mLogCmdManager.startLogcat()
     }
 
     fun pauseAdbScan(pause: Boolean) {
@@ -1839,7 +1839,7 @@ class MainUI(title: String) : JFrame() {
                     exit()
                 }
                 mItemLogCmd, mItemLogFile -> {
-                    val settingsDialog = AdbSettingsDialog(this@MainUI)
+                    val settingsDialog = LogCmdSettingsDialog(this@MainUI)
                     settingsDialog.setLocationRelativeTo(this@MainUI)
                     settingsDialog.isVisible = true
                 }
@@ -1878,15 +1878,15 @@ class MainUI(title: String) : JFrame() {
                 }
                 mAdbConnectBtn -> {
                     stopAdbScan()
-                    mAdbManager.mTargetDevice = mDeviceCombo.selectedItem!!.toString()
-                    mAdbManager.connect()
+                    mLogCmdManager.mTargetDevice = mDeviceCombo.selectedItem!!.toString()
+                    mLogCmdManager.connect()
                 }
                 mAdbRefreshBtn -> {
-                    mAdbManager.getDevices()
+                    mLogCmdManager.getDevices()
                 }
                 mAdbDisconnectBtn -> {
                     stopAdbScan()
-                    mAdbManager.disconnect()
+                    mLogCmdManager.disconnect()
                 }
                 mScrollbackApplyBtn -> {
                     try {
@@ -1905,7 +1905,7 @@ class MainUI(title: String) : JFrame() {
                 }
                 mStopBtn -> {
                     stopAdbScan()
-                    mAdbManager.stop()
+                    mLogCmdManager.stop()
     //            } else if (p0?.source == mPauseBtn) {
                 }
                 mClearViewsBtn -> {
@@ -2340,7 +2340,7 @@ class MainUI(title: String) : JFrame() {
             var logCmd: String?
             val currLogCmd = mLogCmdCombo.editor.item.toString()
             mLogCmdCombo.removeAllItems()
-            for (i in 0 until AdbManager.LOG_CMD_MAX) {
+            for (i in 0 until LogCmdManager.LOG_CMD_MAX) {
                 logCmd = mConfigManager.getItem("${ConfigManager.ITEM_ADB_LOG_CMD}_$i")
                 if (logCmd.isNullOrBlank()) {
                     continue
@@ -2350,16 +2350,16 @@ class MainUI(title: String) : JFrame() {
             }
             mLogCmdCombo.selectedIndex = -1
             if (currLogCmd.isBlank()) {
-                mLogCmdCombo.editor.item = mAdbManager.mLogCmd
+                mLogCmdCombo.editor.item = mLogCmdManager.mLogCmd
             }
             else {
                 mLogCmdCombo.editor.item = currLogCmd
             }
         }
 
-        mLogCmdCombo.toolTipText = "\"${mAdbManager.mLogCmd}\"\n\n${TooltipStrings.LOG_CMD_COMBO}"
+        mLogCmdCombo.toolTipText = "\"${mLogCmdManager.mLogCmd}\"\n\n${TooltipStrings.LOG_CMD_COMBO}"
 
-        if (mAdbManager.mLogCmd == mLogCmdCombo.editor.item.toString()) {
+        if (mLogCmdManager.mLogCmd == mLogCmdCombo.editor.item.toString()) {
             if (ConfigManager.LaF == FLAT_DARK_LAF) {
                 mLogCmdCombo.editor.editorComponent.foreground = Color(0x7070C0)
             }
@@ -2415,16 +2415,16 @@ class MainUI(title: String) : JFrame() {
                         mFilteredTableModel.mFilterTid = item
                     }
                     p0.source == mLogCmdCombo.editor.editorComponent -> {
-                        if (mAdbManager.mLogCmd == mLogCmdCombo.editor.item.toString()) {
+                        if (mLogCmdManager.mLogCmd == mLogCmdCombo.editor.item.toString()) {
                             reconnectAdb()
                         }
                         else {
                             val item = mLogCmdCombo.editor.item.toString().trim()
 
                             if (item.isEmpty()) {
-                                mLogCmdCombo.editor.item = AdbManager.LOG_CMD
+                                mLogCmdCombo.editor.item = LogCmdManager.LOG_CMD
                             }
-                            mAdbManager.mLogCmd = mLogCmdCombo.editor.item.toString()
+                            mLogCmdManager.mLogCmd = mLogCmdCombo.editor.item.toString()
                             updateLogCmdCombo(false)
                         }
                     }
@@ -2562,32 +2562,32 @@ class MainUI(title: String) : JFrame() {
         }
     }
 
-    internal inner class AdbHandler : AdbManager.AdbEventListener {
-        override fun changedStatus(event: AdbManager.AdbEvent) {
+    internal inner class AdbHandler : LogCmdManager.AdbEventListener {
+        override fun changedStatus(event: LogCmdManager.AdbEvent) {
             when (event.cmd) {
-                AdbManager.CMD_CONNECT -> {
-                    mAdbManager.getDevices()
+                LogCmdManager.CMD_CONNECT -> {
+                    mLogCmdManager.getDevices()
                 }
-                AdbManager.CMD_GET_DEVICES -> {
+                LogCmdManager.CMD_GET_DEVICES -> {
                     if (IsCreatingUI) {
                         return
                     }
                     var selectedItem = mDeviceCombo.selectedItem
                     mDeviceCombo.removeAllItems()
-                    for (item in mAdbManager.mDevices) {
+                    for (item in mLogCmdManager.mDevices) {
                         mDeviceCombo.addItem(item)
                     }
                     if (selectedItem == null) {
                         selectedItem = ""
                     }
 
-                    if (mAdbManager.mDevices.contains(selectedItem.toString())) {
+                    if (mLogCmdManager.mDevices.contains(selectedItem.toString())) {
                         mDeviceStatus.text = Strings.CONNECTED
                         setDeviceComboColor(true)
                     } else {
                         var isExist = false
                         val deviceChk = "$selectedItem:"
-                        for (device in mAdbManager.mDevices) {
+                        for (device in mLogCmdManager.mDevices) {
                             if (device.contains(deviceChk)) {
                                 isExist = true
                                 selectedItem = device
@@ -2604,8 +2604,8 @@ class MainUI(title: String) : JFrame() {
                     }
                     mDeviceCombo.selectedItem = selectedItem
                 }
-                AdbManager.CMD_DISCONNECT -> {
-                    mAdbManager.getDevices()
+                LogCmdManager.CMD_DISCONNECT -> {
+                    mLogCmdManager.getDevices()
                 }
             }
         }
@@ -2679,7 +2679,7 @@ class MainUI(title: String) : JFrame() {
                     }
                     val combo = mLogCmdCombo
                     val item = combo.selectedItem!!.toString()
-                    mAdbManager.mLogCmd = item
+                    mLogCmdManager.mLogCmd = item
                     updateLogCmdCombo(false)
                 }
             }

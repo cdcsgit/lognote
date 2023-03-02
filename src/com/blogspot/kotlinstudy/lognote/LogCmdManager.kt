@@ -5,7 +5,7 @@ import java.util.*
 import javax.swing.JOptionPane
 
 
-class AdbManager private constructor(){
+class LogCmdManager private constructor(){
     val DEFAULT_PREFIX = Main.NAME
     var mPrefix: String = DEFAULT_PREFIX
     var mAdbCmd = "adb"
@@ -32,9 +32,9 @@ class AdbManager private constructor(){
         const val LOG_MOD_LOGCAT = 0
         const val LOG_MOD_CMD = 0
 
-        private val mInstance: AdbManager = AdbManager()
+        private val mInstance: LogCmdManager = LogCmdManager()
 
-        fun getInstance(): AdbManager {
+        fun getInstance(): LogCmdManager {
             return mInstance
         }
     }

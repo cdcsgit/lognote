@@ -48,9 +48,9 @@ class CmdsManager (mainUI: MainUI, logPanel: LogPanel): CustomListManager (mainU
         val selection = list.selectedValue
         var cmd = selection.mValue
         if (cmd.startsWith("adb ")) {
-            cmd = cmd.replaceFirst("adb ", "${AdbManager.getInstance().mAdbCmd} -s ${AdbManager.getInstance().mTargetDevice} ")
+            cmd = cmd.replaceFirst("adb ", "${LogCmdManager.getInstance().mAdbCmd} -s ${LogCmdManager.getInstance().mTargetDevice} ")
         } else if (cmd.startsWith("adb.exe ")) {
-            cmd = cmd.replaceFirst("adb.exe ", "${AdbManager.getInstance().mAdbCmd} -s ${AdbManager.getInstance().mTargetDevice} ")
+            cmd = cmd.replaceFirst("adb.exe ", "${LogCmdManager.getInstance().mAdbCmd} -s ${LogCmdManager.getInstance().mTargetDevice} ")
         }
 
         if (cmd.isNotEmpty()) {

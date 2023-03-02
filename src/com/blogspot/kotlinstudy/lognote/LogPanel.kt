@@ -217,9 +217,9 @@ class LogPanel constructor(mainUI: MainUI, tableModel: LogTableModel, basePanel:
                 button.addActionListener(ActionListener { e: ActionEvent? ->
                     var cmd = (e?.source as TableBarButton).mValue
                     if (cmd.startsWith("adb ")) {
-                        cmd = cmd.replaceFirst("adb ", "${AdbManager.getInstance().mAdbCmd} -s ${AdbManager.getInstance().mTargetDevice} ")
+                        cmd = cmd.replaceFirst("adb ", "${LogCmdManager.getInstance().mAdbCmd} -s ${LogCmdManager.getInstance().mTargetDevice} ")
                     } else if (cmd.startsWith("adb.exe ")) {
-                        cmd = cmd.replaceFirst("adb.exe ", "${AdbManager.getInstance().mAdbCmd} -s ${AdbManager.getInstance().mTargetDevice} ")
+                        cmd = cmd.replaceFirst("adb.exe ", "${LogCmdManager.getInstance().mAdbCmd} -s ${LogCmdManager.getInstance().mTargetDevice} ")
                     }
 
                     if (cmd.isNotEmpty()) {
