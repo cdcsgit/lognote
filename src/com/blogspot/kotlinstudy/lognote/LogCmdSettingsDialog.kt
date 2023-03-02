@@ -82,7 +82,7 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} 
 
         // logCmds num = AdbManager.LOG_CMD_MAX
         val logCmds = arrayOf(
-                arrayOf<Any>("1(fixed)", LogCmdManager.LOG_CMD),
+                arrayOf<Any>("1(fixed)", LogCmdManager.DEFAULT_LOGCAT),
                 arrayOf<Any>("2", ""),
                 arrayOf<Any>("3", ""),
                 arrayOf<Any>("4", ""),
@@ -118,7 +118,7 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} 
 
         mLogCmdLabel1 = JLabel("<html><b><font color=\"#7070FF\">logcat -v threadtime</font></b> <br>&nbsp;&nbsp;&nbsp;&nbsp => RUN : <b><font color=\"#7070FF\">adb -s DEVICE logcat -v threadtime</font></b></html>")
         mLogCmdLabel1.preferredSize = Dimension(488, mLogCmdLabel1.preferredSize.height)
-        mLogCmdLabel2 = JLabel("<html><b><font color=\"#7070FF\">CMD:cmdABC</font></b> <br>&nbsp;&nbsp;&nbsp;&nbsp => RUN : <b><font color=\"#7070FF\">cmdABC DEVICE</font></b></html>")
+        mLogCmdLabel2 = JLabel("<html><b><font color=\"#7070FF\">${LogCmdManager.TYPE_CMD_PREFIX}cmdABC</font></b> <br>&nbsp;&nbsp;&nbsp;&nbsp => RUN : <b><font color=\"#7070FF\">cmdABC DEVICE</font></b></html>")
         mLogCmdLabel2.preferredSize = Dimension(488, mLogCmdLabel2.preferredSize.height)
 
         val panel1 = JPanel(GridLayout(4, 1, 0, 2))
@@ -241,7 +241,7 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} 
             }
 
             if (prefix.isEmpty()) {
-                mLogCmdManager.mPrefix = mLogCmdManager.DEFAULT_PREFIX
+                mLogCmdManager.mPrefix = LogCmdManager.DEFAULT_PREFIX
             }
             else {
                 mLogCmdManager.mPrefix = prefix
@@ -293,8 +293,8 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} 
             mCmdTF.addFocusListener(this)
 
             val initCmd = mLogCmdTable.getValueAt(mLogCmdTable.selectedRow, 1) as String?
-            if (initCmd?.startsWith("CMD:") == true) {
-                mCmdTF.text = initCmd.substring(4)
+            if (initCmd?.startsWith(LogCmdManager.TYPE_CMD_PREFIX) == true) {
+                mCmdTF.text = initCmd.substring(LogCmdManager.TYPE_CMD_PREFIX_LEN)
                 mCmdRadio.isSelected = true
             } else {
                 mAdbTF.text = initCmd
@@ -364,7 +364,7 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} 
             } else if (e?.source == mOkBtn) {
                 val text = if (mCmdRadio.isSelected) {
                     if (mCmdTF.text.isNotEmpty()) {
-                        "CMD:${mCmdTF.text}"
+                        "${LogCmdManager.TYPE_CMD_PREFIX}${mCmdTF.text}"
                     }
                     else {
                         ""

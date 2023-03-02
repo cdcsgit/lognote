@@ -244,14 +244,14 @@ class MainUI(title: String) : JFrame() {
 
         val logCmd = mConfigManager.getItem(ConfigManager.ITEM_ADB_LOG_CMD)
         if (logCmd.isNullOrEmpty()) {
-            mLogCmdManager.mLogCmd = LogCmdManager.LOG_CMD
+            mLogCmdManager.mLogCmd = LogCmdManager.DEFAULT_LOGCAT
         } else {
             mLogCmdManager.mLogCmd = logCmd
         }
 
         val prefix = mConfigManager.getItem(ConfigManager.ITEM_ADB_PREFIX)
         if (prefix.isNullOrEmpty()) {
-            mLogCmdManager.mPrefix = mLogCmdManager.DEFAULT_PREFIX
+            mLogCmdManager.mPrefix = LogCmdManager.DEFAULT_PREFIX
         } else {
             mLogCmdManager.mPrefix = prefix
         }
@@ -331,7 +331,7 @@ class MainUI(title: String) : JFrame() {
 
         createUI(title)
 
-        if (mLogCmdManager.getLogMode() == LogCmdManager.LOG_MOD_LOGCAT) {
+        if (mLogCmdManager.getType() == LogCmdManager.TYPE_LOGCAT) {
             mLogCmdManager.getDevices()
         }
     }
@@ -437,7 +437,7 @@ class MainUI(title: String) : JFrame() {
         try {
             mConfigManager.setItem(ConfigManager.ITEM_ADB_LOG_CMD, mLogCmdCombo.editor.item.toString())
         } catch (e: NullPointerException) {
-            mConfigManager.setItem(ConfigManager.ITEM_ADB_LOG_CMD, LogCmdManager.LOG_CMD)
+            mConfigManager.setItem(ConfigManager.ITEM_ADB_LOG_CMD, LogCmdManager.DEFAULT_LOGCAT)
         }
 
         mConfigManager.setItem(ConfigManager.ITEM_DIVIDER_LOCATION, mLogSplitPane.dividerLocation.toString())
@@ -1632,7 +1632,7 @@ class MainUI(title: String) : JFrame() {
         var device = mDeviceCombo.selectedItem!!.toString()
         device = device.substringBefore(":")
         if (mLogCmdManager.mPrefix.isEmpty()) {
-            mLogCmdManager.mPrefix = mLogCmdManager.DEFAULT_PREFIX
+            mLogCmdManager.mPrefix = LogCmdManager.DEFAULT_PREFIX
         }
 
         val filePath = "${mLogCmdManager.mLogSavePath}/${mLogCmdManager.mPrefix}_${device}_${dtf.format(LocalDateTime.now())}.txt"
@@ -1651,7 +1651,7 @@ class MainUI(title: String) : JFrame() {
     }
 
     fun startAdbScan(reconnect: Boolean) {
-        if (mLogCmdManager.mLogCmd.startsWith("CMD:")) {
+        if (mLogCmdManager.getType() == LogCmdManager.TYPE_CMD) {
             mStatusMethod.text = " ${Strings.CMD} "
         }
         else {
@@ -1678,7 +1678,7 @@ class MainUI(title: String) : JFrame() {
     }
 
     fun stopAdbScan() {
-        if (mLogCmdManager.mLogCmd.startsWith("CMD:")) {
+        if (mLogCmdManager.getType() == LogCmdManager.TYPE_CMD) {
             mStatusMethod.text = " ${Strings.CMD} ${Strings.STOP} "
         }
         else {
@@ -2422,7 +2422,7 @@ class MainUI(title: String) : JFrame() {
                             val item = mLogCmdCombo.editor.item.toString().trim()
 
                             if (item.isEmpty()) {
-                                mLogCmdCombo.editor.item = LogCmdManager.LOG_CMD
+                                mLogCmdCombo.editor.item = LogCmdManager.DEFAULT_LOGCAT
                             }
                             mLogCmdManager.mLogCmd = mLogCmdCombo.editor.item.toString()
                             updateLogCmdCombo(false)

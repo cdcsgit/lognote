@@ -6,7 +6,6 @@ import javax.swing.JOptionPane
 
 
 class LogCmdManager private constructor(){
-    val DEFAULT_PREFIX = Main.NAME
     var mPrefix: String = DEFAULT_PREFIX
     var mAdbCmd = "adb"
     var mLogSavePath:String = "."
@@ -17,6 +16,8 @@ class LogCmdManager private constructor(){
     private var mMainUI: MainUI? = null
 
     companion object {
+        const val DEFAULT_PREFIX = Main.NAME
+
         const val EVENT_NONE = 0
         const val EVENT_SUCCESS = 1
         const val EVENT_FAIL = 2
@@ -26,11 +27,13 @@ class LogCmdManager private constructor(){
         const val CMD_LOGCAT = 3
         const val CMD_DISCONNECT = 4
 
-        const val LOG_CMD = "logcat -v threadtime"
+        const val DEFAULT_LOGCAT = "logcat -v threadtime"
         const val LOG_CMD_MAX = 10
 
-        const val LOG_MOD_LOGCAT = 0
-        const val LOG_MOD_CMD = 0
+        const val TYPE_CMD_PREFIX = "CMD:"
+        const val TYPE_CMD_PREFIX_LEN = 4
+        const val TYPE_LOGCAT = 0
+        const val TYPE_CMD = 1
 
         private val mInstance: LogCmdManager = LogCmdManager()
 
@@ -47,12 +50,12 @@ class LogCmdManager private constructor(){
         execute(makeExecuter(CMD_GET_DEVICES))
     }
 
-    fun getLogMode(): Int {
-        if (mLogCmd.startsWith("CMD:")) {
-            return LOG_MOD_CMD
+    fun getType(): Int {
+        return if (mLogCmd.startsWith(TYPE_CMD_PREFIX)) {
+            TYPE_CMD
         }
         else {
-            return LOG_MOD_LOGCAT
+            TYPE_LOGCAT
         }
     }
 
@@ -176,16 +179,16 @@ class LogCmdManager private constructor(){
                     mProcessLogcat?.destroy()
 
                     val cmd = if (mTargetDevice.isNotBlank()) {
-                        if (mLogCmd.startsWith("CMD:")) {
-                            "${mLogCmd.substring(4)} $mTargetDevice"
+                        if (getType() == TYPE_CMD) {
+                            "${mLogCmd.substring(TYPE_CMD_PREFIX_LEN)} $mTargetDevice"
                         }
                         else {
                             "$mAdbCmd -s $mTargetDevice $mLogCmd"
                         }
                     }
                     else {
-                        if (mLogCmd.startsWith("CMD:")) {
-                            mLogCmd.substring(4)
+                        if (getType() == TYPE_CMD) {
+                            mLogCmd.substring(TYPE_CMD_PREFIX_LEN)
                         }
                         else {
                             "$mAdbCmd $mLogCmd"
