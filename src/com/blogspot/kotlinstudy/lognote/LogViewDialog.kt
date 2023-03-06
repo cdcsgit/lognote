@@ -11,7 +11,9 @@ class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent
     val mTextArea = JTextArea()
     private val mScrollPane = JScrollPane(mTextArea)
     private val mMainUI = parent as MainUI
-    private val mPopupMenu = PopUpLogViewDialog()
+    private val mPopupMenu: PopUpLogViewDialog
+    private val mIncludeAction: Action
+    private val mAddIncludeKey = "add_include"
 
     init {
         isUndecorated = true
@@ -44,7 +46,27 @@ class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent
         contentPane.add(mScrollPane)
         pack()
 
+
+        mIncludeAction = object : AbstractAction(mAddIncludeKey) {
+            override fun actionPerformed(evt: ActionEvent?) {
+                var text = mMainUI.getTextShowLogCombo()
+                if (text.isNotEmpty()) {
+                    text += "|" + mTextArea.selectedText
+                    mMainUI.setTextShowLogCombo(text)
+                    mMainUI.applyShowLogCombo(true)
+                }
+            }
+        }
+
+        val key = mAddIncludeKey
+        mTextArea.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                KeyStroke.getKeyStroke(KeyEvent.VK_F, KeyEvent.CTRL_MASK or KeyEvent.SHIFT_MASK), key)
+
+        mTextArea.actionMap.put(key, mIncludeAction)
+
         Utils.installKeyStrokeEscClosing(this)
+
+        mPopupMenu = PopUpLogViewDialog()
     }
 
     internal inner class KeyHandler: KeyAdapter() {
@@ -84,7 +106,8 @@ class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent
         private val mActionHandler = ActionHandler()
 
         init {
-            mIncludeItem.addActionListener(mActionHandler)
+            mIncludeItem.addActionListener(mIncludeAction)
+            mIncludeItem.mnemonic = KeyEvent.VK_I
             add(mIncludeItem)
             mExcludeItem.addActionListener(mActionHandler)
             add(mExcludeItem)
@@ -102,18 +125,12 @@ class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent
         internal inner class ActionHandler : ActionListener {
             override fun actionPerformed(p0: ActionEvent?) {
                 when (p0?.source) {
-                    mIncludeItem -> {
-                        var text = mMainUI.getTextShowLogCombo()
-                        text += "|" + mTextArea.selectedText
-                        mMainUI.setTextShowLogCombo(text)
-                        mMainUI.applyShowLogCombo()
-                    }
                     mExcludeItem -> {
                         if (!mTextArea.selectedText.isNullOrEmpty()) {
                             var text = mMainUI.getTextShowLogCombo()
                             text += "|-" + mTextArea.selectedText
                             mMainUI.setTextShowLogCombo(text)
-                            mMainUI.applyShowLogCombo()
+                            mMainUI.applyShowLogCombo(true)
                         }
                     }
                     mSearchAddItem -> {
@@ -167,6 +184,5 @@ class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent
 
             super.mouseReleased(p0)
         }
-
     }
 }

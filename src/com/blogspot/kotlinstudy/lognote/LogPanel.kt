@@ -186,7 +186,7 @@ class LogPanel constructor(mainUI: MainUI, tableModel: LogTableModel, basePanel:
                     else {
                         mMainUI.setTextShowLogCombo((e.source as TableBarButton).mValue)
                     }
-                    mMainUI.applyShowLogCombo()
+                    mMainUI.applyShowLogCombo(false)
                 })
                 mCtrlMainPanel.add(button)
             }

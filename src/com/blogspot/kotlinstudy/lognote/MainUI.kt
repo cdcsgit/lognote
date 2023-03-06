@@ -2305,17 +2305,29 @@ class MainUI(title: String) : JFrame() {
         mItemSearch.state = mSearchPanel.isVisible
     }
 
-    fun applyShowLogCombo() {
-        val item = mShowLogCombo.selectedItem!!.toString()
-        resetComboItem(mShowLogCombo, item)
-        mFilteredTableModel.mFilterLog = item
+    fun applyShowLogCombo(isCheck: Boolean) {
+        if (isCheck) {
+            if (mShowLogToggle.isSelected) {
+                val item = mShowLogCombo.selectedItem!!.toString()
+                resetComboItem(mShowLogCombo, item)
+                mFilteredTableModel.mFilterLog = item
+            }
+            else {
+                println("Show log toggle is not selected")
+            }
+        }
+        else {
+            val item = mShowLogCombo.selectedItem!!.toString()
+            resetComboItem(mShowLogCombo, item)
+            mFilteredTableModel.mFilterLog = item
+        }
     }
 
     fun applyShowLogComboEditor() {
         val editorCom = mShowLogCombo.editor?.editorComponent as JTextComponent
         val text = editorCom.text
         setTextShowLogCombo(text)
-        applyShowLogCombo()
+        applyShowLogCombo(false)
     }
     fun setDeviceComboColor(isConnected: Boolean) {
         if (isConnected) {

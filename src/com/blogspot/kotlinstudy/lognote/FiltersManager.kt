@@ -79,7 +79,7 @@ class FiltersManager (mainUI: MainUI, logPanel: LogPanel): CustomListManager (ma
                 else {
                     mMainUI.setTextShowLogCombo(selection.mValue)
                 }
-                mMainUI.applyShowLogCombo()
+                mMainUI.applyShowLogCombo(false)
             }
         }
     }
@@ -107,7 +107,7 @@ class FiltersManager (mainUI: MainUI, logPanel: LogPanel): CustomListManager (ma
                 else {
                     mMainUI.setTextShowLogCombo(selection.mValue)
                 }
-                mMainUI.applyShowLogCombo()
+                mMainUI.applyShowLogCombo(false)
             }
         }
     }
