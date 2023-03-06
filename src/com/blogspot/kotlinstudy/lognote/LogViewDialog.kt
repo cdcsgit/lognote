@@ -61,7 +61,6 @@ class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent
         val key = mAddIncludeKey
         mTextArea.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
                 KeyStroke.getKeyStroke(KeyEvent.VK_F, KeyEvent.CTRL_MASK or KeyEvent.SHIFT_MASK), key)
-
         mTextArea.actionMap.put(key, mIncludeAction)
 
         Utils.installKeyStrokeEscClosing(this)

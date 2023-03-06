@@ -116,6 +116,9 @@ class LogPanel constructor(mainUI: MainUI, tableModel: LogTableModel, basePanel:
         mScrollPane.isOpaque = false
         mScrollPane.viewport.isOpaque = false
 
+        mScrollPane.getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, KeyEvent.CTRL_MASK), "none")
+        mScrollPane.getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, KeyEvent.CTRL_MASK), "none")
+
         val ctrlPanel = JPanel()
         ctrlPanel.layout = BoxLayout(ctrlPanel, BoxLayout.Y_AXIS)
         ctrlPanel.add(mCtrlMainPanel)

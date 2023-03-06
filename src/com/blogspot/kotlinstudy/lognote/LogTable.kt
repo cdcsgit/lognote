@@ -36,8 +36,9 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         columnLog.cellRenderer = LogCellRenderer()
         intercellSpacing = Dimension(0, 0)
 
-        val enter = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0)
-        getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(enter, "none")
+        getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "none")
+        getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, KeyEvent.CTRL_MASK), "none")
+        getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, KeyEvent.CTRL_MASK), "none")
 
         addMouseListener(MouseHandler())
         addKeyListener(TableKeyHandler())

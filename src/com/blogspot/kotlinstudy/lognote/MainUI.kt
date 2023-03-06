@@ -609,32 +609,6 @@ class MainUI(title: String) : JFrame() {
             }
         })
 
-        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher { p0 ->
-            if (p0?.keyCode == KeyEvent.VK_PAGE_DOWN && (p0.modifiers and KeyEvent.CTRL_MASK) != 0) {
-                mFilteredLogPanel.goToLast()
-                mFullLogPanel.goToLast()
-            } else if (p0?.keyCode == KeyEvent.VK_PAGE_UP && (p0.modifiers and KeyEvent.CTRL_MASK) != 0) {
-                mFilteredLogPanel.goToFirst()
-                mFullLogPanel.goToFirst()
-//                } else if (p0?.keyCode == KeyEvent.VK_N && (p0.modifiers and KeyEvent.CTRL_MASK) != 0) {
-
-            } else if (p0?.keyCode == KeyEvent.VK_L && (p0.modifiers and KeyEvent.CTRL_MASK) != 0) {
-                mDeviceCombo.requestFocus()
-            } else if (p0?.keyCode == KeyEvent.VK_R && (p0.modifiers and KeyEvent.CTRL_MASK) != 0) {
-                reconnectAdb()
-            } else if (p0?.keyCode == KeyEvent.VK_G && (p0.modifiers and KeyEvent.CTRL_MASK) != 0) {
-                val goToDialog = GoToDialog(this@MainUI)
-                goToDialog.setLocationRelativeTo(this@MainUI)
-                goToDialog.isVisible = true
-                if (goToDialog.line != -1) {
-                    goToLine(goToDialog.line)
-                } else {
-                    println("Cancel Goto Line")
-                }
-            }
-
-            false
-        }
 
         mFilterPanel = JPanel()
         mFilterLeftPanel = JPanel()
@@ -1321,7 +1295,8 @@ class MainUI(title: String) : JFrame() {
         add(mLogSplitPane, BorderLayout.CENTER)
         add(mStatusBar, BorderLayout.SOUTH)
 
-        registerSearchStroke()
+        registerKeyStroke()
+        registerSearchKeyStroke()
 
         IsCreatingUI = false
     }
@@ -2927,8 +2902,12 @@ class MainUI(title: String) : JFrame() {
                 if (aFlag) {
                     mSearchCombo.requestFocus()
                     mSearchCombo.editor.selectAll()
-
-                    mFilteredTableModel.mFilterSearchLog = mSearchCombo.selectedItem!!.toString()
+                    if (mSearchCombo.selectedItem != null) {
+                        mFilteredTableModel.mFilterSearchLog = mSearchCombo.selectedItem!!.toString()
+                    }
+                    else {
+                        mFilteredTableModel.mFilterSearchLog = ""
+                    }
                 } else {
                     mFilteredTableModel.mFilterSearchLog = ""
                 }
@@ -3048,7 +3027,7 @@ class MainUI(title: String) : JFrame() {
         }
     }
 
-    private fun registerSearchStroke() {
+    private fun registerSearchKeyStroke() {
         var stroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0)
         var actionMapKey = javaClass.name + ":SEARCH_CLOSING"
         var action: Action = object : AbstractAction() {
@@ -3090,6 +3069,78 @@ class MainUI(title: String) : JFrame() {
                 if (mSearchPanel.isVisible) {
                     mSearchPanel.moveToNext()
                 }
+            }
+        }
+        rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(stroke, actionMapKey)
+        rootPane.actionMap.put(actionMapKey, action)
+    }
+
+    private fun registerKeyStroke() {
+        var stroke = KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, KeyEvent.CTRL_MASK)
+        var actionMapKey = javaClass.name + ":GO_TO_LAST"
+        var action: Action = object : AbstractAction() {
+            override fun actionPerformed(event: ActionEvent) {
+                mFilteredLogPanel.goToLast()
+                mFullLogPanel.goToLast()
+            }
+        }
+        rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(stroke, actionMapKey)
+        rootPane.actionMap.put(actionMapKey, action)
+
+        stroke = KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, KeyEvent.CTRL_MASK)
+        actionMapKey = javaClass.name + ":GO_TO_FIRST"
+        action = object : AbstractAction() {
+            override fun actionPerformed(event: ActionEvent) {
+                mFilteredLogPanel.goToFirst()
+                mFullLogPanel.goToFirst()
+            }
+        }
+        rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(stroke, actionMapKey)
+        rootPane.actionMap.put(actionMapKey, action)
+
+        stroke = KeyStroke.getKeyStroke(KeyEvent.VK_R, KeyEvent.CTRL_MASK)
+        actionMapKey = javaClass.name + ":RECONNECT"
+        action = object : AbstractAction() {
+            override fun actionPerformed(event: ActionEvent) {
+                reconnectAdb()
+            }
+        }
+        rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(stroke, actionMapKey)
+        rootPane.actionMap.put(actionMapKey, action)
+
+        stroke = KeyStroke.getKeyStroke(KeyEvent.VK_G, KeyEvent.CTRL_MASK)
+        actionMapKey = javaClass.name + ":GO_TO_LINE"
+        action = object : AbstractAction() {
+            override fun actionPerformed(event: ActionEvent) {
+                val goToDialog = GoToDialog(this@MainUI)
+                goToDialog.setLocationRelativeTo(this@MainUI)
+                goToDialog.isVisible = true
+                if (goToDialog.line != -1) {
+                    goToLine(goToDialog.line)
+                } else {
+                    println("Cancel Goto Line")
+                }
+            }
+        }
+        rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(stroke, actionMapKey)
+        rootPane.actionMap.put(actionMapKey, action)
+
+        stroke = KeyStroke.getKeyStroke(KeyEvent.VK_BACK_QUOTE, KeyEvent.CTRL_MASK)
+        actionMapKey = javaClass.name + ":FOCUS_LOG_COMBO"
+        action = object : AbstractAction() {
+            override fun actionPerformed(event: ActionEvent) {
+                mShowLogCombo.requestFocus()
+            }
+        }
+        rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(stroke, actionMapKey)
+        rootPane.actionMap.put(actionMapKey, action)
+
+        stroke = KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, KeyEvent.CTRL_MASK)
+        actionMapKey = javaClass.name + ":CLEAR_VIEWS"
+        action = object : AbstractAction() {
+            override fun actionPerformed(event: ActionEvent) {
+                mFilteredTableModel.clearItems()
+                repaint()
             }
         }
         rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(stroke, actionMapKey)
