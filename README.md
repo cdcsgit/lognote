@@ -1,10 +1,10 @@
 # LogNote
 
-Android logcat viewer for Windows, Linux, Mac
+Log viewer, Android logcat viewer for Windows, Linux, Mac
+
+Filtered log viewer
 
 Online / offline logcat view
-
-Text file view(log viewer)
 
 Regular expression filter
 
