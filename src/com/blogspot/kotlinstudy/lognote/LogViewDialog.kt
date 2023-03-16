@@ -46,13 +46,20 @@ class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent
         contentPane.add(mScrollPane)
         pack()
 
-
         mIncludeAction = object : AbstractAction(mAddIncludeKey) {
             override fun actionPerformed(evt: ActionEvent?) {
-                var text = mMainUI.getTextShowLogCombo()
-                if (text.isNotEmpty()) {
-                    text += "|" + mTextArea.selectedText
-                    mMainUI.setTextShowLogCombo(text)
+                if (evt != null) {
+                    val textSplit = evt.actionCommand.split(":")
+                    var comboText = mMainUI.getTextShowLogCombo()
+                    if (comboText.isNotEmpty()) {
+                        comboText += "|"
+                    }
+                    comboText += if (textSplit.size == 2) {
+                        "${textSplit[1].trim()}${mTextArea.selectedText}"
+                    } else {
+                        mTextArea.selectedText
+                    }
+                    mMainUI.setTextShowLogCombo(comboText)
                     mMainUI.applyShowLogCombo(true)
                 }
             }
@@ -108,6 +115,15 @@ class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent
             mIncludeItem.addActionListener(mIncludeAction)
             mIncludeItem.mnemonic = KeyEvent.VK_I
             add(mIncludeItem)
+            for (idx in 0..8) {
+                val num = idx + 1
+                val item = JMenuItem("${Strings.ADD_INCLUDE} : #$num")
+                item.isOpaque = true
+                item.foreground = Color.decode(ColorManager.getInstance().mFilterTableColor.StrFilteredFGs[num])
+                item.background = Color.decode(ColorManager.getInstance().mFilterTableColor.StrFilteredBGs[num])
+                item.addActionListener(mIncludeAction)
+                add(item)
+            }
             mExcludeItem.addActionListener(mActionHandler)
             add(mExcludeItem)
             mSearchAddItem.addActionListener(mActionHandler)

@@ -2071,9 +2071,24 @@ class MainUI(title: String) : JFrame() {
         lateinit var mAddColorTagItems: ArrayList<JMenuItem>
         var mCombo: FilterComboBox
         private val mActionHandler = ActionHandler()
+        private val mAddColorTagAction: Action
+        private val mAddColorTagKey = "add_color_tag"
 
         init {
             mCombo = combo
+            mAddColorTagAction = object : AbstractAction(mAddColorTagKey) {
+                override fun actionPerformed(evt: ActionEvent?) {
+                    if (evt != null) {
+                        val textSplit = evt.actionCommand.split(":")
+                        if (textSplit.size == 2) {
+                            mCombo.addColorTag(textSplit[1].trim())
+                            if (mCombo == mShowLogCombo) {
+                                applyShowLogComboEditor()
+                            }
+                        }
+                    }
+                }
+            }
             mSelectAllItem = JMenuItem("Select All")
             mSelectAllItem.addActionListener(mActionHandler)
             add(mSelectAllItem)
@@ -2087,7 +2102,6 @@ class MainUI(title: String) : JFrame() {
             mRemoveColorTagsItem.addActionListener(mActionHandler)
             add(mRemoveColorTagsItem)
 
-
             if (mCombo.mUseColorTag) {
                 mRemoveOneColorTagItem = JMenuItem("Remove Color Tag")
                 mRemoveOneColorTagItem.addActionListener(mActionHandler)
@@ -2099,12 +2113,13 @@ class MainUI(title: String) : JFrame() {
                     item.isOpaque = true
                     item.foreground = Color.decode(ColorManager.getInstance().mFilterTableColor.StrFilteredFGs[num])
                     item.background = Color.decode(ColorManager.getInstance().mFilterTableColor.StrFilteredBGs[num])
-                    item.addActionListener(mActionHandler)
+                    item.addActionListener(mAddColorTagAction)
                     mAddColorTagItems.add(item)
                     add(item)
                 }
             }
         }
+
         internal inner class ActionHandler : ActionListener {
             override fun actionPerformed(p0: ActionEvent?) {
                 when (p0?.source) {
@@ -2131,18 +2146,6 @@ class MainUI(title: String) : JFrame() {
                         mCombo.removeColorTag()
                         if (mCombo == mShowLogCombo) {
                             applyShowLogComboEditor()
-                        }
-                    }
-                    else -> {
-                        val item = p0?.source as JMenuItem
-                        if (mAddColorTagItems.contains(item)) {
-                            val textSplit = item.text.split(":")
-                            if (textSplit.size == 2) {
-                                mCombo.addColorTag(textSplit[1].trim())
-                                if (mCombo == mShowLogCombo) {
-                                    applyShowLogComboEditor()
-                                }
-                            }
                         }
                     }
                 }
