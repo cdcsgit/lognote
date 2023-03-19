@@ -3079,6 +3079,8 @@ class MainUI(title: String) : JFrame() {
     }
 
     private fun registerKeyStroke() {
+        mScrollbackTF.getInputMap(JTextField.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, KeyEvent.CTRL_MASK), "none")
+
         var stroke = KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, KeyEvent.CTRL_MASK)
         var actionMapKey = javaClass.name + ":GO_TO_LAST"
         var action: Action = object : AbstractAction() {

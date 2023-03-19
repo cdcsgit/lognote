@@ -88,6 +88,7 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
         mEditorComponent.toolTipText = toolTipText
         mEditorComponent.addKeyListener(KeyHandler())
         mEditorComponent.document.addDocumentListener(DocumentHandler())
+        mEditorComponent.getInputMap(WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, KeyEvent.CTRL_MASK), "none")
     }
 
     fun setEnabledFilter(enabled: Boolean) {
