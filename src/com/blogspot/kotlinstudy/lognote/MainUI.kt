@@ -1410,7 +1410,11 @@ class MainUI(title: String) : JFrame() {
     private fun updateTitleBar(statusMethod: String) {
         title = when (statusMethod) {
             Strings.OPEN, Strings.FOLLOW, "${Strings.FOLLOW} ${Strings.STOP}" -> {
-                val path: Path = Paths.get(mStatusTF.text)
+                val statusText = mStatusTF.text
+                val files = statusText.split("|")
+                val lastFile = files.last().trim()
+                val path: Path = Paths.get(lastFile)
+                println("Paths.get $lastFile, ${path.fileName}")
                 path.fileName.toString()
             }
             Strings.ADB, Strings.CMD, "${Strings.ADB} ${Strings.STOP}", "${Strings.CMD} ${Strings.STOP}" -> {
