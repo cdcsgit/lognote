@@ -2098,11 +2098,17 @@ class MainUI(title: String) : JFrame() {
             mPasteItem.addActionListener(mActionHandler)
             add(mPasteItem)
             mRemoveColorTagsItem = JMenuItem("Remove All Color Tags")
+            mRemoveColorTagsItem.isOpaque = true
+            mRemoveColorTagsItem.foreground = Color.decode(ColorManager.getInstance().mFilterTableColor.StrFilteredFGs[0])
+            mRemoveColorTagsItem.background = Color.decode(ColorManager.getInstance().mFilterTableColor.StrFilteredBGs[0])
             mRemoveColorTagsItem.addActionListener(mActionHandler)
             add(mRemoveColorTagsItem)
 
             if (mCombo.mUseColorTag) {
                 mRemoveOneColorTagItem = JMenuItem("Remove Color Tag")
+                mRemoveOneColorTagItem.isOpaque = true
+                mRemoveOneColorTagItem.foreground = Color.decode(ColorManager.getInstance().mFilterTableColor.StrFilteredFGs[0])
+                mRemoveOneColorTagItem.background = Color.decode(ColorManager.getInstance().mFilterTableColor.StrFilteredBGs[0])
                 mRemoveOneColorTagItem.addActionListener(mActionHandler)
                 add(mRemoveOneColorTagItem)
                 mAddColorTagItems = arrayListOf()
