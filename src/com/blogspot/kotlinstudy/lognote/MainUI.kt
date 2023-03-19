@@ -1694,14 +1694,14 @@ class MainUI(title: String) : JFrame() {
         mFilteredTableModel.pauseScan(pause)
     }
 
-    fun setFollowLogFile(filePath: String) {
-        mFullTableModel.setLogFile(filePath)
-        mFilteredTableModel.setLogFile(filePath)
-        mStatusTF.text = filePath
-    }
+    fun startFileFollow(filePath: String) {
+        if (filePath.isNotEmpty()) {
+            mFullTableModel.setLogFile(filePath)
+            mFilteredTableModel.setLogFile(filePath)
+            mStatusMethod.text = " ${Strings.FOLLOW} "
+            mStatusTF.text = filePath
+        }
 
-    fun startFileFollow() {
-        mStatusMethod.text = " ${Strings.FOLLOW} "
         mFilteredTableModel.stopScan()
         mFilteredTableModel.stopFollow()
         mPauseFollowToggle.isSelected = false
@@ -1770,8 +1770,7 @@ class MainUI(title: String) : JFrame() {
                     fileDialog.isVisible = true
                     if (fileDialog.file != null) {
                         val file = File(fileDialog.directory + fileDialog.file)
-                        setFollowLogFile(file.absolutePath)
-                        startFileFollow()
+                        startFileFollow(file.absolutePath)
                     } else {
                         println("Cancel Open")
                     }
@@ -1942,7 +1941,7 @@ class MainUI(title: String) : JFrame() {
 //                    mCmdsManager.showDialog()
 //                }
                 mStartFollowBtn -> {
-                    startFileFollow()
+                    startFileFollow("")
                 }
                 mStopFollowBtn -> {
                     stopFileFollow()
