@@ -31,16 +31,16 @@ Default current path
 # Mode
 1. Read Cmd: Read the result after executing the command (ex: adb logcat)
 1. Read File: Read a file (File > Open, read multiple files continuously)
-   - Multiple files : drag & drop or File > Open files
-   - Append files : ctrl + drag & drop or File > append files
+   - Multiple files : Drag & drop or File > Open files
+   - Append files : Ctrl + drag & drop or File > append files
 1. Follow File: Continue reading logs added to the file (ex: adb logcat > a.log, File > Follow - a.log)
    - Used when you want to read the log of processing results of commands other than adb
 
 <br/>
 
 # Shortcut keys
-1. Ctrl + B: Bookmark on/off, multiple selected lines can be set at the same time
-1. Enter: View log dialog (check long (width) log, select string and add to log combo (filter))
+1. Ctrl + B: Toggle Bookmarks, multiple selected lines can be set at the same time
+1. Enter: View log dialog (Show long log(with the ends cut off), select string and add to log combo(filter))
 1. Ctrl+F: Show find toolbar
     - F3: Move to previous item
     - F4: Move to next item
