@@ -1850,7 +1850,7 @@ class MainUI(title: String) : JFrame() {
                     aboutDialog.isVisible = true
                 }
                 mItemHelp -> {
-                    val helpDialog = HelpDialog(this@MainUI)
+                    val helpDialog = HelpGotoDialog(this@MainUI)
                     helpDialog.setLocationRelativeTo(this@MainUI)
                     helpDialog.isVisible = true
                 }
