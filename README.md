@@ -28,6 +28,31 @@ Default current path
 
 <br/>
 
+# Mode
+1. Read Cmd: Read the result after executing the command (ex: adb logcat)
+1. Read File: Read a file (File > Open, read multiple files continuously)
+   - Multiple files : drag & drop or File > Open files
+   - Append files : ctrl + drag & drop or File > append files
+1. Follow File: Continue reading logs added to the file (ex: adb logcat > a.log, File > Follow - a.log)
+   - Used when you want to read the log of processing results of commands other than adb
+
+<br/>
+
+# Shortcut keys
+1. Ctrl + B: Bookmark on/off, multiple selected lines can be set at the same time
+1. Enter: View log dialog (check long (width) log, select string and add to log combo (filter))
+1. Ctrl+F: Show find toolbar
+    - F3: Move to previous item
+    - F4: Move to next item
+1. Ctrl + Page Down: Go to end of the log
+1. Ctrl + Page Up: Go to the beginning of the log
+1. Ctrl + R : stop cmd - connect device - clear log view - start cmd
+1. Ctrl + G : Go to line
+1. Ctrl + ` : Focus to log combo
+1. Ctrl + Del : Clear log view
+
+<br/>
+
 # Log cmd setting
 Set the adb path(to view online log) and Add log cmds \
 ![lognote_log_cmd_setting](https://user-images.githubusercontent.com/75207513/221393860-31c5efd3-4f5d-4295-b711-d7ec0cd693e1.png)
