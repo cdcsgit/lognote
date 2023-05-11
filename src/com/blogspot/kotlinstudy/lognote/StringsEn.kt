@@ -87,6 +87,7 @@ class StringsEn private constructor() {
             , "Set Search"
             , "Search"
             , "Cmd"
+            , "Not logcat log"
 //            , ""
         )
     }

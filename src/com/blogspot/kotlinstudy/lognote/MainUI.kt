@@ -39,12 +39,13 @@ class MainUI(title: String) : JFrame() {
 
         const val DEFAULT_FONT_NAME = "DialogInput"
 
-        const val VERBOSE = "Verbose"
-        const val DEBUG = "Debug"
-        const val INFO = "Info"
-        const val WARNING = "Warning"
-        const val ERROR = "Error"
-        const val FATAL = "Fatal"
+        const val LEVEL_TEXT_NONE = "None"
+        const val LEVEL_TEXT_VERBOSE = "Verbose"
+        const val LEVEL_TEXT_DEBUG = "Debug"
+        const val LEVEL_TEXT_INFO = "Info"
+        const val LEVEL_TEXT_WARNING = "Warning"
+        const val LEVEL_TEXT_ERROR = "Error"
+        const val LEVEL_TEXT_FATAL = "Fatal"
 
         const val CROSS_PLATFORM_LAF = "Cross Platform"
         const val SYSTEM_LAF = "System"
@@ -537,33 +538,38 @@ class MainUI(title: String) : JFrame() {
 
         mLogLevelGroup = ButtonGroup()
 
-        var menuItem = JRadioButtonMenuItem(VERBOSE)
+        var menuItem = JRadioButtonMenuItem("$LEVEL_TEXT_NONE - ${Strings.NOT_LOGCAT}")
+        mLogLevelGroup.add(menuItem)
+        mMenuLogLevel.add(menuItem)
+        menuItem.addItemListener(mLevelItemHandler)
+
+        menuItem = JRadioButtonMenuItem(LEVEL_TEXT_VERBOSE)
         mLogLevelGroup.add(menuItem)
         mMenuLogLevel.add(menuItem)
         menuItem.isSelected = true
         menuItem.addItemListener(mLevelItemHandler)
 
-        menuItem = JRadioButtonMenuItem(DEBUG)
+        menuItem = JRadioButtonMenuItem(LEVEL_TEXT_DEBUG)
         mLogLevelGroup.add(menuItem)
         mMenuLogLevel.add(menuItem)
         menuItem.addItemListener(mLevelItemHandler)
 
-        menuItem = JRadioButtonMenuItem(INFO)
+        menuItem = JRadioButtonMenuItem(LEVEL_TEXT_INFO)
         mLogLevelGroup.add(menuItem)
         mMenuLogLevel.add(menuItem)
         menuItem.addItemListener(mLevelItemHandler)
 
-        menuItem = JRadioButtonMenuItem(WARNING)
+        menuItem = JRadioButtonMenuItem(LEVEL_TEXT_WARNING)
         mLogLevelGroup.add(menuItem)
         mMenuLogLevel.add(menuItem)
         menuItem.addItemListener(mLevelItemHandler)
 
-        menuItem = JRadioButtonMenuItem(ERROR)
+        menuItem = JRadioButtonMenuItem(LEVEL_TEXT_ERROR)
         mLogLevelGroup.add(menuItem)
         mMenuLogLevel.add(menuItem)
         menuItem.addItemListener(mLevelItemHandler)
 
-        menuItem = JRadioButtonMenuItem(FATAL)
+        menuItem = JRadioButtonMenuItem(LEVEL_TEXT_FATAL)
         mLogLevelGroup.add(menuItem)
         mMenuLogLevel.add(menuItem)
         menuItem.addItemListener(mLevelItemHandler)
@@ -1031,7 +1037,7 @@ class MainUI(title: String) : JFrame() {
         val logLevel = mConfigManager.getItem(ConfigManager.ITEM_LOG_LEVEL)
         if (logLevel != null) {
             for (item in mLogLevelGroup.elements) {
-                if (logLevel == item.text) {
+                if (item.text.startsWith(logLevel)) {
                     item.isSelected = true
                     break
                 }
@@ -1174,13 +1180,18 @@ class MainUI(title: String) : JFrame() {
             mLogSplitPane.dividerLocation = divider.toInt()
         }
 
-        when (logLevel) {
-            VERBOSE->mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_VERBOSE
-            DEBUG->mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_DEBUG
-            INFO->mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_INFO
-            WARNING->mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_WARNING
-            ERROR->mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_ERROR
-            FATAL->mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_FATAL
+        if (logLevel?.startsWith(LEVEL_TEXT_NONE) == true) {
+                mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_NONE
+        }
+        else {
+            when (logLevel) {
+                LEVEL_TEXT_VERBOSE->mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_VERBOSE
+                LEVEL_TEXT_DEBUG->mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_DEBUG
+                LEVEL_TEXT_INFO->mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_INFO
+                LEVEL_TEXT_WARNING->mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_WARNING
+                LEVEL_TEXT_ERROR->mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_ERROR
+                LEVEL_TEXT_FATAL->mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_FATAL
+            }
         }
 
         if (mShowLogToggle.isSelected && mShowLogCombo.selectedItem != null) {
@@ -2549,13 +2560,18 @@ class MainUI(title: String) : JFrame() {
     internal inner class LevelItemHandler : ItemListener {
         override fun itemStateChanged(p0: ItemEvent?) {
             val item = p0?.source as JRadioButtonMenuItem
-            when (item.text) {
-                VERBOSE->mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_VERBOSE
-                DEBUG->mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_DEBUG
-                INFO->mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_INFO
-                WARNING->mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_WARNING
-                ERROR->mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_ERROR
-                FATAL->mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_FATAL
+            if (item.text?.startsWith(LEVEL_TEXT_NONE) == true) {
+                mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_NONE
+            }
+            else {
+                when (item.text) {
+                    LEVEL_TEXT_VERBOSE -> mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_VERBOSE
+                    LEVEL_TEXT_DEBUG -> mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_DEBUG
+                    LEVEL_TEXT_INFO -> mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_INFO
+                    LEVEL_TEXT_WARNING -> mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_WARNING
+                    LEVEL_TEXT_ERROR -> mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_ERROR
+                    LEVEL_TEXT_FATAL -> mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_FATAL
+                }
             }
             mConfigManager.saveItem(ConfigManager.ITEM_LOG_LEVEL, item.text)
         }

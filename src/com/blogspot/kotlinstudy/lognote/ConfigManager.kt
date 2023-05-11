@@ -112,7 +112,7 @@ class ConfigManager private constructor() {
     }
 
     private fun setDefaultConfig() {
-        mProperties[ITEM_LOG_LEVEL] = MainUI.VERBOSE
+        mProperties[ITEM_LOG_LEVEL] = MainUI.LEVEL_TEXT_VERBOSE
         mProperties[ITEM_SHOW_LOG_CHECK] = "true"
         mProperties[ITEM_SHOW_TAG_CHECK] = "true"
         mProperties[ITEM_SHOW_PID_CHECK] = "true"

@@ -582,7 +582,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
         while (line != null) {
             val textSplited = line.trim().split(Regex("\\s+"))
 
-            if (textSplited.size > TAG_INDEX) {
+            if (mFilterLevel != LEVEL_NONE && textSplited.size > TAG_INDEX) {
                 if (Character.isDigit(textSplited[PID_INDEX][0])) {
                     level = levelToInt(textSplited[LEVEL_INDEX])
                     tag = textSplited[TAG_INDEX]
@@ -1517,7 +1517,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                     synchronized(this) {
                         for (tempLine in logLines) {
                             val textSplited = tempLine.trim().split(Regex("\\s+"))
-                            if (textSplited.size > TAG_INDEX) {
+                            if (mFilterLevel != LEVEL_NONE && textSplited.size > TAG_INDEX) {
                                 level = levelToInt(textSplited[LEVEL_INDEX])
                                 tag = textSplited[TAG_INDEX]
                                 pid = textSplited[PID_INDEX]
@@ -1526,7 +1526,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                                 level = if (tempLine.startsWith(Main.NAME)) {
                                     LEVEL_ERROR
                                 } else {
-                                    LEVEL_VERBOSE
+                                    LEVEL_NONE
                                 }
                                 tag = ""
                                 pid = ""
@@ -1542,12 +1542,12 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                             }
 
                             if (!mFullMode) {
-                                if (isShow && item.mLevel < mFilterLevel) {
+                                if (isShow && item.mLevel != LEVEL_NONE && item.mLevel < mFilterLevel) {
                                     isShow = false
                                 }
                                 if (isShow
-                                    && (mFilterHideLog.isNotEmpty() && mPatternHideLog.matcher(item.mLogLine).find())
-                                    || (mFilterShowLog.isNotEmpty() && !mPatternShowLog.matcher(item.mLogLine).find())
+                                    && ((mFilterHideLog.isNotEmpty() && mPatternHideLog.matcher(item.mLogLine).find())
+                                            || (mFilterShowLog.isNotEmpty() && !mPatternShowLog.matcher(item.mLogLine).find()))
                                 ) {
                                     isShow = false
                                 }
@@ -1785,7 +1785,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                     synchronized(this) {
                         for (tempLine in logLines) {
                             val textSplited = tempLine.trim().split(Regex("\\s+"))
-                            if (textSplited.size > TAG_INDEX) {
+                            if (mFilterLevel != LEVEL_NONE && textSplited.size > TAG_INDEX) {
                                 level = levelToInt(textSplited[LEVEL_INDEX])
                                 tag = textSplited[TAG_INDEX]
                                 pid = textSplited[PID_INDEX]
@@ -1794,7 +1794,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                                 level = if (tempLine.startsWith(Main.NAME)) {
                                     LEVEL_ERROR
                                 } else {
-                                    LEVEL_VERBOSE
+                                    LEVEL_NONE
                                 }
                                 tag = ""
                                 pid = ""
@@ -1810,12 +1810,12 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                             }
 
                             if (!mFullMode) {
-                                if (isShow && item.mLevel < mFilterLevel) {
+                                if (isShow && item.mLevel != LEVEL_NONE && item.mLevel < mFilterLevel) {
                                     isShow = false
                                 }
                                 if (isShow
-                                        && (mFilterHideLog.isNotEmpty() && mPatternHideLog.matcher(item.mLogLine).find())
-                                        || (mFilterShowLog.isNotEmpty() && !mPatternShowLog.matcher(item.mLogLine).find())
+                                        && ((mFilterHideLog.isNotEmpty() && mPatternHideLog.matcher(item.mLogLine).find())
+                                                || (mFilterShowLog.isNotEmpty() && !mPatternShowLog.matcher(item.mLogLine).find()))
                                 ) {
                                     isShow = false
                                 }

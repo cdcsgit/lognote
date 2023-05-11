@@ -87,6 +87,7 @@ class StringsKo private constructor() {
             , "검색 항목 설정"
             , "검색"
             , "Cmd"
+            , "로그캣 로그 아님"
 //            , ""
         )
     }
