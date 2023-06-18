@@ -202,7 +202,7 @@ class LogPanel constructor(mainUI: MainUI, tableModel: LogTableModel, basePanel:
         cmdsBtn.toolTipText = TooltipStrings.ADD_CMD_BTN
         cmdsBtn.margin = Insets(0, 3, 0, 3)
         cmdsBtn.addActionListener(ActionListener {
-            mMainUI.mCmdsManager.showDialog()
+            mMainUI.mCmdManager.showDialog()
         })
         mCtrlMainPanel.add(cmdsBtn)
 
@@ -272,10 +272,10 @@ class LogPanel constructor(mainUI: MainUI, tableModel: LogTableModel, basePanel:
 
     override fun repaint() {
         val bg = if (mBasePanel != null) {
-            ColorManager.getInstance().mFilterTableColor.LogBG
+            ColorManager.getInstance().mFilterTableColor.mLogBG
         }
         else {
-            ColorManager.getInstance().mFullTableColor.LogBG
+            ColorManager.getInstance().mFullTableColor.mLogBG
         }
 
         if (bg != background) {

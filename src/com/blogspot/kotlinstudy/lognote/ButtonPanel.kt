@@ -11,29 +11,31 @@ class ButtonPanel : JPanel() {
             return Dimension(0, 0)
         }
     }
-    var mLastComponent: Component? = null
+
     init {
         layout = ButtonFlowLayout(FlowLayout.LEFT, 2, 0)
         addComponentListener(
                 object : ComponentAdapter() {
-                    var mPrevPoint: Point? = null
+                    lateinit var mLastComponent: Component
+                    var mPrevPoint: Point = Point(0, 0)
                     override fun componentResized(e: ComponentEvent) {
                         super.componentResized(e)
-                        for (item in components) {
-                            if (mLastComponent == null) {
-                                mLastComponent = item
-                            } else {
-                                if ((item.location.y + item.height) > (mLastComponent!!.location.y + mLastComponent!!.height)) {
+
+                        if (components.isNotEmpty()) {
+                            mLastComponent = components[0]
+                            for (item in components) {
+                                if ((item.location.y + item.height) > (mLastComponent.location.y + mLastComponent.height)) {
                                     mLastComponent = item
                                 }
                             }
+
+                            if (mPrevPoint.y != mLastComponent.location.y) {
+                                println("lastComponent moved to ${mLastComponent.location}")
+                                preferredSize = Dimension(preferredSize.width, mLastComponent.location.y + mLastComponent.height)
+                                updateUI()
+                            }
+                            mPrevPoint = mLastComponent.location
                         }
-                        if (mPrevPoint == null || mPrevPoint!!.y != mLastComponent!!.location.y) {
-                            println("lastComonent moved to ${mLastComponent!!.location}")
-                            preferredSize = Dimension(preferredSize.width, mLastComponent!!.location.y + mLastComponent!!.height)
-                            updateUI()
-                        }
-                        mPrevPoint = mLastComponent!!.location
                     }
                 })
     }

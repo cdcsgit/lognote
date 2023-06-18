@@ -146,9 +146,7 @@ abstract class CustomListManager (mainUI: MainUI, logPanel: LogPanel){
             val customListArray = loadList()
             mModel.clear()
             mFirstElement = getFirstElement()
-            if (mFirstElement != null) {
-                mModel.addElement(mFirstElement)
-            }
+            mModel.addElement(mFirstElement)
 
             for (item in customListArray) {
                 mModel.addElement(item)
@@ -535,7 +533,7 @@ abstract class CustomListManager (mainUI: MainUI, logPanel: LogPanel){
                     else {
                         for (item in mModel.elements()) {
                             if (item.mTitle == title) {
-                                if (mCmd != CMD_EDIT || (mCmd == CMD_EDIT && mPrevTitle != title)) {
+                                if (mCmd != CMD_EDIT || mPrevTitle != title) {
                                     mTitleStatusLabel.text = "Duplicated"
                                     isValid = false
                                 }

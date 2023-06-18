@@ -6,18 +6,18 @@ import javax.swing.JOptionPane
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
 
-class CmdsManager (mainUI: MainUI, logPanel: LogPanel): CustomListManager (mainUI, logPanel){
+class CmdManager (mainUI: MainUI, logPanel: LogPanel): CustomListManager (mainUI, logPanel){
     private val mConfigManager = ConfigManager.getInstance()
     private val mListSelectionHandler = ListSelectionHandler()
     private val mMouseHandler = MouseHandler()
     private val mKeyHandler = KeyHandler()
 
     companion object {
-        const val MAX_CMDS = 20
+        const val MAX_CMD_COUNT = 20
     }
 
     init {
-        mDialogTitle = "Cmds Manager"
+        mDialogTitle = "Cmd Manager"
     }
 
     override fun loadList(): ArrayList<CustomElement> {

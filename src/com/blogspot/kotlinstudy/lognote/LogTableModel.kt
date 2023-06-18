@@ -32,7 +32,20 @@ interface LogTableModelListener {
 
 class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableModel() {
     companion object {
-        var sIsLogcatLog = false
+        var IsLogcatLog = false
+        private const val COLUMN_NUM = 0
+        private const val COLUMN_LOGLINE = 1
+        private const val PID_INDEX = 2
+        private const val TID_INDEX = 3
+        private const val LEVEL_INDEX = 4
+        private const val TAG_INDEX = 5
+        const val LEVEL_NONE = -1
+        const val LEVEL_VERBOSE = 0
+        const val LEVEL_DEBUG = 1
+        const val LEVEL_INFO = 2
+        const val LEVEL_WARNING = 3
+        const val LEVEL_ERROR = 4
+        const val LEVEL_FATAL = 5
     }
 
     private var mPatternSearchLog: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
@@ -49,21 +62,6 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
     private val mEventListeners = ArrayList<LogTableModelListener>()
     private val mFilteredFGMap = mutableMapOf<String, String>()
     private val mFilteredBGMap = mutableMapOf<String, String>()
-
-    private val COLUMN_NUM = 0
-    private val COLUMN_LOGLINE = 1
-
-    private val PID_INDEX = 2
-    private val TID_INDEX = 3
-    private val LEVEL_INDEX = 4
-    private val TAG_INDEX = 5
-    val LEVEL_NONE = -1
-    val LEVEL_VERBOSE = 0
-    val LEVEL_DEBUG = 1
-    val LEVEL_INFO = 2
-    val LEVEL_WARNING = 3
-    val LEVEL_ERROR = 4
-    val LEVEL_FATAL = 5
 
     private var mIsFilterUpdated = true
 
@@ -421,8 +419,8 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                         val key = item.substring(2)
                         patterns[0] += key
                         if (isUpdateColor) {
-                            mFilteredFGMap[key.uppercase()] = mTableColor.StrFilteredFGs[item[1].digitToInt()]
-                            mFilteredBGMap[key.uppercase()] = mTableColor.StrFilteredBGs[item[1].digitToInt()]
+                            mFilteredFGMap[key.uppercase()] = mTableColor.mStrFilteredFGs[item[1].digitToInt()]
+                            mFilteredBGMap[key.uppercase()] = mTableColor.mStrFilteredBGs[item[1].digitToInt()]
                         }
                     }
                     else {
@@ -563,7 +561,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                 num++
             }
         } else {
-            sIsLogcatLog = false
+            IsLogcatLog = false
             mLogItems.clear()
             mLogItems = mutableListOf()
             mBookmarkManager.clear()
@@ -618,7 +616,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
         }
 
         if (logcatLogCount > 10) {
-            sIsLogcatLog = true
+            IsLogcatLog = true
         }
 
         fireLogTableDataChanged()
@@ -680,7 +678,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
     }
 
     private fun checkLevel(item: LogItem): Int {
-        if (sIsLogcatLog) {
+        if (IsLogcatLog) {
             return item.mLevel
         }
         else {
@@ -703,25 +701,25 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
     fun getFgColor(row: Int) : Color {
         return when (checkLevel(mLogItems[row])) {
             LEVEL_VERBOSE -> {
-                mTableColor.LogLevelVerbose
+                mTableColor.mLogLevelVerbose
             }
             LEVEL_DEBUG -> {
-                mTableColor.LogLevelDebug
+                mTableColor.mLogLevelDebug
             }
             LEVEL_INFO -> {
-                mTableColor.LogLevelInfo
+                mTableColor.mLogLevelInfo
             }
             LEVEL_WARNING -> {
-                mTableColor.LogLevelWarning
+                mTableColor.mLogLevelWarning
             }
             LEVEL_ERROR -> {
-                mTableColor.LogLevelError
+                mTableColor.mLogLevelError
             }
             LEVEL_FATAL -> {
-                mTableColor.LogLevelFatal
+                mTableColor.mLogLevelFatal
             }
             else -> {
-                mTableColor.LogLevelNone
+                mTableColor.mLogLevelNone
             }
         }
     }
@@ -729,24 +727,24 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
     private fun getFgStrColor(row: Int) : String {
         return when (checkLevel(mLogItems[row])) {
             LEVEL_VERBOSE -> {
-                mTableColor.StrLogLevelVerbose
+                mTableColor.mStrLogLevelVerbose
             }
             LEVEL_DEBUG -> {
-                mTableColor.StrLogLevelDebug
+                mTableColor.mStrLogLevelDebug
             }
             LEVEL_INFO -> {
-                mTableColor.StrLogLevelInfo
+                mTableColor.mStrLogLevelInfo
             }
             LEVEL_WARNING -> {
-                mTableColor.StrLogLevelWarning
+                mTableColor.mStrLogLevelWarning
             }
             LEVEL_ERROR -> {
-                mTableColor.StrLogLevelError
+                mTableColor.mStrLogLevelError
             }
             LEVEL_FATAL -> {
-                mTableColor.StrLogLevelFatal
+                mTableColor.mStrLogLevelFatal
             }
-            else -> mTableColor.StrLogLevelNone
+            else -> mTableColor.mStrLogLevelNone
         }
     }
 
@@ -937,8 +935,8 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                 }
                 starts.push(searchS)
                 ends.push(searchE)
-                fgColors.push(mTableColor.StrSearchFG)
-                bgColors.push(mTableColor.StrSearchBG)
+                fgColors.push(mTableColor.mStrSearchFG)
+                bgColors.push(mTableColor.mStrSearchBG)
             }
 
             if (idx in searchS until searchE) {
@@ -964,8 +962,8 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                 
                 starts.push(highlightS)
                 ends.push(highlightE)
-                fgColors.push(mTableColor.StrHighlightFG)
-                bgColors.push(mTableColor.StrHighlightBG)
+                fgColors.push(mTableColor.mStrHighlightFG)
+                bgColors.push(mTableColor.mStrHighlightBG)
 
                 if (highlightS < highlightSNext) {
                     highlightS = highlightSNext
@@ -1031,8 +1029,8 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                     bgColors.push(mFilteredBGMap[key])
                 }
                 else {
-                    fgColors.push(mTableColor.StrFilteredFGs[0])
-                    bgColors.push(mTableColor.StrFilteredBGs[0])
+                    fgColors.push(mTableColor.mStrFilteredFGs[0])
+                    bgColors.push(mTableColor.mStrFilteredBGs[0])
                 }
 
                 if (filterS < filterSNext) {
@@ -1073,16 +1071,16 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
 
                 when (boldS) {
                     in boldStartTag until boldEndTag -> {
-                        fgColors.push(mTableColor.StrTagFG)
-                        bgColors.push(mTableColor.StrLogBG)
+                        fgColors.push(mTableColor.mStrTagFG)
+                        bgColors.push(mTableColor.mStrLogBG)
                     }
                     in boldStartPid until boldEndPid -> {
-                        fgColors.push(mTableColor.StrPidFG)
-                        bgColors.push(mTableColor.StrLogBG)
+                        fgColors.push(mTableColor.mStrPidFG)
+                        bgColors.push(mTableColor.mStrLogBG)
                     }
                     in boldStartTid until boldEndTid -> {
-                        fgColors.push(mTableColor.StrTidFG)
-                        bgColors.push(mTableColor.StrLogBG)
+                        fgColors.push(mTableColor.mStrTidFG)
+                        bgColors.push(mTableColor.mStrLogBG)
                     }
                 }
 
@@ -1132,11 +1130,11 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                 if (start >= 0 && end >= 0) {
                     if (isSelected) {
                         val tmpColor = Color.decode(bgColor)
-                        Color(tmpColor.red / 2 + mTableColor.SelectedBG.red / 2, tmpColor.green / 2 + mTableColor.SelectedBG.green / 2, tmpColor.blue / 2 + mTableColor.SelectedBG.blue / 2)
+                        Color(tmpColor.red / 2 + mTableColor.mSelectedBG.red / 2, tmpColor.green / 2 + mTableColor.mSelectedBG.green / 2, tmpColor.blue / 2 + mTableColor.mSelectedBG.blue / 2)
                         bgColor = "#" + Integer.toHexString(Color(
-                                tmpColor.red / 2 + mTableColor.SelectedBG.red / 2,
-                                tmpColor.green / 2 + mTableColor.SelectedBG.green / 2,
-                                tmpColor.blue / 2 + mTableColor.SelectedBG.blue / 2).rgb).substring(2).uppercase()
+                                tmpColor.red / 2 + mTableColor.mSelectedBG.red / 2,
+                                tmpColor.green / 2 + mTableColor.mSelectedBG.green / 2,
+                                tmpColor.blue / 2 + mTableColor.mSelectedBG.blue / 2).rgb).substring(2).uppercase()
 //                        bgColor = "#" + Integer.toHexString(mTableColor.SelectedBG.brighter().rgb).substring(2).uppercase()
                     }
 
@@ -1403,7 +1401,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
     }
 
     fun startScan() {
-        sIsLogcatLog = true
+        IsLogcatLog = true
         if (mLogFile == null) {
             return
         }
@@ -1678,7 +1676,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
     }
 
     fun startFollow() {
-        sIsLogcatLog = false
+        IsLogcatLog = false
         if (mLogFile == null) {
             return
         }
@@ -1860,7 +1858,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                             }
 
                             if (logcatLogCount > 10) {
-                                sIsLogcatLog = true
+                                IsLogcatLog = true
                             }
                             mBaseModel!!.mLogItems.add(filterItem.mItem)
                             while (!mScrollbackKeep && mScrollback > 0 && mBaseModel!!.mLogItems.count() > mScrollback) {

@@ -286,7 +286,7 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
         updateTooltip(false)
     }
 
-    fun updateTooltip(isShow: Boolean) {
+    private fun updateTooltip(isShow: Boolean) {
         if (!mEnabledTfTooltip) {
             return
         }
@@ -349,14 +349,12 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
         override fun insertUpdate(e: DocumentEvent?) {
             if (mEnabledTfTooltip && !isPopupVisible) {
                 updateTooltip()
-//                ToolTipManager.sharedInstance().mouseMoved(MouseEvent(mEditorComponent, 0, 0, 0, 0, preferredSize.height / 3, 0, false))
             }
         }
 
         override fun removeUpdate(e: DocumentEvent?) {
             if (mEnabledTfTooltip && !isPopupVisible) {
                 updateTooltip()
-//                ToolTipManager.sharedInstance().mouseMoved(MouseEvent(mEditorComponent, 0, 0, 0, 0, preferredSize.height / 3, 0, false))
             }
         }
 
@@ -410,7 +408,7 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
                                 textComponent.highlighter.addHighlight(startPos, endPos, painterExclude)
                             }
                             else if (mUseColorTag && text[startPos] == '#' && startPos < (endPos - 1) && text[startPos + 1].isDigit()) {
-                                val color = Color.decode(mColorManager.mFilterTableColor.StrFilteredBGs[text[startPos + 1].digitToInt()])
+                                val color = Color.decode(mColorManager.mFilterTableColor.mStrFilteredBGs[text[startPos + 1].digitToInt()])
                                 val painterColor: Highlighter.HighlightPainter = DefaultHighlighter.DefaultHighlightPainter(color)
                                 textComponent.highlighter.addHighlight(startPos, startPos + 2, painterColor)
                                 textComponent.highlighter.addHighlight(startPos + 2, endPos, painterInclude)

@@ -8,19 +8,19 @@ import javax.swing.*
 
 class GoToDialog (parent: JFrame) : JDialog(parent, "GoTo line", true) {
 
-    val textField = JTextField()
-    val label = JLabel(" GoTo : ")
-    var line = -1
+    val mTF = JTextField()
+    private val mLabel = JLabel(" GoTo : ")
+    var mLine = -1
         private set
 
     init {
-        textField.addKeyListener(KeyHandler())
-        textField.alignmentX = JTextField.CENTER_ALIGNMENT
-        textField.preferredSize = Dimension(60, 30)
-        label.preferredSize = Dimension(70, 30)
+        mTF.addKeyListener(KeyHandler())
+        mTF.alignmentX = JTextField.CENTER_ALIGNMENT
+        mTF.preferredSize = Dimension(60, 30)
+        mLabel.preferredSize = Dimension(70, 30)
         val panel = JPanel(BorderLayout())
-        panel.add(textField, BorderLayout.CENTER)
-        panel.add(label, BorderLayout.WEST)
+        panel.add(mTF, BorderLayout.CENTER)
+        panel.add(mLabel, BorderLayout.WEST)
         contentPane.add(panel)
         pack()
     }
@@ -28,11 +28,11 @@ class GoToDialog (parent: JFrame) : JDialog(parent, "GoTo line", true) {
     internal inner class KeyHandler: KeyAdapter() {
         override fun keyReleased(p0: KeyEvent?) {
             if (p0?.keyCode == KeyEvent.VK_ESCAPE) {
-                line = -1
+                mLine = -1
                 dispose()
-            } else if (p0?.keyCode == KeyEvent.VK_ENTER && textField.text.trim().isNotEmpty()) {
-                line = try {
-                    textField.text.toInt()
+            } else if (p0?.keyCode == KeyEvent.VK_ENTER && mTF.text.trim().isNotEmpty()) {
+                mLine = try {
+                    mTF.text.toInt()
                 } catch (e:NumberFormatException) {
                     -1
                 }

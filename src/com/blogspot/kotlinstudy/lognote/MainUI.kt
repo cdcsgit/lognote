@@ -175,7 +175,7 @@ class MainUI(title: String) : JFrame() {
 
     private val mLogCmdManager = LogCmdManager.getInstance()
     lateinit var mFiltersManager:FiltersManager
-    lateinit var mCmdsManager:CmdsManager
+    lateinit var mCmdManager:CmdManager
 
     private var mFrameX = 0
     private var mFrameY = 0
@@ -963,7 +963,7 @@ class MainUI(title: String) : JFrame() {
         mFilteredLogPanel.updateTableBar(mConfigManager.loadFilters())
 
         mFiltersManager = FiltersManager(this, mFilteredLogPanel)
-        mCmdsManager = CmdsManager(this, mFullLogPanel)
+        mCmdManager = CmdManager(this, mFullLogPanel)
 
         when (mRotationStatus) {
             ROTATION_LEFT_RIGHT -> {
@@ -1181,16 +1181,16 @@ class MainUI(title: String) : JFrame() {
         }
 
         if (logLevel?.startsWith(LEVEL_TEXT_NONE) == true) {
-                mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_NONE
+                mFilteredTableModel.mFilterLevel = LogTableModel.LEVEL_NONE
         }
         else {
             when (logLevel) {
-                LEVEL_TEXT_VERBOSE->mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_VERBOSE
-                LEVEL_TEXT_DEBUG->mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_DEBUG
-                LEVEL_TEXT_INFO->mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_INFO
-                LEVEL_TEXT_WARNING->mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_WARNING
-                LEVEL_TEXT_ERROR->mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_ERROR
-                LEVEL_TEXT_FATAL->mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_FATAL
+                LEVEL_TEXT_VERBOSE->mFilteredTableModel.mFilterLevel = LogTableModel.LEVEL_VERBOSE
+                LEVEL_TEXT_DEBUG->mFilteredTableModel.mFilterLevel = LogTableModel.LEVEL_DEBUG
+                LEVEL_TEXT_INFO->mFilteredTableModel.mFilterLevel = LogTableModel.LEVEL_INFO
+                LEVEL_TEXT_WARNING->mFilteredTableModel.mFilterLevel = LogTableModel.LEVEL_WARNING
+                LEVEL_TEXT_ERROR->mFilteredTableModel.mFilterLevel = LogTableModel.LEVEL_ERROR
+                LEVEL_TEXT_FATAL->mFilteredTableModel.mFilterLevel = LogTableModel.LEVEL_FATAL
             }
         }
 
@@ -2001,31 +2001,32 @@ class MainUI(title: String) : JFrame() {
             }
         }
     }
-    internal inner class FrameMouseListener(private val frame: JFrame) : MouseAdapter() {
-        private var mouseDownCompCoords: Point? = null
+    internal inner class FrameMouseListener(frame: JFrame) : MouseAdapter() {
+        private val mFrame = frame
+        private var mDownPoint: Point? = null
 
-        private var popupMenu: JPopupMenu? = null
+        private var mPopupMenu: JPopupMenu? = null
         override fun mouseReleased(e: MouseEvent) {
-            mouseDownCompCoords = null
+            mDownPoint = null
 
             if (SwingUtilities.isRightMouseButton(e)) {
                 if (e.source == this@MainUI.contentPane) {
-                    popupMenu = FramePopUp()
-                    popupMenu?.show(e.component, e.x, e.y)
+                    mPopupMenu = FramePopUp()
+                    mPopupMenu?.show(e.component, e.x, e.y)
                 }
             }
             else {
-                popupMenu?.isVisible = false
+                mPopupMenu?.isVisible = false
             }
         }
 
         override fun mousePressed(e: MouseEvent) {
-            mouseDownCompCoords = e.point
+            mDownPoint = e.point
         }
 
         override fun mouseDragged(e: MouseEvent) {
-            val currCoords = e.locationOnScreen
-            frame.setLocation(currCoords.x - mouseDownCompCoords!!.x, currCoords.y - mouseDownCompCoords!!.y)
+            val currPoint = e.locationOnScreen
+            mFrame.setLocation(currPoint.x - mDownPoint!!.x, currPoint.y - mDownPoint!!.y)
         }
     }
 
@@ -2114,16 +2115,16 @@ class MainUI(title: String) : JFrame() {
             add(mPasteItem)
             mRemoveColorTagsItem = JMenuItem("Remove All Color Tags")
             mRemoveColorTagsItem.isOpaque = true
-            mRemoveColorTagsItem.foreground = Color.decode(ColorManager.getInstance().mFilterTableColor.StrFilteredFGs[0])
-            mRemoveColorTagsItem.background = Color.decode(ColorManager.getInstance().mFilterTableColor.StrFilteredBGs[0])
+            mRemoveColorTagsItem.foreground = Color.decode(ColorManager.getInstance().mFilterTableColor.mStrFilteredFGs[0])
+            mRemoveColorTagsItem.background = Color.decode(ColorManager.getInstance().mFilterTableColor.mStrFilteredBGs[0])
             mRemoveColorTagsItem.addActionListener(mActionHandler)
             add(mRemoveColorTagsItem)
 
             if (mCombo.mUseColorTag) {
                 mRemoveOneColorTagItem = JMenuItem("Remove Color Tag")
                 mRemoveOneColorTagItem.isOpaque = true
-                mRemoveOneColorTagItem.foreground = Color.decode(ColorManager.getInstance().mFilterTableColor.StrFilteredFGs[0])
-                mRemoveOneColorTagItem.background = Color.decode(ColorManager.getInstance().mFilterTableColor.StrFilteredBGs[0])
+                mRemoveOneColorTagItem.foreground = Color.decode(ColorManager.getInstance().mFilterTableColor.mStrFilteredFGs[0])
+                mRemoveOneColorTagItem.background = Color.decode(ColorManager.getInstance().mFilterTableColor.mStrFilteredBGs[0])
                 mRemoveOneColorTagItem.addActionListener(mActionHandler)
                 add(mRemoveOneColorTagItem)
                 mAddColorTagItems = arrayListOf()
@@ -2131,8 +2132,8 @@ class MainUI(title: String) : JFrame() {
                     val num = idx + 1
                     val item = JMenuItem("Add Color Tag : #$num")
                     item.isOpaque = true
-                    item.foreground = Color.decode(ColorManager.getInstance().mFilterTableColor.StrFilteredFGs[num])
-                    item.background = Color.decode(ColorManager.getInstance().mFilterTableColor.StrFilteredBGs[num])
+                    item.foreground = Color.decode(ColorManager.getInstance().mFilterTableColor.mStrFilteredFGs[num])
+                    item.background = Color.decode(ColorManager.getInstance().mFilterTableColor.mStrFilteredBGs[num])
                     item.addActionListener(mAddColorTagAction)
                     mAddColorTagItems.add(item)
                     add(item)
@@ -2561,16 +2562,16 @@ class MainUI(title: String) : JFrame() {
         override fun itemStateChanged(p0: ItemEvent?) {
             val item = p0?.source as JRadioButtonMenuItem
             if (item.text?.startsWith(LEVEL_TEXT_NONE) == true) {
-                mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_NONE
+                mFilteredTableModel.mFilterLevel = LogTableModel.LEVEL_NONE
             }
             else {
                 when (item.text) {
-                    LEVEL_TEXT_VERBOSE -> mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_VERBOSE
-                    LEVEL_TEXT_DEBUG -> mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_DEBUG
-                    LEVEL_TEXT_INFO -> mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_INFO
-                    LEVEL_TEXT_WARNING -> mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_WARNING
-                    LEVEL_TEXT_ERROR -> mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_ERROR
-                    LEVEL_TEXT_FATAL -> mFilteredTableModel.mFilterLevel = mFilteredTableModel.LEVEL_FATAL
+                    LEVEL_TEXT_VERBOSE -> mFilteredTableModel.mFilterLevel = LogTableModel.LEVEL_VERBOSE
+                    LEVEL_TEXT_DEBUG -> mFilteredTableModel.mFilterLevel = LogTableModel.LEVEL_DEBUG
+                    LEVEL_TEXT_INFO -> mFilteredTableModel.mFilterLevel = LogTableModel.LEVEL_INFO
+                    LEVEL_TEXT_WARNING -> mFilteredTableModel.mFilterLevel = LogTableModel.LEVEL_WARNING
+                    LEVEL_TEXT_ERROR -> mFilteredTableModel.mFilterLevel = LogTableModel.LEVEL_ERROR
+                    LEVEL_TEXT_FATAL -> mFilteredTableModel.mFilterLevel = LogTableModel.LEVEL_FATAL
                 }
             }
             mConfigManager.saveItem(ConfigManager.ITEM_LOG_LEVEL, item.text)
@@ -3145,8 +3146,8 @@ class MainUI(title: String) : JFrame() {
                 val goToDialog = GoToDialog(this@MainUI)
                 goToDialog.setLocationRelativeTo(this@MainUI)
                 goToDialog.isVisible = true
-                if (goToDialog.line != -1) {
-                    goToLine(goToDialog.line)
+                if (goToDialog.mLine != -1) {
+                    goToLine(goToDialog.mLine)
                 } else {
                     println("Cancel Goto Line")
                 }

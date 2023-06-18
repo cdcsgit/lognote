@@ -30,11 +30,13 @@ class ColorManager private constructor(){
         mColorEventListeners.remove(listener)
     }
 
-    class ColorItem(order: Int, name: String, strColor: String) {
-        val mOrder = order
-        val mName = name
-        var mStrColor = strColor
-    }
+//    class ColorItem(order: Int, name: String, strColor: String) {
+//        val mOrder = order
+//        val mName = name
+//        var mStrColor = strColor
+//    }
+
+    data class ColorItem(val mOrder: Int, val mName: String, var mStrColor: String)
 
     private val mConfigManager = ConfigManager.getInstance()
 
@@ -184,215 +186,215 @@ class ColorManager private constructor(){
     inner class TableColor(type: TableColorType) {
         private val mType = type
 
-        var StrFilteredFG = "#000000"
+        var mStrFilteredFG = "#000000"
             set(value) {
                 field = value
-                FilteredFG = Color.decode(value)
+                mFilteredFG = Color.decode(value)
             }
-        var FilteredFG: Color = Color.decode(StrFilteredFG)
+        var mFilteredFG: Color = Color.decode(mStrFilteredFG)
             private set
 
-        var StrFilteredBG = "#000000"
+        var mStrFilteredBG = "#000000"
             set(value) {
                 field = value
-                FilteredBG = Color.decode(value)
+                mFilteredBG = Color.decode(value)
             }
-        var FilteredBG: Color = Color.decode(StrFilteredBG)
+        var mFilteredBG: Color = Color.decode(mStrFilteredBG)
             private set
 
-        var StrPidFG = "#000000"
+        var mStrPidFG = "#000000"
             set(value) {
                 field = value
-                PidFG = Color.decode(value)
+                mPidFG = Color.decode(value)
             }
-        var PidFG: Color = Color.decode(StrPidFG)
+        var mPidFG: Color = Color.decode(mStrPidFG)
             private set
 
-        var StrTidFG = "#000000"
+        var mStrTidFG = "#000000"
             set(value) {
                 field = value
-                TidFG = Color.decode(value)
+                mTidFG = Color.decode(value)
             }
-        var TidFG: Color = Color.decode(StrTidFG)
+        var mTidFG: Color = Color.decode(mStrTidFG)
             private set
 
-        var StrTagFG = "#000000"
+        var mStrTagFG = "#000000"
             set(value) {
                 field = value
-                TagFG = Color.decode(value)
+                mTagFG = Color.decode(value)
             }
-        var TagFG: Color = Color.decode(StrTagFG)
+        var mTagFG: Color = Color.decode(mStrTagFG)
             private set
 
-        var StrHighlightFG = "#000000"
+        var mStrHighlightFG = "#000000"
             set(value) {
                 field = value
-                HighlightFG = Color.decode(value)
+                mHighlightFG = Color.decode(value)
             }
-        var HighlightFG: Color = Color.decode(StrHighlightFG)
+        var mHighlightFG: Color = Color.decode(mStrHighlightFG)
             private set
 
-        var StrSearchFG = "#000000"
+        var mStrSearchFG = "#000000"
             set(value) {
                 field = value
-                SearchFG = Color.decode(value)
+                mSearchFG = Color.decode(value)
             }
-        var SearchFG: Color = Color.decode(StrSearchFG)
+        var mSearchFG: Color = Color.decode(mStrSearchFG)
             private set
 
-        var StrSelectedBG = "#000000"
+        var mStrSelectedBG = "#000000"
             set(value) {
                 field = value
-                SelectedBG = Color.decode(value)
+                mSelectedBG = Color.decode(value)
             }
-        var SelectedBG: Color = Color.decode(StrSelectedBG)
+        var mSelectedBG: Color = Color.decode(mStrSelectedBG)
             private set
 
-        var StrLogBG = "#000000"
+        var mStrLogBG = "#000000"
             set(value) {
                 field = value
-                LogBG = Color.decode(value)
+                mLogBG = Color.decode(value)
             }
-        var LogBG: Color = Color.decode(StrLogBG)
+        var mLogBG: Color = Color.decode(mStrLogBG)
             private set
 
-        var StrLineNumBG = "#000000"
+        var mStrLineNumBG = "#000000"
             set(value) {
                 field = value
-                LineNumBG = Color.decode(value)
+                mLineNumBG = Color.decode(value)
             }
-        var LineNumBG: Color = Color.decode(StrLineNumBG)
+        var mLineNumBG: Color = Color.decode(mStrLineNumBG)
             private set
 
-        var StrBookmarkBG = "#000000"
+        var mStrBookmarkBG = "#000000"
             set(value) {
                 field = value
-                BookmarkBG = Color.decode(value)
+                mBookmarkBG = Color.decode(value)
             }
-        var BookmarkBG: Color = Color.decode(StrBookmarkBG)
+        var mBookmarkBG: Color = Color.decode(mStrBookmarkBG)
             private set
 
-        var StrLogLevelNone = "#000000"
+        var mStrLogLevelNone = "#000000"
             set(value) {
                 field = value
-                LogLevelNone = Color.decode(value)
+                mLogLevelNone = Color.decode(value)
             }
-        var LogLevelNone: Color = Color.decode(StrLogLevelNone)
+        var mLogLevelNone: Color = Color.decode(mStrLogLevelNone)
             private set
 
-        var StrLogLevelVerbose = "#000000"
+        var mStrLogLevelVerbose = "#000000"
             set(value) {
                 field = value
-                LogLevelVerbose = Color.decode(value)
+                mLogLevelVerbose = Color.decode(value)
             }
-        var LogLevelVerbose: Color = Color.decode(StrLogLevelVerbose)
+        var mLogLevelVerbose: Color = Color.decode(mStrLogLevelVerbose)
             private set
 
-        var StrLogLevelDebug = "#000000"
+        var mStrLogLevelDebug = "#000000"
             set(value) {
                 field = value
-                LogLevelDebug = Color.decode(value)
+                mLogLevelDebug = Color.decode(value)
             }
-        var LogLevelDebug: Color = Color.decode(StrLogLevelDebug)
+        var mLogLevelDebug: Color = Color.decode(mStrLogLevelDebug)
             private set
 
-        var StrLogLevelInfo = "#000000"
+        var mStrLogLevelInfo = "#000000"
             set(value) {
                 field = value
-                LogLevelInfo = Color.decode(value)
+                mLogLevelInfo = Color.decode(value)
             }
-        var LogLevelInfo: Color = Color.decode(StrLogLevelInfo)
+        var mLogLevelInfo: Color = Color.decode(mStrLogLevelInfo)
             private set
 
-        var StrLogLevelWarning = "#000000"
+        var mStrLogLevelWarning = "#000000"
             set(value) {
                 field = value
-                LogLevelWarning = Color.decode(value)
+                mLogLevelWarning = Color.decode(value)
             }
-        var LogLevelWarning: Color = Color.decode(StrLogLevelWarning)
+        var mLogLevelWarning: Color = Color.decode(mStrLogLevelWarning)
             private set
 
-        var StrLogLevelError = "#000000"
+        var mStrLogLevelError = "#000000"
             set(value) {
                 field = value
-                LogLevelError = Color.decode(value)
+                mLogLevelError = Color.decode(value)
             }
-        var LogLevelError: Color = Color.decode(StrLogLevelError)
+        var mLogLevelError: Color = Color.decode(mStrLogLevelError)
             private set
 
-        var StrLogLevelFatal = "#000000"
+        var mStrLogLevelFatal = "#000000"
             set(value) {
                 field = value
-                LogLevelFatal = Color.decode(value)
+                mLogLevelFatal = Color.decode(value)
             }
-        var LogLevelFatal: Color = Color.decode(StrLogLevelFatal)
+        var mLogLevelFatal: Color = Color.decode(mStrLogLevelFatal)
             private set
 
-        var StrLineNumFG = "#000000"
+        var mStrLineNumFG = "#000000"
             set(value) {
                 field = value
-                LineNumFG = Color.decode(value)
+                mLineNumFG = Color.decode(value)
             }
-        var LineNumFG: Color = Color.decode(StrLineNumBG)
+        var mLineNumFG: Color = Color.decode(mStrLineNumBG)
             private set
 
-        var StrNumLogSeperatorBG = "#000000"
+        var mStrNumLogSeperatorBG = "#000000"
             set(value) {
                 field = value
-                NumLogSeperatorBG = Color.decode(value)
+                mNumLogSeperatorBG = Color.decode(value)
             }
-        var NumLogSeperatorBG: Color = Color.decode(StrNumLogSeperatorBG)
+        var mNumLogSeperatorBG: Color = Color.decode(mStrNumLogSeperatorBG)
             private set
 
-        var StrBookmarkSelectedBG = "#000000"
+        var mStrBookmarkSelectedBG = "#000000"
             set(value) {
                 field = value
-                BookmarkSelectedBG = Color.decode(value)
+                mBookmarkSelectedBG = Color.decode(value)
             }
-        var BookmarkSelectedBG: Color = Color.decode(StrBookmarkSelectedBG)
+        var mBookmarkSelectedBG: Color = Color.decode(mStrBookmarkSelectedBG)
             private set
 
-        var StrNumBookmarkSelectedBG = "#000000"
+        var mStrNumBookmarkSelectedBG = "#000000"
             set(value) {
                 field = value
-                NumBookmarkSelectedBG = Color.decode(value)
+                mNumBookmarkSelectedBG = Color.decode(value)
             }
-        var NumBookmarkSelectedBG: Color = Color.decode(StrNumBookmarkSelectedBG)
+        var mNumBookmarkSelectedBG: Color = Color.decode(mStrNumBookmarkSelectedBG)
             private set
 
-        var StrNumBookmarkBG = "#000000"
+        var mStrNumBookmarkBG = "#000000"
             set(value) {
                 field = value
-                NumBookmarkBG = Color.decode(value)
+                mNumBookmarkBG = Color.decode(value)
             }
-        var NumBookmarkBG: Color = Color.decode(StrNumBookmarkBG)
+        var mNumBookmarkBG: Color = Color.decode(mStrNumBookmarkBG)
             private set
 
-        var StrNumSelectedBG = "#000000"
+        var mStrNumSelectedBG = "#000000"
             set(value) {
                 field = value
-                NumSelectedBG = Color.decode(value)
+                mNumSelectedBG = Color.decode(value)
             }
-        var NumSelectedBG: Color = Color.decode(StrNumSelectedBG)
+        var mNumSelectedBG: Color = Color.decode(mStrNumSelectedBG)
             private set
 
-        var StrHighlightBG = "#000000"
+        var mStrHighlightBG = "#000000"
             set(value) {
                 field = value
-                HighlightBG = Color.decode(value)
+                mHighlightBG = Color.decode(value)
             }
-        var HighlightBG: Color = Color.decode(StrHighlightBG)
+        var mHighlightBG: Color = Color.decode(mStrHighlightBG)
             private set
 
-        var StrSearchBG = "#000000"
+        var mStrSearchBG = "#000000"
             set(value) {
                 field = value
-                SearchBG = Color.decode(value)
+                mSearchBG = Color.decode(value)
             }
-        var SearchBG: Color = Color.decode(StrSearchBG)
+        var mSearchBG: Color = Color.decode(mStrSearchBG)
             private set
         
-        var StrFilteredFGs = arrayOf(mColorSchemeLight[0],
+        var mStrFilteredFGs = arrayOf(mColorSchemeLight[0],
                 mColorSchemeLight[24],
                 mColorSchemeLight[25],
                 mColorSchemeLight[26],
@@ -404,7 +406,7 @@ class ColorManager private constructor(){
                 mColorSchemeLight[32],
         )
 
-        var StrFilteredBGs = arrayOf(mColorSchemeLight[2],
+        var mStrFilteredBGs = arrayOf(mColorSchemeLight[2],
                 mColorSchemeLight[33],
                 mColorSchemeLight[34],
                 mColorSchemeLight[35],
@@ -479,41 +481,41 @@ class ColorManager private constructor(){
         }
 
         fun applyColor() {
-            StrFilteredFG = mColorArray[TableColorIdx.FILTERED_FG.value].mStrColor
-            StrSelectedBG = mColorArray[TableColorIdx.SELECTED_BG.value].mStrColor
-            StrFilteredBG = mColorArray[TableColorIdx.FILTERED_BG.value].mStrColor
-            StrLogBG = mColorArray[TableColorIdx.LOG_BG.value].mStrColor
-            StrLineNumBG = mColorArray[TableColorIdx.LINE_NUM_BG.value].mStrColor
-            StrBookmarkBG = mColorArray[TableColorIdx.BOOKMARK_BG.value].mStrColor
-            StrLogLevelNone = mColorArray[TableColorIdx.LOG_LEVEL_NONE.value].mStrColor
-            StrLogLevelVerbose = mColorArray[TableColorIdx.LOG_LEVEL_VERBOSE.value].mStrColor
-            StrLogLevelDebug = mColorArray[TableColorIdx.LOG_LEVEL_DEBUG.value].mStrColor
-            StrLogLevelInfo = mColorArray[TableColorIdx.LOG_LEVEL_INFO.value].mStrColor
-            StrLogLevelWarning = mColorArray[TableColorIdx.LOG_LEVEL_WARNING.value].mStrColor
-            StrLogLevelError = mColorArray[TableColorIdx.LOG_LEVEL_ERROR.value].mStrColor
-            StrLogLevelFatal = mColorArray[TableColorIdx.LOG_LEVEL_FATAL.value].mStrColor
-            StrPidFG = mColorArray[TableColorIdx.PID_FG.value].mStrColor
-            StrTidFG = mColorArray[TableColorIdx.TID_FG.value].mStrColor
-            StrTagFG = mColorArray[TableColorIdx.TAG_FG.value].mStrColor
-            StrHighlightFG = mColorArray[TableColorIdx.HIGHLIGHT_FG.value].mStrColor
-            StrSearchFG = mColorArray[TableColorIdx.SEARCH_FG.value].mStrColor
-            StrLineNumFG = mColorArray[TableColorIdx.LINE_NUM_FG.value].mStrColor
-            StrNumLogSeperatorBG = mColorArray[TableColorIdx.NUM_LOG_SEPERATOR_BG.value].mStrColor
-            StrBookmarkSelectedBG = mColorArray[TableColorIdx.BOOKMARK_SELECTED_BG.value].mStrColor
-            StrNumBookmarkSelectedBG = mColorArray[TableColorIdx.NUM_BOOKMARK_SELECTED_BG.value].mStrColor
-            StrNumBookmarkBG = mColorArray[TableColorIdx.NUM_BOOKMARK_BG.value].mStrColor
-            StrNumSelectedBG = mColorArray[TableColorIdx.NUM_SELECTED_BG.value].mStrColor
-            StrHighlightBG = mColorArray[TableColorIdx.HIGHLIGHT_BG.value].mStrColor
-            StrSearchBG = mColorArray[TableColorIdx.SEARCH_BG.value].mStrColor
+            mStrFilteredFG = mColorArray[TableColorIdx.FILTERED_FG.value].mStrColor
+            mStrSelectedBG = mColorArray[TableColorIdx.SELECTED_BG.value].mStrColor
+            mStrFilteredBG = mColorArray[TableColorIdx.FILTERED_BG.value].mStrColor
+            mStrLogBG = mColorArray[TableColorIdx.LOG_BG.value].mStrColor
+            mStrLineNumBG = mColorArray[TableColorIdx.LINE_NUM_BG.value].mStrColor
+            mStrBookmarkBG = mColorArray[TableColorIdx.BOOKMARK_BG.value].mStrColor
+            mStrLogLevelNone = mColorArray[TableColorIdx.LOG_LEVEL_NONE.value].mStrColor
+            mStrLogLevelVerbose = mColorArray[TableColorIdx.LOG_LEVEL_VERBOSE.value].mStrColor
+            mStrLogLevelDebug = mColorArray[TableColorIdx.LOG_LEVEL_DEBUG.value].mStrColor
+            mStrLogLevelInfo = mColorArray[TableColorIdx.LOG_LEVEL_INFO.value].mStrColor
+            mStrLogLevelWarning = mColorArray[TableColorIdx.LOG_LEVEL_WARNING.value].mStrColor
+            mStrLogLevelError = mColorArray[TableColorIdx.LOG_LEVEL_ERROR.value].mStrColor
+            mStrLogLevelFatal = mColorArray[TableColorIdx.LOG_LEVEL_FATAL.value].mStrColor
+            mStrPidFG = mColorArray[TableColorIdx.PID_FG.value].mStrColor
+            mStrTidFG = mColorArray[TableColorIdx.TID_FG.value].mStrColor
+            mStrTagFG = mColorArray[TableColorIdx.TAG_FG.value].mStrColor
+            mStrHighlightFG = mColorArray[TableColorIdx.HIGHLIGHT_FG.value].mStrColor
+            mStrSearchFG = mColorArray[TableColorIdx.SEARCH_FG.value].mStrColor
+            mStrLineNumFG = mColorArray[TableColorIdx.LINE_NUM_FG.value].mStrColor
+            mStrNumLogSeperatorBG = mColorArray[TableColorIdx.NUM_LOG_SEPERATOR_BG.value].mStrColor
+            mStrBookmarkSelectedBG = mColorArray[TableColorIdx.BOOKMARK_SELECTED_BG.value].mStrColor
+            mStrNumBookmarkSelectedBG = mColorArray[TableColorIdx.NUM_BOOKMARK_SELECTED_BG.value].mStrColor
+            mStrNumBookmarkBG = mColorArray[TableColorIdx.NUM_BOOKMARK_BG.value].mStrColor
+            mStrNumSelectedBG = mColorArray[TableColorIdx.NUM_SELECTED_BG.value].mStrColor
+            mStrHighlightBG = mColorArray[TableColorIdx.HIGHLIGHT_BG.value].mStrColor
+            mStrSearchBG = mColorArray[TableColorIdx.SEARCH_BG.value].mStrColor
 
-            for (idx in StrFilteredFGs.indices) {
+            for (idx in mStrFilteredFGs.indices) {
                 if (idx == 0) {
-                    StrFilteredFGs[idx] = StrFilteredFG
-                    StrFilteredBGs[idx] = StrFilteredBG
+                    mStrFilteredFGs[idx] = mStrFilteredFG
+                    mStrFilteredBGs[idx] = mStrFilteredBG
                 }
                 else {
-                    StrFilteredFGs[idx] = mColorArray[TableColorIdx.FILTERED_START_FG.value + idx - 1].mStrColor
-                    StrFilteredBGs[idx] = mColorArray[TableColorIdx.FILTERED_START_BG.value + idx - 1].mStrColor
+                    mStrFilteredFGs[idx] = mColorArray[TableColorIdx.FILTERED_START_FG.value + idx - 1].mStrColor
+                    mStrFilteredBGs[idx] = mColorArray[TableColorIdx.FILTERED_START_BG.value + idx - 1].mStrColor
                 }
             }
 

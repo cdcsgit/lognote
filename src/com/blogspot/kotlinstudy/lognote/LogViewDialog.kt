@@ -113,16 +113,16 @@ class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent
 
         init {
             mIncludeItem.isOpaque = true
-            mIncludeItem.foreground = Color.decode(ColorManager.getInstance().mFilterTableColor.StrFilteredFGs[0])
-            mIncludeItem.background = Color.decode(ColorManager.getInstance().mFilterTableColor.StrFilteredBGs[0])
+            mIncludeItem.foreground = Color.decode(ColorManager.getInstance().mFilterTableColor.mStrFilteredFGs[0])
+            mIncludeItem.background = Color.decode(ColorManager.getInstance().mFilterTableColor.mStrFilteredBGs[0])
             mIncludeItem.addActionListener(mIncludeAction)
             mIncludeItem.mnemonic = KeyEvent.VK_I
             add(mIncludeItem)
             for (idx in 1..9) {
                 val item = JMenuItem("${Strings.ADD_INCLUDE} : #$idx")
                 item.isOpaque = true
-                item.foreground = Color.decode(ColorManager.getInstance().mFilterTableColor.StrFilteredFGs[idx])
-                item.background = Color.decode(ColorManager.getInstance().mFilterTableColor.StrFilteredBGs[idx])
+                item.foreground = Color.decode(ColorManager.getInstance().mFilterTableColor.mStrFilteredFGs[idx])
+                item.background = Color.decode(ColorManager.getInstance().mFilterTableColor.mStrFilteredBGs[idx])
                 item.addActionListener(mIncludeAction)
                 add(item)
             }

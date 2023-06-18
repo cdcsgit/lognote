@@ -8,7 +8,7 @@ import java.util.*
 class ConfigManager private constructor() {
     companion object {
         private const val CONFIG_FILE = "lognote.xml"
-        val LOGNOTE_HOME: String? = System.getenv("LOGNOTE_HOME")
+        val LOGNOTE_HOME: String = System.getenv("LOGNOTE_HOME") ?: ""
         const val ITEM_CONFIG_VERSION = "CONFIG_VERSION"
         const val ITEM_FRAME_X = "FRAME_X"
         const val ITEM_FRAME_Y = "FRAME_Y"
@@ -99,7 +99,7 @@ class ConfigManager private constructor() {
     private var mConfigPath = CONFIG_FILE
 
     init {
-        if (LOGNOTE_HOME != null) {
+        if (LOGNOTE_HOME.isNotEmpty()) {
             val os = System.getProperty("os.name")
             mConfigPath = if (os.lowercase().contains("windows")) {
                 "$LOGNOTE_HOME\\$CONFIG_FILE"
@@ -213,26 +213,19 @@ class ConfigManager private constructor() {
     fun loadFilters() : ArrayList<CustomListManager.CustomElement> {
         val filters = ArrayList<CustomListManager.CustomElement>()
 
-        var title: String?
-        var filter: String?
-        var check: String?
+        var title: String
+        var filter: String
+        var check: String
         var tableBar: Boolean
         for (i in 0 until FiltersManager.MAX_FILTERS) {
-            title = mProperties[ITEM_FILTERS_TITLE + i] as? String
-            if (title == null) {
+            title = (mProperties[ITEM_FILTERS_TITLE + i] ?: "") as String
+            if (title.isEmpty()) {
                 break
             }
-            filter = mProperties[ITEM_FILTERS_FILTER + i] as? String
-            if (filter == null) {
-                filter = "null"
-            }
+            filter = (mProperties[ITEM_FILTERS_FILTER + i] ?: "null") as String
+            check = (mProperties[ITEM_FILTERS_TABLEBAR + i] ?: "false") as String
+            tableBar = check.toBoolean()
 
-            check = mProperties[ITEM_FILTERS_TABLEBAR + i] as? String
-            tableBar = if (!check.isNullOrEmpty()) {
-                check.toBoolean()
-            } else {
-                false
-            }
             filters.add(CustomListManager.CustomElement(title, filter, tableBar))
         }
 
@@ -248,8 +241,8 @@ class ConfigManager private constructor() {
         }
 
         for (i in 0 until FiltersManager.MAX_FILTERS) {
-            val title = mProperties[ITEM_FILTERS_TITLE + i] as? String
-            if (title == null) {
+            val title: String = (mProperties[ITEM_FILTERS_TITLE + i] ?: "") as String
+            if (title.isEmpty()) {
                 break
             }
             mProperties.remove(ITEM_FILTERS_TITLE + i)
@@ -270,26 +263,19 @@ class ConfigManager private constructor() {
     fun loadCmds() : ArrayList<CustomListManager.CustomElement> {
         val cmds = ArrayList<CustomListManager.CustomElement>()
 
-        var title: String?
-        var cmd: String?
-        var check: String?
+        var title: String
+        var cmd: String
+        var check: String
         var tableBar: Boolean
-        for (i in 0 until CmdsManager.MAX_CMDS) {
-            title = mProperties[ITEM_CMDS_TITLE + i] as? String
-            if (title == null) {
+        for (i in 0 until CmdManager.MAX_CMD_COUNT) {
+            title = (mProperties[ITEM_CMDS_TITLE + i] ?: "") as String
+            if (title.isEmpty()) {
                 break
             }
-            cmd = mProperties[ITEM_CMDS_CMD + i] as? String
-            if (cmd == null) {
-                cmd = "null"
-            }
+            cmd = (mProperties[ITEM_CMDS_CMD + i] ?: "null") as String
+            check = (mProperties[ITEM_CMDS_TABLEBAR + i] ?: "false") as String
+            tableBar = check.toBoolean()
 
-            check = mProperties[ITEM_CMDS_TABLEBAR + i] as? String
-            tableBar = if (!check.isNullOrEmpty()) {
-                check.toBoolean()
-            } else {
-                false
-            }
             cmds.add(CustomListManager.CustomElement(title, cmd, tableBar))
         }
 
@@ -300,13 +286,13 @@ class ConfigManager private constructor() {
         loadConfig()
 
         var nCount = cmds.size
-        if (nCount > CmdsManager.MAX_CMDS) {
-            nCount = CmdsManager.MAX_CMDS
+        if (nCount > CmdManager.MAX_CMD_COUNT) {
+            nCount = CmdManager.MAX_CMD_COUNT
         }
 
-        for (i in 0 until CmdsManager.MAX_CMDS) {
-            val title = mProperties[ITEM_CMDS_TITLE + i] as? String
-            if (title == null) {
+        for (i in 0 until CmdManager.MAX_CMD_COUNT) {
+            val title: String = (mProperties[ITEM_CMDS_TITLE + i] ?: "") as String
+            if (title.isEmpty()) {
                 break
             }
             mProperties.remove(ITEM_CMDS_TITLE + i)
@@ -326,10 +312,10 @@ class ConfigManager private constructor() {
 
     private fun manageVersion() {
         loadConfig()
-        var confVer = mProperties[ITEM_CONFIG_VERSION] as String?
-        if (confVer == null) {
+        var confVer: String = (mProperties[ITEM_CONFIG_VERSION] ?: "") as String
+        if (confVer.isEmpty()) {
             updateConfigFromV0ToV1()
-            confVer = mProperties[ITEM_CONFIG_VERSION] as String?
+            confVer = (mProperties[ITEM_CONFIG_VERSION] ?: "") as String
             println("manageVersion : $confVer applied")
         }
 

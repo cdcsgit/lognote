@@ -107,27 +107,29 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
 //            }
         }
 
-    internal class LineNumBorder(val color: Color, private val thickness: Int) : AbstractBorder() {
+    internal class LineNumBorder(color: Color, thickness: Int) : AbstractBorder() {
+        private val mColor = color
+        private val mThickness = thickness
         override fun paintBorder(
             c: Component?, g: Graphics?, x: Int, y: Int, width: Int, height: Int
         ) {
             if (width > 0) {
-                g?.color = color
-                for (i in 1..thickness) {
+                g?.color = mColor
+                for (i in 1..mThickness) {
                     g?.drawLine(width - i , y, width - i, height)
                 }
             }
         }
 
         override fun getBorderInsets(c: Component): Insets {
-            return getBorderInsets(c, Insets(0, 0, 0, thickness))
+            return getBorderInsets(c, Insets(0, 0, 0, mThickness))
         }
 
         override fun getBorderInsets(c: Component?, insets: Insets): Insets {
             insets.top = 0
             insets.left = 0
             insets.bottom = 0
-            insets.right = thickness
+            insets.right = mThickness
             return insets
         }
 
@@ -156,20 +158,20 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
 //            println("NumCellRenderer getTableCellRendererComponent $isSelected, $hasFocus, $row, $col, ${isRowSelected(row)}")
             val label = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col) as JLabel
 
-            label.border = LineNumBorder(mTableColor.NumLogSeperatorBG, 1)
+            label.border = LineNumBorder(mTableColor.mNumLogSeperatorBG, 1)
 
-            foreground = mTableColor.LineNumFG
+            foreground = mTableColor.mLineNumFG
             background = if (mBookmarkManager.mBookmarks.contains(num)) {
                 if (isRowSelected(row)) {
-                    mTableColor.NumBookmarkSelectedBG
+                    mTableColor.mNumBookmarkSelectedBG
                 }
                 else {
-                    mTableColor.NumBookmarkBG
+                    mTableColor.mNumBookmarkBG
                 }
             } else if (isRowSelected(row)) {
-                mTableColor.NumSelectedBG
+                mTableColor.mNumSelectedBG
             } else {
-                mTableColor.LineNumBG
+                mTableColor.mLineNumBG
             }
 
             return label
@@ -206,15 +208,15 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
             val num = numValue.toString().trim().toInt()
             if (mBookmarkManager.mBookmarks.contains(num)) {
                 if (isRowSelected(row)) {
-                    background = mTableColor.BookmarkSelectedBG
+                    background = mTableColor.mBookmarkSelectedBG
                 }
                 else {
-                    background = mTableColor.BookmarkBG
+                    background = mTableColor.mBookmarkBG
                 }
             } else if (isRowSelected(row)) {
-                background = mTableColor.SelectedBG
+                background = mTableColor.mSelectedBG
             } else {
-                background = mTableColor.LogBG
+                background = mTableColor.mLogBG
             }
 
             return label

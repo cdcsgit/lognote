@@ -243,10 +243,7 @@ class LogCmdManager private constructor(){
         fun changedStatus(event:AdbEvent)
     }
 
-    class AdbEvent(c:Int, e:Int) {
-        val cmd = c
-        val event = e
-    }
+    class AdbEvent(val cmd: Int, val event: Int)
 
     interface ProcessListener : EventListener {
         fun processFinished(process: Process?)
