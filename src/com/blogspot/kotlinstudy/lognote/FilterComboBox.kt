@@ -96,6 +96,27 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
         isVisible = !(!enabled && editor.item.toString().isEmpty())
     }
 
+    var mApplyCallback: (String) -> Unit = { println("ApplyCallback is not set") }
+    fun setApplyFilterCallback(callback: (String) -> Unit) {
+        mApplyCallback = callback
+    }
+
+    fun applyFilter(filter: String) {
+        mApplyCallback(filter)
+    }
+
+    fun resetComboItem(item: String) {
+        if (isExistItem(item)) {
+            if (selectedIndex == 0) {
+                return
+            }
+            removeItem(item)
+        }
+        insertItemAt(item, 0)
+        selectedIndex = 0
+        return
+    }
+
     fun isExistItem(item:String) : Boolean {
         var isExist = false
         for (idx in 0 until itemCount) {
