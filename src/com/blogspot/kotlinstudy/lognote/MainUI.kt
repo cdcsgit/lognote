@@ -957,6 +957,13 @@ class MainUI(title: String) : JFrame() {
         mFullTableModel = LogTableModel(this, null)
         mFilteredTableModel = LogTableModel(this, mFullTableModel)
 
+        FilterComboBox.IsFilterIncremental = { mItemFilterIncremental.state }
+        mShowLogCombo.setApplyFilter { filter -> mFilteredTableModel.mFilterLog = filter }
+        mBoldLogCombo.setApplyFilter { filter -> mFilteredTableModel.mFilterHighlightLog = filter }
+        mShowTagCombo.setApplyFilter { filter -> mFilteredTableModel.mFilterTag = filter }
+        mShowPidCombo.setApplyFilter { filter -> mFilteredTableModel.mFilterPid = filter }
+        mShowTidCombo.setApplyFilter { filter -> mFilteredTableModel.mFilterTid = filter }
+
         mFullLogPanel = LogPanel(this, mFullTableModel, null, FocusHandler(false))
         mFilteredLogPanel = LogPanel(this, mFilteredTableModel, mFullLogPanel, FocusHandler(true))
         mFullLogPanel.updateTableBar(mConfigManager.loadCmds())
@@ -2308,7 +2315,7 @@ class MainUI(title: String) : JFrame() {
         if (isCheck) {
             if (mShowLogToggle.isSelected) {
                 val item = mShowLogCombo.selectedItem!!.toString()
-                resetComboItem(mShowLogCombo, item)
+                mShowLogCombo.resetComboItem(item)
                 mFilteredTableModel.mFilterLog = item
             }
             else {
@@ -2317,7 +2324,7 @@ class MainUI(title: String) : JFrame() {
         }
         else {
             val item = mShowLogCombo.selectedItem!!.toString()
-            resetComboItem(mShowLogCombo, item)
+            mShowLogCombo.resetComboItem(item)
             mFilteredTableModel.mFilterLog = item
         }
     }
@@ -2394,42 +2401,11 @@ class MainUI(title: String) : JFrame() {
             }
 
             if (KeyEvent.VK_ENTER == p0?.keyCode) {
-                when {
-                    p0.source == mShowLogCombo.editor.editorComponent && mShowLogToggle.isSelected -> {
-                        val combo = mShowLogCombo
-                        val item = combo.selectedItem!!.toString()
-                        resetComboItem(combo, item)
-                        mFilteredTableModel.mFilterLog = item
-                    }
-                    p0.source == mBoldLogCombo.editor.editorComponent && mBoldLogToggle.isSelected -> {
-                        val combo = mBoldLogCombo
-                        val item = combo.selectedItem!!.toString()
-                        resetComboItem(combo, item)
-                        mFilteredTableModel.mFilterHighlightLog = item
-                    }
-                    p0.source == mShowTagCombo.editor.editorComponent && mShowTagToggle.isSelected -> {
-                        val combo = mShowTagCombo
-                        val item = combo.selectedItem!!.toString()
-                        resetComboItem(combo, item)
-                        mFilteredTableModel.mFilterTag = item
-                    }
-                    p0.source == mShowPidCombo.editor.editorComponent && mShowPidToggle.isSelected -> {
-                        val combo = mShowPidCombo
-                        val item = combo.selectedItem!!.toString()
-                        resetComboItem(combo, item)
-                        mFilteredTableModel.mFilterPid = item
-                    }
-                    p0.source == mShowTidCombo.editor.editorComponent && mShowTidToggle.isSelected -> {
-                        val combo = mShowTidCombo
-                        val item = combo.selectedItem!!.toString()
-                        resetComboItem(combo, item)
-                        mFilteredTableModel.mFilterTid = item
-                    }
-                    p0.source == mLogCmdCombo.editor.editorComponent -> {
+                when (p0.source) {
+                    mLogCmdCombo.editor.editorComponent -> {
                         if (mLogCmdManager.mLogCmd == mLogCmdCombo.editor.item.toString()) {
                             reconnectAdb()
-                        }
-                        else {
+                        } else {
                             val item = mLogCmdCombo.editor.item.toString().trim()
 
                             if (item.isEmpty()) {
@@ -2439,34 +2415,11 @@ class MainUI(title: String) : JFrame() {
                             updateLogCmdCombo(false)
                         }
                     }
-                    p0.source == mDeviceCombo.editor.editorComponent -> {
+                    mDeviceCombo.editor.editorComponent -> {
                         reconnectAdb()
                     }
-                    p0.source == mScrollbackTF -> {
+                    mScrollbackTF -> {
                         mScrollbackApplyBtn.doClick()
-                    }
-                }
-            } else if (p0 != null && mItemFilterIncremental.state) {
-                when {
-                    p0.source == mShowLogCombo.editor.editorComponent && mShowLogToggle.isSelected -> {
-                        val item = mShowLogCombo.editor.item.toString()
-                        mFilteredTableModel.mFilterLog = item
-                    }
-                    p0.source == mBoldLogCombo.editor.editorComponent && mBoldLogToggle.isSelected -> {
-                        val item = mBoldLogCombo.editor.item.toString()
-                        mFilteredTableModel.mFilterHighlightLog = item
-                    }
-                    p0.source == mShowTagCombo.editor.editorComponent && mShowTagToggle.isSelected -> {
-                        val item = mShowTagCombo.editor.item.toString()
-                        mFilteredTableModel.mFilterTag = item
-                    }
-                    p0.source == mShowPidCombo.editor.editorComponent && mShowPidToggle.isSelected -> {
-                        val item = mShowPidCombo.editor.item.toString()
-                        mFilteredTableModel.mFilterPid = item
-                    }
-                    p0.source == mShowTidCombo.editor.editorComponent && mShowTidToggle.isSelected -> {
-                        val item = mShowTidCombo.editor.item.toString()
-                        mFilteredTableModel.mFilterTid = item
                     }
                 }
             }
@@ -2644,7 +2597,7 @@ class MainUI(title: String) : JFrame() {
                     if (combo.editor.item.toString() != item) {
                         return
                     }
-                    resetComboItem(combo, item)
+                    combo.resetComboItem(item)
                     mFilteredTableModel.mFilterLog = item
                     combo.updateTooltip()
                 }
@@ -2654,7 +2607,7 @@ class MainUI(title: String) : JFrame() {
                     }
                     val combo = mBoldLogCombo
                     val item = combo.selectedItem!!.toString()
-                    resetComboItem(combo, item)
+                    combo.resetComboItem(item)
                     mFilteredTableModel.mFilterHighlightLog = item
                     combo.updateTooltip()
                 }
@@ -2664,7 +2617,7 @@ class MainUI(title: String) : JFrame() {
                     }
                     val combo = mShowTagCombo
                     val item = combo.selectedItem!!.toString()
-                    resetComboItem(combo, item)
+                    combo.resetComboItem(item)
                     mFilteredTableModel.mFilterTag = item
                     combo.updateTooltip()
                 }
@@ -2674,7 +2627,7 @@ class MainUI(title: String) : JFrame() {
                     }
                     val combo = mShowPidCombo
                     val item = combo.selectedItem!!.toString()
-                    resetComboItem(combo, item)
+                    combo.resetComboItem(item)
                     mFilteredTableModel.mFilterPid = item
                     combo.updateTooltip()
                 }
@@ -2684,7 +2637,7 @@ class MainUI(title: String) : JFrame() {
                     }
                     val combo = mShowTidCombo
                     val item = combo.selectedItem!!.toString()
-                    resetComboItem(combo, item)
+                    combo.resetComboItem(item)
                     mFilteredTableModel.mFilterTid = item
                     combo.updateTooltip()
                 }
@@ -2720,18 +2673,6 @@ class MainUI(title: String) : JFrame() {
             revalidate()
             super.componentResized(p0)
         }
-    }
-
-    fun resetComboItem(combo: FilterComboBox, item: String) {
-        if (combo.isExistItem(item)) {
-            if (combo.selectedIndex == 0) {
-                return
-            }
-            combo.removeItem(item)
-        }
-        combo.insertItemAt(item, 0)
-        combo.selectedIndex = 0
-        return
     }
 
     fun goToLine(line: Int) {
@@ -2993,7 +2934,7 @@ class MainUI(title: String) : JFrame() {
                     when (p0.source) {
                         mSearchCombo.editor.editorComponent -> {
                             val item = mSearchCombo.selectedItem!!.toString()
-                            resetComboItem(mSearchCombo, item)
+                            mSearchCombo.resetComboItem(item)
                             mFilteredTableModel.mFilterSearchLog = item
                             if (KeyEvent.SHIFT_MASK == p0.modifiers) {
                                 moveToPrev()
@@ -3020,7 +2961,7 @@ class MainUI(title: String) : JFrame() {
                             return
                         }
                         val item = mSearchCombo.selectedItem!!.toString()
-                        resetComboItem(mSearchCombo, item)
+                        mSearchCombo.resetComboItem(item)
                         mFilteredTableModel.mFilterSearchLog = item
                         mSearchCombo.updateTooltip()
                     }

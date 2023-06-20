@@ -17,6 +17,10 @@ import javax.swing.text.JTextComponent
 
 
 class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
+    companion object {
+        var IsFilterIncremental: () -> Boolean = { false }
+    }
+
     enum class Mode(val value: Int) {
         SINGLE_LINE(0),
         SINGLE_LINE_HIGHLIGHT(1),
@@ -96,13 +100,9 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
         isVisible = !(!enabled && editor.item.toString().isEmpty())
     }
 
-    var mApplyCallback: (String) -> Unit = { println("ApplyCallback is not set") }
-    fun setApplyFilterCallback(callback: (String) -> Unit) {
-        mApplyCallback = callback
-    }
-
-    fun applyFilter(filter: String) {
-        mApplyCallback(filter)
+    var mApplyFilter: (String) -> Unit = { println("ApplyCallback is not set") }
+    fun setApplyFilter(callback: (String) -> Unit) {
+        mApplyFilter = callback
     }
 
     fun resetComboItem(item: String) {
@@ -363,6 +363,19 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
     internal inner class KeyHandler : KeyAdapter() {
         override fun keyReleased(e: KeyEvent) {
             super.keyReleased(e)
+            if (!isEnabled) {
+                return
+            }
+            if (KeyEvent.VK_ENTER == e.keyCode) {
+                val combo = this@FilterComboBox
+                val item = combo.selectedItem?.toString()
+                item?.let {
+                    resetComboItem(it)
+                    mApplyFilter(it)
+                }
+            } else if (IsFilterIncremental()) {
+                mApplyFilter(mEditorComponent.text)
+            }
         }
     }
 
