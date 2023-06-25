@@ -384,10 +384,12 @@ class MainUI(title: String) : JFrame() {
 
         mConfigManager.setItem(ConfigManager.ITEM_FRAME_EXTENDED_STATE, extendedState.toString())
 
+        mShowLogCombo.resetComboItem(mShowLogCombo.editor.item.toString())
         var nCount = mShowLogCombo.itemCount
         if (nCount > ConfigManager.COUNT_SHOW_LOG) {
             nCount = ConfigManager.COUNT_SHOW_LOG
         }
+
         for (i in 0 until nCount) {
             mConfigManager.setItem(ConfigManager.ITEM_SHOW_LOG + i, mShowLogCombo.getItemAt(i).toString())
         }
@@ -1058,7 +1060,7 @@ class MainUI(title: String) : JFrame() {
                 break
             }
 
-            if (!mShowLogCombo.isExistItem(item)) {
+            if (mShowLogCombo.getItemIdx(item) < 0) {
                 mShowLogCombo.addItem(item)
             }
         }

@@ -106,8 +106,9 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
     }
 
     fun resetComboItem(item: String) {
-        if (isExistItem(item)) {
-            if (selectedIndex == 0) {
+        val idx = getItemIdx(item)
+        if (idx >= 0) {
+            if (idx == 0) {
                 return
             }
             removeItem(item)
@@ -117,15 +118,15 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
         return
     }
 
-    fun isExistItem(item:String) : Boolean {
-        var isExist = false
+    fun getItemIdx(item:String) : Int {
+        var ret = -1
         for (idx in 0 until itemCount) {
             if (getItemAt(idx).toString() == item) {
-                isExist = true
+                ret = idx
                 break
             }
         }
-        return isExist
+        return ret
     }
 
     fun removeAllColorTags(){
