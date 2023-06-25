@@ -12,6 +12,7 @@ import javax.swing.plaf.basic.BasicScrollBarUI
 
 class AppearanceSettingsDialog (mainUI: MainUI) : JDialog(mainUI, Strings.APPEARANCE, true), ActionListener {
     private var mMainUI = mainUI
+    private val mConfigManager = ConfigManager.getInstance()
 
     private val mSettingsPanel = JPanel()
     private val mScrollPane = JScrollPane()
@@ -155,10 +156,11 @@ class AppearanceSettingsDialog (mainUI: MainUI) : JDialog(mainUI, Strings.APPEAR
             mFontSlider.minorTickSpacing = 10
             mFontSlider.paintTicks = true
             mFontSlider.paintLabels = true
-            mFontSlider.addChangeListener(ChangeListener {
+            mFontSlider.addChangeListener {
                 mExampleLabel.text = "${mFontSlider.value} % : $EXAMPLE_TEXT"
-                mExampleLabel.font = Font(mExampleLabel.font.name, mExampleLabel.font.style, mBaseFontSize * mFontSlider.value / 100)
-            })
+                mExampleLabel.font =
+                    Font(mExampleLabel.font.name, mExampleLabel.font.style, mBaseFontSize * mFontSlider.value / 100)
+            }
             sliderPanel.add(mFontSlider)
 
             val sizePanel = JPanel()
@@ -178,13 +180,13 @@ class AppearanceSettingsDialog (mainUI: MainUI) : JDialog(mainUI, Strings.APPEAR
             mDividerSlider.minorTickSpacing = 1
             mDividerSlider.paintTicks = true
             mDividerSlider.paintLabels = true
-            mDividerSlider.addChangeListener(ChangeListener {
+            mDividerSlider.addChangeListener {
                 if (mDividerSlider.value == 0) {
                     mDividerSlider.value = MIN_DIVIDER_POS
                 }
                 mMainUI.mLogSplitPane.dividerSize = mDividerSlider.value
                 dividerLabel.text = "Divider Size(1 ~ 20) [${mMainUI.mLogSplitPane.dividerSize}]"
-            })
+            }
             dividerPanel.add(mDividerSlider)
 
             val optionsPanel = JPanel(BorderLayout())
@@ -390,12 +392,13 @@ class AppearanceSettingsDialog (mainUI: MainUI) : JDialog(mainUI, Strings.APPEAR
             val buttonGroup = ButtonGroup()
             val schemeBtn = JButton(Strings.APPLY)
 
-            schemeBtn.addActionListener(ActionListener { if (radioLight.isSelected) {
-                applyColorScheme(ColorManager.getInstance().mFilterColorSchemeLight)
-            } else if (radioDark.isSelected) {
-                applyColorScheme(ColorManager.getInstance().mFilterColorSchemeDark)
+            schemeBtn.addActionListener {
+                if (radioLight.isSelected) {
+                    applyColorScheme(ColorManager.getInstance().mFilterColorSchemeLight)
+                } else if (radioDark.isSelected) {
+                    applyColorScheme(ColorManager.getInstance().mFilterColorSchemeDark)
+                }
             }
-            })
 
             buttonGroup.add(radioLight)
             buttonGroup.add(radioDark)
@@ -438,7 +441,7 @@ class AppearanceSettingsDialog (mainUI: MainUI) : JDialog(mainUI, Strings.APPEAR
                         mStyleComboArray[ComboIdx.TID.value]!!.selectedIndex.toString(),
                         mStyleComboArray[ComboIdx.BOLD.value]!!.selectedIndex.toString())
 
-                mMainUI.mConfigManager.saveFilterStyle(keys, values)
+                mConfigManager.saveFilterStyle(keys, values)
             }
         }
 
@@ -786,7 +789,7 @@ class AppearanceSettingsDialog (mainUI: MainUI) : JDialog(mainUI, Strings.APPEAR
                 mMainUI.mFont = mPrevFont
             }
             else {
-                mMainUI.mConfigManager.saveFontColors(mMainUI.mFont.family, mMainUI.mFont.size)
+                mConfigManager.saveFontColors(mMainUI.mFont.family, mMainUI.mFont.size)
             }
         }
 

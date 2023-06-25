@@ -1,5 +1,6 @@
 package com.blogspot.kotlinstudy.lognote
 
+import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
@@ -100,12 +101,7 @@ class ConfigManager private constructor() {
 
     init {
         if (LOGNOTE_HOME.isNotEmpty()) {
-            val os = System.getProperty("os.name")
-            mConfigPath = if (os.lowercase().contains("windows")) {
-                "$LOGNOTE_HOME\\$CONFIG_FILE"
-            } else {
-                "$LOGNOTE_HOME/$CONFIG_FILE"
-            }
+            mConfigPath = "$LOGNOTE_HOME${File.separator}$CONFIG_FILE"
         }
         println("Config Path : $mConfigPath")
         manageVersion()

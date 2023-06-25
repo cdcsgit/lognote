@@ -15,10 +15,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 import javax.swing.*
-import javax.swing.event.DocumentEvent
-import javax.swing.event.DocumentListener
-import javax.swing.event.PopupMenuEvent
-import javax.swing.event.PopupMenuListener
+import javax.swing.event.*
 import javax.swing.plaf.ColorUIResource
 import javax.swing.plaf.FontUIResource
 import javax.swing.plaf.basic.BasicScrollBarUI
@@ -52,6 +49,13 @@ class MainUI(title: String) : JFrame() {
         const val FLAT_LIGHT_LAF = "Flat Light"
         const val FLAT_DARK_LAF = "Flat Dark"
 
+        const val METHOD_NONE = 0
+        const val METHOD_OPEN = 1
+        const val METHOD_ADB = 2
+        const val METHOD_CMD = 3
+        const val METHOD_FOLLOW = 4
+        var CurrentMethod = METHOD_NONE
+
         var IsCreatingUI = true
     }
 
@@ -61,7 +65,7 @@ class MainUI(title: String) : JFrame() {
     private lateinit var mItemFileFollow: JMenuItem
     private lateinit var mItemFileOpenFiles: JMenuItem
     private lateinit var mItemFileAppendFiles: JMenuItem
-//    private lateinit var mItemFileOpenRecents: JMenu
+    private lateinit var mItemFileOpenRecents: JMenu
     private lateinit var mItemFileExit: JMenuItem
     private lateinit var mMenuView: JMenu
     private lateinit var mItemFull: JCheckBoxMenuItem
@@ -170,7 +174,8 @@ class MainUI(title: String) : JFrame() {
     private val mComponentHandler = ComponentHandler()
     private val mStatusChangeListener = StatusChangeListener()
 
-    val mConfigManager = ConfigManager.getInstance()
+    private val mConfigManager = ConfigManager.getInstance()
+    private val mRecentFileManager = RecentFileManager.getInstance()
     private val mColorManager = ColorManager.getInstance()
 
     private val mLogCmdManager = LogCmdManager.getInstance()
@@ -453,6 +458,61 @@ class MainUI(title: String) : JFrame() {
         mConfigManager.saveConfig()
     }
 
+    private fun updateRecentFiles() {
+        mItemFileOpenRecents.removeAll()
+
+        for (item in mRecentFileManager.mRecentList) {
+            val path = Paths.get(item.mPath)
+            val menuItem = JMenuItem(path.fileName.toString())
+            menuItem.toolTipText = item.mPath
+            menuItem.addActionListener { e: ActionEvent? ->
+                openFile((e?.source as JMenuItem).toolTipText ?: "", false)
+            }
+            mItemFileOpenRecents.add(menuItem)
+        }
+    }
+
+    private fun applyRecentOpen(path: String) {
+        if (path.isEmpty()) {
+            return
+        }
+
+        var recentItem = RecentFileManager.RecentItem()
+        for (item in mRecentFileManager.mRecentList) {
+            if (path == item.mPath) {
+                recentItem = item
+                break
+            }
+        }
+        
+        if (path == recentItem.mPath) {
+            mShowLogToggle.isSelected = recentItem.mShowLogCheck
+            mShowLogCombo.setEnabledFilter(mShowLogToggle.isSelected)
+            mShowTagToggle.isSelected = recentItem.mShowTagCheck
+            mShowTagCombo.setEnabledFilter(mShowTagToggle.isSelected)
+            mShowPidToggle.isSelected = recentItem.mShowPidCheck
+            mShowPidCombo.setEnabledFilter(mShowPidToggle.isSelected)
+            mShowTidToggle.isSelected = recentItem.mShowTidCheck
+            mShowTidCombo.setEnabledFilter(mShowTidToggle.isSelected)
+            mBoldLogToggle.isSelected = recentItem.mHighlightLogCheck
+            mBoldLogCombo.setEnabledFilter(mBoldLogToggle.isSelected)
+            mSearchPanel.mSearchMatchCaseToggle.isSelected = recentItem.mSearchMatchCase
+
+            mShowLogCombo.setFilterText(recentItem.mShowLog)
+            mShowLogCombo.applyFilterText(true)
+            mShowTagCombo.setFilterText(recentItem.mShowTag)
+            mShowTagCombo.applyFilterText(true)
+            mShowPidCombo.setFilterText(recentItem.mShowPid)
+            mShowPidCombo.applyFilterText(true)
+            mShowTidCombo.setFilterText(recentItem.mShowTid)
+            mShowTidCombo.applyFilterText(true)
+            mBoldLogCombo.setFilterText(recentItem.mHighlightLog)
+            mBoldLogCombo.applyFilterText(true)
+            mSearchPanel.mSearchCombo.setFilterText(recentItem.mSearchLog)
+            mSearchPanel.mSearchCombo.applyFilterText(true)
+        }
+    }
+
     private fun createUI(title: String) {
         setTitle(title)
 
@@ -473,6 +533,11 @@ class MainUI(title: String) : JFrame() {
         mItemFileOpen.addActionListener(mActionHandler)
         mMenuFile.add(mItemFileOpen)
 
+        mItemFileOpenRecents = JMenu(Strings.OPEN_RECENTS)
+        mItemFileOpenRecents.addActionListener(mActionHandler)
+        mItemFileOpenRecents.addMenuListener(MenuHandler())
+        mMenuFile.add(mItemFileOpenRecents)
+
         mItemFileFollow = JMenuItem(Strings.FOLLOW)
         mItemFileFollow.addActionListener(mActionHandler)
         mMenuFile.add(mItemFileFollow)
@@ -485,9 +550,6 @@ class MainUI(title: String) : JFrame() {
         mItemFileAppendFiles.addActionListener(mActionHandler)
         mMenuFile.add(mItemFileAppendFiles)
 
-//        mItemFileOpenRecents = JMenu(Strings.OPEN_RECENTS)
-//        mItemFileOpenRecents.addActionListener(mActionHandler)
-//        mMenuFile.add(mItemFileOpenRecents)
         mMenuFile.addSeparator()
 
         mItemFileExit = JMenuItem(Strings.EXIT)
@@ -688,7 +750,6 @@ class MainUI(title: String) : JFrame() {
         mShowLogCombo.toolTipText = TooltipStrings.LOG_COMBO
         mShowLogCombo.isEditable = true
         mShowLogCombo.renderer = FilterComboBox.ComboBoxRenderer()
-        mShowLogCombo.editor.editorComponent.addKeyListener(mKeyHandler)
         mShowLogCombo.addItemListener(mItemHandler)
         mShowLogCombo.addPopupMenuListener(mPopupMenuHandler)
         mShowLogCombo.editor.editorComponent.addMouseListener(mMouseHandler)
@@ -706,7 +767,6 @@ class MainUI(title: String) : JFrame() {
         mBoldLogCombo.mEnabledTfTooltip = false
         mBoldLogCombo.isEditable = true
         mBoldLogCombo.renderer = FilterComboBox.ComboBoxRenderer()
-        mBoldLogCombo.editor.editorComponent.addKeyListener(mKeyHandler)
         mBoldLogCombo.addItemListener(mItemHandler)
         mBoldLogCombo.editor.editorComponent.addMouseListener(mMouseHandler)
         mBoldLogToggle = ColorToggleButton(Strings.BOLD)
@@ -722,7 +782,6 @@ class MainUI(title: String) : JFrame() {
         mShowTagCombo.toolTipText = TooltipStrings.TAG_COMBO
         mShowTagCombo.isEditable = true
         mShowTagCombo.renderer = FilterComboBox.ComboBoxRenderer()
-        mShowTagCombo.editor.editorComponent.addKeyListener(mKeyHandler)
         mShowTagCombo.addItemListener(mItemHandler)
         mShowTagCombo.editor.editorComponent.addMouseListener(mMouseHandler)
         mShowTagToggle = ColorToggleButton(Strings.TAG)
@@ -738,7 +797,6 @@ class MainUI(title: String) : JFrame() {
         mShowPidCombo.toolTipText = TooltipStrings.PID_COMBO
         mShowPidCombo.isEditable = true
         mShowPidCombo.renderer = FilterComboBox.ComboBoxRenderer()
-        mShowPidCombo.editor.editorComponent.addKeyListener(mKeyHandler)
         mShowPidCombo.addItemListener(mItemHandler)
         mShowPidCombo.editor.editorComponent.addMouseListener(mMouseHandler)
         mShowPidToggle = ColorToggleButton(Strings.PID)
@@ -754,7 +812,6 @@ class MainUI(title: String) : JFrame() {
         mShowTidCombo.toolTipText = TooltipStrings.TID_COMBO
         mShowTidCombo.isEditable = true
         mShowTidCombo.renderer = FilterComboBox.ComboBoxRenderer()
-        mShowTidCombo.editor.editorComponent.addKeyListener(mKeyHandler)
         mShowTidCombo.addItemListener(mItemHandler)
         mShowTidCombo.editor.editorComponent.addMouseListener(mMouseHandler)
         mShowTidToggle = ColorToggleButton(Strings.TID)
@@ -1599,7 +1656,12 @@ class MainUI(title: String) : JFrame() {
 
     fun openFile(path: String, isAppend: Boolean) {
         println("Opening: $path, $isAppend")
+        saveRecentFile()
+        if (!isAppend) {
+            applyRecentOpen(path)
+        }
         mStatusMethod.text = " ${Strings.OPEN} "
+        CurrentMethod = METHOD_OPEN
         mFilteredTableModel.stopScan()
         mFilteredTableModel.stopFollow()
 
@@ -1626,6 +1688,45 @@ class MainUI(title: String) : JFrame() {
         return
     }
 
+    private fun saveRecentFile() {
+        if (CurrentMethod != METHOD_OPEN) {
+            return
+        }
+
+        mRecentFileManager.loadList()
+        val paths = mStatusTF.text.split("|")
+        for (path in paths) {
+            for (item in mRecentFileManager.mRecentList) {
+                if (path.trim() == item.mPath) {
+                    mRecentFileManager.mRecentList.remove(item)
+                    break
+                }
+            }
+        }
+
+        for (path in paths) {
+            val item = RecentFileManager.RecentItem()
+            item.mPath = path
+
+            item.mShowLogCheck = mShowLogToggle.isSelected
+            item.mShowTagCheck = mShowTagToggle.isSelected
+            item.mShowPidCheck = mShowPidToggle.isSelected
+            item.mShowTidCheck = mShowTidToggle.isSelected
+            item.mHighlightLogCheck = mBoldLogToggle.isSelected
+            item.mSearchMatchCase = mSearchPanel.mSearchMatchCaseToggle.isSelected
+
+            item.mShowLog = mShowLogCombo.selectedItem?.toString() ?: ""
+            item.mShowTag = mShowTagCombo.selectedItem?.toString() ?: ""
+            item.mShowPid = mShowPidCombo.selectedItem?.toString() ?: ""
+            item.mShowTid = mShowTidCombo.selectedItem?.toString() ?: ""
+            item.mHighlightLog = mBoldLogCombo.selectedItem?.toString() ?: ""
+            item.mSearchLog = mSearchPanel.mSearchCombo.selectedItem?.toString() ?: ""
+
+            mRecentFileManager.mRecentList.add(0, item)
+        }
+        mRecentFileManager.saveList()
+    }
+
     fun setSaveLogFile() {
         val dtf = DateTimeFormatter.ofPattern("yyyyMMdd_HH.mm.ss")
         var device = mDeviceCombo.selectedItem!!.toString()
@@ -1650,11 +1751,15 @@ class MainUI(title: String) : JFrame() {
     }
 
     fun startAdbScan(reconnect: Boolean) {
+        saveRecentFile()
+
         if (mLogCmdManager.getType() == LogCmdManager.TYPE_CMD) {
             mStatusMethod.text = " ${Strings.CMD} "
+            CurrentMethod = METHOD_CMD
         }
         else {
             mStatusMethod.text = " ${Strings.ADB} "
+            CurrentMethod = METHOD_ADB
         }
 
         mFilteredTableModel.stopScan()
@@ -1719,10 +1824,13 @@ class MainUI(title: String) : JFrame() {
     }
 
     fun startFileFollow(filePath: String) {
+        saveRecentFile()
+
         if (filePath.isNotEmpty()) {
             mFullTableModel.setLogFile(filePath)
             mFilteredTableModel.setLogFile(filePath)
             mStatusMethod.text = " ${Strings.FOLLOW} "
+            CurrentMethod = METHOD_FOLLOW
             mStatusTF.text = filePath
         }
 
@@ -2249,22 +2357,22 @@ class MainUI(title: String) : JFrame() {
             Thread.sleep(200)
         }
 
-        Thread(Runnable {
+        Thread {
             run {
                 Thread.sleep(200)
                 mClearViewsBtn.doClick()
                 Thread.sleep(200)
                 mStartBtn.doClick()
             }
-        }).start()
+        }.start()
     }
 
     fun startAdbLog() {
-        Thread(Runnable {
+        Thread {
             run {
                 mStartBtn.doClick()
             }
-        }).start()
+        }.start()
     }
 
     fun stopAdbLog() {
@@ -2272,11 +2380,11 @@ class MainUI(title: String) : JFrame() {
     }
 
     fun clearAdbLog() {
-        Thread(Runnable {
+        Thread {
             run {
                 mClearViewsBtn.doClick()
             }
-        }).start()
+        }.start()
     }
 
 //    fun clearSaveAdbLog() {
@@ -2295,10 +2403,17 @@ class MainUI(title: String) : JFrame() {
     }
 
     fun setTextShowLogCombo(text : String) {
-        mShowLogCombo.selectedItem = text
-        mShowLogCombo.updateTooltip()
+        mShowLogCombo.setFilterText(text)
     }
 
+    fun applyShowLogCombo(isCheck: Boolean) {
+        mShowLogCombo.applyFilterText(isCheck)
+    }
+
+    fun applyShowLogComboEditor() {
+        mShowLogCombo.applyFilterTextEditor()
+    }
+    
     fun getTextSearchCombo() : String {
         if (mSearchPanel.mSearchCombo.selectedItem == null) {
             return ""
@@ -2313,30 +2428,6 @@ class MainUI(title: String) : JFrame() {
         mItemSearch.state = mSearchPanel.isVisible
     }
 
-    fun applyShowLogCombo(isCheck: Boolean) {
-        if (isCheck) {
-            if (mShowLogToggle.isSelected) {
-                val item = mShowLogCombo.selectedItem!!.toString()
-                mShowLogCombo.resetComboItem(item)
-                mFilteredTableModel.mFilterLog = item
-            }
-            else {
-                println("Show log toggle is not selected")
-            }
-        }
-        else {
-            val item = mShowLogCombo.selectedItem!!.toString()
-            mShowLogCombo.resetComboItem(item)
-            mFilteredTableModel.mFilterLog = item
-        }
-    }
-
-    fun applyShowLogComboEditor() {
-        val editorCom = mShowLogCombo.editor?.editorComponent as JTextComponent
-        val text = editorCom.text
-        setTextShowLogCombo(text)
-        applyShowLogCombo(false)
-    }
     fun setDeviceComboColor(isConnected: Boolean) {
         if (isConnected) {
             if (ConfigManager.LaF == FLAT_DARK_LAF) {
@@ -2677,6 +2768,18 @@ class MainUI(title: String) : JFrame() {
         }
     }
 
+    internal inner class MenuHandler : MenuListener {
+        override fun menuSelected(e: MenuEvent?) {
+            updateRecentFiles()
+        }
+
+        override fun menuDeselected(e: MenuEvent?) {
+        }
+
+        override fun menuCanceled(e: MenuEvent?) {
+        }
+    }
+
     fun goToLine(line: Int) {
         println("Line : $line")
         if (line < 0) {
@@ -2813,6 +2916,13 @@ class MainUI(title: String) : JFrame() {
             mSearchCombo.mEnabledTfTooltip = false
             mSearchCombo.isEditable = true
             mSearchCombo.renderer = FilterComboBox.ComboBoxRenderer()
+            val keyListeners = mSearchCombo.editor.editorComponent.keyListeners
+            for (listener in keyListeners) {
+                if (listener is FilterComboBox.KeyHandler) {
+                    mSearchCombo.editor.editorComponent.removeKeyListener(listener)
+                    break
+                }
+            }
             mSearchCombo.editor.editorComponent.addKeyListener(mSearchKeyHandler)
             mSearchCombo.addPopupMenuListener(mSearchPopupMenuHandler)
 
@@ -3137,18 +3247,20 @@ class MainUI(title: String) : JFrame() {
             ToolTipManager.sharedInstance().mouseMoved(MouseEvent(targetPanel, 0, 0, 0, targetPanel.width / 3, 0, 0, false))
         }
 
-        val clearThread = Thread(Runnable { run {
-            Thread.sleep(1000)
-            SwingUtilities.invokeAndWait {
-                targetPanel.toolTipText = ""
+        val clearThread = Thread {
+            run {
+                Thread.sleep(1000)
+                SwingUtilities.invokeAndWait {
+                    targetPanel.toolTipText = ""
+                }
             }
-        }})
+        }
 
         clearThread.start()
     }
 
     inner class FocusHandler(isFilter: Boolean) : FocusAdapter() {
-        val mIsFilter = isFilter
+        private val mIsFilter = isFilter
         override fun focusGained(e: FocusEvent?) {
             super.focusGained(e)
             mSearchPanel.setTargetView(mIsFilter)

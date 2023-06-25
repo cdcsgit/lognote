@@ -118,6 +118,36 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
         return
     }
 
+    fun setFilterText(text : String) {
+        selectedItem = text
+        updateTooltip()
+    }
+
+    fun applyFilterText(isCheck: Boolean) {
+        val item = selectedItem?.toString() ?: return
+
+        if (isCheck) {
+            if (isEnabled) {
+                resetComboItem(item)
+                mApplyFilter(item)
+            }
+            else {
+                println("Show log toggle is not selected")
+            }
+        }
+        else {
+            resetComboItem(item)
+            mApplyFilter(item)
+        }
+    }
+
+    fun applyFilterTextEditor() {
+        val editorCom = editor.editorComponent as JTextComponent
+        val text = editorCom.text
+        setFilterText(text)
+        applyFilterText(false)
+    }
+
     fun getItemIdx(item:String) : Int {
         var ret = -1
         for (idx in 0 until itemCount) {
