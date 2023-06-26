@@ -41,6 +41,7 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, KeyEvent.CTRL_MASK), "none")
 
         addMouseListener(MouseHandler())
+        addMouseMotionListener(MouseHandler())
         addKeyListener(TableKeyHandler())
 
         mTableColor = if (mTableModel.isFullDataModel()) {
@@ -376,7 +377,8 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         }
     }
 
-    internal inner class PopUpTable : JPopupMenu() {
+    internal inner class PopUpTable(point: Point) : JPopupMenu() {
+        var mProcessItem: JMenuItem = JMenuItem("")
         var mCopyItem: JMenuItem = JMenuItem("Copy")
         var mShowEntireItem = JMenuItem("Show entire line")
         var mBookmarkItem = JMenuItem("Bookmark")
@@ -388,6 +390,16 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         private val mActionHandler = ActionHandler()
 
         init {
+            val row: Int = rowAtPoint(point)
+            val pid = mTableModel.getValueProcess(row)
+            if (pid.isNotEmpty()) {
+                val processItem = LogCmdManager.getInstance().getProcess(pid)
+                if (processItem != null) {
+                    mProcessItem.text = "${processItem.mPid} : ${processItem.mCmd} (${processItem.mUser})"
+                    add(mProcessItem)
+                }
+            }
+
             mCopyItem.addActionListener(mActionHandler)
             add(mCopyItem)
             mShowEntireItem.addActionListener(mActionHandler)
@@ -443,6 +455,22 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         }
     }
 
+    override fun getToolTipText(e: MouseEvent?): String {
+        toolTipText = ""
+        e?.let {
+            val row: Int = rowAtPoint(e.point)
+            val pid = mTableModel.getValueProcess(row)
+            if (pid.isNotEmpty()) {
+                val processItem = LogCmdManager.getInstance().getProcess(pid)
+                if (processItem != null) {
+                    toolTipText = "${processItem.mPid} : ${processItem.mCmd} (${processItem.mUser})"
+                }
+            }
+        }
+
+        return toolTipText
+    }
+
     internal inner class MouseHandler : MouseAdapter() {
         var firstClickRow = 0
         var secondClickRow = 0
@@ -459,7 +487,7 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
             }
 
             if (SwingUtilities.isRightMouseButton(p0)) {
-                popupMenu = PopUpTable()
+                popupMenu = PopUpTable(Point(p0.x, p0.y))
                 popupMenu?.show(p0.component, p0.x, p0.y)
             }
             else {
@@ -492,6 +520,7 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
             super.mouseClicked(p0)
         }
     }
+
     internal inner class TableKeyHandler : KeyAdapter() {
 //        override fun keyReleased(p0: KeyEvent?) {
 //            if (KeyEvent.VK_ENTER == p0?.keyCode) {

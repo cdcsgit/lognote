@@ -479,7 +479,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
             mIsFilterUpdated = true
 
             if (mFilteredItemsThread == null) {
-                mFilteredItemsThread = Thread(Runnable {
+                mFilteredItemsThread = Thread {
                     run {
                         while (true) {
                             try {
@@ -488,12 +488,12 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                                     makeFilteredItems(true)
                                 }
                                 Thread.sleep(100)
-                            } catch (e:Exception) {
+                            } catch (e: Exception) {
                                 e.printStackTrace()
                             }
                         }
                     }
-                })
+                }
 
                 mFilteredItemsThread?.start()
             }
@@ -1167,7 +1167,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
         return stringBuilder.toString()
     }
 
-    internal inner class LogItem(num:String, logLine:String, tag:String, pid:String, tid:String, level:Int) {
+    inner class LogItem(num:String, logLine:String, tag:String, pid:String, tid:String, level:Int) {
         val mNum = num
         val mLogLine = logLine
         val mTag = tag
@@ -1336,8 +1336,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                         else if (mFilterShowLog.isNotEmpty()) {
                             var isFound = false
                             if (normalShowLog.isNotEmpty()) {
-                                var logLine = ""
-                                logLine = if (mPatternCase == Pattern.CASE_INSENSITIVE) {
+                                val logLine = if (mPatternCase == Pattern.CASE_INSENSITIVE) {
                                     item.mLogLine.uppercase()
                                 } else {
                                     item.mLogLine
@@ -1418,210 +1417,216 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
         mGoToLast = true
         mBaseModel?.mGoToLast = true
 
-        mScanThread = Thread(Runnable { run {
-            SwingUtilities.invokeAndWait {
-                mLogItems.clear()
-                mLogItems = mutableListOf()
-                mBaseModel!!.mLogItems.clear()
-                mBaseModel!!.mLogItems = mutableListOf()
-                mBaseModel!!.mBookmarkManager.clear()
-                fireLogTableDataCleared()
-                mBaseModel!!.fireLogTableDataCleared()
-            }
-            fireLogTableDataChanged()
-            mBaseModel!!.fireLogTableDataChanged()
-            makePattenPrintValue()
+        mScanThread = Thread {
+            run {
+                SwingUtilities.invokeAndWait {
+                    mLogItems.clear()
+                    mLogItems = mutableListOf()
+                    mBaseModel!!.mLogItems.clear()
+                    mBaseModel!!.mLogItems = mutableListOf()
+                    mBaseModel!!.mBookmarkManager.clear()
+                    fireLogTableDataCleared()
+                    mBaseModel!!.fireLogTableDataCleared()
+                }
+                fireLogTableDataChanged()
+                mBaseModel!!.fireLogTableDataChanged()
+                makePattenPrintValue()
 
-            var currLogFile: File? = mLogFile
-            var bufferedReader = BufferedReader(InputStreamReader(mLogCmdManager.mProcessLogcat!!.inputStream))
-            var line: String?
-            var num = 0
-            var saveNum = 0
-            var level:Int
-            var tag:String
-            var pid:String
-            var tid:String
+                var currLogFile: File? = mLogFile
+                var bufferedReader = BufferedReader(InputStreamReader(mLogCmdManager.mProcessLogcat!!.inputStream))
+                var line: String?
+                var num = 0
+                var saveNum = 0
+                var level: Int
+                var tag: String
+                var pid: String
+                var tid: String
 
-            var isShow: Boolean
-            var nextUpdateTime:Long = 0
+                var isShow: Boolean
+                var nextUpdateTime: Long = 0
 
-            var removedCount = 0
-            var baseRemovedCount = 0
+                var removedCount = 0
+                var baseRemovedCount = 0
 
-            var item:LogItem
-            val logLines:MutableList<String> = mutableListOf()
-            val logFilterItems:MutableList<LogFilterItem> = mutableListOf()
+                var item: LogItem
+                val logLines: MutableList<String> = mutableListOf()
+                val logFilterItems: MutableList<LogFilterItem> = mutableListOf()
 
-            line = bufferedReader.readLine()
-            while (line != null || (line == null && mMainUI.isRestartAdbLogcat() == true)) {
-                try {
-                    nextUpdateTime = System.currentTimeMillis() + 100
-                    logLines.clear()
-                    logFilterItems.clear()
-
-                    if (line == null && mMainUI.isRestartAdbLogcat()) {
-                        println("line is Null : $line")
-                        if (mLogCmdManager.mProcessLogcat == null || !mLogCmdManager.mProcessLogcat!!.isAlive) {
-                            if (mMainUI.isRestartAdbLogcat()) {
-                                Thread.sleep(5000)
-                                mMainUI.restartAdbLogcat()
-                                if (mLogCmdManager.mProcessLogcat?.inputStream != null) {
-                                    bufferedReader = BufferedReader(InputStreamReader(mLogCmdManager.mProcessLogcat?.inputStream!!))
-                                }
-                                else {
-                                    println("startScan : inputStream is Null")
-                                }
-                                line = "LogNote - RESTART LOGCAT"
-                            }
-                        }
-                    }
-
-                    if (!mIsPause) {
-                        while (line != null) {
-                            if (currLogFile != mLogFile) {
-                                try {
-                                    mFileWriter?.flush()
-                                } catch(e:IOException) {
-                                    e.printStackTrace()
-                                }
-                                mFileWriter?.close()
-                                mFileWriter = null
-                                currLogFile = mLogFile
-                                saveNum = 0
-                            }
-
-                            if (mFileWriter == null) {
-                                mFileWriter = FileWriter(mLogFile)
-                            }
-                            mFileWriter?.write(line + "\n")
-                            saveNum++
-
-                            if (mScrollbackSplitFile && mScrollback > 0 && saveNum >= mScrollback) {
-                                mMainUI.setSaveLogFile()
-                                println("Change save file : ${mLogFile?.absolutePath}")
-                            }
-
-                            logLines.add(line)
-                            line = bufferedReader.readLine()
-                            if (System.currentTimeMillis() > nextUpdateTime) {
-                                break
-                            }
-                        }
-                    }
-                    else {
-                        Thread.sleep(1000)
-                    }
-
-                    synchronized(this) {
-                        for (tempLine in logLines) {
-                            val textSplited = tempLine.trim().split(Regex("\\s+"))
-                            if (mFilterLevel != LEVEL_NONE && textSplited.size > TAG_INDEX) {
-                                level = levelToInt(textSplited[LEVEL_INDEX])
-                                tag = textSplited[TAG_INDEX]
-                                pid = textSplited[PID_INDEX]
-                                tid = textSplited[TID_INDEX]
-                            } else {
-                                level = if (tempLine.startsWith(Main.NAME)) {
-                                    LEVEL_ERROR
-                                } else {
-                                    LEVEL_NONE
-                                }
-                                tag = ""
-                                pid = ""
-                                tid = ""
-                            }
-
-                            item = LogItem(num.toString(), tempLine, tag, pid, tid, level)
-
-                            isShow = true
-
-                            if (mBookmarkMode) {
-                                isShow = false
-                            }
-
-                            if (!mFullMode) {
-                                if (isShow && item.mLevel != LEVEL_NONE && item.mLevel < mFilterLevel) {
-                                    isShow = false
-                                }
-                                if (isShow
-                                    && ((mFilterHideLog.isNotEmpty() && mPatternHideLog.matcher(item.mLogLine).find())
-                                            || (mFilterShowLog.isNotEmpty() && !mPatternShowLog.matcher(item.mLogLine).find()))
-                                ) {
-                                    isShow = false
-                                }
-                                if (isShow
-                                    && ((mFilterHideTag.isNotEmpty() && mPatternHideTag.matcher(item.mTag).find())
-                                            || (mFilterShowTag.isNotEmpty() && !mPatternShowTag.matcher(item.mTag).find()))
-                                ) {
-                                    isShow = false
-                                }
-                                if (isShow
-                                    && ((mFilterHidePid.isNotEmpty() && mPatternHidePid.matcher(item.mPid).find())
-                                            || (mFilterShowPid.isNotEmpty() && !mPatternShowPid.matcher(item.mPid).find()))
-                                ) {
-                                    isShow = false
-                                }
-                                if (isShow
-                                    && ((mFilterHideTid.isNotEmpty() && mPatternHideTid.matcher(item.mTid).find())
-                                            || (mFilterShowTid.isNotEmpty() && !mPatternShowTid.matcher(item.mTid).find()))
-                                ) {
-                                    isShow = false
-                                }
-                            }
-                            logFilterItems.add(LogFilterItem(item, isShow))
-                            num++
-                        }
-                    }
-
-                    SwingUtilities.invokeAndWait {
-                        if (mScanThread == null) {
-                            return@invokeAndWait
-                        }
-
-                        for (filterItem in logFilterItems) {
-                            if (mSelectionChanged) {
-                                baseRemovedCount = 0
-                                removedCount = 0
-                                mSelectionChanged = false
-                            }
-
-                            mBaseModel!!.mLogItems.add(filterItem.mItem)
-                            while (!mScrollbackKeep && mScrollback > 0 && mBaseModel!!.mLogItems.count() > mScrollback) {
-                                mBaseModel!!.mLogItems.removeAt(0)
-                                baseRemovedCount++
-                            }
-                            if (filterItem.mIsShow || mBookmarkManager.mBookmarks.contains(filterItem.mItem.mNum.toInt())) {
-                                mLogItems.add(filterItem.mItem)
-                                while (!mScrollbackKeep && mScrollback > 0 && mLogItems.count() > mScrollback) {
-                                    mLogItems.removeAt(0)
-                                    removedCount++
-                                }
-                            }
-                        }
-                    }
-
-                    fireLogTableDataChanged(removedCount)
-                    removedCount = 0
-
-                    mBaseModel!!.fireLogTableDataChanged(baseRemovedCount)
-                    baseRemovedCount = 0
-                } catch (e:Exception) {
-                    println("Start scan : ${e.stackTraceToString()}")
-                    if (e !is InterruptedException) {
-                        JOptionPane.showMessageDialog(mMainUI, e.message, "Error", JOptionPane.ERROR_MESSAGE)
-                    }
-
+                line = bufferedReader.readLine()
+                while (line != null || mMainUI.isRestartAdbLogcat() == true) {
                     try {
-                        mFileWriter?.flush()
-                    } catch(e:IOException) {
-                        e.printStackTrace()
+                        nextUpdateTime = System.currentTimeMillis() + 100
+                        logLines.clear()
+                        logFilterItems.clear()
+
+                        if (line == null && mMainUI.isRestartAdbLogcat()) {
+                            println("line is Null : $line")
+                            if (mLogCmdManager.mProcessLogcat == null || !mLogCmdManager.mProcessLogcat!!.isAlive) {
+                                if (mMainUI.isRestartAdbLogcat()) {
+                                    Thread.sleep(5000)
+                                    mMainUI.restartAdbLogcat()
+                                    if (mLogCmdManager.mProcessLogcat?.inputStream != null) {
+                                        bufferedReader =
+                                            BufferedReader(InputStreamReader(mLogCmdManager.mProcessLogcat?.inputStream!!))
+                                    } else {
+                                        println("startScan : inputStream is Null")
+                                    }
+                                    line = "LogNote - RESTART LOGCAT"
+                                }
+                            }
+                        }
+
+                        if (!mIsPause) {
+                            while (line != null) {
+                                if (currLogFile != mLogFile) {
+                                    try {
+                                        mFileWriter?.flush()
+                                    } catch (e: IOException) {
+                                        e.printStackTrace()
+                                    }
+                                    mFileWriter?.close()
+                                    mFileWriter = null
+                                    currLogFile = mLogFile
+                                    saveNum = 0
+                                }
+
+                                if (mFileWriter == null) {
+                                    mFileWriter = FileWriter(mLogFile)
+                                }
+                                mFileWriter?.write(line + "\n")
+                                saveNum++
+
+                                if (mScrollbackSplitFile && mScrollback > 0 && saveNum >= mScrollback) {
+                                    mMainUI.setSaveLogFile()
+                                    println("Change save file : ${mLogFile?.absolutePath}")
+                                }
+
+                                logLines.add(line)
+                                line = bufferedReader.readLine()
+                                if (System.currentTimeMillis() > nextUpdateTime) {
+                                    break
+                                }
+                            }
+                        } else {
+                            Thread.sleep(1000)
+                        }
+
+                        synchronized(this) {
+                            for (tempLine in logLines) {
+                                val textSplited = tempLine.trim().split(Regex("\\s+"))
+                                if (mFilterLevel != LEVEL_NONE && textSplited.size > TAG_INDEX) {
+                                    level = levelToInt(textSplited[LEVEL_INDEX])
+                                    tag = textSplited[TAG_INDEX]
+                                    pid = textSplited[PID_INDEX]
+                                    tid = textSplited[TID_INDEX]
+                                } else {
+                                    level = if (tempLine.startsWith(Main.NAME)) {
+                                        LEVEL_ERROR
+                                    } else {
+                                        LEVEL_NONE
+                                    }
+                                    tag = ""
+                                    pid = ""
+                                    tid = ""
+                                }
+
+                                item = LogItem(num.toString(), tempLine, tag, pid, tid, level)
+
+                                isShow = true
+
+                                if (mBookmarkMode) {
+                                    isShow = false
+                                }
+
+                                if (!mFullMode) {
+                                    if (isShow && item.mLevel != LEVEL_NONE && item.mLevel < mFilterLevel) {
+                                        isShow = false
+                                    }
+                                    if (isShow
+                                        && ((mFilterHideLog.isNotEmpty() && mPatternHideLog.matcher(item.mLogLine)
+                                            .find())
+                                                || (mFilterShowLog.isNotEmpty() && !mPatternShowLog.matcher(item.mLogLine)
+                                            .find()))
+                                    ) {
+                                        isShow = false
+                                    }
+                                    if (isShow
+                                        && ((mFilterHideTag.isNotEmpty() && mPatternHideTag.matcher(item.mTag).find())
+                                                || (mFilterShowTag.isNotEmpty() && !mPatternShowTag.matcher(item.mTag)
+                                            .find()))
+                                    ) {
+                                        isShow = false
+                                    }
+                                    if (isShow
+                                        && ((mFilterHidePid.isNotEmpty() && mPatternHidePid.matcher(item.mPid).find())
+                                                || (mFilterShowPid.isNotEmpty() && !mPatternShowPid.matcher(item.mPid)
+                                            .find()))
+                                    ) {
+                                        isShow = false
+                                    }
+                                    if (isShow
+                                        && ((mFilterHideTid.isNotEmpty() && mPatternHideTid.matcher(item.mTid).find())
+                                                || (mFilterShowTid.isNotEmpty() && !mPatternShowTid.matcher(item.mTid)
+                                            .find()))
+                                    ) {
+                                        isShow = false
+                                    }
+                                }
+                                logFilterItems.add(LogFilterItem(item, isShow))
+                                num++
+                            }
+                        }
+
+                        SwingUtilities.invokeAndWait {
+                            if (mScanThread == null) {
+                                return@invokeAndWait
+                            }
+
+                            for (filterItem in logFilterItems) {
+                                if (mSelectionChanged) {
+                                    baseRemovedCount = 0
+                                    removedCount = 0
+                                    mSelectionChanged = false
+                                }
+
+                                mBaseModel!!.mLogItems.add(filterItem.mItem)
+                                while (!mScrollbackKeep && mScrollback > 0 && mBaseModel!!.mLogItems.count() > mScrollback) {
+                                    mBaseModel!!.mLogItems.removeAt(0)
+                                    baseRemovedCount++
+                                }
+                                if (filterItem.mIsShow || mBookmarkManager.mBookmarks.contains(filterItem.mItem.mNum.toInt())) {
+                                    mLogItems.add(filterItem.mItem)
+                                    while (!mScrollbackKeep && mScrollback > 0 && mLogItems.count() > mScrollback) {
+                                        mLogItems.removeAt(0)
+                                        removedCount++
+                                    }
+                                }
+                            }
+                        }
+
+                        fireLogTableDataChanged(removedCount)
+                        removedCount = 0
+
+                        mBaseModel!!.fireLogTableDataChanged(baseRemovedCount)
+                        baseRemovedCount = 0
+                    } catch (e: Exception) {
+                        println("Start scan : ${e.stackTraceToString()}")
+                        if (e !is InterruptedException) {
+                            JOptionPane.showMessageDialog(mMainUI, e.message, "Error", JOptionPane.ERROR_MESSAGE)
+                        }
+
+                        try {
+                            mFileWriter?.flush()
+                        } catch (e: IOException) {
+                            e.printStackTrace()
+                        }
+                        mFileWriter?.close()
+                        mFileWriter = null
+                        return@run
                     }
-                    mFileWriter?.close()
-                    mFileWriter = null
-                    return@run
                 }
             }
-        }})
+        }
 
         mScanThread?.start()
 
@@ -1668,7 +1673,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
         override fun read(b: ByteArray, off: Int, len: Int): Int {
             var input = super.read(b, off, len)
             while (input == -1) {
-                Thread.sleep(1000);
+                Thread.sleep(1000)
                 input = super.read(b, off, len)
             }
             return input
@@ -1693,205 +1698,207 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
         mGoToLast = true
         mBaseModel?.mGoToLast = true
 
-        mFollowThread = Thread(Runnable { run {
-            SwingUtilities.invokeAndWait {
-                mIsKeepReading = true
-                mLogItems.clear()
-                mLogItems = mutableListOf()
-                mBaseModel!!.mLogItems.clear()
-                mBaseModel!!.mLogItems = mutableListOf()
-                mBaseModel!!.mBookmarkManager.clear()
-                fireLogTableDataCleared()
-                mBaseModel!!.fireLogTableDataCleared()
-            }
-            fireLogTableDataChanged()
-            mBaseModel!!.fireLogTableDataChanged()
-            makePattenPrintValue()
-
-            val currLogFile: File? = mLogFile
-//            var bufferedReader = BufferedReader(InputStreamReader(FileInputStream(currLogFile)))
-            val scanner = Scanner(MyFileInputStream(currLogFile))
-            var line: String? = null
-            var num = 0
-            var level:Int
-            var tag:String
-            var pid:String
-            var tid:String
-
-            var isShow: Boolean
-            var nextUpdateTime:Long = 0
-
-            var removedCount = 0
-            var baseRemovedCount = 0
-
-            var item:LogItem
-            val logLines:MutableList<String> = mutableListOf()
-            val logFilterItems:MutableList<LogFilterItem> = mutableListOf()
-
-            var logcatLogCount = 0
-
-            while (mIsKeepReading) {
-                try {
-                    nextUpdateTime = System.currentTimeMillis() + 100
-                    logLines.clear()
-                    logFilterItems.clear()
-                    if (!mIsPause) {
-                        while (mIsKeepReading) {
-                            if (scanner.hasNextLine()) {
-                                line = try {
-                                    scanner.nextLine()
-                                } catch (e: NoSuchElementException) {
-                                    null
-                                }
-                            }
-                            else {
-                                line = null
-                            }
-                            if (line == null) {
-                                Thread.sleep(1000);
-                            }
-                            else {
-                                break
-                            }
-                        }
-
-                        while (line != null) {
-                            logLines.add(line)
-
-                            if (scanner.hasNextLine()) {
-                                line = try {
-                                    scanner.nextLine()
-                                } catch (e: NoSuchElementException) {
-                                    null
-                                }
-                            }
-                            else {
-                                line = null
-                            }
-                            if (System.currentTimeMillis() > nextUpdateTime) {
-                                if (line != null) {
-                                    logLines.add(line)
-                                }
-                                break
-                            }
-                        }
-                    }
-                    else {
-                        Thread.sleep(1000)
-                    }
-
-                    synchronized(this) {
-                        for (tempLine in logLines) {
-                            val textSplited = tempLine.trim().split(Regex("\\s+"))
-                            if (mFilterLevel != LEVEL_NONE && textSplited.size > TAG_INDEX) {
-                                level = levelToInt(textSplited[LEVEL_INDEX])
-                                tag = textSplited[TAG_INDEX]
-                                pid = textSplited[PID_INDEX]
-                                tid = textSplited[TID_INDEX]
-                            } else {
-                                level = if (tempLine.startsWith(Main.NAME)) {
-                                    LEVEL_ERROR
-                                } else {
-                                    LEVEL_NONE
-                                }
-                                tag = ""
-                                pid = ""
-                                tid = ""
-                            }
-
-                            item = LogItem(num.toString(), tempLine, tag, pid, tid, level)
-
-                            isShow = true
-
-                            if (mBookmarkMode) {
-                                isShow = false
-                            }
-
-                            if (!mFullMode) {
-                                if (isShow && item.mLevel != LEVEL_NONE && item.mLevel < mFilterLevel) {
-                                    isShow = false
-                                }
-                                if (isShow
-                                        && ((mFilterHideLog.isNotEmpty() && mPatternHideLog.matcher(item.mLogLine).find())
-                                                || (mFilterShowLog.isNotEmpty() && !mPatternShowLog.matcher(item.mLogLine).find()))
-                                ) {
-                                    isShow = false
-                                }
-                                if (isShow
-                                        && ((mFilterHideTag.isNotEmpty() && mPatternHideTag.matcher(item.mTag).find())
-                                                || (mFilterShowTag.isNotEmpty() && !mPatternShowTag.matcher(item.mTag).find()))
-                                ) {
-                                    isShow = false
-                                }
-                                if (isShow
-                                        && ((mFilterHidePid.isNotEmpty() && mPatternHidePid.matcher(item.mPid).find())
-                                                || (mFilterShowPid.isNotEmpty() && !mPatternShowPid.matcher(item.mPid).find()))
-                                ) {
-                                    isShow = false
-                                }
-                                if (isShow
-                                        && ((mFilterHideTid.isNotEmpty() && mPatternHideTid.matcher(item.mTid).find())
-                                                || (mFilterShowTid.isNotEmpty() && !mPatternShowTid.matcher(item.mTid).find()))
-                                ) {
-                                    isShow = false
-                                }
-                            }
-                            logFilterItems.add(LogFilterItem(item, isShow))
-                            num++
-                        }
-                    }
-
-                    SwingUtilities.invokeAndWait {
-                        if (mFollowThread == null) {
-                            return@invokeAndWait
-                        }
-
-                        for (filterItem in logFilterItems) {
-                            if (mSelectionChanged) {
-                                baseRemovedCount = 0
-                                removedCount = 0
-                                mSelectionChanged = false
-                            }
-
-                            if (filterItem.mItem.mLevel != LEVEL_NONE) {
-                                logcatLogCount++
-                            }
-
-                            if (logcatLogCount > 10) {
-                                IsLogcatLog = true
-                            }
-                            mBaseModel!!.mLogItems.add(filterItem.mItem)
-                            while (!mScrollbackKeep && mScrollback > 0 && mBaseModel!!.mLogItems.count() > mScrollback) {
-                                mBaseModel!!.mLogItems.removeAt(0)
-                                baseRemovedCount++
-                            }
-                            if (filterItem.mIsShow || mBookmarkManager.mBookmarks.contains(filterItem.mItem.mNum.toInt())) {
-                                mLogItems.add(filterItem.mItem)
-                                while (!mScrollbackKeep && mScrollback > 0 && mLogItems.count() > mScrollback) {
-                                    mLogItems.removeAt(0)
-                                    removedCount++
-                                }
-                            }
-                        }
-                    }
-
-                    fireLogTableDataChanged(removedCount)
-                    removedCount = 0
-
-                    mBaseModel!!.fireLogTableDataChanged(baseRemovedCount)
-                    baseRemovedCount = 0
-                } catch (e:Exception) {
-                    println("Start follow : ${e.stackTraceToString()}")
-                    if (e !is InterruptedException) {
-                        JOptionPane.showMessageDialog(mMainUI, e.message, "Error", JOptionPane.ERROR_MESSAGE)
-                    }
-
-                    return@run
+        mFollowThread = Thread {
+            run {
+                SwingUtilities.invokeAndWait {
+                    mIsKeepReading = true
+                    mLogItems.clear()
+                    mLogItems = mutableListOf()
+                    mBaseModel!!.mLogItems.clear()
+                    mBaseModel!!.mLogItems = mutableListOf()
+                    mBaseModel!!.mBookmarkManager.clear()
+                    fireLogTableDataCleared()
+                    mBaseModel!!.fireLogTableDataCleared()
                 }
+                fireLogTableDataChanged()
+                mBaseModel!!.fireLogTableDataChanged()
+                makePattenPrintValue()
+
+                val currLogFile: File? = mLogFile
+//            var bufferedReader = BufferedReader(InputStreamReader(FileInputStream(currLogFile)))
+                val scanner = Scanner(MyFileInputStream(currLogFile))
+                var line: String? = null
+                var num = 0
+                var level: Int
+                var tag: String
+                var pid: String
+                var tid: String
+
+                var isShow: Boolean
+                var nextUpdateTime: Long = 0
+
+                var removedCount = 0
+                var baseRemovedCount = 0
+
+                var item: LogItem
+                val logLines: MutableList<String> = mutableListOf()
+                val logFilterItems: MutableList<LogFilterItem> = mutableListOf()
+
+                var logcatLogCount = 0
+
+                while (mIsKeepReading) {
+                    try {
+                        nextUpdateTime = System.currentTimeMillis() + 100
+                        logLines.clear()
+                        logFilterItems.clear()
+                        if (!mIsPause) {
+                            while (mIsKeepReading) {
+                                if (scanner.hasNextLine()) {
+                                    line = try {
+                                        scanner.nextLine()
+                                    } catch (e: NoSuchElementException) {
+                                        null
+                                    }
+                                } else {
+                                    line = null
+                                }
+                                if (line == null) {
+                                    Thread.sleep(1000)
+                                } else {
+                                    break
+                                }
+                            }
+
+                            while (line != null) {
+                                logLines.add(line)
+
+                                if (scanner.hasNextLine()) {
+                                    line = try {
+                                        scanner.nextLine()
+                                    } catch (e: NoSuchElementException) {
+                                        null
+                                    }
+                                } else {
+                                    line = null
+                                }
+                                if (System.currentTimeMillis() > nextUpdateTime) {
+                                    if (line != null) {
+                                        logLines.add(line)
+                                    }
+                                    break
+                                }
+                            }
+                        } else {
+                            Thread.sleep(1000)
+                        }
+
+                        synchronized(this) {
+                            for (tempLine in logLines) {
+                                val textSplited = tempLine.trim().split(Regex("\\s+"))
+                                if (mFilterLevel != LEVEL_NONE && textSplited.size > TAG_INDEX) {
+                                    level = levelToInt(textSplited[LEVEL_INDEX])
+                                    tag = textSplited[TAG_INDEX]
+                                    pid = textSplited[PID_INDEX]
+                                    tid = textSplited[TID_INDEX]
+                                } else {
+                                    level = if (tempLine.startsWith(Main.NAME)) {
+                                        LEVEL_ERROR
+                                    } else {
+                                        LEVEL_NONE
+                                    }
+                                    tag = ""
+                                    pid = ""
+                                    tid = ""
+                                }
+
+                                item = LogItem(num.toString(), tempLine, tag, pid, tid, level)
+
+                                isShow = true
+
+                                if (mBookmarkMode) {
+                                    isShow = false
+                                }
+
+                                if (!mFullMode) {
+                                    if (isShow && item.mLevel != LEVEL_NONE && item.mLevel < mFilterLevel) {
+                                        isShow = false
+                                    }
+                                    if (isShow
+                                        && ((mFilterHideLog.isNotEmpty() && mPatternHideLog.matcher(item.mLogLine)
+                                            .find())
+                                                || (mFilterShowLog.isNotEmpty() && !mPatternShowLog.matcher(item.mLogLine)
+                                            .find()))
+                                    ) {
+                                        isShow = false
+                                    }
+                                    if (isShow
+                                        && ((mFilterHideTag.isNotEmpty() && mPatternHideTag.matcher(item.mTag).find())
+                                                || (mFilterShowTag.isNotEmpty() && !mPatternShowTag.matcher(item.mTag)
+                                            .find()))
+                                    ) {
+                                        isShow = false
+                                    }
+                                    if (isShow
+                                        && ((mFilterHidePid.isNotEmpty() && mPatternHidePid.matcher(item.mPid).find())
+                                                || (mFilterShowPid.isNotEmpty() && !mPatternShowPid.matcher(item.mPid)
+                                            .find()))
+                                    ) {
+                                        isShow = false
+                                    }
+                                    if (isShow
+                                        && ((mFilterHideTid.isNotEmpty() && mPatternHideTid.matcher(item.mTid).find())
+                                                || (mFilterShowTid.isNotEmpty() && !mPatternShowTid.matcher(item.mTid)
+                                            .find()))
+                                    ) {
+                                        isShow = false
+                                    }
+                                }
+                                logFilterItems.add(LogFilterItem(item, isShow))
+                                num++
+                            }
+                        }
+
+                        SwingUtilities.invokeAndWait {
+                            if (mFollowThread == null) {
+                                return@invokeAndWait
+                            }
+
+                            for (filterItem in logFilterItems) {
+                                if (mSelectionChanged) {
+                                    baseRemovedCount = 0
+                                    removedCount = 0
+                                    mSelectionChanged = false
+                                }
+
+                                if (filterItem.mItem.mLevel != LEVEL_NONE) {
+                                    logcatLogCount++
+                                }
+
+                                if (logcatLogCount > 10) {
+                                    IsLogcatLog = true
+                                }
+                                mBaseModel!!.mLogItems.add(filterItem.mItem)
+                                while (!mScrollbackKeep && mScrollback > 0 && mBaseModel!!.mLogItems.count() > mScrollback) {
+                                    mBaseModel!!.mLogItems.removeAt(0)
+                                    baseRemovedCount++
+                                }
+                                if (filterItem.mIsShow || mBookmarkManager.mBookmarks.contains(filterItem.mItem.mNum.toInt())) {
+                                    mLogItems.add(filterItem.mItem)
+                                    while (!mScrollbackKeep && mScrollback > 0 && mLogItems.count() > mScrollback) {
+                                        mLogItems.removeAt(0)
+                                        removedCount++
+                                    }
+                                }
+                            }
+                        }
+
+                        fireLogTableDataChanged(removedCount)
+                        removedCount = 0
+
+                        mBaseModel!!.fireLogTableDataChanged(baseRemovedCount)
+                        baseRemovedCount = 0
+                    } catch (e: Exception) {
+                        println("Start follow : ${e.stackTraceToString()}")
+                        if (e !is InterruptedException) {
+                            JOptionPane.showMessageDialog(mMainUI, e.message, "Error", JOptionPane.ERROR_MESSAGE)
+                        }
+
+                        return@run
+                    }
+                }
+                println("Exit follow")
             }
-            println("Exit follow")
         }
-        })
 
         mFollowThread?.start()
 
@@ -1978,7 +1985,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                 }
             }
 
-            if (idxFound < 0 && mRegexSearchLog.isNotEmpty() && mMatcherSearchLog != null) {
+            if (idxFound < 0 && mRegexSearchLog.isNotEmpty()) {
                 mMatcherSearchLog.reset(item.mLogLine)
                 if (mMatcherSearchLog.find()) {
                     idxFound = idx
@@ -2000,6 +2007,14 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
         }
         else {
             mMainUI.showSearchResultTooltip(isNext,"\"${mFilterSearchLog}\" ${Strings.NOT_FOUND}")
+        }
+    }
+
+    fun getValueProcess(row: Int): String {
+        return if (row >= 0 && row < mLogItems.size) {
+            mLogItems[row].mPid
+        } else {
+            ""
         }
     }
 }
