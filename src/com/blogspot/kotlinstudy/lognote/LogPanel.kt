@@ -155,9 +155,9 @@ class LogPanel constructor(mainUI: MainUI, tableModel: LogTableModel, basePanel:
         filtersBtn.icon = ImageIcon(this.javaClass.getResource("/images/filterscmds.png"))
         filtersBtn.toolTipText = TooltipStrings.ADD_FILTER_BTN
         filtersBtn.margin = Insets(0, 3, 0, 3)
-        filtersBtn.addActionListener(ActionListener {
+        filtersBtn.addActionListener {
             mMainUI.mFiltersManager.showDialog()
-        })
+        }
         mCtrlMainPanel.add(filtersBtn)
 
         val icon = ImageIcon(this.javaClass.getResource("/images/filterscmdsitem.png"))
@@ -171,26 +171,23 @@ class LogPanel constructor(mainUI: MainUI, tableModel: LogTableModel, basePanel:
                 button.mValue = item.mValue
                 button.toolTipText = "<html>${item.mTitle} : <b>\"${item.mValue}\"</b><br><br>* Append : Ctrl + Click</html>"
                 button.margin = Insets(0, 3, 0, 3)
-                button.addActionListener(ActionListener { e: ActionEvent? ->
+                button.addActionListener { e: ActionEvent? ->
                     if ((ActionEvent.CTRL_MASK and e!!.modifiers) != 0) {
                         val filterText = mMainUI.getTextShowLogCombo()
                         if (filterText.isEmpty()) {
                             mMainUI.setTextShowLogCombo((e.source as TableBarButton).mValue)
-                        }
-                        else {
+                        } else {
                             if (filterText.substring(filterText.length - 1) == "|") {
                                 mMainUI.setTextShowLogCombo(filterText + (e.source as TableBarButton).mValue)
-                            }
-                            else {
+                            } else {
                                 mMainUI.setTextShowLogCombo(filterText + "|" + (e.source as TableBarButton).mValue)
                             }
                         }
-                    }
-                    else {
+                    } else {
                         mMainUI.setTextShowLogCombo((e.source as TableBarButton).mValue)
                     }
                     mMainUI.applyShowLogCombo(false)
-                })
+                }
                 mCtrlMainPanel.add(button)
             }
         }
@@ -201,9 +198,9 @@ class LogPanel constructor(mainUI: MainUI, tableModel: LogTableModel, basePanel:
         cmdsBtn.icon = ImageIcon(this.javaClass.getResource("/images/filterscmds.png"))
         cmdsBtn.toolTipText = TooltipStrings.ADD_CMD_BTN
         cmdsBtn.margin = Insets(0, 3, 0, 3)
-        cmdsBtn.addActionListener(ActionListener {
+        cmdsBtn.addActionListener {
             mMainUI.mCmdManager.showDialog()
-        })
+        }
         mCtrlMainPanel.add(cmdsBtn)
 
         val icon = ImageIcon(this.javaClass.getResource("/images/filterscmdsitem.png"))
@@ -217,19 +214,25 @@ class LogPanel constructor(mainUI: MainUI, tableModel: LogTableModel, basePanel:
                 button.mValue = item.mValue
                 button.toolTipText = "${item.mTitle} : ${item.mValue}"
                 button.margin = Insets(0, 3, 0, 3)
-                button.addActionListener(ActionListener { e: ActionEvent? ->
+                button.addActionListener { e: ActionEvent? ->
                     var cmd = (e?.source as TableBarButton).mValue
                     if (cmd.startsWith("adb ")) {
-                        cmd = cmd.replaceFirst("adb ", "${LogCmdManager.getInstance().mAdbCmd} -s ${LogCmdManager.getInstance().mTargetDevice} ")
+                        cmd = cmd.replaceFirst(
+                            "adb ",
+                            "${LogCmdManager.getInstance().mAdbCmd} -s ${LogCmdManager.getInstance().mTargetDevice} "
+                        )
                     } else if (cmd.startsWith("adb.exe ")) {
-                        cmd = cmd.replaceFirst("adb.exe ", "${LogCmdManager.getInstance().mAdbCmd} -s ${LogCmdManager.getInstance().mTargetDevice} ")
+                        cmd = cmd.replaceFirst(
+                            "adb.exe ",
+                            "${LogCmdManager.getInstance().mAdbCmd} -s ${LogCmdManager.getInstance().mTargetDevice} "
+                        )
                     }
 
                     if (cmd.isNotEmpty()) {
                         val runtime = Runtime.getRuntime()
                         runtime.exec(cmd)
                     }
-                })
+                }
                 mCtrlMainPanel.add(button)
             }
         }
@@ -400,16 +403,21 @@ class LogPanel constructor(mainUI: MainUI, tableModel: LogTableModel, basePanel:
                 }
                 else {
                     if (event.mRemovedCount > 0 && mTable.selectedRow > 0) {
-                        var idx = mTable.selectedRow - event.mRemovedCount
-                        if (idx < 0) {
-                            idx = 0
+                        val viewRow: Int = mTable.rowAtPoint(mScrollPane.viewport.viewPosition)
+                        var viewIdx = viewRow - event.mRemovedCount
+                        if (viewIdx < 0) {
+                            viewIdx = 0
                         }
 
-                        val selectedLine = mTable.getValueAt(idx, 0).toString().trim().toInt()
+                        var selectIdx = mTable.selectedRow - event.mRemovedCount
+                        if (selectIdx < 0) {
+                            selectIdx = 0
+                        }
 
-                        if (selectedLine >= 0) {
-                            mTable.setRowSelectionInterval(idx, idx)
-                            val viewRect: Rectangle = mTable.getCellRect(idx, 0, true)
+                        val viewLine = mTable.getValueAt(viewIdx, 0).toString().trim().toInt()
+                        if (viewLine >= 0) {
+                            mTable.setRowSelectionInterval(selectIdx, selectIdx)
+                            val viewRect: Rectangle = mTable.getCellRect(viewIdx, 0, true)
                             mTable.scrollRectToVisible(viewRect)
                             mTable.scrollRectToVisible(viewRect) // sometimes not work
                         }
