@@ -75,6 +75,7 @@ class MainUI(title: String) : JFrame() {
     private lateinit var mItemLogCmd: JMenuItem
     private lateinit var mItemLogFile: JMenuItem
     private lateinit var mItemFilterIncremental: JCheckBoxMenuItem
+    private lateinit var mItemFilterByFile: JCheckBoxMenuItem
     private lateinit var mMenuLogLevel: JMenu
     private lateinit var mLogLevelGroup: ButtonGroup
     private lateinit var mItemAppearance: JMenuItem
@@ -473,7 +474,7 @@ class MainUI(title: String) : JFrame() {
     }
 
     private fun applyRecentOpen(path: String) {
-        if (path.isEmpty()) {
+        if (!mItemFilterByFile.state || path.isEmpty()) {
             return
         }
 
@@ -593,6 +594,10 @@ class MainUI(title: String) : JFrame() {
         mItemFilterIncremental = JCheckBoxMenuItem(Strings.FILTER + "-" + Strings.INCREMENTAL)
         mItemFilterIncremental.addActionListener(mActionHandler)
         mMenuSettings.add(mItemFilterIncremental)
+
+        mItemFilterByFile = JCheckBoxMenuItem(Strings.FILTER_BY_FILE)
+        mItemFilterByFile.addActionListener(mActionHandler)
+        mMenuSettings.add(mItemFilterByFile)
 
         mMenuSettings.addSeparator()
 
@@ -1308,6 +1313,13 @@ class MainUI(title: String) : JFrame() {
             mItemFilterIncremental.state = false
         }
 
+        check = mConfigManager.getItem(ConfigManager.ITEM_FILTER_BY_FILE)
+        if (!check.isNullOrEmpty()) {
+            mItemFilterByFile.state = check.toBoolean()
+        } else {
+            mItemFilterByFile.state = true
+        }
+
         check = mConfigManager.getItem(ConfigManager.ITEM_SCROLLBACK)
         if (!check.isNullOrEmpty()) {
             mScrollbackTF.text = check
@@ -1689,7 +1701,7 @@ class MainUI(title: String) : JFrame() {
     }
 
     private fun saveRecentFile() {
-        if (CurrentMethod != METHOD_OPEN) {
+        if (!mItemFilterByFile.state || CurrentMethod != METHOD_OPEN) {
             return
         }
 
@@ -1967,6 +1979,11 @@ class MainUI(title: String) : JFrame() {
                 mItemFilterIncremental -> {
                     mConfigManager.saveItem(ConfigManager.ITEM_FILTER_INCREMENTAL, mItemFilterIncremental.state.toString())
                 }
+
+                mItemFilterByFile -> {
+                    mConfigManager.saveItem(ConfigManager.ITEM_FILTER_BY_FILE, mItemFilterByFile.state.toString())
+                }
+
                 mItemAppearance -> {
                     val appearanceSettingsDialog = AppearanceSettingsDialog(this@MainUI)
                     appearanceSettingsDialog.setLocationRelativeTo(this@MainUI)

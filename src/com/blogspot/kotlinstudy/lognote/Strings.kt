@@ -103,6 +103,7 @@ class Strings private constructor() {
         private val IDX_SEARCH = idx++
         private val IDX_CMD = idx++
         private val IDX_NOT_LOGCAT = idx++
+        private val IDX_FILTER_BY_FILE = idx++
 //        private val IDX_ = idx++
 
         val FILE: String
@@ -275,5 +276,7 @@ class Strings private constructor() {
             get() { return currStrings[IDX_CMD] }
         val NOT_LOGCAT: String
             get() { return currStrings[IDX_NOT_LOGCAT] }
+        val FILTER_BY_FILE: String
+            get() { return currStrings[IDX_FILTER_BY_FILE] }
     }
 }

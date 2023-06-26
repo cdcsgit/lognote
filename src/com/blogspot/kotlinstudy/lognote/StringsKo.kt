@@ -88,6 +88,7 @@ class StringsKo private constructor() {
             , "검색"
             , "Cmd"
             , "로그캣 로그 아님"
+            , "파일별로 필터 저장"
 //            , ""
         )
     }

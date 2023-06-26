@@ -88,6 +88,7 @@ class StringsEn private constructor() {
             , "Search"
             , "Cmd"
             , "Not logcat log"
+            , "Save filters by file"
 //            , ""
         )
     }
