@@ -12,7 +12,8 @@ import javax.swing.event.ListSelectionListener
 import javax.swing.plaf.basic.BasicScrollBarUI
 
 
-class LogPanel constructor(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?, focusHandler: MainUI.FocusHandler) :JPanel() {
+class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?, focusHandler: MainUI.FocusHandler) :JPanel() {
+    private val mMainUI = mainUI
     private val mBasePanel = basePanel
     private val mCtrlMainPanel: ButtonPanel
     private var mFirstBtn: ColorButton
@@ -40,7 +41,6 @@ class LogPanel constructor(mainUI: MainUI, tableModel: LogTableModel, basePanel:
     private var mOldLogVPos = -1
     private var mOldLogHPos = -1
     private var mIsCreatingUI = true
-    val mMainUI = mainUI
 
     var mIsWindowedMode = false
         set(value) {

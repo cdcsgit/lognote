@@ -6,11 +6,11 @@ import java.awt.event.*
 import javax.swing.*
 
 
-class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent, "Log", false) {
+class LogViewDialog (mainUI: MainUI, log:String, caretPos: Int) : JDialog(mainUI, "Log", false) {
 
     val mTextArea = JTextArea()
     private val mScrollPane = JScrollPane(mTextArea)
-    private val mMainUI = parent as MainUI
+    private val mMainUI = mainUI
     private val mPopupMenu: PopUpLogViewDialog
     private val mIncludeAction: Action
     private val mAddIncludeKey = "add_include"
@@ -30,14 +30,14 @@ class LogViewDialog (parent: JFrame, log:String, caretPos: Int) : JDialog(parent
         mTextArea.addFocusListener(FocusHandler())
         mTextArea.text = log
         mTextArea.caretPosition = caretPos
-        var width = parent.width - 100
+        var width = mainUI.width - 100
         if (width < 960) {
             width = 960
         }
         mTextArea.setSize(width, 100)
         mTextArea.border = BorderFactory.createEmptyBorder(7, 7, 7, 7)
 
-        var height = parent.height - 100
+        var height = mainUI.height - 100
         if (height > mTextArea.preferredSize.height) {
             height = mTextArea.preferredSize.height + 2
         }

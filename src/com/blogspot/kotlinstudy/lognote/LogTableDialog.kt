@@ -7,8 +7,8 @@ import javax.swing.ImageIcon
 import javax.swing.JFrame
 import javax.swing.JPanel
 
-class LogTableDialog (parent: MainUI, logPanel: LogPanel) : JFrame("FullLog") {
-    private val mParent = parent
+class LogTableDialog (mainUI: MainUI, logPanel: LogPanel) : JFrame("FullLog") {
+    private val mMainUI = mainUI
     private val mLogPanel = logPanel
     private var mFrameX = 0
     private var mFrameY = 0
@@ -29,7 +29,7 @@ class LogTableDialog (parent: MainUI, logPanel: LogPanel) : JFrame("FullLog") {
         addWindowListener(object : WindowAdapter() {
             override fun windowClosing(e: WindowEvent?) {
                 println("exit table dialog")
-                mParent.attachLogPanel(mLogPanel)
+                mMainUI.attachLogPanel(mLogPanel)
             }
         })
 

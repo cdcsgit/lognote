@@ -8,7 +8,7 @@ import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.DefaultTableModel
 
 
-class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} ${Strings.SETTING}", true), ActionListener {
+class LogCmdSettingsDialog(mainUI: MainUI) :JDialog(mainUI, "${Strings.LOG_CMD} ${Strings.SETTING}", true), ActionListener {
     private var mAdbCmdBtn: ColorButton
     private var mAdbSaveBtn: ColorButton
     private var mOkBtn: ColorButton
@@ -51,7 +51,7 @@ class LogCmdSettingsDialog(parent: MainUI) :JDialog(parent, "${Strings.LOG_CMD} 
 
     private val mLogCmdManager = LogCmdManager.getInstance()
     private val mConfigManager = ConfigManager.getInstance()
-    private val mMainUI = parent
+    private val mMainUI = mainUI
 
     init {
         val rowHeight = 30

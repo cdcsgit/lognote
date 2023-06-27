@@ -336,9 +336,9 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
             }
         }
 
-        val frame = SwingUtilities.windowForComponent(this@LogTable) as JFrame
-        val logViewDialog = LogViewDialog(frame, log.toString().trim(), caretPos)
-        logViewDialog.setLocationRelativeTo(frame)
+        val mainUI = MainUI.getInstance()
+        val logViewDialog = LogViewDialog(mainUI, log.toString().trim(), caretPos)
+        logViewDialog.setLocationRelativeTo(mainUI)
         logViewDialog.isVisible = true
     }
 
@@ -438,20 +438,20 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
                         updateBookmark(selectedRow)
                     }
                     mReconnectItem -> {
-                        val frame = SwingUtilities.windowForComponent(this@LogTable) as MainUI
-                        frame.reconnectAdb()
+                        val mainUI = MainUI.getInstance()
+                        mainUI.reconnectAdb()
                     }
                     mStartItem -> {
-                        val frame = SwingUtilities.windowForComponent(this@LogTable) as MainUI
-                        frame.startAdbLog()
+                        val mainUI = MainUI.getInstance()
+                        mainUI.startAdbLog()
                     }
                     mStopItem -> {
-                        val frame = SwingUtilities.windowForComponent(this@LogTable) as MainUI
-                        frame.stopAdbLog()
+                        val mainUI = MainUI.getInstance()
+                        mainUI.stopAdbLog()
                     }
                     mClearItem -> {
-                        val frame = SwingUtilities.windowForComponent(this@LogTable) as MainUI
-                        frame.clearAdbLog()
+                        val mainUI = MainUI.getInstance()
+                        mainUI.clearAdbLog()
                     }
                     mProcessItem -> {
                         ProcessList.getInstance().showList()

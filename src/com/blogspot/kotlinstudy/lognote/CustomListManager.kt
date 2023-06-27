@@ -8,7 +8,7 @@ import javax.swing.event.DocumentListener
 import javax.swing.event.ListSelectionListener
 
 
-abstract class CustomListManager (mainUI: MainUI, logPanel: LogPanel){
+abstract class CustomListManager(mainUI: MainUI, logPanel: LogPanel) {
     companion object {
         const val CMD_NEW = 1
         const val CMD_COPY = 2
@@ -43,7 +43,7 @@ abstract class CustomListManager (mainUI: MainUI, logPanel: LogPanel){
         var mTableBar = tableBar
     }
 
-    internal inner class CustomDialog (parent: MainUI) : JDialog(parent, mDialogTitle, true), ActionListener {
+    internal inner class CustomDialog (mainUI: MainUI) : JDialog(mainUI, mDialogTitle, true), ActionListener {
         private var mScrollPane: JScrollPane
         var mList = JList<CustomElement>()
         private var mFirstBtn: ColorButton

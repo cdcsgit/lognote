@@ -6,7 +6,7 @@ import javax.swing.JOptionPane
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
 
-class CmdManager (mainUI: MainUI, logPanel: LogPanel): CustomListManager (mainUI, logPanel){
+class CmdManager(mainUI: MainUI, logPanel: LogPanel): CustomListManager (mainUI, logPanel){
     private val mConfigManager = ConfigManager.getInstance()
     private val mListSelectionHandler = ListSelectionHandler()
     private val mMouseHandler = MouseHandler()

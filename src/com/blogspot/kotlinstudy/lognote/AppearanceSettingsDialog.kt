@@ -10,8 +10,8 @@ import javax.swing.event.ListSelectionListener
 import javax.swing.plaf.basic.BasicScrollBarUI
 
 
-class AppearanceSettingsDialog (mainUI: MainUI) : JDialog(mainUI, Strings.APPEARANCE, true), ActionListener {
-    private var mMainUI = mainUI
+class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARANCE, true), ActionListener {
+    private val mMainUI = mainUI
     private val mConfigManager = ConfigManager.getInstance()
 
     private val mSettingsPanel = JPanel()

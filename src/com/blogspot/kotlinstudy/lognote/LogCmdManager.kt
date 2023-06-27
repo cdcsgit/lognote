@@ -13,7 +13,6 @@ class LogCmdManager private constructor(){
     var mLogCmd: String = ""
     var mDevices = ArrayList<String>()
     private val mEventListeners = ArrayList<AdbEventListener>()
-    private var mMainUI: MainUI? = null
     private val mProcessList: ProcessList = ProcessList.getInstance()
 
     companion object {
@@ -42,10 +41,6 @@ class LogCmdManager private constructor(){
         fun getInstance(): LogCmdManager {
             return mInstance
         }
-    }
-
-    fun setMainUI(mainUI: MainUI) {
-        mMainUI = mainUI
     }
 
     fun getDevices() {
@@ -116,7 +111,8 @@ class LogCmdManager private constructor(){
                     } catch (e:IOException) {
                         println("Failed run $cmd")
                         e.printStackTrace()
-                        JOptionPane.showMessageDialog(mMainUI, e.message, "Error", JOptionPane.ERROR_MESSAGE)
+                        val mainUI = MainUI.getInstance()
+                        JOptionPane.showMessageDialog(mainUI, e.message, "Error", JOptionPane.ERROR_MESSAGE)
                         val adbEvent = AdbEvent(CMD_CONNECT, EVENT_FAIL)
                         sendEvent(adbEvent)
                         return@run
@@ -211,7 +207,8 @@ class LogCmdManager private constructor(){
                     } catch (e:IOException) {
                         println("Failed run $cmd")
                         e.printStackTrace()
-                        JOptionPane.showMessageDialog(mMainUI, e.message, "Error", JOptionPane.ERROR_MESSAGE)
+                        val mainUI = MainUI.getInstance()
+                        JOptionPane.showMessageDialog(mainUI, e.message, "Error", JOptionPane.ERROR_MESSAGE)
                         mProcessLogcat = null
                         return@run
                     }
@@ -228,7 +225,8 @@ class LogCmdManager private constructor(){
                     } catch (e: IOException) {
                         println("Failed run $cmd")
                         e.printStackTrace()
-                        JOptionPane.showMessageDialog(mMainUI, e.message, "Error", JOptionPane.ERROR_MESSAGE)
+                        val mainUI = MainUI.getInstance()
+                        JOptionPane.showMessageDialog(mainUI, e.message, "Error", JOptionPane.ERROR_MESSAGE)
                         val adbEvent = AdbEvent(CMD_DISCONNECT, EVENT_FAIL)
                         sendEvent(adbEvent)
                         return@run

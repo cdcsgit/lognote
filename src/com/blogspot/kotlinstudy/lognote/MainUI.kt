@@ -23,8 +23,7 @@ import javax.swing.text.JTextComponent
 import kotlin.math.roundToInt
 import kotlin.system.exitProcess
 
-
-class MainUI(title: String) : JFrame() {
+class MainUI private constructor() : JFrame() {
     companion object {
         private const val SPLIT_WEIGHT = 0.7
 
@@ -57,6 +56,11 @@ class MainUI(title: String) : JFrame() {
         var CurrentMethod = METHOD_NONE
 
         var IsCreatingUI = true
+
+        private val mInstance: MainUI = MainUI()
+        fun getInstance(): MainUI {
+            return mInstance
+        }
     }
 
     private lateinit var mMenuBar: JMenuBar
@@ -204,8 +208,6 @@ class MainUI(title: String) : JFrame() {
 
     init {
         loadConfigOnCreate()
-        mLogCmdManager.setMainUI(this)
-        ProcessList.getInstance().setMainUI(this)
 
         val laf = mConfigManager.getItem(ConfigManager.ITEM_LOOK_AND_FEEL)
 
@@ -337,7 +339,7 @@ class MainUI(title: String) : JFrame() {
             FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT
         }
 
-        createUI(title)
+        createUI()
 
         if (mLogCmdManager.getType() == LogCmdManager.TYPE_LOGCAT) {
             mLogCmdManager.getDevices()
@@ -515,8 +517,8 @@ class MainUI(title: String) : JFrame() {
         }
     }
 
-    private fun createUI(title: String) {
-        setTitle(title)
+    private fun createUI() {
+        title = Main.NAME
 
         val img = ImageIcon(this.javaClass.getResource("/images/logo.png"))
         iconImage = img.image

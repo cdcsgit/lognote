@@ -18,7 +18,6 @@ data class ProcessItem(val mPid: String, val mCmd: String, val mUser: String)
 class ProcessList private constructor() {
     private val mProcessMap: MutableMap<String, ProcessItem> = mutableMapOf()
     private var mUpdatedTime: Long = 0
-    private var mMainUI: MainUI? = null
 
     companion object {
         private val mInstance: ProcessList = ProcessList()
@@ -28,10 +27,6 @@ class ProcessList private constructor() {
         }
 
         const val PROCESS_LIST_UPDATE_TIME = 10000
-    }
-
-    fun setMainUI(mainUI: MainUI) {
-        mMainUI = mainUI
     }
 
     fun getProcess(pid: String): ProcessItem? {
@@ -69,16 +64,16 @@ class ProcessList private constructor() {
     }
 
     fun showList() {
-        val listDialog = ListDialog(mMainUI!!)
-        listDialog.setLocationRelativeTo(mMainUI!!)
+        val mainUI = MainUI.getInstance()
+        val listDialog = ListDialog(mainUI)
+        listDialog.setLocationRelativeTo(mainUI)
         listDialog.isVisible = true
     }
 
-    inner class ListDialog(parent: JFrame) : JDialog(parent, Strings.PROCESS_LIST, true), ActionListener {
+    inner class ListDialog(mainUI: MainUI) : JDialog(mainUI, Strings.PROCESS_LIST, true), ActionListener {
         private val mScrollPane: JScrollPane
         private val mTable: JTable
         private var mCloseBtn : ColorButton
-        private var mMainUI: MainUI
         private val mCellRenderer = ProcessCellRenderer()
 
         init {
@@ -125,7 +120,6 @@ class ProcessList private constructor() {
 
             mCloseBtn = ColorButton(Strings.CLOSE)
             mCloseBtn.addActionListener(this)
-            mMainUI = parent as MainUI
 
             val panel = JPanel()
             panel.layout = BorderLayout()

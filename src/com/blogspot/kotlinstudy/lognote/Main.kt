@@ -13,7 +13,7 @@ class Main {
             System.setProperty("swing.aatext", "true")
 
             SwingUtilities.invokeLater {
-                val mainUI = MainUI(NAME)
+                val mainUI = MainUI.getInstance()
 
                 mainUI.isVisible = true
                 mainUI.updateUIAfterVisible(args)
