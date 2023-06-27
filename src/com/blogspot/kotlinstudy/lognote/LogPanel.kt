@@ -34,7 +34,7 @@ class LogPanel constructor(mainUI: MainUI, tableModel: LogTableModel, basePanel:
     private val mTableModelHandler = TableModelHandler()
     private val mActionHandler = ActionHandler()
     private val mBookmarkHandler = BookmarkHandler()
-    private val mComponentHandler = ComponenetHander()
+    private val mComponentHandler = ComponentHandler()
     private val mFocusHandler = focusHandler
 
     private var mOldLogVPos = -1
@@ -640,7 +640,7 @@ class LogPanel constructor(mainUI: MainUI, tableModel: LogTableModel, basePanel:
         }
     }
 
-    internal inner class ComponenetHander : ComponentAdapter() {
+    internal inner class ComponentHandler : ComponentAdapter() {
         override fun componentResized(e: ComponentEvent?) {
             if (e != null) {
                 mTable.updateColumnWidth(e.component.width, mScrollPane.verticalScrollBar.width)
