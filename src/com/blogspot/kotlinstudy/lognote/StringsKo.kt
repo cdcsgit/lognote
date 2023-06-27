@@ -89,6 +89,7 @@ class StringsKo private constructor() {
             , "Cmd"
             , "로그캣 로그 아님"
             , "파일별로 필터 저장"
+            , "프로세스 리스트"
 //            , ""
         )
     }

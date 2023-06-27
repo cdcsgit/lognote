@@ -14,7 +14,7 @@ class LogCmdManager private constructor(){
     var mDevices = ArrayList<String>()
     private val mEventListeners = ArrayList<AdbEventListener>()
     private var mMainUI: MainUI? = null
-    private val mProcessList: ProcessList = ProcessList()
+    private val mProcessList: ProcessList = ProcessList.getInstance()
 
     companion object {
         const val DEFAULT_PREFIX = Main.NAME
@@ -42,8 +42,6 @@ class LogCmdManager private constructor(){
         fun getInstance(): LogCmdManager {
             return mInstance
         }
-
-        const val PROCESS_LIST_UPDATE_TIME = 10000
     }
 
     fun setMainUI(mainUI: MainUI) {
@@ -52,26 +50,6 @@ class LogCmdManager private constructor(){
 
     fun getDevices() {
         execute(makeExecuter(CMD_GET_DEVICES))
-    }
-
-    fun getProcess(pid: String): ProcessItem? {
-        if (getType() == TYPE_CMD) {
-            return null
-        }
-        return mProcessList.getProcess(pid)
-    }
-
-    fun updateProcesses() {
-        if (getType() == TYPE_CMD) {
-            return
-        }
-
-        val time = System.currentTimeMillis()
-        if (time > mProcessList.mUpdatedTime + PROCESS_LIST_UPDATE_TIME){
-            execute(makeExecuter(CMD_GET_PROCESSES))
-            mProcessList.mUpdatedTime = System.currentTimeMillis()
-            println("Process list updated")
-        }
     }
 
     fun getType(): Int {
@@ -292,7 +270,7 @@ class LogCmdManager private constructor(){
                         }
                         val textSplit = line.trim().split(Regex("\\s+"))
                         if (textSplit.size >= 9) {
-                            mProcessList.add(ProcessItem(textSplit[1], textSplit[0], textSplit[8]))
+                            mProcessList.add(ProcessItem(textSplit[1], textSplit[8], textSplit[0]))
                         }
                     }
                     val adbEvent = AdbEvent(CMD_GET_DEVICES, EVENT_SUCCESS)
@@ -302,6 +280,10 @@ class LogCmdManager private constructor(){
         }
 
         return executer
+    }
+
+    fun getProcesses() {
+        execute(makeExecuter(CMD_GET_PROCESSES))
     }
 
     interface AdbEventListener {
@@ -343,31 +325,6 @@ class LogCmdManager private constructor(){
 //            } catch (exc: IllegalThreadStateException) {
                 this.process = process
 //            }
-        }
-    }
-
-    data class ProcessItem(val mPid: String, val mCmd: String, val mUser: String)
-
-    inner class ProcessList {
-        private val mProcessMap: MutableMap<String, ProcessItem> = mutableMapOf()
-        var mUpdatedTime: Long = 0
-
-        fun getProcess(pid: String): ProcessItem? {
-            val item = mProcessMap[pid]
-            if (item != null) {
-                return item
-            }
-            updateProcesses()
-
-            return mProcessMap[pid]
-        }
-
-        fun clear() {
-            mProcessMap.clear()
-        }
-
-        fun add(processItem: ProcessItem) {
-            mProcessMap[processItem.mPid] = processItem
         }
     }
 }

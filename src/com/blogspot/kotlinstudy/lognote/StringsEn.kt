@@ -89,6 +89,7 @@ class StringsEn private constructor() {
             , "Cmd"
             , "Not logcat log"
             , "Save filters by file"
+            , "Process list"
 //            , ""
         )
     }

@@ -205,6 +205,7 @@ class MainUI(title: String) : JFrame() {
     init {
         loadConfigOnCreate()
         mLogCmdManager.setMainUI(this)
+        ProcessList.getInstance().setMainUI(this)
 
         val laf = mConfigManager.getItem(ConfigManager.ITEM_LOOK_AND_FEEL)
 

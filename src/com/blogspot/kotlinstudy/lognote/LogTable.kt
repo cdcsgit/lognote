@@ -390,12 +390,19 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         private val mActionHandler = ActionHandler()
 
         init {
-            val row: Int = rowAtPoint(point)
-            val pid = mTableModel.getValueProcess(row)
-            if (pid.isNotEmpty()) {
-                val processItem = LogCmdManager.getInstance().getProcess(pid)
-                if (processItem != null) {
-                    mProcessItem.text = "${processItem.mPid} : ${processItem.mCmd} (${processItem.mUser})"
+            val column: Int = columnAtPoint(point)
+            if (MainUI.CurrentMethod == MainUI.METHOD_ADB && column == 1) { // column == 1, not line number
+                val row: Int = rowAtPoint(point)
+                val pid = mTableModel.getValueProcess(row)
+                if (pid.isNotEmpty()) {
+                    val processItem = ProcessList.getInstance().getProcess(pid)
+                    if (processItem != null) {
+                        mProcessItem.text = "${processItem.mPid} : ${processItem.mCmd} (${processItem.mUser})"
+                    }
+                    else {
+                        mProcessItem.text = "$pid :"
+                    }
+                    mProcessItem.addActionListener(mActionHandler)
                     add(mProcessItem)
                 }
             }
@@ -446,28 +453,27 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
                         val frame = SwingUtilities.windowForComponent(this@LogTable) as MainUI
                         frame.clearAdbLog()
                     }
-//                    mClearSaveItem -> {
-//                        val frame = SwingUtilities.windowForComponent(this@LogTable) as MainUI
-//                        frame.clearSaveAdbLog()
-//                    }
+                    mProcessItem -> {
+                        ProcessList.getInstance().showList()
+                    }
                 }
             }
         }
     }
 
-    override fun getToolTipText(e: MouseEvent?): String {
+    override fun getToolTipText(e: MouseEvent): String? {
         toolTipText = ""
-        e?.let {
+        val column: Int = columnAtPoint(e.point)
+        if (MainUI.CurrentMethod == MainUI.METHOD_ADB && column == 1) { // column == 1, not line number
             val row: Int = rowAtPoint(e.point)
             val pid = mTableModel.getValueProcess(row)
             if (pid.isNotEmpty()) {
-                val processItem = LogCmdManager.getInstance().getProcess(pid)
+                val processItem = ProcessList.getInstance().getProcess(pid)
                 if (processItem != null) {
                     toolTipText = "${processItem.mPid} : ${processItem.mCmd} (${processItem.mUser})"
                 }
             }
         }
-
         return toolTipText
     }
 
