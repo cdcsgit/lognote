@@ -349,6 +349,7 @@ class MainUI private constructor() : JFrame() {
 
     private fun exit() {
         saveConfigOnDestroy()
+        saveRecentFile()
         mFilteredTableModel.stopScan()
         mFullTableModel.stopScan()
         mLogCmdManager.stop()
