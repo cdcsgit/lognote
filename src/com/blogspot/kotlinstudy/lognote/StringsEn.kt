@@ -90,6 +90,11 @@ class StringsEn private constructor() {
             , "Not logcat log"
             , "Save filters by file"
             , "Process list"
+            , "Check update"
+            , "Failed to get version information"
+            , "Using the latest version"
+            , "Available"
+            , "Current"
 //            , ""
         )
     }

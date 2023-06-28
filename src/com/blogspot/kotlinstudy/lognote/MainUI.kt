@@ -85,6 +85,7 @@ class MainUI private constructor() : JFrame() {
     private lateinit var mItemAppearance: JMenuItem
     private lateinit var mMenuHelp: JMenu
     private lateinit var mItemHelp: JMenuItem
+    private lateinit var mItemCheckUpdate: JMenuItem
     private lateinit var mItemAbout: JMenuItem
 
     private lateinit var mFilterPanel: JPanel
@@ -660,6 +661,10 @@ class MainUI private constructor() : JFrame() {
         mItemHelp = JMenuItem(Strings.HELP)
         mItemHelp.addActionListener(mActionHandler)
         mMenuHelp.add(mItemHelp)
+
+        mItemCheckUpdate = JMenuItem(Strings.CHECK_UPDATE)
+        mItemCheckUpdate.addActionListener(mActionHandler)
+        mMenuHelp.add(mItemCheckUpdate)
 
         mMenuHelp.addSeparator()
 
@@ -2001,6 +2006,11 @@ class MainUI private constructor() : JFrame() {
                     val helpDialog = HelpGotoDialog(this@MainUI)
                     helpDialog.setLocationRelativeTo(this@MainUI)
                     helpDialog.isVisible = true
+                }
+                mItemCheckUpdate -> {
+                    val checkUpdateDialog = CheckUpdateDialog(this@MainUI)
+                    checkUpdateDialog.setLocationRelativeTo(this@MainUI)
+                    checkUpdateDialog.isVisible = true
                 }
                 mAdbConnectBtn -> {
                     stopAdbScan()

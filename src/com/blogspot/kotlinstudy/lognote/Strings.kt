@@ -105,6 +105,11 @@ class Strings private constructor() {
         private val IDX_NOT_LOGCAT = idx++
         private val IDX_FILTER_BY_FILE = idx++
         private val IDX_PROCESS_LIST = idx++
+        private val IDX_CHECK_UPDATE = idx++
+        private val IDX_FAILED_GET_VERSION_INFO = idx++
+        private val IDX_USING_LATEST_VERSION = idx++
+        private val IDX_AVAILABLE = idx++
+        private val IDX_CURRENT = idx++
 //        private val IDX_ = idx++
 
         val FILE: String
@@ -281,5 +286,15 @@ class Strings private constructor() {
             get() { return currStrings[IDX_FILTER_BY_FILE] }
         val PROCESS_LIST: String
             get() { return currStrings[IDX_PROCESS_LIST] }
+        val CHECK_UPDATE: String
+            get() { return currStrings[IDX_CHECK_UPDATE] }
+        val FAILED_GET_VERSION_INFO: String
+            get() { return currStrings[IDX_FAILED_GET_VERSION_INFO] }
+        val USING_LATEST_VERSION: String
+            get() { return currStrings[IDX_USING_LATEST_VERSION] }
+        val AVAILABLE: String
+            get() { return currStrings[IDX_AVAILABLE] }
+        val CURRENT: String
+            get() { return currStrings[IDX_CURRENT] }
     }
 }
