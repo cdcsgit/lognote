@@ -117,6 +117,7 @@ Dark \
 
 \
 Setting > Appearance \
+Fixed-width fonts are recommended : The columns for logcat entries(time, pid, tag...) are aligned \
 ![lognote_appearance_settings](https://user-images.githubusercontent.com/75207513/183441901-de5dbfb4-1b4d-4dca-97a6-cee050d4bd28.png)
 
 <br/>
