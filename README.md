@@ -59,6 +59,14 @@ Set the adb path(to view online log) and Add log cmds \
 
 <br/>
 
+# Show process info
+When mode is logcat receiving, process info is shown as a tooltip \
+Right click > Popup menu > Process info => Show all process list \
+![Lognote_processInfo_1](https://github.com/cdcsgit/lognote/assets/75207513/e0baa448-29e7-416c-89ed-f40af4c42e37)
+![Lognote_processInfo_2](https://github.com/cdcsgit/lognote/assets/75207513/4f06ee28-e6cf-46d5-a1ec-dd919062aa07)
+
+
+<br/>
 
 # Filter combobox color tag
 ![Lognote_ColorTag](https://user-images.githubusercontent.com/75207513/191993351-396498bc-d5f7-4b92-9a4b-e1b85cb87305.gif)
