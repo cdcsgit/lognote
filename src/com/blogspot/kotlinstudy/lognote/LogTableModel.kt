@@ -358,6 +358,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
 
     init {
         mBaseModel = baseModel
+        loadItems(false)
 
         mTableColor = if (isFullDataModel()) {
             ColorManager.getInstance().mFullTableColor

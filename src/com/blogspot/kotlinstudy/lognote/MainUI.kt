@@ -1721,7 +1721,7 @@ class MainUI private constructor() : JFrame() {
 
         for (path in paths) {
             val item = RecentFileManager.RecentItem()
-            item.mPath = path
+            item.mPath = path.trim()
 
             item.mShowLogCheck = mShowLogToggle.isSelected
             item.mShowTagCheck = mShowTagToggle.isSelected
