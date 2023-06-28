@@ -4,7 +4,7 @@ import javax.swing.SwingUtilities
 
 class Main {
     companion object {
-        const val VERSION: String = "0.3.1"
+        const val VERSION: String = "0.3.2"
         const val NAME: String = "LogNote"
 
         @JvmStatic
