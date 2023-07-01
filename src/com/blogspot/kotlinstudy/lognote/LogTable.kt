@@ -461,19 +461,25 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         }
     }
 
-    override fun getToolTipText(e: MouseEvent): String? {
-        toolTipText = ""
-        val column: Int = columnAtPoint(e.point)
+    private fun getProcessInfo(point: Point): String {
+        var processInfo = ""
+        val column: Int = columnAtPoint(point)
         if (MainUI.CurrentMethod == MainUI.METHOD_ADB && column == 1) { // column == 1, not line number
-            val row: Int = rowAtPoint(e.point)
+            val row: Int = rowAtPoint(point)
             val pid = mTableModel.getValueProcess(row)
             if (pid.isNotEmpty()) {
                 val processItem = ProcessList.getInstance().getProcess(pid)
                 if (processItem != null) {
-                    toolTipText = "${processItem.mPid} : ${processItem.mCmd} (${processItem.mUser})"
+                    processInfo = "${processItem.mPid} : ${processItem.mCmd} (${processItem.mUser})"
                 }
             }
         }
+
+        return processInfo
+    }
+
+    override fun getToolTipText(e: MouseEvent): String? {
+        toolTipText = getProcessInfo(e.point)
         return toolTipText
     }
 
@@ -528,13 +534,23 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
     }
 
     internal inner class TableKeyHandler : KeyAdapter() {
-//        override fun keyReleased(p0: KeyEvent?) {
-//            if (KeyEvent.VK_ENTER == p0?.keyCode) {
+        override fun keyReleased(p0: KeyEvent?) {
+//            when (p0?.keyCode) {
+//                KeyEvent.VK_DOWN, KeyEvent.VK_UP, KeyEvent.VK_PAGE_DOWN, KeyEvent.VK_PAGE_UP -> {
+//                    val rect = getCellRect(selectedRow, selectedColumn, false)
+//                    ToolTipManager.sharedInstance().mouseMoved(MouseEvent(this@LogTable, 0, 0, 0, rect.x, rect.y, 0, false))
+//                }
 //            }
-//            super.keyReleased(p0)
-//        }
+            if (p0?.keyCode == KeyEvent.VK_DOWN || p0?.keyCode == KeyEvent.VK_UP || p0?.keyCode == KeyEvent.VK_PAGE_DOWN || p0?.keyCode == KeyEvent.VK_PAGE_UP) {
+                val rect = getCellRect(selectedRow, selectedColumn, false)
+                ToolTipManager.sharedInstance().mouseMoved(MouseEvent(this@LogTable, 0, 0, 0, rect.x, rect.y, 0, false))
+            }
+
+            super.keyReleased(p0)
+        }
 
         override fun keyPressed(p0: KeyEvent?) {
+            ToolTipManager.sharedInstance().mouseMoved(MouseEvent(this@LogTable, 0, 0, 0, 0, 0, 0, false))
             if (p0?.keyCode == KeyEvent.VK_B && (p0.modifiers and KeyEvent.CTRL_MASK) != 0) {
                 updateBookmark(selectedRow)
             } else if (p0?.keyCode == KeyEvent.VK_PAGE_DOWN) {
