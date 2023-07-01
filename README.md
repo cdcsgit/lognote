@@ -122,6 +122,14 @@ Fixed-width fonts are recommended : The columns for logcat entries(time, pid, ta
 
 <br/>
 
+# View Control
+View > Rotation - Rotate 90 degrees clockwise \
+View > Full Logs - Toggle show/hide full log view \
+Full log view > Windowed Mode - Move the view to new window \
+![Lognote_view_ctrl](https://github.com/cdcsgit/lognote/assets/75207513/e376439f-698f-4a48-a5c1-aac0ca406dd6)
+
+<br/>
+
 # Button Icons
 ![Lognote_Icon](https://user-images.githubusercontent.com/75207513/221393900-f4f0268f-2085-443a-96f8-fcaae8123dbc.gif)
 
