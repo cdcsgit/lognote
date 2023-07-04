@@ -94,17 +94,18 @@ Click Filter or Full View : Set search target view\
 
 <br/>
 
-# Log cmd setting
-Set the adb path(to view online log) and Add log cmds \
-![lognote_log_cmd_setting](https://user-images.githubusercontent.com/75207513/221393860-31c5efd3-4f5d-4295-b711-d7ec0cd693e1.png)
-
-<br/>
-
 # Show process info
 When mode is logcat receiving, process info is shown as a tooltip \
 Right click > Popup menu > Process info => Show all process list \
 ![Lognote_processInfo_1](https://github.com/cdcsgit/lognote/assets/75207513/e0baa448-29e7-416c-89ed-f40af4c42e37)
 ![Lognote_processInfo_2](https://github.com/cdcsgit/lognote/assets/75207513/4f06ee28-e6cf-46d5-a1ec-dd919062aa07)
+
+<br/>
+
+# Log cmd setting
+Set the adb path(to view online log) and Add log cmds \
+![lognote_log_cmd_setting](https://user-images.githubusercontent.com/75207513/221393860-31c5efd3-4f5d-4295-b711-d7ec0cd693e1.png)
+
 
 <br/>
 
