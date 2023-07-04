@@ -1513,10 +1513,10 @@ class MainUI private constructor() : JFrame() {
                 val lastFile = files.last().trim()
                 val path: Path = Paths.get(lastFile)
                 println("Paths.get $lastFile, ${path.fileName}")
-                path.fileName.toString()
+                "${path.fileName} - $statusMethod"
             }
             Strings.ADB, Strings.CMD, "${Strings.ADB} ${Strings.STOP}", "${Strings.CMD} ${Strings.STOP}" -> {
-                mLogCmdManager.mTargetDevice.ifEmpty { Main.NAME }
+                "${mLogCmdManager.mTargetDevice.ifEmpty { Main.NAME }} - $statusMethod"
             }
             else -> {
                 Main.NAME
@@ -1774,6 +1774,10 @@ class MainUI private constructor() : JFrame() {
     fun startAdbScan(reconnect: Boolean) {
         saveRecentFile()
 
+        if (reconnect) {
+            mLogCmdManager.mTargetDevice = mDeviceCombo.selectedItem!!.toString()
+        }
+
         if (mLogCmdManager.getType() == LogCmdManager.TYPE_CMD) {
             mStatusMethod.text = " ${Strings.CMD} "
             CurrentMethod = METHOD_CMD
@@ -1788,7 +1792,6 @@ class MainUI private constructor() : JFrame() {
         mPauseToggle.isSelected = false
         setSaveLogFile()
         if (reconnect) {
-            mLogCmdManager.mTargetDevice = mDeviceCombo.selectedItem!!.toString()
             mLogCmdManager.startLogcat()
         }
         mFilteredTableModel.startScan()
@@ -1809,6 +1812,7 @@ class MainUI private constructor() : JFrame() {
         else {
             mStatusMethod.text = " ${Strings.ADB} ${Strings.STOP} "
         }
+         mStatusTF.text = mStatusTF.text
 
         if (!mFilteredTableModel.isScanning()) {
             println("stopAdbScan : not adb scanning mode")
