@@ -535,16 +535,16 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
 
     internal inner class TableKeyHandler : KeyAdapter() {
         override fun keyReleased(p0: KeyEvent?) {
-//            when (p0?.keyCode) {
-//                KeyEvent.VK_DOWN, KeyEvent.VK_UP, KeyEvent.VK_PAGE_DOWN, KeyEvent.VK_PAGE_UP -> {
-//                    val rect = getCellRect(selectedRow, selectedColumn, false)
-//                    ToolTipManager.sharedInstance().mouseMoved(MouseEvent(this@LogTable, 0, 0, 0, rect.x, rect.y, 0, false))
-//                }
-//            }
-            if (p0?.keyCode == KeyEvent.VK_DOWN || p0?.keyCode == KeyEvent.VK_UP || p0?.keyCode == KeyEvent.VK_PAGE_DOWN || p0?.keyCode == KeyEvent.VK_PAGE_UP) {
-                val rect = getCellRect(selectedRow, selectedColumn, false)
-                ToolTipManager.sharedInstance().mouseMoved(MouseEvent(this@LogTable, 0, 0, 0, rect.x, rect.y, 0, false))
+            when (p0?.keyCode) {
+                KeyEvent.VK_DOWN, KeyEvent.VK_UP, KeyEvent.VK_PAGE_DOWN, KeyEvent.VK_PAGE_UP -> {
+                    val rect = getCellRect(selectedRow, selectedColumn, false)
+                    ToolTipManager.sharedInstance().mouseMoved(MouseEvent(this@LogTable, 0, 0, 0, rect.x, rect.y, 0, false))
+                }
             }
+//            if (p0?.keyCode == KeyEvent.VK_DOWN || p0?.keyCode == KeyEvent.VK_UP || p0?.keyCode == KeyEvent.VK_PAGE_DOWN || p0?.keyCode == KeyEvent.VK_PAGE_UP) {
+//                val rect = getCellRect(selectedRow, selectedColumn, false)
+//                ToolTipManager.sharedInstance().mouseMoved(MouseEvent(this@LogTable, 0, 0, 0, rect.x, rect.y, 0, false))
+//            }
 
             super.keyReleased(p0)
         }
