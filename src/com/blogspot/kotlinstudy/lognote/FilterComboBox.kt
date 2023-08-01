@@ -53,6 +53,8 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
             }
         }
 
+    private var mDialog: ColorTagDialog? = null
+
     init {
         if (ConfigManager.LaF == MainUI.CROSS_PLATFORM_LAF) {
             ui = BasicComboBoxUI()
@@ -392,11 +394,31 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
     }
 
     internal inner class KeyHandler : KeyAdapter() {
+        override fun keyPressed(e: KeyEvent) {
+            super.keyPressed(e)
+            if (!isEnabled) {
+                return
+            }
+
+            if (mUseColorTag) {
+                if (mDialog == null) {
+                    mDialog = ColorTagDialog(MainUI.getInstance())
+                }
+                if ('#' == e.keyChar) {
+                    mDialog!!.focusableWindowState = false
+                    mDialog!!.isVisible = true
+                } else {
+                    mDialog!!.isVisible = false
+                }
+            }
+        }
+
         override fun keyReleased(e: KeyEvent) {
             super.keyReleased(e)
             if (!isEnabled) {
                 return
             }
+
             if (KeyEvent.VK_ENTER == e.keyCode) {
                 val combo = this@FilterComboBox
                 val item = combo.selectedItem?.toString()
@@ -542,6 +564,9 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
                     override fun focusGained(e: FocusEvent) {}
                     override fun focusLost(e: FocusEvent) {
                         setUpdateHighlighter(true)
+                        if (mDialog != null && mDialog!!.isVisible) {
+                            mDialog!!.isVisible = false
+                        }
                     }
                 })
 
@@ -707,6 +732,9 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
                     override fun focusGained(e: FocusEvent) {}
                     override fun focusLost(e: FocusEvent) {
                         setUpdateHighlighter(true)
+                        if (mDialog != null && mDialog!!.isVisible) {
+                            mDialog!!.isVisible = false
+                        }
                     }
                 })
 
@@ -772,6 +800,46 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
                         mCombo.preferredSize = Dimension(mCombo.preferredSize.width, preferredSize.height)
                     }
                 }
+            }
+        }
+    }
+
+    internal inner class ColorTagDialog (mainUI: MainUI) : JDialog(mainUI, "", false) {
+        val mMainUI = mainUI
+        private val mColorManager = ColorManager.getInstance()
+        init {
+            isUndecorated = true
+            border = BorderFactory.createEmptyBorder()
+            setLocation(this@FilterComboBox.locationOnScreen.x, this@FilterComboBox.locationOnScreen.y + this@FilterComboBox.height)
+            val tf = JTextField()
+            tf.border = BorderFactory.createEmptyBorder()
+            updateHighlighter(tf)
+            add(tf)
+            pack()
+        }
+
+        private fun updateHighlighter(textComponent: JTextComponent) {
+            textComponent.text = "#0  #1  #2  #3  #4  #5  #6  #7  #8  #9  "
+            val text = textComponent.text
+            val separator = "#"
+            try {
+                textComponent.highlighter.removeAllHighlights()
+                var currPos = 1
+                while (currPos < text.length) {
+                    val startPos = currPos - 1
+                    var endPos = text.indexOf(separator, currPos)
+                    if (endPos < 0) {
+                        endPos = text.length
+                    }
+                    if (startPos in 0 until endPos) {
+                        val color = Color.decode(mColorManager.mFilterTableColor.mStrFilteredBGs[text[startPos + 1].digitToInt()])
+                        val painterColor: Highlighter.HighlightPainter = DefaultHighlighter.DefaultHighlightPainter(color)
+                        textComponent.highlighter.addHighlight(startPos, endPos, painterColor)
+                    }
+                    currPos = endPos + 1
+                }
+            } catch (ex: BadLocationException) {
+                ex.printStackTrace()
             }
         }
     }
