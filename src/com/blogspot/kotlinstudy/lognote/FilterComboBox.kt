@@ -132,7 +132,7 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
                 mApplyFilter(item)
             }
             else {
-                println("Show log toggle is not selected")
+                println("applyFilterText : Show log toggle is not selected")
             }
         }
         else {

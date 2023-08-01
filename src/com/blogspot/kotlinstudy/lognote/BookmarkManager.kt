@@ -21,7 +21,7 @@ class BookmarkManager private constructor(){
         }
     }
 
-    val mBookmarks = ArrayList<Int>()
+    var mBookmarks = mutableListOf<Int>()
     private val mEventListeners = ArrayList<BookmarkEventListener>()
 
     fun addBookmarkEventListener(listener:BookmarkEventListener) {
@@ -41,6 +41,10 @@ class BookmarkManager private constructor(){
     }
 
     fun addBookmark(bookmark:Int) {
+        if (mBookmarks.contains(bookmark)) {
+            println("addBookmark : already added - $bookmark")
+            return
+        }
         mBookmarks.add(bookmark)
         mBookmarks.sort()
 
@@ -50,6 +54,10 @@ class BookmarkManager private constructor(){
     }
 
     fun removeBookmark(bookmark:Int) {
+        if (!mBookmarks.contains(bookmark)) {
+            println("addBookmark : already removed - $bookmark")
+            return
+        }
         mBookmarks.remove(bookmark)
 
         for (listener in mEventListeners) {

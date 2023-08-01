@@ -19,6 +19,7 @@ class RecentFileManager private constructor() {
         const val ITEM_SHOW_TID = "_SHOW_TID"
         const val ITEM_HIGHLIGHT_LOG = "_HIGHLIGHT_LOG"
         const val ITEM_SEARCH_LOG = "_SEARCH_LOG"
+        const val ITEM_BOOKMARKS = "_BOOKMARKS"
 
         const val ITEM_SHOW_LOG_CHECK = "_SHOW_LOG_CHECK"
         const val ITEM_SHOW_TAG_CHECK = "_SHOW_TAG_CHECK"
@@ -36,6 +37,7 @@ class RecentFileManager private constructor() {
     }
 
     val mRecentList = mutableListOf<RecentItem>()
+    val mOpenList = mutableListOf<OpenItem>()
     private val mProperties = Properties()
     private var mRecentListPath = RECENTES_LIST_FILE
 
@@ -56,6 +58,7 @@ class RecentFileManager private constructor() {
         var mShowTid = ""
         var mHighlightLog = ""
         var mSearchLog = ""
+        var mBookmarks = ""
 
         var mShowLogCheck = true
         var mShowTagCheck = true
@@ -64,6 +67,8 @@ class RecentFileManager private constructor() {
         var mHighlightLogCheck = true
         var mSearchMatchCase = true
     }
+
+    data class OpenItem(val mPath: String, var mStartLine: Int, var mEndLine: Int)
 
     fun loadList() {
         var fileInput: FileInputStream? = null
@@ -96,6 +101,7 @@ class RecentFileManager private constructor() {
             recentItem.mShowTid = (mProperties["$i$ITEM_SHOW_TID"] ?: "") as String
             recentItem.mHighlightLog = (mProperties["$i$ITEM_HIGHLIGHT_LOG"] ?: "") as String
             recentItem.mSearchLog = (mProperties["$i$ITEM_SEARCH_LOG"] ?: "") as String
+            recentItem.mBookmarks = (mProperties["$i$ITEM_BOOKMARKS"] ?: "") as String
 
             var check = (mProperties["$i$ITEM_SHOW_LOG_CHECK"] ?: "false") as String
             recentItem.mShowLogCheck = check.toBoolean()
@@ -127,6 +133,7 @@ class RecentFileManager private constructor() {
             mProperties["$i$ITEM_SHOW_TID"] = recentItem.mShowTid
             mProperties["$i$ITEM_HIGHLIGHT_LOG"] = recentItem.mHighlightLog
             mProperties["$i$ITEM_SEARCH_LOG"] = recentItem.mSearchLog
+            mProperties["$i$ITEM_BOOKMARKS"] = recentItem.mBookmarks
 
             mProperties["$i$ITEM_SHOW_LOG_CHECK"] = recentItem.mShowLogCheck.toString()
             mProperties["$i$ITEM_SHOW_TAG_CHECK"] = recentItem.mShowTagCheck.toString()
@@ -185,6 +192,10 @@ class RecentFileManager private constructor() {
 
     fun removeItem(key: String) {
         mProperties.remove(key)
+    }
+
+    fun addOpenFile(openItem: OpenItem) {
+        mOpenList.add(openItem)
     }
 }
 

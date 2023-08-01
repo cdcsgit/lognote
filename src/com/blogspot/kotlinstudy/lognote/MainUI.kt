@@ -183,6 +183,7 @@ class MainUI private constructor() : JFrame() {
     private val mConfigManager = ConfigManager.getInstance()
     private val mRecentFileManager = RecentFileManager.getInstance()
     private val mColorManager = ColorManager.getInstance()
+    private val mBookmarkManager = BookmarkManager.getInstance()
 
     private val mLogCmdManager = LogCmdManager.getInstance()
     lateinit var mFiltersManager:FiltersManager
@@ -478,7 +479,7 @@ class MainUI private constructor() : JFrame() {
         }
     }
 
-    private fun applyRecentOpen(path: String) {
+    private fun applyRecentOpen(path: String, startLine: Int) {
         if (!mItemFilterByFile.state || path.isEmpty()) {
             return
         }
@@ -492,30 +493,39 @@ class MainUI private constructor() : JFrame() {
         }
         
         if (path == recentItem.mPath) {
-            mShowLogToggle.isSelected = recentItem.mShowLogCheck
-            mShowLogCombo.setEnabledFilter(mShowLogToggle.isSelected)
-            mShowTagToggle.isSelected = recentItem.mShowTagCheck
-            mShowTagCombo.setEnabledFilter(mShowTagToggle.isSelected)
-            mShowPidToggle.isSelected = recentItem.mShowPidCheck
-            mShowPidCombo.setEnabledFilter(mShowPidToggle.isSelected)
-            mShowTidToggle.isSelected = recentItem.mShowTidCheck
-            mShowTidCombo.setEnabledFilter(mShowTidToggle.isSelected)
-            mBoldLogToggle.isSelected = recentItem.mHighlightLogCheck
-            mBoldLogCombo.setEnabledFilter(mBoldLogToggle.isSelected)
-            mSearchPanel.mSearchMatchCaseToggle.isSelected = recentItem.mSearchMatchCase
+            if (startLine == 0) {
+                mShowLogToggle.isSelected = recentItem.mShowLogCheck
+                mShowLogCombo.setEnabledFilter(mShowLogToggle.isSelected)
+                mShowTagToggle.isSelected = recentItem.mShowTagCheck
+                mShowTagCombo.setEnabledFilter(mShowTagToggle.isSelected)
+                mShowPidToggle.isSelected = recentItem.mShowPidCheck
+                mShowPidCombo.setEnabledFilter(mShowPidToggle.isSelected)
+                mShowTidToggle.isSelected = recentItem.mShowTidCheck
+                mShowTidCombo.setEnabledFilter(mShowTidToggle.isSelected)
+                mBoldLogToggle.isSelected = recentItem.mHighlightLogCheck
+                mBoldLogCombo.setEnabledFilter(mBoldLogToggle.isSelected)
+                mSearchPanel.mSearchMatchCaseToggle.isSelected = recentItem.mSearchMatchCase
 
-            mShowLogCombo.setFilterText(recentItem.mShowLog)
-            mShowLogCombo.applyFilterText(true)
-            mShowTagCombo.setFilterText(recentItem.mShowTag)
-            mShowTagCombo.applyFilterText(true)
-            mShowPidCombo.setFilterText(recentItem.mShowPid)
-            mShowPidCombo.applyFilterText(true)
-            mShowTidCombo.setFilterText(recentItem.mShowTid)
-            mShowTidCombo.applyFilterText(true)
-            mBoldLogCombo.setFilterText(recentItem.mHighlightLog)
-            mBoldLogCombo.applyFilterText(true)
-            mSearchPanel.mSearchCombo.setFilterText(recentItem.mSearchLog)
-            mSearchPanel.mSearchCombo.applyFilterText(true)
+                mShowLogCombo.setFilterText(recentItem.mShowLog)
+                mShowLogCombo.applyFilterText(true)
+                mShowTagCombo.setFilterText(recentItem.mShowTag)
+                mShowTagCombo.applyFilterText(true)
+                mShowPidCombo.setFilterText(recentItem.mShowPid)
+                mShowPidCombo.applyFilterText(true)
+                mShowTidCombo.setFilterText(recentItem.mShowTid)
+                mShowTidCombo.applyFilterText(true)
+                mBoldLogCombo.setFilterText(recentItem.mHighlightLog)
+                mBoldLogCombo.applyFilterText(true)
+                mSearchPanel.mSearchCombo.setFilterText(recentItem.mSearchLog)
+                mSearchPanel.mSearchCombo.applyFilterText(true)
+            }
+
+            val bookmarks = recentItem.mBookmarks.split(",")
+            for (bookmark in bookmarks) {
+                if (bookmark.isNotBlank()) {
+                    mBookmarkManager.addBookmark(bookmark.toInt() + startLine)
+                }
+            }
         }
     }
 
@@ -1678,22 +1688,25 @@ class MainUI private constructor() : JFrame() {
     fun openFile(path: String, isAppend: Boolean) {
         println("Opening: $path, $isAppend")
         saveRecentFile()
-        if (!isAppend) {
-            applyRecentOpen(path)
-        }
         mStatusMethod.text = " ${Strings.OPEN} "
         CurrentMethod = METHOD_OPEN
         mFilteredTableModel.stopScan()
         mFilteredTableModel.stopFollow()
-
         if (isAppend) {
             mStatusTF.text += "| $path"
         } else {
             mStatusTF.text = path
+            mRecentFileManager.mOpenList.clear()
         }
+
+        val openItem = RecentFileManager.OpenItem(path.trim(), 0, 0)
         mFullTableModel.setLogFile(path)
         mFilteredTableModel.setLogFile(path)
+
+        openItem.mStartLine = if (isAppend) mFullTableModel.rowCount + 1 else 0
         mFullTableModel.loadItems(isAppend)
+        openItem.mEndLine = mFullTableModel.rowCount - 1
+        mRecentFileManager.addOpenFile(openItem)
         mFilteredTableModel.loadItems(isAppend)
 
         if (ConfigManager.LaF == FLAT_DARK_LAF) {
@@ -1703,7 +1716,7 @@ class MainUI private constructor() : JFrame() {
             mStatusMethod.background = Color(0xF0, 0xF0, 0x30)
         }
         enabledFollowBtn(true)
-
+        applyRecentOpen(path, openItem.mStartLine)
         repaint()
 
         return
@@ -1715,19 +1728,30 @@ class MainUI private constructor() : JFrame() {
         }
 
         mRecentFileManager.loadList()
-        val paths = mStatusTF.text.split("|")
-        for (path in paths) {
-            for (item in mRecentFileManager.mRecentList) {
-                if (path.trim() == item.mPath) {
-                    mRecentFileManager.mRecentList.remove(item)
-                    break
-                }
-            }
+
+        for (openItem in mRecentFileManager.mOpenList) {
+            mRecentFileManager.mRecentList.removeIf { item: RecentFileManager.RecentItem -> openItem.mPath == item.mPath }
         }
 
-        for (path in paths) {
+        for (openItem in mRecentFileManager.mOpenList) {
+            var isExist = false
+            for (item in mRecentFileManager.mRecentList) {
+                if (openItem.mPath == item.mPath) {
+                    for (bookmark in mBookmarkManager.mBookmarks) {
+                        if (bookmark >= openItem.mStartLine && bookmark <= openItem.mEndLine) {
+                            item.mBookmarks += "${ bookmark - openItem.mStartLine },"
+                        }
+                    }
+                    isExist = true
+                }
+            }
+
+            if (isExist) {
+                continue
+            }
+
             val item = RecentFileManager.RecentItem()
-            item.mPath = path.trim()
+            item.mPath = openItem.mPath
 
             item.mShowLogCheck = mShowLogToggle.isSelected
             item.mShowTagCheck = mShowTagToggle.isSelected
@@ -1735,6 +1759,12 @@ class MainUI private constructor() : JFrame() {
             item.mShowTidCheck = mShowTidToggle.isSelected
             item.mHighlightLogCheck = mBoldLogToggle.isSelected
             item.mSearchMatchCase = mSearchPanel.mSearchMatchCaseToggle.isSelected
+
+            for (bookmark in mBookmarkManager.mBookmarks) {
+                if (bookmark >= openItem.mStartLine && bookmark <= openItem.mEndLine) {
+                    item.mBookmarks += "${ bookmark - openItem.mStartLine },"
+                }
+            }
 
             item.mShowLog = mShowLogCombo.selectedItem?.toString() ?: ""
             item.mShowTag = mShowTagCombo.selectedItem?.toString() ?: ""
