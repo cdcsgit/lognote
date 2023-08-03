@@ -33,6 +33,8 @@ Default current path
 1. Read File: Read a file (File > Open, read multiple files continuously)
    - Multiple files : Drag & drop or File > Open files
    - Append files : Ctrl + drag & drop or File > append files
+   - Save recent file view config on exit(filters, bookmarks)
+   - Open recent files: set to saved view config
 1. Follow File: Continue reading logs added to the file (ex: adb logcat > a.log, File > Follow - a.log)
    - Used when you want to read the log of processing results of commands other than adb
 
@@ -56,6 +58,9 @@ Default current path
 
 # Filter combobox color tag
 ![Lognote_ColorTag](https://user-images.githubusercontent.com/75207513/191993351-396498bc-d5f7-4b92-9a4b-e1b85cb87305.gif)
+
+If enter '#' in the filter combo box, the color tag list is displayed\
+![LogNote_ColorTag2](https://github.com/cdcsgit/lognote/assets/75207513/a02cc5bf-1d0a-4527-8a43-2a025f74c2c7)
 
 <br/>
 
