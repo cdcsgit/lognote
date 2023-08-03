@@ -394,8 +394,17 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
     }
 
     internal inner class KeyHandler : KeyAdapter() {
+        var mPressedChar: Char = 0.toChar()
         override fun keyPressed(e: KeyEvent) {
             super.keyPressed(e)
+            mPressedChar = e.keyChar
+            if (!isEnabled) {
+                return
+            }
+        }
+
+        override fun keyReleased(e: KeyEvent) {
+            super.keyReleased(e)
             if (!isEnabled) {
                 return
             }
@@ -404,19 +413,17 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
                 if (mDialog == null) {
                     mDialog = ColorTagDialog(MainUI.getInstance())
                 }
-                if ('#' == e.keyChar) {
-                    mDialog!!.focusableWindowState = false
-                    mDialog!!.isVisible = true
+                if ('#' == mPressedChar) {
+                    if (mEditorComponent.caretPosition == 1 || (mEditorComponent.caretPosition > 1 && mEditorComponent.text[mEditorComponent.caretPosition - 2] == '|')) {
+                        mDialog!!.updateLocation()
+                        mDialog!!.focusableWindowState = false
+                        mDialog!!.isVisible = true
+                    }
                 } else {
-                    mDialog!!.isVisible = false
+                    if (mDialog!!.isVisible) {
+                        mDialog!!.isVisible = false
+                    }
                 }
-            }
-        }
-
-        override fun keyReleased(e: KeyEvent) {
-            super.keyReleased(e)
-            if (!isEnabled) {
-                return
             }
 
             if (KeyEvent.VK_ENTER == e.keyCode) {
@@ -805,17 +812,26 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
     }
 
     internal inner class ColorTagDialog (mainUI: MainUI) : JDialog(mainUI, "", false) {
-        val mMainUI = mainUI
         private val mColorManager = ColorManager.getInstance()
         init {
             isUndecorated = true
             border = BorderFactory.createEmptyBorder()
-            setLocation(this@FilterComboBox.locationOnScreen.x, this@FilterComboBox.locationOnScreen.y + this@FilterComboBox.height)
             val tf = JTextField()
             tf.border = BorderFactory.createEmptyBorder()
             updateHighlighter(tf)
             add(tf)
             pack()
+        }
+
+        fun updateLocation() {
+            val rect = this@FilterComboBox.mEditorComponent.modelToView(this@FilterComboBox.mEditorComponent.caretPosition)
+            var x = rect.x
+            val y = this@FilterComboBox.locationOnScreen.y + this@FilterComboBox.height
+            if (x + width > this@FilterComboBox.width) {
+                x = this@FilterComboBox.width - width
+            }
+            x += this@FilterComboBox.locationOnScreen.x
+            mDialog!!.setLocation(x, y)
         }
 
         private fun updateHighlighter(textComponent: JTextComponent) {
