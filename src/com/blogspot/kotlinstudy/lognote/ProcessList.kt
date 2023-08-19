@@ -26,7 +26,9 @@ class ProcessList private constructor() {
             return mInstance
         }
 
-        const val PROCESS_LIST_UPDATE_TIME = 10000
+        const val MAX_UPDATE_TIME_SEC = 600 // sec
+        const val DEFAULT_UPDATE_TIME = 10000 // msec
+        var UpdateTime = DEFAULT_UPDATE_TIME
     }
 
     fun getProcess(pid: String): ProcessItem? {
@@ -56,7 +58,7 @@ class ProcessList private constructor() {
         }
 
         val time = System.currentTimeMillis()
-        if (time > mUpdatedTime + PROCESS_LIST_UPDATE_TIME){
+        if (time > mUpdatedTime + UpdateTime){
             LogCmdManager.getInstance().getProcesses()
             mUpdatedTime = System.currentTimeMillis()
             println("Process list updated")

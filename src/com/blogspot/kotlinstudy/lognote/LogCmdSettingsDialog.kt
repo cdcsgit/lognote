@@ -19,6 +19,10 @@ class LogCmdSettingsDialog(mainUI: MainUI) :JDialog(mainUI, "${Strings.LOG_CMD} 
     private var mPrefixLabel: JLabel
     private var mPrefixLabel2: JLabel
 
+    private var mOptionLabel: JLabel
+    private var mOption1Label: JLabel
+    private var mOption1TF: JTextField
+
     private var mAdbCmdTF: JTextField
     private var mAdbSaveTF: JTextField
     private var mPrefixTF: JTextField
@@ -71,6 +75,32 @@ class LogCmdSettingsDialog(mainUI: MainUI) :JDialog(mainUI, "${Strings.LOG_CMD} 
         mPrefixLabel = JLabel("Prefix")
         mPrefixLabel2 = JLabel("Default : LogNote, Do not use \\ / : * ? \" < > |")
 
+        mOptionLabel = JLabel(Strings.OPTIONS)
+        mOption1Label = JLabel(Strings.SET_UPDATE_PROCESS_TIMEOUT.format(ProcessList.MAX_UPDATE_TIME_SEC))
+        mOption1TF = JTextField((ProcessList.UpdateTime / 1000).toString())
+        mOption1TF.toolTipText = TooltipStrings.ONLY_NUMBER
+        mOption1TF.addKeyListener(object : KeyAdapter() {
+            var prevText = ""
+            override fun keyPressed(event: KeyEvent) {
+                if (event.keyChar in '0'..'9') {
+                    prevText = mOption1TF.text.trim()
+                }
+                else {
+                    mOption1TF.text = prevText
+                }
+            }
+            override fun keyReleased(event: KeyEvent) {
+                try {
+                    val timeout = mOption1TF.text.trim().toInt()
+                    if (timeout > ProcessList.MAX_UPDATE_TIME_SEC) {
+                        mOption1TF.text = ProcessList.MAX_UPDATE_TIME_SEC.toString()
+                    }
+                } catch (ex: NumberFormatException) {
+                    mOption1TF.text = ""
+                }
+            }
+        })
+
         mAdbCmdTF = JTextField(mLogCmdManager.mAdbCmd)
         mAdbCmdTF.preferredSize = Dimension(488, rowHeight)
         mAdbSaveTF = JTextField(mLogCmdManager.mLogSavePath)
@@ -121,20 +151,26 @@ class LogCmdSettingsDialog(mainUI: MainUI) :JDialog(mainUI, "${Strings.LOG_CMD} 
         mLogCmdLabel2 = JLabel("<html><b><font color=\"#7070FF\">${LogCmdManager.TYPE_CMD_PREFIX}cmdABC</font></b> <br>&nbsp;&nbsp;&nbsp;&nbsp => RUN : <b><font color=\"#7070FF\">cmdABC DEVICE</font></b></html>")
         mLogCmdLabel2.preferredSize = Dimension(488, mLogCmdLabel2.preferredSize.height)
 
-        val panel1 = JPanel(GridLayout(4, 1, 0, 2))
+        val panel1 = JPanel(GridLayout(5, 1, 0, 2))
         panel1.add(mAdbCmdLabel)
         panel1.add(mAdbSaveLabel)
         panel1.add(mPrefixLabel)
+        panel1.add(JLabel())
+        panel1.add(mOptionLabel)
 
-        val panel2 = JPanel(GridLayout(4, 1, 0, 2))
+        val panel2 = JPanel(GridLayout(5, 1, 0, 2))
         panel2.add(mAdbCmdTF)
         panel2.add(mAdbSaveTF)
         panel2.add(mPrefixTF)
         panel2.add(mPrefixLabel2)
+        panel2.add(mOption1Label)
 
-        val panel3 = JPanel(GridLayout(4, 1, 0, 2))
+        val panel3 = JPanel(GridLayout(5, 1, 0, 2))
         panel3.add(mAdbCmdBtn)
         panel3.add(mAdbSaveBtn)
+        panel3.add(JLabel())
+        panel3.add(JLabel())
+        panel3.add(mOption1TF)
 
         val cmdPathPanel = JPanel(FlowLayout(FlowLayout.LEFT))
         cmdPathPanel.add(panel1)
@@ -247,13 +283,29 @@ class LogCmdSettingsDialog(mainUI: MainUI) :JDialog(mainUI, "${Strings.LOG_CMD} 
                 mLogCmdManager.mPrefix = prefix
             }
 
+            val option1 = mOption1TF.text.trim()
+            if (option1.isEmpty()) {
+                ProcessList.UpdateTime = 0
+            }
+            else {
+                ProcessList.UpdateTime = option1.toInt() * 1000
+            }
+
             for (idx in 0 until mLogCmdTable.rowCount) {
                 mConfigManager.setItem("${ConfigManager.ITEM_ADB_LOG_CMD}_$idx", mLogCmdTableModel.getValueAt(idx, 1).toString())
             }
             mConfigManager.saveConfig()
 
-            val keys = arrayOf(ConfigManager.ITEM_ADB_CMD, ConfigManager.ITEM_ADB_LOG_SAVE_PATH, ConfigManager.ITEM_ADB_PREFIX, ConfigManager.ITEM_ADB_LOG_CMD)
-            val values = arrayOf(mLogCmdManager.mAdbCmd, mLogCmdManager.mLogSavePath, mLogCmdManager.mPrefix, mLogCmdManager.mLogCmd)
+            val keys = arrayOf(ConfigManager.ITEM_ADB_CMD,
+                ConfigManager.ITEM_ADB_LOG_SAVE_PATH,
+                ConfigManager.ITEM_ADB_PREFIX,
+                ConfigManager.ITEM_ADB_LOG_CMD,
+                ConfigManager.ITEM_ADB_OPTION_1)
+            val values = arrayOf(mLogCmdManager.mAdbCmd,
+                mLogCmdManager.mLogSavePath,
+                mLogCmdManager.mPrefix,
+                mLogCmdManager.mLogCmd,
+                ProcessList.UpdateTime.toString())
 
             mConfigManager.saveItems(keys, values)
             mMainUI.updateLogCmdCombo(true)

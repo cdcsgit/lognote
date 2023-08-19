@@ -110,6 +110,9 @@ class Strings private constructor() {
         private val IDX_USING_LATEST_VERSION = idx++
         private val IDX_AVAILABLE = idx++
         private val IDX_CURRENT = idx++
+        private val IDX_RECENT_FILE = idx++
+        private val IDX_APPLY_RECENT_FILE = idx++
+        private val IDX_SET_UPDATE_PROCESS_TIMEOUT = idx++
 //        private val IDX_ = idx++
 
         val FILE: String
@@ -296,5 +299,11 @@ class Strings private constructor() {
             get() { return currStrings[IDX_AVAILABLE] }
         val CURRENT: String
             get() { return currStrings[IDX_CURRENT] }
+        val RECENT_FILE: String
+            get() { return currStrings[IDX_RECENT_FILE] }
+        val APPLY_RECENT_FILE: String
+            get() { return currStrings[IDX_APPLY_RECENT_FILE] }
+        val SET_UPDATE_PROCESS_TIMEOUT: String
+            get() { return currStrings[IDX_SET_UPDATE_PROCESS_TIMEOUT] }
     }
 }

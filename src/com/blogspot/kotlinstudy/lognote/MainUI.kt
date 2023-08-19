@@ -268,6 +268,13 @@ class MainUI private constructor() : JFrame() {
             mLogCmdManager.mPrefix = prefix
         }
 
+        val adbOption1 = mConfigManager.getItem(ConfigManager.ITEM_ADB_OPTION_1)
+        if (adbOption1.isNullOrEmpty()) {
+            ProcessList.UpdateTime = ProcessList.DEFAULT_UPDATE_TIME
+        } else {
+            ProcessList.UpdateTime = adbOption1.toInt()
+        }
+
         var prop = mConfigManager.getItem(ConfigManager.ITEM_FRAME_X)
         if (!prop.isNullOrEmpty()) {
             mFrameX = prop.toInt()
@@ -494,7 +501,7 @@ class MainUI private constructor() : JFrame() {
         
         if (path == recentItem.mPath) {
             if (startLine == 0) {
-                val result = JOptionPane.showConfirmDialog(this, "Apply filters of recent file", "Recent file", JOptionPane.YES_NO_OPTION)
+                val result = JOptionPane.showConfirmDialog(this, Strings.APPLY_RECENT_FILE, Strings.RECENT_FILE, JOptionPane.YES_NO_OPTION)
                 if (result == JOptionPane.YES_OPTION) {
                     mShowLogToggle.isSelected = recentItem.mShowLogCheck
                     mShowLogCombo.setEnabledFilter(mShowLogToggle.isSelected)

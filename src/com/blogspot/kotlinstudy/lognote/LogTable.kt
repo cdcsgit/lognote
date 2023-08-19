@@ -391,7 +391,7 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
 
         init {
             val column: Int = columnAtPoint(point)
-            if (MainUI.CurrentMethod == MainUI.METHOD_ADB && column == 1) { // column == 1, not line number
+            if (ProcessList.UpdateTime > 0 && MainUI.CurrentMethod == MainUI.METHOD_ADB && column == 1) { // column == 1, not line number
                 val row: Int = rowAtPoint(point)
                 val pid = mTableModel.getValueProcess(row)
                 if (pid.isNotEmpty()) {
@@ -479,6 +479,10 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
     }
 
     override fun getToolTipText(e: MouseEvent): String? {
+        if (ProcessList.UpdateTime == 0) {
+            return null
+        }
+
         toolTipText = getProcessInfo(e.point)
         return toolTipText
     }

@@ -95,6 +95,9 @@ class StringsEn private constructor() {
             , "Using the latest version"
             , "Available"
             , "Current"
+            , "Recent file"
+            , "Apply filters of recent file"
+            , "Update process info timeout(sec, 0 : off, max : %d)"
 //            , ""
         )
     }
