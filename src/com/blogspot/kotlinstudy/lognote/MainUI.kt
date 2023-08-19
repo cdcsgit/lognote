@@ -1884,10 +1884,11 @@ class MainUI private constructor() : JFrame() {
         if (filePath.isNotEmpty()) {
             mFullTableModel.setLogFile(filePath)
             mFilteredTableModel.setLogFile(filePath)
-            mStatusMethod.text = " ${Strings.FOLLOW} "
             CurrentMethod = METHOD_FOLLOW
             mStatusTF.text = filePath
         }
+
+        mStatusMethod.text = " ${Strings.FOLLOW} "
 
         mFilteredTableModel.stopScan()
         mFilteredTableModel.stopFollow()
