@@ -122,25 +122,47 @@ class RecentFileManager private constructor() {
 
     fun saveList() {
         for (i in 0 until MAX_RECENT_FILE) {
+            mProperties.remove("$i$ITEM_PATH")
+            mProperties.remove("$i$ITEM_SHOW_LOG")
+            mProperties.remove("$i$ITEM_SHOW_TAG")
+            mProperties.remove("$i$ITEM_SHOW_PID")
+            mProperties.remove("$i$ITEM_SHOW_TID")
+            mProperties.remove("$i$ITEM_HIGHLIGHT_LOG")
+            mProperties.remove("$i$ITEM_SEARCH_LOG")
+            mProperties.remove("$i$ITEM_BOOKMARKS")
+
+            mProperties.remove("$i$ITEM_SHOW_LOG_CHECK")
+            mProperties.remove("$i$ITEM_SHOW_TAG_CHECK")
+            mProperties.remove("$i$ITEM_SHOW_PID_CHECK")
+            mProperties.remove("$i$ITEM_SHOW_TID_CHECK")
+            mProperties.remove("$i$ITEM_HIGHLIGHT_LOG_CHECK")
+            mProperties.remove("$i$ITEM_SEARCH_MATCH_CASE")
+        }
+
+        val mSaveList = mutableListOf<String>()
+        for (i in 0 until MAX_RECENT_FILE) {
             if (i >= mRecentList.size) {
                 break
             }
             val recentItem = mRecentList[i]
-            mProperties["$i$ITEM_PATH"] = recentItem.mPath
-            mProperties["$i$ITEM_SHOW_LOG"] = recentItem.mShowLog
-            mProperties["$i$ITEM_SHOW_TAG"] = recentItem.mShowTag
-            mProperties["$i$ITEM_SHOW_PID"] = recentItem.mShowPid
-            mProperties["$i$ITEM_SHOW_TID"] = recentItem.mShowTid
-            mProperties["$i$ITEM_HIGHLIGHT_LOG"] = recentItem.mHighlightLog
-            mProperties["$i$ITEM_SEARCH_LOG"] = recentItem.mSearchLog
-            mProperties["$i$ITEM_BOOKMARKS"] = recentItem.mBookmarks
+            if (!mSaveList.contains(recentItem.mPath)) {
+                mSaveList.add(recentItem.mPath)
+                mProperties["$i$ITEM_PATH"] = recentItem.mPath
+                mProperties["$i$ITEM_SHOW_LOG"] = recentItem.mShowLog
+                mProperties["$i$ITEM_SHOW_TAG"] = recentItem.mShowTag
+                mProperties["$i$ITEM_SHOW_PID"] = recentItem.mShowPid
+                mProperties["$i$ITEM_SHOW_TID"] = recentItem.mShowTid
+                mProperties["$i$ITEM_HIGHLIGHT_LOG"] = recentItem.mHighlightLog
+                mProperties["$i$ITEM_SEARCH_LOG"] = recentItem.mSearchLog
+                mProperties["$i$ITEM_BOOKMARKS"] = recentItem.mBookmarks
 
-            mProperties["$i$ITEM_SHOW_LOG_CHECK"] = recentItem.mShowLogCheck.toString()
-            mProperties["$i$ITEM_SHOW_TAG_CHECK"] = recentItem.mShowTagCheck.toString()
-            mProperties["$i$ITEM_SHOW_PID_CHECK"] = recentItem.mShowPidCheck.toString()
-            mProperties["$i$ITEM_SHOW_TID_CHECK"] = recentItem.mShowTidCheck.toString()
-            mProperties["$i$ITEM_HIGHLIGHT_LOG_CHECK"] = recentItem.mHighlightLogCheck.toString()
-            mProperties["$i$ITEM_SEARCH_MATCH_CASE"] = recentItem.mSearchMatchCase.toString()
+                mProperties["$i$ITEM_SHOW_LOG_CHECK"] = recentItem.mShowLogCheck.toString()
+                mProperties["$i$ITEM_SHOW_TAG_CHECK"] = recentItem.mShowTagCheck.toString()
+                mProperties["$i$ITEM_SHOW_PID_CHECK"] = recentItem.mShowPidCheck.toString()
+                mProperties["$i$ITEM_SHOW_TID_CHECK"] = recentItem.mShowTidCheck.toString()
+                mProperties["$i$ITEM_HIGHLIGHT_LOG_CHECK"] = recentItem.mHighlightLogCheck.toString()
+                mProperties["$i$ITEM_SEARCH_MATCH_CASE"] = recentItem.mSearchMatchCase.toString()
+            }
         }
 
         var fileOutput: FileOutputStream? = null
