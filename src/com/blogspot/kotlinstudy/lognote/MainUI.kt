@@ -494,30 +494,33 @@ class MainUI private constructor() : JFrame() {
         
         if (path == recentItem.mPath) {
             if (startLine == 0) {
-                mShowLogToggle.isSelected = recentItem.mShowLogCheck
-                mShowLogCombo.setEnabledFilter(mShowLogToggle.isSelected)
-                mShowTagToggle.isSelected = recentItem.mShowTagCheck
-                mShowTagCombo.setEnabledFilter(mShowTagToggle.isSelected)
-                mShowPidToggle.isSelected = recentItem.mShowPidCheck
-                mShowPidCombo.setEnabledFilter(mShowPidToggle.isSelected)
-                mShowTidToggle.isSelected = recentItem.mShowTidCheck
-                mShowTidCombo.setEnabledFilter(mShowTidToggle.isSelected)
-                mBoldLogToggle.isSelected = recentItem.mHighlightLogCheck
-                mBoldLogCombo.setEnabledFilter(mBoldLogToggle.isSelected)
-                mSearchPanel.mSearchMatchCaseToggle.isSelected = recentItem.mSearchMatchCase
+                val result = JOptionPane.showConfirmDialog(this, "Apply filters of recent file", "Recent file", JOptionPane.YES_NO_OPTION)
+                if (result == JOptionPane.YES_OPTION) {
+                    mShowLogToggle.isSelected = recentItem.mShowLogCheck
+                    mShowLogCombo.setEnabledFilter(mShowLogToggle.isSelected)
+                    mShowTagToggle.isSelected = recentItem.mShowTagCheck
+                    mShowTagCombo.setEnabledFilter(mShowTagToggle.isSelected)
+                    mShowPidToggle.isSelected = recentItem.mShowPidCheck
+                    mShowPidCombo.setEnabledFilter(mShowPidToggle.isSelected)
+                    mShowTidToggle.isSelected = recentItem.mShowTidCheck
+                    mShowTidCombo.setEnabledFilter(mShowTidToggle.isSelected)
+                    mBoldLogToggle.isSelected = recentItem.mHighlightLogCheck
+                    mBoldLogCombo.setEnabledFilter(mBoldLogToggle.isSelected)
+                    mSearchPanel.mSearchMatchCaseToggle.isSelected = recentItem.mSearchMatchCase
 
-                mShowLogCombo.setFilterText(recentItem.mShowLog)
-                mShowLogCombo.applyFilterText(true)
-                mShowTagCombo.setFilterText(recentItem.mShowTag)
-                mShowTagCombo.applyFilterText(true)
-                mShowPidCombo.setFilterText(recentItem.mShowPid)
-                mShowPidCombo.applyFilterText(true)
-                mShowTidCombo.setFilterText(recentItem.mShowTid)
-                mShowTidCombo.applyFilterText(true)
-                mBoldLogCombo.setFilterText(recentItem.mHighlightLog)
-                mBoldLogCombo.applyFilterText(true)
-                mSearchPanel.mSearchCombo.setFilterText(recentItem.mSearchLog)
-                mSearchPanel.mSearchCombo.applyFilterText(true)
+                    mShowLogCombo.setFilterText(recentItem.mShowLog)
+                    mShowLogCombo.applyFilterText(true)
+                    mShowTagCombo.setFilterText(recentItem.mShowTag)
+                    mShowTagCombo.applyFilterText(true)
+                    mShowPidCombo.setFilterText(recentItem.mShowPid)
+                    mShowPidCombo.applyFilterText(true)
+                    mShowTidCombo.setFilterText(recentItem.mShowTid)
+                    mShowTidCombo.applyFilterText(true)
+                    mBoldLogCombo.setFilterText(recentItem.mHighlightLog)
+                    mBoldLogCombo.applyFilterText(true)
+                    mSearchPanel.mSearchCombo.setFilterText(recentItem.mSearchLog)
+                    mSearchPanel.mSearchCombo.applyFilterText(true)
+                }
             }
 
             val bookmarks = recentItem.mBookmarks.split(",")
