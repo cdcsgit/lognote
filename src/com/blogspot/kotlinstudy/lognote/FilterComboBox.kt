@@ -1,9 +1,6 @@
 package com.blogspot.kotlinstudy.lognote
 
-import java.awt.Color
-import java.awt.Component
-import java.awt.Dimension
-import java.awt.Graphics
+import java.awt.*
 import java.awt.event.*
 import javax.swing.*
 import javax.swing.event.DocumentEvent
@@ -616,6 +613,10 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
             fun setEnableHighlighter(enable: Boolean) {
                 mEnableHighlighter = enable
             }
+
+            override fun getToolTipLocation(event: MouseEvent?): Point {
+                return Point(0, height)
+            }
         }
     }
 
@@ -808,14 +809,17 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
                     }
                 }
             }
+
+            override fun getToolTipLocation(event: MouseEvent?): Point {
+                return Point(0, height)
+            }
         }
     }
 
     internal inner class ColorTagDialog (mainUI: MainUI) : JDialog(mainUI, "", false) {
         private val mColorManager = ColorManager.getInstance()
         init {
-            isUndecorated = true
-            border = BorderFactory.createEmptyBorder()
+            this.isUndecorated = true
             val tf = JTextField()
             tf.border = BorderFactory.createEmptyBorder()
             updateHighlighter(tf)
