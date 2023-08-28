@@ -245,7 +245,7 @@ class LogCmdManager private constructor(){
                         "$mAdbCmd -s $mTargetDevice shell ps"
                     }
                     else {
-                        "$mAdbCmd $mLogCmd shell ps"
+                        "$mAdbCmd shell ps"
                     }
 
                     val runtime = Runtime.getRuntime()
