@@ -260,18 +260,42 @@ class LogCmdManager private constructor(){
                         return@run
                     }
 
-                    var line:String
-                    while (scanner.hasNextLine()) {
-                        line = scanner.nextLine()
-                        if (line.contains("USER") && line.contains("PID")) {
-                            continue
-                        }
-                        val textSplit = line.trim().split(Regex("\\s+"))
-                        if (textSplit.size >= 9) {
-                            mProcessList.add(ProcessItem(textSplit[1], textSplit[8], textSplit[0]))
+                    val thread = Thread {
+                        try {
+                            var line:String
+                            while (scanner.hasNextLine()) {
+                                line = scanner.nextLine()
+                                if (line.contains("USER") && line.contains("PID")) {
+                                    continue
+                                }
+                                val textSplit = line.trim().split(Regex("\\s+"))
+                                if (textSplit.size >= 9) {
+                                    mProcessList.add(ProcessItem(textSplit[1], textSplit[8], textSplit[0]))
+                                }
+                            }
+                        } catch (e: InterruptedException) {
+                            println("Failed get process list")
+                            mProcessList.clear()
                         }
                     }
-                    val adbEvent = AdbEvent(CMD_GET_DEVICES, EVENT_SUCCESS)
+                    thread.start()
+                    try {
+                        thread.join(1000)
+                        if (thread.isAlive) {
+                            thread.interrupt()
+                        }
+                    } catch (e: InterruptedException) {
+                        e.printStackTrace()
+                    }
+
+                    for (i in 0 until 10) {
+                        if (!thread.isAlive) {
+                            break
+                        }
+                        Thread.sleep(100)
+                    }
+
+                    val adbEvent = AdbEvent(CMD_GET_PROCESSES, EVENT_SUCCESS)
                     sendEvent(adbEvent)
                 }
             }
