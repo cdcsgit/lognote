@@ -33,6 +33,7 @@ interface LogTableModelListener {
 class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableModel() {
     companion object {
         var IsLogcatLog = false
+        var IsRegexColorTag = false
         private const val COLUMN_NUM = 0
         private const val COLUMN_LOGLINE = 1
         private const val PID_INDEX = 2
@@ -48,6 +49,8 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
         const val LEVEL_FATAL = 5
     }
 
+    data class FilteredColor(val mColor: String, val mPattern: Pattern?)
+
     private var mPatternSearchLog: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
     private var mMatcherSearchLog: Matcher = mPatternSearchLog.matcher("")
     private var mNormalSearchLogSplit: List<String>? = null
@@ -60,8 +63,8 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
     private val mBookmarkManager = BookmarkManager.getInstance()
 
     private val mEventListeners = ArrayList<LogTableModelListener>()
-    private val mFilteredFGMap = mutableMapOf<String, String>()
-    private val mFilteredBGMap = mutableMapOf<String, String>()
+    private val mFilteredFGMap = mutableMapOf<String, FilteredColor>()
+    private val mFilteredBGMap = mutableMapOf<String, FilteredColor>()
 
     private var mIsFilterUpdated = true
 
@@ -419,8 +422,14 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                         val key = item.substring(2)
                         patterns[0] += key
                         if (isUpdateColor) {
-                            mFilteredFGMap[key.uppercase()] = mTableColor.mStrFilteredFGs[item[1].digitToInt()]
-                            mFilteredBGMap[key.uppercase()] = mTableColor.mStrFilteredBGs[item[1].digitToInt()]
+                            var patt: Pattern? = null
+                            val hasIt: Boolean = key.uppercase().chars().anyMatch { c -> "\\.[]{}()*+?^$|".indexOf(c.toChar()) >= 0 }
+                            if (hasIt) {
+                                patt = Pattern.compile(key.uppercase(), Pattern.CASE_INSENSITIVE)
+                            }
+
+                            mFilteredFGMap[key.uppercase()] = FilteredColor(mTableColor.mStrFilteredFGs[item[1].digitToInt()], patt)
+                            mFilteredBGMap[key.uppercase()] = FilteredColor(mTableColor.mStrFilteredBGs[item[1].digitToInt()], patt)
                         }
                     }
                     else {
@@ -1024,9 +1033,26 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                 starts.push(filterS)
                 ends.push(filterE)
                 val key = newValue.substring(filterS, filterE).uppercase()
+
                 if (mFilteredFGMap[key] != null) {
-                    fgColors.push(mFilteredFGMap[key])
-                    bgColors.push(mFilteredBGMap[key])
+                    fgColors.push(mFilteredFGMap[key]!!.mColor)
+                    bgColors.push(mFilteredBGMap[key]!!.mColor)
+                }
+                else if (IsRegexColorTag) {
+                    var isFind = false
+                    for (item in mFilteredFGMap.keys) {
+                        val pattern = mFilteredFGMap[item]?.mPattern
+                        if ((pattern != null) && pattern.matcher(key).find()) {
+                            fgColors.push(mFilteredFGMap[item]!!.mColor)
+                            bgColors.push(mFilteredBGMap[item]!!.mColor)
+                            isFind = true
+                            break
+                        }
+                    }
+                    if (!isFind) {
+                        fgColors.push(mTableColor.mStrFilteredFGs[0])
+                        bgColors.push(mTableColor.mStrFilteredBGs[0])
+                    }
                 }
                 else {
                     fgColors.push(mTableColor.mStrFilteredFGs[0])
