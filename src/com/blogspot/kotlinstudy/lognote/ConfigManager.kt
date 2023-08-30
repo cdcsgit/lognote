@@ -60,6 +60,7 @@ class ConfigManager private constructor() {
         const val ITEM_VIEW_FULL = "VIEW_FULL"
         const val ITEM_FILTER_INCREMENTAL = "FILTER_INCREMENTAL"
         const val ITEM_FILTER_BY_FILE = "FILTER_BY_FILE"
+        const val ITEM_COLOR_TAG_REGEX = "COLOR_TAG_REGEX"
 
         const val ITEM_SCROLLBACK = "SCROLLBACK"
         const val ITEM_SCROLLBACK_SPLIT_FILE = "SCROLLBACK_SPLIT_FILE"

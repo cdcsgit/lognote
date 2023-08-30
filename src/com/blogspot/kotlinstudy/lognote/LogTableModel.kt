@@ -33,7 +33,7 @@ interface LogTableModelListener {
 class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableModel() {
     companion object {
         var IsLogcatLog = false
-        var IsRegexColorTag = false
+        var IsColorTagRegex = false
         private const val COLUMN_NUM = 0
         private const val COLUMN_LOGLINE = 1
         private const val PID_INDEX = 2
@@ -1038,7 +1038,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                     fgColors.push(mFilteredFGMap[key]!!.mColor)
                     bgColors.push(mFilteredBGMap[key]!!.mColor)
                 }
-                else if (IsRegexColorTag) {
+                else if (IsColorTagRegex) {
                     var isFind = false
                     for (item in mFilteredFGMap.keys) {
                         val pattern = mFilteredFGMap[item]?.mPattern

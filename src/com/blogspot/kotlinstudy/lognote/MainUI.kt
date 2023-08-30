@@ -80,6 +80,7 @@ class MainUI private constructor() : JFrame() {
     private lateinit var mItemLogFile: JMenuItem
     private lateinit var mItemFilterIncremental: JCheckBoxMenuItem
     private lateinit var mItemFilterByFile: JCheckBoxMenuItem
+    private lateinit var mItemColorTagRegex: JCheckBoxMenuItem
     private lateinit var mMenuLogLevel: JMenu
     private lateinit var mLogLevelGroup: ButtonGroup
     private lateinit var mItemAppearance: JMenuItem
@@ -623,6 +624,10 @@ class MainUI private constructor() : JFrame() {
         mItemFilterByFile = JCheckBoxMenuItem(Strings.FILTER_BY_FILE)
         mItemFilterByFile.addActionListener(mActionHandler)
         mMenuSettings.add(mItemFilterByFile)
+
+        mItemColorTagRegex = JCheckBoxMenuItem(Strings.COLOR_TAG_REGEX)
+        mItemColorTagRegex.addActionListener(mActionHandler)
+        mMenuSettings.add(mItemColorTagRegex)
 
         mMenuSettings.addSeparator()
 
@@ -1381,6 +1386,12 @@ class MainUI private constructor() : JFrame() {
         }
         mFilteredTableModel.mSearchMatchCase = mSearchPanel.mSearchMatchCaseToggle.isSelected
 
+        check = mConfigManager.getItem(ConfigManager.ITEM_COLOR_TAG_REGEX)
+        if (!check.isNullOrEmpty()) {
+            LogTableModel.IsColorTagRegex = check.toBoolean()
+        }
+        mItemColorTagRegex.state = LogTableModel.IsColorTagRegex
+
         check = mConfigManager.getItem(ConfigManager.ITEM_RETRY_ADB)
         if (!check.isNullOrEmpty()) {
             mRetryAdbToggle.isSelected = check.toBoolean()
@@ -2036,6 +2047,12 @@ class MainUI private constructor() : JFrame() {
 
                 mItemFilterByFile -> {
                     mConfigManager.saveItem(ConfigManager.ITEM_FILTER_BY_FILE, mItemFilterByFile.state.toString())
+                }
+
+                mItemColorTagRegex -> {
+                    LogTableModel.IsColorTagRegex = mItemColorTagRegex.state
+                    mConfigManager.saveItem(ConfigManager.ITEM_COLOR_TAG_REGEX, mItemColorTagRegex.state.toString())
+                    repaint()
                 }
 
                 mItemAppearance -> {
