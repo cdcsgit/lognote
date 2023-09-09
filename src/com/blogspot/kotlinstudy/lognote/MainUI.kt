@@ -1128,12 +1128,14 @@ class MainUI private constructor() : JFrame() {
         followPanel.border = BorderFactory.createEmptyBorder(0, 3, 0, 3)
         mFollowLabel = JLabel(" ${Strings.FOLLOW} ")
         mFollowLabel.border = BorderFactory.createDashedBorder(null, 1.0f, 2.0f)
+        mFollowLabel.addMouseListener(mMouseHandler)
         followPanel.add(mFollowLabel)
         followPanel.add(mStartFollowBtn)
         followPanel.add(mPauseFollowToggle)
         followPanel.add(mStopFollowBtn)
 
         enabledFollowBtn(false)
+        setVisibleFollowBtn(false)
 
         mStatusBar.add(mStatusMethod, BorderLayout.WEST)
         mStatusBar.add(mStatusTF, BorderLayout.CENTER)
@@ -1923,6 +1925,7 @@ class MainUI private constructor() : JFrame() {
             mStatusMethod.background = Color(0xA0, 0xA0, 0xF0)
         }
 
+        setVisibleFollowBtn(true)
         enabledFollowBtn(true)
     }
 
@@ -2384,8 +2387,17 @@ class MainUI private constructor() : JFrame() {
         }
     }
 
+    fun setVisibleFollowBtn(visible: Boolean) {
+        mStartFollowBtn.isVisible = visible
+        mPauseFollowToggle.isVisible = visible
+        mStopFollowBtn.isVisible = visible
+    }
+
     internal inner class MouseHandler : MouseAdapter() {
         override fun mouseClicked(p0: MouseEvent?) {
+            if (p0?.source == mFollowLabel) {
+                setVisibleFollowBtn(!mStartFollowBtn.isVisible)
+            }
             super.mouseClicked(p0)
         }
 
