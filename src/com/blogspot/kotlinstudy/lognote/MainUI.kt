@@ -81,8 +81,6 @@ class MainUI private constructor() : JFrame() {
     private lateinit var mItemFilterIncremental: JCheckBoxMenuItem
     private lateinit var mItemFilterByFile: JCheckBoxMenuItem
     private lateinit var mItemColorTagRegex: JCheckBoxMenuItem
-    private lateinit var mMenuLogLevel: JMenu
-    private lateinit var mLogLevelGroup: ButtonGroup
     private lateinit var mItemAppearance: JMenuItem
     private lateinit var mMenuHelp: JMenu
     private lateinit var mItemHelp: JMenuItem
@@ -171,10 +169,12 @@ class MainUI private constructor() : JFrame() {
     private lateinit var mStopFollowBtn: ColorButton
     private lateinit var mPauseFollowToggle: ColorToggleButton
 
+    private lateinit var mLogFormatCombo: ColorComboBox<String>
+    private lateinit var mLogLevelCombo: ColorComboBox<String>
+
     private val mFrameMouseListener = FrameMouseListener(this)
     private val mKeyHandler = KeyHandler()
     private val mItemHandler = ItemHandler()
-    private val mLevelItemHandler = LevelItemHandler()
     private val mActionHandler = ActionHandler()
     private val mPopupMenuHandler = PopupMenuHandler()
     private val mMouseHandler = MouseHandler()
@@ -185,6 +185,7 @@ class MainUI private constructor() : JFrame() {
     private val mRecentFileManager = RecentFileManager.getInstance()
     private val mColorManager = ColorManager.getInstance()
     private val mBookmarkManager = BookmarkManager.getInstance()
+    private val mFormatManager = FormatManager.getInstance()
 
     private val mLogCmdManager = LogCmdManager.getInstance()
     lateinit var mFiltersManager:FiltersManager
@@ -628,50 +629,6 @@ class MainUI private constructor() : JFrame() {
         mItemColorTagRegex = JCheckBoxMenuItem(Strings.COLOR_TAG_REGEX)
         mItemColorTagRegex.addActionListener(mActionHandler)
         mMenuSettings.add(mItemColorTagRegex)
-
-        mMenuSettings.addSeparator()
-
-        mMenuLogLevel = JMenu(Strings.LOGLEVEL)
-        mMenuLogLevel.addActionListener(mActionHandler)
-        mMenuSettings.add(mMenuLogLevel)
-
-        mLogLevelGroup = ButtonGroup()
-
-        var menuItem = JRadioButtonMenuItem("$LEVEL_TEXT_NONE - ${Strings.NOT_LOGCAT}")
-        mLogLevelGroup.add(menuItem)
-        mMenuLogLevel.add(menuItem)
-        menuItem.addItemListener(mLevelItemHandler)
-
-        menuItem = JRadioButtonMenuItem(LEVEL_TEXT_VERBOSE)
-        mLogLevelGroup.add(menuItem)
-        mMenuLogLevel.add(menuItem)
-        menuItem.isSelected = true
-        menuItem.addItemListener(mLevelItemHandler)
-
-        menuItem = JRadioButtonMenuItem(LEVEL_TEXT_DEBUG)
-        mLogLevelGroup.add(menuItem)
-        mMenuLogLevel.add(menuItem)
-        menuItem.addItemListener(mLevelItemHandler)
-
-        menuItem = JRadioButtonMenuItem(LEVEL_TEXT_INFO)
-        mLogLevelGroup.add(menuItem)
-        mMenuLogLevel.add(menuItem)
-        menuItem.addItemListener(mLevelItemHandler)
-
-        menuItem = JRadioButtonMenuItem(LEVEL_TEXT_WARNING)
-        mLogLevelGroup.add(menuItem)
-        mMenuLogLevel.add(menuItem)
-        menuItem.addItemListener(mLevelItemHandler)
-
-        menuItem = JRadioButtonMenuItem(LEVEL_TEXT_ERROR)
-        mLogLevelGroup.add(menuItem)
-        mMenuLogLevel.add(menuItem)
-        menuItem.addItemListener(mLevelItemHandler)
-
-        menuItem = JRadioButtonMenuItem(LEVEL_TEXT_FATAL)
-        mLogLevelGroup.add(menuItem)
-        mMenuLogLevel.add(menuItem)
-        menuItem.addItemListener(mLevelItemHandler)
 
         mMenuSettings.addSeparator()
 
@@ -1128,6 +1085,7 @@ class MainUI private constructor() : JFrame() {
         followPanel.border = BorderFactory.createEmptyBorder(0, 3, 0, 3)
         mFollowLabel = JLabel(" ${Strings.FOLLOW} ")
         mFollowLabel.border = BorderFactory.createDashedBorder(null, 1.0f, 2.0f)
+        mFollowLabel.toolTipText = TooltipStrings.FOLLOW_LABEL
         mFollowLabel.addMouseListener(mMouseHandler)
         followPanel.add(mFollowLabel)
         followPanel.add(mStartFollowBtn)
@@ -1137,15 +1095,56 @@ class MainUI private constructor() : JFrame() {
         enabledFollowBtn(false)
         setVisibleFollowBtn(false)
 
+        val logFormatPanel = JPanel(FlowLayout(FlowLayout.LEFT, 2, 0))
+        logFormatPanel.border = BorderFactory.createEmptyBorder(0, 3, 0, 3)
+        mLogFormatCombo = ColorComboBox()
+        mLogFormatCombo.toolTipText = TooltipStrings.LOG_FORMAT_COMBO
+        mLogFormatCombo.isEditable = false
+        mLogFormatCombo.renderer = ColorComboBox.ComboBoxRenderer()
+//        mLogFormatCombo.addItemListener(mItemHandler)
+        mLogFormatCombo.preferredSize = Dimension(90, mLogFormatCombo.preferredSize.height)
+        if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
+            mLogFormatCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 5)
+        }
+        mLogLevelCombo = ColorComboBox()
+        mLogLevelCombo.toolTipText = TooltipStrings.LOG_LEVEL_COMBO
+        mLogLevelCombo.isEditable = false
+        mLogLevelCombo.renderer = ColorComboBox.ComboBoxRenderer()
+        mLogLevelCombo.addPopupMenuListener(mPopupMenuHandler)
+        mLogLevelCombo.preferredSize = Dimension(80, mLogLevelCombo.preferredSize.height)
+        if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
+            mLogLevelCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 5)
+        }
+
+        logFormatPanel.add(mLogFormatCombo)
+        logFormatPanel.add(mLogLevelCombo)
+
+        val statusRightPanel = JPanel(FlowLayout(FlowLayout.LEFT, 2, 0))
+        statusRightPanel.border = BorderFactory.createEmptyBorder(0, 3, 0, 3)
+        statusRightPanel.add(followPanel)
+        statusRightPanel.add(logFormatPanel)
+
         mStatusBar.add(mStatusMethod, BorderLayout.WEST)
         mStatusBar.add(mStatusTF, BorderLayout.CENTER)
-        mStatusBar.add(followPanel, BorderLayout.EAST)
+        mStatusBar.add(statusRightPanel, BorderLayout.EAST)
+
+//        val logFormat = mConfigManager.getItem(ConfigManager.ITEM_LOG_FORMAT)
+        val logFormat = null
+        if (logFormat != null) {
+        }
+        else {
+            mLogFormatCombo.insertItemAt(mFormatManager.mCurrFormat.mName, 0)
+            for (item in mFormatManager.mCurrFormat.mLevels.keys) {
+                mLogLevelCombo.addItem(item)
+            }
+        }
+        mLogFormatCombo.selectedIndex = 0
 
         val logLevel = mConfigManager.getItem(ConfigManager.ITEM_LOG_LEVEL)
         if (logLevel != null) {
-            for (item in mLogLevelGroup.elements) {
-                if (item.text.startsWith(logLevel)) {
-                    item.isSelected = true
+            for (idx in 0 until mLogLevelCombo.itemCount) {
+                if (mLogLevelCombo.getItemAt(idx).startsWith(logLevel)) {
+                    mLogLevelCombo.selectedIndex = idx
                     break
                 }
             }
@@ -1285,6 +1284,16 @@ class MainUI private constructor() : JFrame() {
         divider = mConfigManager.getItem(ConfigManager.ITEM_DIVIDER_LOCATION)
         if (!divider.isNullOrEmpty() && mLogSplitPane.lastDividerLocation != -1) {
             mLogSplitPane.dividerLocation = divider.toInt()
+        }
+
+        if (mLogLevelCombo.selectedIndex >= 0) {
+            val levelText = mLogLevelCombo.selectedItem?.toString() ?: ""
+            if (levelText.isNotEmpty()) {
+                val level = mFormatManager.mCurrFormat.mLevels[levelText]
+                if (level != null) {
+                    mFilteredTableModel.mFilterLevel = level
+                }
+            }
         }
 
         if (logLevel?.startsWith(LEVEL_TEXT_NONE) == true) {
@@ -2709,26 +2718,6 @@ class MainUI private constructor() : JFrame() {
         }
     }
 
-    internal inner class LevelItemHandler : ItemListener {
-        override fun itemStateChanged(p0: ItemEvent?) {
-            val item = p0?.source as JRadioButtonMenuItem
-            if (item.text?.startsWith(LEVEL_TEXT_NONE) == true) {
-                mFilteredTableModel.mFilterLevel = LogTableModel.LEVEL_NONE
-            }
-            else {
-                when (item.text) {
-                    LEVEL_TEXT_VERBOSE -> mFilteredTableModel.mFilterLevel = LogTableModel.LEVEL_VERBOSE
-                    LEVEL_TEXT_DEBUG -> mFilteredTableModel.mFilterLevel = LogTableModel.LEVEL_DEBUG
-                    LEVEL_TEXT_INFO -> mFilteredTableModel.mFilterLevel = LogTableModel.LEVEL_INFO
-                    LEVEL_TEXT_WARNING -> mFilteredTableModel.mFilterLevel = LogTableModel.LEVEL_WARNING
-                    LEVEL_TEXT_ERROR -> mFilteredTableModel.mFilterLevel = LogTableModel.LEVEL_ERROR
-                    LEVEL_TEXT_FATAL -> mFilteredTableModel.mFilterLevel = LogTableModel.LEVEL_FATAL
-                }
-            }
-            mConfigManager.saveItem(ConfigManager.ITEM_LOG_LEVEL, item.text)
-        }
-    }
-
     internal inner class AdbHandler : LogCmdManager.AdbEventListener {
         override fun changedStatus(event: LogCmdManager.AdbEvent) {
             when (event.cmd) {
@@ -2848,6 +2837,20 @@ class MainUI private constructor() : JFrame() {
                     val item = combo.selectedItem!!.toString()
                     mLogCmdManager.mLogCmd = item
                     updateLogCmdCombo(false)
+                }
+
+                mLogLevelCombo -> {
+                    if (mLogLevelCombo.selectedIndex < 0) {
+                        return
+                    }
+                    val levelText = mLogLevelCombo.selectedItem?.toString() ?: ""
+                    if (levelText.isNotEmpty()) {
+                        val level = mFormatManager.mCurrFormat.mLevels[levelText]
+                        if (level != null) {
+                            mFilteredTableModel.mFilterLevel = level
+                            mConfigManager.saveItem(ConfigManager.ITEM_LOG_LEVEL, levelText)
+                        }
+                    }
                 }
             }
         }

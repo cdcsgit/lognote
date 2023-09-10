@@ -42,6 +42,7 @@ class TooltipStringsKo private constructor() {
                 , "명령 리스트 열기(명령 추가)"
                 , "자주 사용하는 명령 관리"
                 , "로그 수신 실패시 자동 재시도"
+                , "파일 로그 읽기 모드에 대한 컨트롤 버튼 보이기/숨기기"
                 , "파일에서 추가되는 로그를 계속 읽어들임"
                 , "로그 추가를 멈춤"
                 , "로그 명령 편집 : Setting > adb"
@@ -52,6 +53,8 @@ class TooltipStringsKo private constructor() {
                 , "검색 중인 뷰 : 필터 로그 뷰, 전체 로그 뷰"
                 , "ESC : 검색 바 닫기"
                 , "숫자만 입력(0-9)"
+                , "로그 포멧"
+                , "로그 레벨"
 //            , ""
         )
     }

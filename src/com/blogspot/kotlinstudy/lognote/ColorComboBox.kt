@@ -21,7 +21,7 @@ class ColorComboBox<E> : JComboBox<E>() {
 
     internal class ComboBoxRenderer : BasicComboBoxRenderer() {
         override fun getListCellRendererComponent(
-            list: JList<*>, value: Any,
+            list: JList<*>, value: Any?,
             index: Int, isSelected: Boolean, cellHasFocus: Boolean
         ): Component {
             if (isSelected) {
@@ -35,7 +35,7 @@ class ColorComboBox<E> : JComboBox<E>() {
                 foreground = list.foreground
             }
             font = list.font
-            text = value.toString()
+            text = value?.toString() ?: ""
             return this
         }
     }

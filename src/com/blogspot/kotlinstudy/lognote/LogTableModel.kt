@@ -40,13 +40,13 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
         private const val TID_INDEX = 3
         private const val LEVEL_INDEX = 4
         private const val TAG_INDEX = 5
-        const val LEVEL_NONE = -1
-        const val LEVEL_VERBOSE = 0
-        const val LEVEL_DEBUG = 1
-        const val LEVEL_INFO = 2
-        const val LEVEL_WARNING = 3
-        const val LEVEL_ERROR = 4
-        const val LEVEL_FATAL = 5
+        const val LEVEL_NONE = FormatManager.LEVEL_NONE
+        const val LEVEL_VERBOSE = FormatManager.LEVEL_VERBOSE
+        const val LEVEL_DEBUG = FormatManager.LEVEL_DEBUG
+        const val LEVEL_INFO = FormatManager.LEVEL_INFO
+        const val LEVEL_WARNING = FormatManager.LEVEL_WARNING
+        const val LEVEL_ERROR = FormatManager.LEVEL_ERROR
+        const val LEVEL_FATAL = FormatManager.LEVEL_FATAL
     }
 
     data class FilteredColor(val mColor: String, val mPattern: Pattern?)
@@ -72,7 +72,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
 
     private val mMainUI = mainUI
 
-    var mFilterLevel = 0
+    var mFilterLevel = LEVEL_VERBOSE
         set(value) {
             if (field != value) {
                 mIsFilterUpdated = true

@@ -42,6 +42,7 @@ class TooltipStringsEn private constructor() {
             , "Open cmd list(add cmd)"
             , "Manage frequently used cmds"
             , "Auto retry when failed to receive log"
+            , "Show/Hide ctrl button for follow mode"
             , "Append additional logs as the file grows"
             , "Stop append logs"
             , "Edit Log commands : Setting > adb"
@@ -52,6 +53,8 @@ class TooltipStringsEn private constructor() {
             , "Searching View : filtered log, full log"
             , "ESC : Close search bar"
             , "Enter only numeric digits(0-9)"
+            , "Log Format"
+            , "Log Level"
 //            , ""
         )
     }
