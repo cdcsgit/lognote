@@ -7,22 +7,16 @@ class FormatManager private constructor(){
 
     companion object {
         const val MAX_LEVEL = 7
-        private const val DEFAULT_LOGCAT = "logcat"
-        private const val TEXT_NONE = "None"
-        private const val TEXT_VERBOSE = "Verbose"
-        private const val TEXT_DEBUG = "Debug"
-        private const val TEXT_INFO = "Info"
-        private const val TEXT_WARNING = "Warning"
-        private const val TEXT_ERROR = "Error"
-        private const val TEXT_FATAL = "Fatal"
+        const val DEFAULT_LOGCAT = "logcat"
+        val TEXT_LEVEL = arrayOf("None", "Verbose", "Debug", "Info", "Warning", "Error", "Fatal")
 
-        const val LEVEL_NONE = -1
-        const val LEVEL_VERBOSE = 0
-        const val LEVEL_DEBUG = 1
-        const val LEVEL_INFO = 2
-        const val LEVEL_WARNING = 3
-        const val LEVEL_ERROR = 4
-        const val LEVEL_FATAL = 5
+        const val LEVEL_NONE = 0
+        const val LEVEL_VERBOSE = 1
+        const val LEVEL_DEBUG = 2
+        const val LEVEL_INFO = 3
+        const val LEVEL_WARNING = 4
+        const val LEVEL_ERROR = 5
+        const val LEVEL_FATAL = 6
 
         private val mInstance: FormatManager = FormatManager()
         fun getInstance(): FormatManager {
@@ -33,13 +27,12 @@ class FormatManager private constructor(){
     private val mFormats = mutableMapOf<String, FormatItem>()
     var mCurrFormat: FormatItem
     init {
-        val levels = mapOf(TEXT_NONE to LEVEL_NONE
-            , TEXT_VERBOSE to LEVEL_VERBOSE
-            , TEXT_DEBUG to LEVEL_DEBUG
-            , TEXT_INFO to LEVEL_INFO
-            , TEXT_WARNING to LEVEL_WARNING
-            , TEXT_ERROR to LEVEL_ERROR
-            , TEXT_FATAL to LEVEL_FATAL
+        val levels = mapOf("V" to LEVEL_VERBOSE
+            , "D" to LEVEL_DEBUG
+            , "I" to LEVEL_INFO
+            , "W" to LEVEL_WARNING
+            , "E" to LEVEL_ERROR
+            , "F" to LEVEL_FATAL
         )
 
         mFormats[DEFAULT_LOGCAT] = FormatItem(DEFAULT_LOGCAT, levels)

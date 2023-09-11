@@ -111,7 +111,7 @@ class ConfigManager private constructor() {
     }
 
     private fun setDefaultConfig() {
-        mProperties[ITEM_LOG_LEVEL] = MainUI.LEVEL_TEXT_VERBOSE
+        mProperties[ITEM_LOG_LEVEL] = FormatManager.LEVEL_VERBOSE.toString()
         mProperties[ITEM_SHOW_LOG_CHECK] = "true"
         mProperties[ITEM_SHOW_TAG_CHECK] = "true"
         mProperties[ITEM_SHOW_PID_CHECK] = "true"
@@ -119,7 +119,8 @@ class ConfigManager private constructor() {
         mProperties[ITEM_HIGHLIGHT_LOG_CHECK] = "true"
     }
 
-    fun loadConfig() {
+    fun loadConfig(): Boolean {
+        var ret = true
         var fileInput: FileInputStream? = null
 
         try {
@@ -128,6 +129,7 @@ class ConfigManager private constructor() {
         } catch (ex: Exception) {
             ex.printStackTrace()
             setDefaultConfig()
+            ret = false
         } finally {
             if (null != fileInput) {
                 try {
@@ -137,15 +139,19 @@ class ConfigManager private constructor() {
                 }
             }
         }
+
+        return ret
     }
 
-    fun saveConfig() {
+    fun saveConfig(): Boolean {
+        var ret = true
         var fileOutput: FileOutputStream? = null
         try {
             fileOutput = FileOutputStream(mConfigPath)
             mProperties.storeToXML(fileOutput, "")
         } catch (ex: Exception) {
             ex.printStackTrace()
+            ret = false
         } finally {
             if (null != fileOutput) {
                 try {
@@ -155,6 +161,7 @@ class ConfigManager private constructor() {
                 }
             }
         }
+        return ret
     }
 
     fun saveItem(key: String, value: String) {
@@ -310,17 +317,25 @@ class ConfigManager private constructor() {
     }
 
     private fun manageVersion() {
-        loadConfig()
-        var confVer: String = (mProperties[ITEM_CONFIG_VERSION] ?: "") as String
-        if (confVer.isEmpty()) {
-            updateConfigFromV0ToV1()
-            confVer = (mProperties[ITEM_CONFIG_VERSION] ?: "") as String
-            println("manageVersion : $confVer applied")
-        }
+        val isLoaded = loadConfig()
 
-//        if (confVer != null && confVer == "1") {
-//            updateConfigFromV1ToV2()
-//        }
+        if (isLoaded) {
+            var confVer: String = (mProperties[ITEM_CONFIG_VERSION] ?: "") as String
+            if (confVer.isEmpty()) {
+                updateConfigFromV0ToV1()
+                confVer = (mProperties[ITEM_CONFIG_VERSION] ?: "") as String
+                println("manageVersion : $confVer applied")
+            }
+
+            if (confVer == "1") {
+                updateConfigFromV1ToV2()
+                confVer = (mProperties[ITEM_CONFIG_VERSION] ?: "") as String
+                println("manageVersion : $confVer applied")
+            }
+        }
+        else {
+            mProperties[ITEM_CONFIG_VERSION] = "2"
+        }
 
         saveConfig()
     }
@@ -348,6 +363,22 @@ class ConfigManager private constructor() {
         }
         mProperties[ITEM_CONFIG_VERSION] = "1"
         println("updateConfigFromV0ToV1 : --")
+    }
+
+    private fun updateConfigFromV1ToV2() {
+        println("updateConfigFromV1ToV2 : change log level properties ++")
+        val logLevel = mProperties[ITEM_LOG_LEVEL] as String?
+        if (logLevel != null) {
+            for (idx in FormatManager.TEXT_LEVEL.indices) {
+                if (logLevel.startsWith(FormatManager.TEXT_LEVEL[idx])) {
+                    mProperties[ITEM_LOG_LEVEL] = idx.toString()
+                    break
+                }
+            }
+        }
+        
+        mProperties[ITEM_CONFIG_VERSION] = "2"
+        println("updateConfigFromV1ToV2 : --")
     }
 }
 

@@ -1102,7 +1102,7 @@ class MainUI private constructor() : JFrame() {
         mLogFormatCombo.isEditable = false
         mLogFormatCombo.renderer = ColorComboBox.ComboBoxRenderer()
 //        mLogFormatCombo.addItemListener(mItemHandler)
-        mLogFormatCombo.preferredSize = Dimension(90, mLogFormatCombo.preferredSize.height)
+        mLogFormatCombo.preferredSize = Dimension(100, mLogFormatCombo.preferredSize.height)
         if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
             mLogFormatCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 5)
         }
@@ -1111,7 +1111,7 @@ class MainUI private constructor() : JFrame() {
         mLogLevelCombo.isEditable = false
         mLogLevelCombo.renderer = ColorComboBox.ComboBoxRenderer()
         mLogLevelCombo.addPopupMenuListener(mPopupMenuHandler)
-        mLogLevelCombo.preferredSize = Dimension(80, mLogLevelCombo.preferredSize.height)
+        mLogLevelCombo.preferredSize = Dimension(100, mLogLevelCombo.preferredSize.height)
         if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
             mLogLevelCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 5)
         }
@@ -1134,20 +1134,15 @@ class MainUI private constructor() : JFrame() {
         }
         else {
             mLogFormatCombo.insertItemAt(mFormatManager.mCurrFormat.mName, 0)
-            for (item in mFormatManager.mCurrFormat.mLevels.keys) {
+            for (item in FormatManager.TEXT_LEVEL) {
                 mLogLevelCombo.addItem(item)
             }
         }
         mLogFormatCombo.selectedIndex = 0
 
         val logLevel = mConfigManager.getItem(ConfigManager.ITEM_LOG_LEVEL)
-        if (logLevel != null) {
-            for (idx in 0 until mLogLevelCombo.itemCount) {
-                if (mLogLevelCombo.getItemAt(idx).startsWith(logLevel)) {
-                    mLogLevelCombo.selectedIndex = idx
-                    break
-                }
-            }
+        if (!logLevel.isNullOrEmpty()) {
+            mLogLevelCombo.selectedIndex = logLevel.toInt()
         }
 
         var item: String?
@@ -1287,27 +1282,7 @@ class MainUI private constructor() : JFrame() {
         }
 
         if (mLogLevelCombo.selectedIndex >= 0) {
-            val levelText = mLogLevelCombo.selectedItem?.toString() ?: ""
-            if (levelText.isNotEmpty()) {
-                val level = mFormatManager.mCurrFormat.mLevels[levelText]
-                if (level != null) {
-                    mFilteredTableModel.mFilterLevel = level
-                }
-            }
-        }
-
-        if (logLevel?.startsWith(LEVEL_TEXT_NONE) == true) {
-                mFilteredTableModel.mFilterLevel = LogTableModel.LEVEL_NONE
-        }
-        else {
-            when (logLevel) {
-                LEVEL_TEXT_VERBOSE->mFilteredTableModel.mFilterLevel = LogTableModel.LEVEL_VERBOSE
-                LEVEL_TEXT_DEBUG->mFilteredTableModel.mFilterLevel = LogTableModel.LEVEL_DEBUG
-                LEVEL_TEXT_INFO->mFilteredTableModel.mFilterLevel = LogTableModel.LEVEL_INFO
-                LEVEL_TEXT_WARNING->mFilteredTableModel.mFilterLevel = LogTableModel.LEVEL_WARNING
-                LEVEL_TEXT_ERROR->mFilteredTableModel.mFilterLevel = LogTableModel.LEVEL_ERROR
-                LEVEL_TEXT_FATAL->mFilteredTableModel.mFilterLevel = LogTableModel.LEVEL_FATAL
-            }
+            mFilteredTableModel.mFilterLevel = mLogLevelCombo.selectedIndex
         }
 
         if (mShowLogToggle.isSelected && mShowLogCombo.selectedItem != null) {
@@ -2843,14 +2818,8 @@ class MainUI private constructor() : JFrame() {
                     if (mLogLevelCombo.selectedIndex < 0) {
                         return
                     }
-                    val levelText = mLogLevelCombo.selectedItem?.toString() ?: ""
-                    if (levelText.isNotEmpty()) {
-                        val level = mFormatManager.mCurrFormat.mLevels[levelText]
-                        if (level != null) {
-                            mFilteredTableModel.mFilterLevel = level
-                            mConfigManager.saveItem(ConfigManager.ITEM_LOG_LEVEL, levelText)
-                        }
-                    }
+                    mFilteredTableModel.mFilterLevel = mLogLevelCombo.selectedIndex
+                    mConfigManager.saveItem(ConfigManager.ITEM_LOG_LEVEL, mLogLevelCombo.selectedIndex.toString())
                 }
             }
         }
