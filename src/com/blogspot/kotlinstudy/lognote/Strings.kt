@@ -114,6 +114,8 @@ class Strings private constructor() {
         private val IDX_APPLY_RECENT_FILE = idx++
         private val IDX_SET_UPDATE_PROCESS_TIMEOUT = idx++
         private val IDX_COLOR_TAG_REGEX = idx++
+        private val IDX_SAVE_FULL = idx++
+        private val IDX_SAVE_FILTERED = idx++
 //        private val IDX_ = idx++
 
         val FILE: String
@@ -308,5 +310,9 @@ class Strings private constructor() {
             get() { return currStrings[IDX_SET_UPDATE_PROCESS_TIMEOUT] }
         val COLOR_TAG_REGEX: String
             get() { return currStrings[IDX_COLOR_TAG_REGEX] }
+        val SAVE_FULL: String
+            get() { return currStrings[IDX_SAVE_FULL] }
+        val SAVE_FILTERED: String
+            get() { return currStrings[IDX_SAVE_FILTERED] }
     }
 }

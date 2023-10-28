@@ -99,6 +99,8 @@ class StringsEn private constructor() {
             , "Apply filters of recent file"
             , "Update process info timeout(sec, 0 : off, max : %d)"
             , "Color tag : regex filter"
+            , "Save full log"
+            , "Save filtered log"
 //            , ""
         )
     }

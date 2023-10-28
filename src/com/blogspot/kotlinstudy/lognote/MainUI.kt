@@ -70,6 +70,9 @@ class MainUI private constructor() : JFrame() {
     private lateinit var mItemFileOpenFiles: JMenuItem
     private lateinit var mItemFileAppendFiles: JMenuItem
     private lateinit var mItemFileOpenRecents: JMenu
+    private lateinit var mItemFileSaveFull: JMenuItem
+    private lateinit var mItemFileSaveFiltered: JMenuItem
+    private var mFileSaveDir: String = ""
     private lateinit var mItemFileExit: JMenuItem
     private lateinit var mMenuView: JMenu
     private lateinit var mItemFull: JCheckBoxMenuItem
@@ -577,6 +580,16 @@ class MainUI private constructor() : JFrame() {
         mItemFileAppendFiles = JMenuItem(Strings.APPEND_FILES)
         mItemFileAppendFiles.addActionListener(mActionHandler)
         mMenuFile.add(mItemFileAppendFiles)
+
+        mMenuFile.addSeparator()
+
+        mItemFileSaveFull = JMenuItem(Strings.SAVE_FULL)
+        mItemFileSaveFull.addActionListener(mActionHandler)
+        mMenuFile.add(mItemFileSaveFull)
+
+        mItemFileSaveFiltered = JMenuItem(Strings.SAVE_FILTERED)
+        mItemFileSaveFiltered.addActionListener(mActionHandler)
+        mMenuFile.add(mItemFileSaveFiltered)
 
         mMenuFile.addSeparator()
 
@@ -1785,6 +1798,32 @@ class MainUI private constructor() : JFrame() {
         mRecentFileManager.saveList()
     }
 
+    private fun saveRecentFileNew(path: String) {
+        mRecentFileManager.loadList()
+
+        mRecentFileManager.mRecentList.removeIf { item: RecentFileManager.RecentItem -> path == item.mPath }
+
+        val item = RecentFileManager.RecentItem()
+        item.mPath = path
+
+        item.mShowLogCheck = mShowLogToggle.isSelected
+        item.mShowTagCheck = mShowTagToggle.isSelected
+        item.mShowPidCheck = mShowPidToggle.isSelected
+        item.mShowTidCheck = mShowTidToggle.isSelected
+        item.mHighlightLogCheck = mBoldLogToggle.isSelected
+        item.mSearchMatchCase = mSearchPanel.mSearchMatchCaseToggle.isSelected
+
+        item.mShowLog = mShowLogCombo.selectedItem?.toString() ?: ""
+        item.mShowTag = mShowTagCombo.selectedItem?.toString() ?: ""
+        item.mShowPid = mShowPidCombo.selectedItem?.toString() ?: ""
+        item.mShowTid = mShowTidCombo.selectedItem?.toString() ?: ""
+        item.mHighlightLog = mBoldLogCombo.selectedItem?.toString() ?: ""
+        item.mSearchLog = mSearchPanel.mSearchCombo.selectedItem?.toString() ?: ""
+
+        mRecentFileManager.mRecentList.add(0, item)
+        mRecentFileManager.saveList()
+    }
+
     fun setSaveLogFile() {
         val dtf = DateTimeFormatter.ofPattern("yyyyMMdd_HH.mm.ss")
         var device = mDeviceCombo.selectedItem!!.toString()
@@ -2003,6 +2042,33 @@ class MainUI private constructor() : JFrame() {
                         }
                     } else {
                         println("Cancel Open")
+                    }
+                }
+                mItemFileSaveFull, mItemFileSaveFiltered-> {
+                    val title: String
+                    val tableModel: LogTableModel
+                    if (p0.source == mItemFileSaveFull) {
+                        title = Strings.SAVE_FULL
+                        tableModel = mFullTableModel
+                    } else {
+                        title = Strings.SAVE_FILTERED
+                        tableModel = mFilteredTableModel
+                    }
+
+                    val fileDialog = FileDialog(this@MainUI, Strings.FILE + " " + title, FileDialog.SAVE)
+                    fileDialog.isMultipleMode = false
+                    if (mFileSaveDir.isEmpty()) {
+                        mFileSaveDir = mLogCmdManager.mLogSavePath
+                    }
+                    fileDialog.directory = mFileSaveDir
+                    fileDialog.isVisible = true
+                    if (fileDialog.files.isNotEmpty() && fileDialog.files[0] != null) {
+                        println("$title ${fileDialog.files[0].absoluteFile}")
+                        mFileSaveDir = fileDialog.files[0].parent
+                        tableModel.saveFile(fileDialog.files[0].absolutePath)
+                        saveRecentFileNew(fileDialog.files[0].absolutePath)
+                    } else {
+                        println("Cancel $title")
                     }
                 }
                 mItemFileExit -> {

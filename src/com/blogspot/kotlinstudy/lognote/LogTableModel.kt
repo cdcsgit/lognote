@@ -2043,4 +2043,24 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
             ""
         }
     }
+
+    fun saveFile(target: String) {
+        val bufferedWriter = BufferedWriter(FileWriter(target))
+        if (SwingUtilities.isEventDispatchThread()) {
+            for (item in mLogItems) {
+                bufferedWriter.write(item.mLogLine)
+                bufferedWriter.newLine()
+            }
+        }
+        else {
+            SwingUtilities.invokeAndWait {
+                for (item in mLogItems) {
+                    bufferedWriter.write(item.mLogLine)
+                    bufferedWriter.newLine()
+                }
+            }
+        }
+        bufferedWriter.flush()
+        bufferedWriter.close()
+    }
 }
