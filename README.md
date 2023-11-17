@@ -30,6 +30,9 @@ Default current path
 
 # Mode
 1. Read Cmd: Read the result after executing the command (ex: adb logcat)
+   - <code><b>You must set the Scrollback value.</b></code>
+     - <b>If the value is not set, logs pile up and occur hang.</b>
+     - <b>Recommended - Scrollback: 100000 (approximately 10 Mbytes), enable “Split File” option</b>
 1. Read File: Read a file (File > Open, read multiple files continuously)
    - Multiple files : Drag & drop or File > Open files
    - Append files : Ctrl + drag & drop or File > append files
