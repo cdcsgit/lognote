@@ -587,7 +587,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
 
         line = bufferedReader.readLine()
         while (line != null) {
-            val textSplited = line.trim().split(Regex("\\s+"))
+            val textSplited = line.trim().split(Regex(":?\\s+"))
 
             if (mFilterLevel != LEVEL_NONE && textSplited.size > TAG_INDEX) {
                 if (Character.isDigit(textSplited[PID_INDEX][0])) {
@@ -1539,7 +1539,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
 
                         synchronized(this) {
                             for (tempLine in logLines) {
-                                val textSplited = tempLine.trim().split(Regex("\\s+"))
+                                val textSplited = tempLine.trim().split(Regex(":?\\s+"))
                                 if (mFilterLevel != LEVEL_NONE && textSplited.size > TAG_INDEX) {
                                     level = levelToInt(textSplited[LEVEL_INDEX])
                                     tag = textSplited[TAG_INDEX]
@@ -1810,7 +1810,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
 
                         synchronized(this) {
                             for (tempLine in logLines) {
-                                val textSplited = tempLine.trim().split(Regex("\\s+"))
+                                val textSplited = tempLine.trim().split(Regex(":?\\s+"))
                                 if (mFilterLevel != LEVEL_NONE && textSplited.size > TAG_INDEX) {
                                     level = levelToInt(textSplited[LEVEL_INDEX])
                                     tag = textSplited[TAG_INDEX]
