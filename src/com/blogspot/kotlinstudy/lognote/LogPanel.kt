@@ -102,8 +102,8 @@ class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?, 
 
         mBookmarkManager.addBookmarkEventListener(mBookmarkHandler)
 
-        mScrollPane.verticalScrollBar.ui = BasicScrollBarUI()
-        mScrollPane.horizontalScrollBar.ui = BasicScrollBarUI()
+        mScrollPane.verticalScrollBar.setUI(BasicScrollBarUI())
+        mScrollPane.horizontalScrollBar.setUI(BasicScrollBarUI())
         mScrollPane.verticalScrollBar.unitIncrement = 20
 
         mScrollPane.verticalScrollBar.addAdjustmentListener(mAdjustmentHandler)

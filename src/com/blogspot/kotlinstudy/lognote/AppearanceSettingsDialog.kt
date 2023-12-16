@@ -565,8 +565,8 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
             mNameScrollPane = JScrollPane(mNameList)
             mNameScrollPane.preferredSize = Dimension(400, 100)
             mNameList.setSelectedValue(mMainUI.mFont.family, true)
-            mNameScrollPane.verticalScrollBar.ui = BasicScrollBarUI()
-            mNameScrollPane.horizontalScrollBar.ui = BasicScrollBarUI()
+            mNameScrollPane.verticalScrollBar.setUI(BasicScrollBarUI())
+            mNameScrollPane.horizontalScrollBar.setUI(BasicScrollBarUI())
             mNameList.addListSelectionListener(ListSelectionHandler())
 
             mSizeLabel = JLabel(Strings.SIZE)

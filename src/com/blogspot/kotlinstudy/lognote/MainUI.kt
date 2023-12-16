@@ -1357,7 +1357,7 @@ class MainUI private constructor() : JFrame() {
         if (!check.isNullOrEmpty()) {
             mScrollbackTF.text = check
         } else {
-            mScrollbackTF.text = "0"
+            mScrollbackTF.text = "100000"
         }
         mFilteredTableModel.mScrollback = mScrollbackTF.text.toInt()
 
@@ -1365,7 +1365,7 @@ class MainUI private constructor() : JFrame() {
         if (!check.isNullOrEmpty()) {
             mScrollbackSplitFileToggle.isSelected = check.toBoolean()
         } else {
-            mScrollbackSplitFileToggle.isSelected = false
+            mScrollbackSplitFileToggle.isSelected = true
         }
         mFilteredTableModel.mScrollbackSplitFile = mScrollbackSplitFileToggle.isSelected
 
@@ -2144,8 +2144,8 @@ class MainUI private constructor() : JFrame() {
                     try {
                         mFilteredTableModel.mScrollback = mScrollbackTF.text.toString().trim().toInt()
                     } catch (e: java.lang.NumberFormatException) {
-                        mFilteredTableModel.mScrollback = 0
-                        mScrollbackTF.text = "0"
+                        mFilteredTableModel.mScrollback = 100000
+                        mScrollbackTF.text = "100000"
                     }
                     mFilteredTableModel.mScrollbackSplitFile = mScrollbackSplitFileToggle.isSelected
 
@@ -2898,8 +2898,8 @@ class MainUI private constructor() : JFrame() {
             val box = p0?.source as JComboBox<*>
             val comp = box.ui.getAccessibleChild(box, 0) as? JPopupMenu ?: return
             val scrollPane = comp.getComponent(0) as JScrollPane
-            scrollPane.verticalScrollBar?.ui = BasicScrollBarUI()
-            scrollPane.horizontalScrollBar?.ui = BasicScrollBarUI()
+            scrollPane.verticalScrollBar?.setUI(BasicScrollBarUI())
+            scrollPane.horizontalScrollBar?.setUI(BasicScrollBarUI())
             mIsCanceled = false
         }
     }
@@ -3231,8 +3231,8 @@ class MainUI private constructor() : JFrame() {
                 val box = p0?.source as JComboBox<*>
                 val comp = box.ui.getAccessibleChild(box, 0) as? JPopupMenu ?: return
                 val scrollPane = comp.getComponent(0) as JScrollPane
-                scrollPane.verticalScrollBar?.ui = BasicScrollBarUI()
-                scrollPane.horizontalScrollBar?.ui = BasicScrollBarUI()
+                scrollPane.verticalScrollBar?.setUI(BasicScrollBarUI())
+                scrollPane.horizontalScrollBar?.setUI(BasicScrollBarUI())
                 mIsCanceled = false
             }
         }
