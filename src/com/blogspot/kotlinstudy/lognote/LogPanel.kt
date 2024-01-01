@@ -487,19 +487,38 @@ class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?, 
                 mWindowedModeBtn -> {
                     mMainUI.windowedModeLogPanel(this@LogPanel)
                 }
+//                mTagBtn -> {
+//                    val selected = mTagBtn.model.isSelected
+//                    mTable.mTableModel.mBoldTag = selected
+//                    mTable.repaint()
+//                }
+//                mPidBtn -> {
+//                    val selected = mPidBtn.model.isSelected
+//                    mTable.mTableModel.mBoldPid = selected
+//                    mTable.repaint()
+//                }
+//                mTidBtn -> {
+//                    val selected = mTidBtn.model.isSelected
+//                    mTable.mTableModel.mBoldTid = selected
+//                    mTable.repaint()
+//                }
+                // TODO : TEST TEST change bold button
                 mTagBtn -> {
                     val selected = mTagBtn.model.isSelected
-                    mTable.mTableModel.mBoldTag = selected
+                    mTable.mTableModel.mBoldTokens[2] = selected
+                    mTable.mTableModel.mBoldTokenEndIdx = -1
                     mTable.repaint()
                 }
                 mPidBtn -> {
                     val selected = mPidBtn.model.isSelected
-                    mTable.mTableModel.mBoldPid = selected
+                    mTable.mTableModel.mBoldTokens[0] = selected
+                    mTable.mTableModel.mBoldTokenEndIdx = -1
                     mTable.repaint()
                 }
                 mTidBtn -> {
                     val selected = mTidBtn.model.isSelected
-                    mTable.mTableModel.mBoldTid = selected
+                    mTable.mTableModel.mBoldTokens[1] = selected
+                    mTable.mTableModel.mBoldTokenEndIdx = -1
                     mTable.repaint()
                 }
                 mBookmarksBtn -> {

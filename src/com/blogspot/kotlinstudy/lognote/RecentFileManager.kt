@@ -14,17 +14,13 @@ class RecentFileManager private constructor() {
 
         const val ITEM_PATH = "_PATH"
         const val ITEM_SHOW_LOG = "_SHOW_LOG"
-        const val ITEM_SHOW_TAG = "_SHOW_TAG"
-        const val ITEM_SHOW_PID = "_SHOW_PID"
-        const val ITEM_SHOW_TID = "_SHOW_TID"
+        const val ITEM_TOKEN_FILTER = "_TOKEN_FILTER"
         const val ITEM_HIGHLIGHT_LOG = "_HIGHLIGHT_LOG"
         const val ITEM_SEARCH_LOG = "_SEARCH_LOG"
         const val ITEM_BOOKMARKS = "_BOOKMARKS"
 
         const val ITEM_SHOW_LOG_CHECK = "_SHOW_LOG_CHECK"
-        const val ITEM_SHOW_TAG_CHECK = "_SHOW_TAG_CHECK"
-        const val ITEM_SHOW_PID_CHECK = "_SHOW_PID_CHECK"
-        const val ITEM_SHOW_TID_CHECK = "_SHOW_TID_CHECK"
+        const val ITEM_TOKEN_CHECK = "_TOKEN_CHECK"
         const val ITEM_HIGHLIGHT_LOG_CHECK = "_HIGHLIGHT_LOG_CHECK"
         const val ITEM_SEARCH_MATCH_CASE = "_SEARCH_MATCH_CASE"
 
@@ -40,6 +36,7 @@ class RecentFileManager private constructor() {
     val mOpenList = mutableListOf<OpenItem>()
     private val mProperties = Properties()
     private var mRecentListPath = RECENTES_LIST_FILE
+    private val mFormatManager = FormatManager.getInstance()
 
     init {
         if (LOGNOTE_HOME.isNotEmpty()) {
@@ -53,17 +50,13 @@ class RecentFileManager private constructor() {
     class RecentItem() {
         var mPath = ""
         var mShowLog = ""
-        var mShowTag = ""
-        var mShowPid = ""
-        var mShowTid = ""
+        var mTokenFilter = Array(FormatManager.MAX_TOKEN_COUNT) { "" }
         var mHighlightLog = ""
         var mSearchLog = ""
         var mBookmarks = ""
 
         var mShowLogCheck = true
-        var mShowTagCheck = true
-        var mShowPidCheck = true
-        var mShowTidCheck = true
+        var mTokenCheck = Array(FormatManager.MAX_TOKEN_COUNT) { true }
         var mHighlightLogCheck = true
         var mSearchMatchCase = true
     }
@@ -96,21 +89,19 @@ class RecentFileManager private constructor() {
                 break
             }
             recentItem.mShowLog = (mProperties["$i$ITEM_SHOW_LOG"] ?: "") as String
-            recentItem.mShowTag = (mProperties["$i$ITEM_SHOW_TAG"] ?: "") as String
-            recentItem.mShowPid = (mProperties["$i$ITEM_SHOW_PID"] ?: "") as String
-            recentItem.mShowTid = (mProperties["$i$ITEM_SHOW_TID"] ?: "") as String
+            for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+                recentItem.mTokenFilter[idx] = (mProperties["$i$ITEM_TOKEN_FILTER${mFormatManager.mCurrFormat.mTokens[idx].mToken}"] ?: "") as String
+            }
             recentItem.mHighlightLog = (mProperties["$i$ITEM_HIGHLIGHT_LOG"] ?: "") as String
             recentItem.mSearchLog = (mProperties["$i$ITEM_SEARCH_LOG"] ?: "") as String
             recentItem.mBookmarks = (mProperties["$i$ITEM_BOOKMARKS"] ?: "") as String
 
             var check = (mProperties["$i$ITEM_SHOW_LOG_CHECK"] ?: "false") as String
             recentItem.mShowLogCheck = check.toBoolean()
-            check = (mProperties["$i$ITEM_SHOW_TAG_CHECK"] ?: "false") as String
-            recentItem.mShowTagCheck = check.toBoolean()
-            check = (mProperties["$i$ITEM_SHOW_PID_CHECK"] ?: "false") as String
-            recentItem.mShowPidCheck = check.toBoolean()
-            check = (mProperties["$i$ITEM_SHOW_TID_CHECK"] ?: "false") as String
-            recentItem.mShowTidCheck = check.toBoolean()
+            for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+                check = (mProperties["$i$ITEM_TOKEN_CHECK${mFormatManager.mCurrFormat.mTokens[idx].mToken}"] ?: "false") as String
+                recentItem.mTokenCheck[idx] = check.toBoolean()
+            }
             check = (mProperties["$i$ITEM_HIGHLIGHT_LOG_CHECK"] ?: "false") as String
             recentItem.mHighlightLogCheck = check.toBoolean()
             check = (mProperties["$i$ITEM_SEARCH_MATCH_CASE"] ?: "false") as String
@@ -124,17 +115,17 @@ class RecentFileManager private constructor() {
         for (i in 0 until MAX_RECENT_FILE) {
             mProperties.remove("$i$ITEM_PATH")
             mProperties.remove("$i$ITEM_SHOW_LOG")
-            mProperties.remove("$i$ITEM_SHOW_TAG")
-            mProperties.remove("$i$ITEM_SHOW_PID")
-            mProperties.remove("$i$ITEM_SHOW_TID")
+            for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+                mProperties.remove("$i$ITEM_TOKEN_FILTER${mFormatManager.mCurrFormat.mTokens[idx].mToken}")
+            }
             mProperties.remove("$i$ITEM_HIGHLIGHT_LOG")
             mProperties.remove("$i$ITEM_SEARCH_LOG")
             mProperties.remove("$i$ITEM_BOOKMARKS")
 
             mProperties.remove("$i$ITEM_SHOW_LOG_CHECK")
-            mProperties.remove("$i$ITEM_SHOW_TAG_CHECK")
-            mProperties.remove("$i$ITEM_SHOW_PID_CHECK")
-            mProperties.remove("$i$ITEM_SHOW_TID_CHECK")
+            for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+                mProperties.remove("$i$ITEM_TOKEN_CHECK${mFormatManager.mCurrFormat.mTokens[idx].mToken}")
+            }
             mProperties.remove("$i$ITEM_HIGHLIGHT_LOG_CHECK")
             mProperties.remove("$i$ITEM_SEARCH_MATCH_CASE")
         }
@@ -149,17 +140,17 @@ class RecentFileManager private constructor() {
                 mSaveList.add(recentItem.mPath)
                 mProperties["$i$ITEM_PATH"] = recentItem.mPath
                 mProperties["$i$ITEM_SHOW_LOG"] = recentItem.mShowLog
-                mProperties["$i$ITEM_SHOW_TAG"] = recentItem.mShowTag
-                mProperties["$i$ITEM_SHOW_PID"] = recentItem.mShowPid
-                mProperties["$i$ITEM_SHOW_TID"] = recentItem.mShowTid
+                for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+                    mProperties["$i$ITEM_TOKEN_FILTER${mFormatManager.mCurrFormat.mTokens[idx].mToken}"] = recentItem.mTokenFilter[idx]
+                }
                 mProperties["$i$ITEM_HIGHLIGHT_LOG"] = recentItem.mHighlightLog
                 mProperties["$i$ITEM_SEARCH_LOG"] = recentItem.mSearchLog
                 mProperties["$i$ITEM_BOOKMARKS"] = recentItem.mBookmarks
 
                 mProperties["$i$ITEM_SHOW_LOG_CHECK"] = recentItem.mShowLogCheck.toString()
-                mProperties["$i$ITEM_SHOW_TAG_CHECK"] = recentItem.mShowTagCheck.toString()
-                mProperties["$i$ITEM_SHOW_PID_CHECK"] = recentItem.mShowPidCheck.toString()
-                mProperties["$i$ITEM_SHOW_TID_CHECK"] = recentItem.mShowTidCheck.toString()
+                for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+                    mProperties["$i$ITEM_TOKEN_CHECK${mFormatManager.mCurrFormat.mTokens[idx].mToken}"] = recentItem.mTokenCheck[idx].toString()
+                }
                 mProperties["$i$ITEM_HIGHLIGHT_LOG_CHECK"] = recentItem.mHighlightLogCheck.toString()
                 mProperties["$i$ITEM_SEARCH_MATCH_CASE"] = recentItem.mSearchMatchCase.toString()
             }

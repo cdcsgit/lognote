@@ -36,10 +36,6 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
         var IsColorTagRegex = false
         private const val COLUMN_NUM = 0
         private const val COLUMN_LOGLINE = 1
-        private const val PID_INDEX = 2
-        private const val TID_INDEX = 3
-        private const val LEVEL_INDEX = 4
-        private const val TAG_INDEX = 5
         const val LEVEL_NONE = FormatManager.LEVEL_NONE
         const val LEVEL_VERBOSE = FormatManager.LEVEL_VERBOSE
         const val LEVEL_DEBUG = FormatManager.LEVEL_DEBUG
@@ -51,6 +47,21 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
 
     data class FilteredColor(val mColor: String, val mPattern: Pattern?)
 
+    inner class FilterTokenManager() {
+        fun set(idx: Int, value: String) {
+            if (mFilterTokens[idx] != value) {
+                mIsFilterUpdated = true
+                mFilterTokens[idx] = value
+            }
+            mMainUI.mTokenCombo[idx].mErrorMsg = ""
+            val patterns = parsePattern(value, false)
+            mFilterShowTokens[idx] = patterns[0]
+            mFilterHideTokens[idx] = patterns[1]
+            mPatternShowTokens[idx] = compilePattern(mFilterShowTokens[idx], mPatternCase, mPatternShowTokens[idx], mMainUI.mTokenCombo[idx])
+            mPatternHideTokens[idx] = compilePattern(mFilterHideTokens[idx], mPatternCase, mPatternHideTokens[idx], mMainUI.mTokenCombo[idx])
+        }
+    }
+
     private var mPatternSearchLog: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
     private var mMatcherSearchLog: Matcher = mPatternSearchLog.matcher("")
     private var mNormalSearchLogSplit: List<String>? = null
@@ -61,6 +72,25 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
     var mLogFile:File? = null
     private val mLogCmdManager = LogCmdManager.getInstance()
     private val mBookmarkManager = BookmarkManager.getInstance()
+    private val mFormatManager = FormatManager.getInstance()
+    private var mTokenInfo = mFormatManager.mCurrFormat.mTokens
+        set(value) {
+            if (!field.contentEquals(value)) {
+                field = value
+            }
+
+            for (token in value) {
+                if (token.mNth > mTokenNthMax) {
+                    mTokenNthMax = token.mNth
+                }
+            }
+            mEmptyTokens = Array(value.size) { "" }
+        }
+
+    private var mTokenNthMax = 0
+    private var mEmptyTokens = arrayOf("")
+    private var mLevelIdx = mFormatManager.mCurrFormat.mLevelNth
+    private var mSeparator = mFormatManager.mCurrFormat.mSeparator
 
     private val mEventListeners = ArrayList<LogTableModelListener>()
     private val mFilteredFGMap = mutableMapOf<String, FilteredColor>()
@@ -168,75 +198,23 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
             }
         }
 
-    var mFilterTag: String = ""
+    var mFilterTokens = Array(FormatManager.MAX_TOKEN_COUNT) { "" }
+    var mFilterShowTokens = Array(FormatManager.MAX_TOKEN_COUNT) { "" }
+    var mFilterHideTokens = Array(FormatManager.MAX_TOKEN_COUNT) { "" }
+    var mPatternShowTokens = Array(FormatManager.MAX_TOKEN_COUNT) { Pattern.compile("", Pattern.CASE_INSENSITIVE) }
+    var mPatternHideTokens = Array(FormatManager.MAX_TOKEN_COUNT) { Pattern.compile("", Pattern.CASE_INSENSITIVE) }
+    var mBoldTokens = Array(FormatManager.MAX_TOKEN_COUNT) { false }
+    var mBoldTokenEndIdx = -1
         set(value) {
-            if (field != value) {
-                mIsFilterUpdated = true
-                field = value
+            field = -1
+            for(idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+                if (mBoldTokens[idx]) {
+                    field = idx
+                }
             }
-            mMainUI.mShowTagCombo.mErrorMsg = ""
-            val patterns = parsePattern(value, false)
-            mFilterShowTag = patterns[0]
-            mFilterHideTag = patterns[1]
         }
-
-    private var mFilterShowTag: String = ""
-        set(value) {
-            field = value
-            mPatternShowTag = compilePattern(value, mPatternCase, mPatternShowTag, mMainUI.mShowTagCombo)
-        }
-    private var mFilterHideTag: String = ""
-        set(value) {
-            field = value
-            mPatternHideTag = compilePattern(value, mPatternCase, mPatternHideTag, mMainUI.mShowTagCombo)
-        }
-
-    var mFilterPid: String = ""
-        set(value) {
-            if (field != value) {
-                mIsFilterUpdated = true
-                field = value
-            }
-            mMainUI.mShowPidCombo.mErrorMsg = ""
-            val patterns = parsePattern(value, false)
-            mFilterShowPid = patterns[0]
-            mFilterHidePid = patterns[1]
-        }
-
-    private var mFilterShowPid: String = ""
-        set(value) {
-            field = value
-            mPatternShowPid = compilePattern(value, mPatternCase, mPatternShowPid, mMainUI.mShowPidCombo)
-        }
-
-    private var mFilterHidePid: String = ""
-        set(value) {
-            field = value
-            mPatternHidePid = compilePattern(value, mPatternCase, mPatternHidePid, mMainUI.mShowPidCombo)
-        }
-
-    var mFilterTid: String = ""
-        set(value) {
-            if (field != value) {
-                mIsFilterUpdated = true
-                field = value
-            }
-            mMainUI.mShowTidCombo.mErrorMsg = ""
-            val patterns = parsePattern(value, false)
-            patterns[0].let { mFilterShowTid = it}
-            patterns[1].let { mFilterHideTid = it}
-        }
-
-    private var mFilterShowTid: String = ""
-        set(value) {
-            field = value
-            mPatternShowTid = compilePattern(value, mPatternCase, mPatternShowTid, mMainUI.mShowTidCombo)
-        }
-    private var mFilterHideTid: String = ""
-        set(value) {
-            field = value
-            mPatternHideTid = compilePattern(value, mPatternCase, mPatternHideTid, mMainUI.mShowTidCombo)
-        }
+    var mPidTokIdx = -1
+    val mFilterTokenMgr = FilterTokenManager()
 
     private var mPatternCase = Pattern.CASE_INSENSITIVE
     var mMatchCase: Boolean = false
@@ -251,15 +229,11 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                 mMainUI.mShowLogCombo.mErrorMsg = ""
                 mPatternShowLog = compilePattern(mFilterShowLog, mPatternCase, mPatternShowLog, mMainUI.mShowLogCombo)
                 mPatternHideLog = compilePattern(mFilterHideLog, mPatternCase, mPatternHideLog, mMainUI.mShowLogCombo)
-                mMainUI.mShowTagCombo.mErrorMsg = ""
-                mPatternShowTag = compilePattern(mFilterShowTag, mPatternCase, mPatternShowTag, mMainUI.mShowTagCombo)
-                mPatternHideTag = compilePattern(mFilterHideTag, mPatternCase, mPatternHideTag, mMainUI.mShowTagCombo)
-                mMainUI.mShowPidCombo.mErrorMsg = ""
-                mPatternShowPid = compilePattern(mFilterShowPid, mPatternCase, mPatternShowPid, mMainUI.mShowPidCombo)
-                mPatternHidePid = compilePattern(mFilterHidePid, mPatternCase, mPatternHidePid, mMainUI.mShowPidCombo)
-                mMainUI.mShowTidCombo.mErrorMsg = ""
-                mPatternShowTid = compilePattern(mFilterShowTid, mPatternCase, mPatternShowTid, mMainUI.mShowTidCombo)
-                mPatternHideTid = compilePattern(mFilterHideTid, mPatternCase, mPatternHideTid, mMainUI.mShowTidCombo)
+                for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+                    mMainUI.mTokenCombo[idx].mErrorMsg = ""
+                    mPatternShowTokens[idx] = compilePattern(mFilterShowTokens[idx], mPatternCase, mPatternShowTokens[idx], mMainUI.mTokenCombo[idx])
+                    mPatternHideTokens[idx] = compilePattern(mFilterHideTokens[idx], mPatternCase, mPatternHideTokens[idx], mMainUI.mTokenCombo[idx])
+                }
 
                 mIsFilterUpdated = true
 
@@ -296,9 +270,6 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
 //            Exception().printStackTrace()
 //            println("tid = " + Thread.currentThread().id)
 //        }
-    var mBoldTag = false
-    var mBoldPid = false
-    var mBoldTid = false
     var mBookmarkMode = false
         set(value) {
             field = value
@@ -347,12 +318,6 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
 
     private var mPatternShowLog: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
     private var mPatternHideLog: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
-    private var mPatternShowTag: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
-    private var mPatternHideTag: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
-    private var mPatternShowPid: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
-    private var mPatternHidePid: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
-    private var mPatternShowTid: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
-    private var mPatternHideTid: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
 
     private var mPatternError: Pattern = Pattern.compile("\\bERROR\\b", Pattern.CASE_INSENSITIVE)
     private var mPatternWarning: Pattern = Pattern.compile("\\bWARNING\\b", Pattern.CASE_INSENSITIVE)
@@ -360,6 +325,13 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
     private var mPatternDebug: Pattern = Pattern.compile("\\bDEBUG\\b", Pattern.CASE_INSENSITIVE)
 
     init {
+        for (token in mTokenInfo) {
+            if (token.mNth > mTokenNthMax) {
+                mTokenNthMax = token.mNth
+            }
+        }
+        mEmptyTokens = Array(mTokenInfo.size) { "" }
+
         mBaseModel = baseModel
         loadItems(false)
 
@@ -566,7 +538,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                 val item = mLogItems.last()
                 num = item.mNum.toInt()
                 num++
-                mLogItems.add(LogItem(num.toString(), "LogNote - APPEND LOG : $mLogFile", "", "", "", LEVEL_ERROR))
+                mLogItems.add(LogItem(num.toString(), "LogNote - APPEND LOG : $mLogFile", LEVEL_ERROR, mEmptyTokens))
                 num++
             }
         } else {
@@ -582,44 +554,27 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
         var tag:String
         var pid:String
         var tid:String
+        var tokens: Array<String>
 
         var logcatLogCount = 0
 
         line = bufferedReader.readLine()
         while (line != null) {
-            val textSplited = line.trim().split(Regex("\\s+"))
+            val textSplited = line.trim().split(Regex(mSeparator))
 
-            if (mFilterLevel != LEVEL_NONE && textSplited.size > TAG_INDEX) {
-                if (Character.isDigit(textSplited[PID_INDEX][0])) {
-                    level = levelToInt(textSplited[LEVEL_INDEX])
-                    tag = textSplited[TAG_INDEX]
-                    pid = textSplited[PID_INDEX]
-                    tid = textSplited[TID_INDEX]
-                }
-                else if (Character.isAlphabetic(textSplited[PID_INDEX][0].code)) {
-                    level = levelToInt(textSplited[PID_INDEX][0].toString())
-                    tag = ""
-                    pid = ""
-                    tid = ""
-                }
-                else {
-                    level = LEVEL_NONE
-                    tag = ""
-                    pid = ""
-                    tid = ""
-                }
+            if (mFilterLevel != LEVEL_NONE && textSplited.size > mTokenNthMax) {
+                level = levelToInt(textSplited[mLevelIdx])
+                tokens = Array(mTokenInfo.size) { textSplited[mTokenInfo[it].mNth] }
             }  else {
                 level = LEVEL_NONE
-                tag = ""
-                pid = ""
-                tid = ""
+                tokens = mEmptyTokens
             }
 
             if (level != LEVEL_NONE) {
                 logcatLogCount++
             }
 
-            mLogItems.add(LogItem(num.toString(), line, tag, pid, tid, level))
+            mLogItems.add(LogItem(num.toString(), line, level, tokens))
             num++
             line = bufferedReader.readLine()
         }
@@ -803,40 +758,23 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
 
         val boldStarts: Queue<Int> = LinkedList()
         val boldEnds: Queue<Int> = LinkedList()
-        var boldStartTag = -1
-        var boldEndTag = -1
-        var boldStartPid = -1
-        var boldEndPid = -1
-        var boldStartTid = -1
-        var boldEndTid = -1
+        val boldStartTokens = Array(FormatManager.MAX_TOKEN_COUNT) { -1 }
+        val boldEndTokens = Array(FormatManager.MAX_TOKEN_COUNT) { -1 }
 
-        if (mBoldPid) {
+        if (mBoldTokenEndIdx >= 0) {
+            var currPos = 0
             val item = mLogItems[row]
-            if (item.mPid.isNotEmpty()) {
-                boldStartPid = newValue.indexOf(item.mPid)
-                boldEndPid = boldStartPid + item.mPid.length
-                boldStarts.add(boldStartPid)
-                boldEnds.add(boldEndPid)
-            }
-        }
-
-        if (mBoldTid) {
-            val item = mLogItems[row]
-            if (item.mTid.isNotEmpty()) {
-                boldStartTid = newValue.indexOf(item.mTid, newValue.indexOf(item.mPid) + 1)
-                boldEndTid = boldStartTid + item.mTid.length
-                boldStarts.add(boldStartTid)
-                boldEnds.add(boldEndTid)
-            }
-        }
-
-        if (mBoldTag) {
-            val item = mLogItems[row]
-            if (item.mTag.isNotEmpty()) {
-                boldStartTag = newValue.indexOf(item.mTag)
-                boldEndTag = boldStartTag + item.mTag.length
-                boldStarts.add(boldStartTag)
-                boldEnds.add(boldEndTag)
+            for (idx in 0 .. mBoldTokenEndIdx) {
+                if (item.mTokens[idx].isNotEmpty()) {
+                    currPos = newValue.indexOf(item.mTokens[idx], currPos)
+                    if (mBoldTokens[idx]) {
+                        boldStartTokens[idx] = currPos
+                        boldEndTokens[idx] = boldStartTokens[idx] + item.mTokens[idx].length
+                        boldStarts.add(boldStartTokens[idx])
+                        boldEnds.add(boldEndTokens[idx])
+                    }
+                    currPos++
+                }
             }
         }
 
@@ -1095,18 +1033,26 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                 starts.push(boldS)
                 ends.push(boldE)
 
-                when (boldS) {
-                    in boldStartTag until boldEndTag -> {
+//                when (boldS) {
+//                    in boldStartTag until boldEndTag -> {
+//                        fgColors.push(mTableColor.mStrTagFG)
+//                        bgColors.push(mTableColor.mStrLogBG)
+//                    }
+//                    in boldStartPid until boldEndPid -> {
+//                        fgColors.push(mTableColor.mStrPidFG)
+//                        bgColors.push(mTableColor.mStrLogBG)
+//                    }
+//                    in boldStartTid until boldEndTid -> {
+//                        fgColors.push(mTableColor.mStrTidFG)
+//                        bgColors.push(mTableColor.mStrLogBG)
+//                    }
+//                }
+//                TODO : TEST TEST change bold color
+                for(tokIdx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+                    if (boldS >= boldStartTokens[tokIdx] && boldS < boldEndTokens[tokIdx]) {
                         fgColors.push(mTableColor.mStrTagFG)
                         bgColors.push(mTableColor.mStrLogBG)
-                    }
-                    in boldStartPid until boldEndPid -> {
-                        fgColors.push(mTableColor.mStrPidFG)
-                        bgColors.push(mTableColor.mStrLogBG)
-                    }
-                    in boldStartTid until boldEndTid -> {
-                        fgColors.push(mTableColor.mStrTidFG)
-                        bgColors.push(mTableColor.mStrLogBG)
+                        break
                     }
                 }
 
@@ -1193,13 +1139,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
         return stringBuilder.toString()
     }
 
-    inner class LogItem(num:String, logLine:String, tag:String, pid:String, tid:String, level:Int) {
-        val mNum = num
-        val mLogLine = logLine
-        val mTag = tag
-        val mPid = pid
-        val mTid = tid
-        val mLevel = level
+    inner class LogItem(val mNum: String, val mLogLine: String, val mLevel: Int, val mTokens: Array<String>) {
     }
 
     private fun makePattenPrintValue() {
@@ -1281,6 +1221,28 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
         return
     }
 
+    private fun isMatchHideToken(item: LogItem): Boolean {
+        var isMatch = false
+        for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+            if (mFilterHideTokens[idx].isNotEmpty() && mPatternHideTokens[idx].matcher(item.mTokens[idx]).find()) {
+                isMatch = true
+                break
+            }
+        }
+        return isMatch
+    }
+
+    private fun isNotMatchShowToken(item: LogItem): Boolean {
+        var isNotMatch = false
+        for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+            if (mFilterShowTokens[idx].isNotEmpty() && !mPatternShowTokens[idx].matcher(item.mTokens[idx]).find()) {
+                isNotMatch = true
+                break
+            }
+        }
+        return isNotMatch
+    }
+
     private fun makeFilteredItems(isRedraw: Boolean) {
         if (mBaseModel == null || !mIsFilterUpdated) {
             println("skip makeFilteredItems $mBaseModel, $mIsFilterUpdated")
@@ -1354,9 +1316,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                             isShow = false
                         }
                         else if ((mFilterHideLog.isNotEmpty() && mPatternHideLog.matcher(item.mLogLine).find())
-                                || (mFilterHideTag.isNotEmpty() && mPatternHideTag.matcher(item.mTag).find())
-                                || (mFilterHidePid.isNotEmpty() && mPatternHidePid.matcher(item.mPid).find())
-                                || (mFilterHideTid.isNotEmpty() && mPatternHideTid.matcher(item.mTid).find())) {
+                            || isMatchHideToken(item)) {
                             isShow = false
                         }
                         else if (mFilterShowLog.isNotEmpty()) {
@@ -1389,9 +1349,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                         }
 
                         if (isShow) {
-                            if ((mFilterShowTag.isNotEmpty() && !mPatternShowTag.matcher(item.mTag).find())
-                                    || (mFilterShowPid.isNotEmpty() && !mPatternShowPid.matcher(item.mPid).find())
-                                    || (mFilterShowTid.isNotEmpty() && !mPatternShowTid.matcher(item.mTid).find())) {
+                            if (isNotMatchShowToken(item)) {
                                 isShow = false
                             }
                         }
@@ -1467,6 +1425,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                 var tag: String
                 var pid: String
                 var tid: String
+                var tokens: Array<String>
 
                 var isShow: Boolean
                 var nextUpdateTime: Long = 0
@@ -1539,24 +1498,20 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
 
                         synchronized(this) {
                             for (tempLine in logLines) {
-                                val textSplited = tempLine.trim().split(Regex("\\s+"))
-                                if (mFilterLevel != LEVEL_NONE && textSplited.size > TAG_INDEX) {
-                                    level = levelToInt(textSplited[LEVEL_INDEX])
-                                    tag = textSplited[TAG_INDEX]
-                                    pid = textSplited[PID_INDEX]
-                                    tid = textSplited[TID_INDEX]
+                                val textSplited = tempLine.trim().split(Regex(mSeparator))
+                                if (mFilterLevel != LEVEL_NONE && textSplited.size > mTokenNthMax) {
+                                    level = levelToInt(textSplited[mLevelIdx])
+                                    tokens = Array(mTokenInfo.size) { textSplited[mTokenInfo[it].mNth] }
                                 } else {
                                     level = if (tempLine.startsWith(Main.NAME)) {
                                         LEVEL_ERROR
                                     } else {
                                         LEVEL_NONE
                                     }
-                                    tag = ""
-                                    pid = ""
-                                    tid = ""
+                                    tokens = mEmptyTokens
                                 }
 
-                                item = LogItem(num.toString(), tempLine, tag, pid, tid, level)
+                                item = LogItem(num.toString(), tempLine, level, tokens)
 
                                 isShow = true
 
@@ -1577,23 +1532,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                                         isShow = false
                                     }
                                     if (isShow
-                                        && ((mFilterHideTag.isNotEmpty() && mPatternHideTag.matcher(item.mTag).find())
-                                                || (mFilterShowTag.isNotEmpty() && !mPatternShowTag.matcher(item.mTag)
-                                            .find()))
-                                    ) {
-                                        isShow = false
-                                    }
-                                    if (isShow
-                                        && ((mFilterHidePid.isNotEmpty() && mPatternHidePid.matcher(item.mPid).find())
-                                                || (mFilterShowPid.isNotEmpty() && !mPatternShowPid.matcher(item.mPid)
-                                            .find()))
-                                    ) {
-                                        isShow = false
-                                    }
-                                    if (isShow
-                                        && ((mFilterHideTid.isNotEmpty() && mPatternHideTid.matcher(item.mTid).find())
-                                                || (mFilterShowTid.isNotEmpty() && !mPatternShowTid.matcher(item.mTid)
-                                            .find()))
+                                        && (isMatchHideToken(item) || isNotMatchShowToken(item))
                                     ) {
                                         isShow = false
                                     }
@@ -1749,6 +1688,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                 var tag: String
                 var pid: String
                 var tid: String
+                var tokens: Array<String>
 
                 var isShow: Boolean
                 var nextUpdateTime: Long = 0
@@ -1810,24 +1750,20 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
 
                         synchronized(this) {
                             for (tempLine in logLines) {
-                                val textSplited = tempLine.trim().split(Regex("\\s+"))
-                                if (mFilterLevel != LEVEL_NONE && textSplited.size > TAG_INDEX) {
-                                    level = levelToInt(textSplited[LEVEL_INDEX])
-                                    tag = textSplited[TAG_INDEX]
-                                    pid = textSplited[PID_INDEX]
-                                    tid = textSplited[TID_INDEX]
+                                val textSplited = tempLine.trim().split(Regex(mSeparator))
+                                if (mFilterLevel != LEVEL_NONE && textSplited.size > mTokenNthMax) {
+                                    level = levelToInt(textSplited[mLevelIdx])
+                                    tokens = Array(mTokenInfo.size) { textSplited[mTokenInfo[it].mNth] }
                                 } else {
                                     level = if (tempLine.startsWith(Main.NAME)) {
                                         LEVEL_ERROR
                                     } else {
                                         LEVEL_NONE
                                     }
-                                    tag = ""
-                                    pid = ""
-                                    tid = ""
+                                    tokens = mEmptyTokens
                                 }
 
-                                item = LogItem(num.toString(), tempLine, tag, pid, tid, level)
+                                item = LogItem(num.toString(), tempLine, level, tokens)
 
                                 isShow = true
 
@@ -1848,23 +1784,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                                         isShow = false
                                     }
                                     if (isShow
-                                        && ((mFilterHideTag.isNotEmpty() && mPatternHideTag.matcher(item.mTag).find())
-                                                || (mFilterShowTag.isNotEmpty() && !mPatternShowTag.matcher(item.mTag)
-                                            .find()))
-                                    ) {
-                                        isShow = false
-                                    }
-                                    if (isShow
-                                        && ((mFilterHidePid.isNotEmpty() && mPatternHidePid.matcher(item.mPid).find())
-                                                || (mFilterShowPid.isNotEmpty() && !mPatternShowPid.matcher(item.mPid)
-                                            .find()))
-                                    ) {
-                                        isShow = false
-                                    }
-                                    if (isShow
-                                        && ((mFilterHideTid.isNotEmpty() && mPatternHideTid.matcher(item.mTid).find())
-                                                || (mFilterShowTid.isNotEmpty() && !mPatternShowTid.matcher(item.mTid)
-                                            .find()))
+                                        && (isMatchHideToken(item) || isNotMatchShowToken(item))
                                     ) {
                                         isShow = false
                                     }
@@ -2038,7 +1958,12 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
 
     fun getValueProcess(row: Int): String {
         return if (row >= 0 && row < mLogItems.size) {
-            mLogItems[row].mPid
+            if (mPidTokIdx >= 0) {
+                mLogItems[row].mTokens[mPidTokIdx]
+            }
+            else {
+                ""
+            }
         } else {
             ""
         }

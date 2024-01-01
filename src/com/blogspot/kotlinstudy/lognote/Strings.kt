@@ -116,6 +116,7 @@ class Strings private constructor() {
         private val IDX_COLOR_TAG_REGEX = idx++
         private val IDX_SAVE_FULL = idx++
         private val IDX_SAVE_FILTERED = idx++
+        private val IDX_LOGFORMAT = idx++
 //        private val IDX_ = idx++
 
         val FILE: String
@@ -314,5 +315,7 @@ class Strings private constructor() {
             get() { return currStrings[IDX_SAVE_FULL] }
         val SAVE_FILTERED: String
             get() { return currStrings[IDX_SAVE_FILTERED] }
+        val LOGFORMAT: String
+            get() { return currStrings[IDX_LOGFORMAT] }
     }
 }

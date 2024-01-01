@@ -101,6 +101,7 @@ class StringsKo private constructor() {
             , "컬러 태그 : 정규식 필터"
             , "전체 로그 저장"
             , "필터 로그 저장"
+            , "로그 형식"
 //            , ""
         )
     }

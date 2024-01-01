@@ -101,6 +101,7 @@ class StringsEn private constructor() {
             , "Color tag : regex filter"
             , "Save full log"
             , "Save filtered log"
+            , "Log Format"
 //            , ""
         )
     }

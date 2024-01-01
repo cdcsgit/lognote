@@ -81,6 +81,7 @@ class MainUI private constructor() : JFrame() {
     private lateinit var mMenuSettings: JMenu
     private lateinit var mItemLogCmd: JMenuItem
     private lateinit var mItemLogFile: JMenuItem
+    private lateinit var mItemLogFormat: JMenuItem
     private lateinit var mItemFilterIncremental: JCheckBoxMenuItem
     private lateinit var mItemFilterByFile: JCheckBoxMenuItem
     private lateinit var mItemColorTagRegex: JCheckBoxMenuItem
@@ -120,23 +121,11 @@ class MainUI private constructor() : JFrame() {
     private lateinit var mBoldLogToggle: ColorToggleButton
     private lateinit var mBoldLogTogglePanel: JPanel
 
-    private lateinit var mShowTagPanel: JPanel
-    lateinit var mShowTagCombo: FilterComboBox
-    var mShowTagComboStyle: FilterComboBox.Mode
-    private lateinit var mShowTagToggle: ColorToggleButton
-    private lateinit var mShowTagTogglePanel: JPanel
-
-    private lateinit var mShowPidPanel: JPanel
-    lateinit var mShowPidCombo: FilterComboBox
-    var mShowPidComboStyle: FilterComboBox.Mode
-    private lateinit var mShowPidToggle: ColorToggleButton
-    private lateinit var mShowPidTogglePanel: JPanel
-
-    private lateinit var mShowTidPanel: JPanel
-    lateinit var mShowTidCombo: FilterComboBox
-    var mShowTidComboStyle: FilterComboBox.Mode
-    private lateinit var mShowTidToggle: ColorToggleButton
-    private lateinit var mShowTidTogglePanel: JPanel
+    private lateinit var mTokenPanel: Array<JPanel>
+    lateinit var mTokenCombo: Array<FilterComboBox>
+    var mTokenComboStyle: Array<FilterComboBox.Mode>
+    private lateinit var mTokenToggle: Array<ColorToggleButton>
+    private lateinit var mTokenTogglePanel: Array<JPanel>
 
     private lateinit var mLogCmdCombo: ColorComboBox<String>
 
@@ -329,28 +318,12 @@ class MainUI private constructor() : JFrame() {
             FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT
         }
 
-        prop = mConfigManager.getItem(ConfigManager.ITEM_SHOW_TAG_STYLE)
-        mShowTagComboStyle = if (!prop.isNullOrEmpty()) {
-            FilterComboBox.Mode.fromInt(prop.toInt())
-        }
-        else {
-            FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT
-        }
-
-        prop = mConfigManager.getItem(ConfigManager.ITEM_SHOW_PID_STYLE)
-        mShowPidComboStyle = if (!prop.isNullOrEmpty()) {
-            FilterComboBox.Mode.fromInt(prop.toInt())
-        }
-        else {
-            FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT
-        }
-
-        prop = mConfigManager.getItem(ConfigManager.ITEM_SHOW_TID_STYLE)
-        mShowTidComboStyle = if (!prop.isNullOrEmpty()) {
-            FilterComboBox.Mode.fromInt(prop.toInt())
-        }
-        else {
-            FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT
+        mTokenComboStyle = Array(FormatManager.MAX_TOKEN_COUNT) { FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT }
+        for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+            prop = mConfigManager.getItem(ConfigManager.ITEM_TOKEN_COMBO_STYLE + idx)
+            if (!prop.isNullOrEmpty()) {
+                mTokenComboStyle[idx] = FilterComboBox.Mode.fromInt(prop.toInt())
+            }
         }
 
         createUI()
@@ -422,15 +395,19 @@ class MainUI private constructor() : JFrame() {
             mConfigManager.removeConfigItem(ConfigManager.ITEM_SHOW_LOG + i)
         }
 
-        nCount = mShowTagCombo.itemCount
-        if (nCount > ConfigManager.COUNT_SHOW_TAG) {
-            nCount = ConfigManager.COUNT_SHOW_TAG
-        }
-        for (i in 0 until nCount) {
-            mConfigManager.setItem(ConfigManager.ITEM_SHOW_TAG + i, mShowTagCombo.getItemAt(i).toString())
-        }
-        for (i in nCount until ConfigManager.COUNT_SHOW_TAG) {
-            mConfigManager.removeConfigItem(ConfigManager.ITEM_SHOW_TAG + i)
+        for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+            if (mFormatManager.mCurrFormat.mTokens[idx].mIsSaveFilter) {
+                nCount = mTokenCombo[idx].itemCount
+                if (nCount > ConfigManager.COUNT_TOKEN_FILTER) {
+                    nCount = ConfigManager.COUNT_TOKEN_FILTER
+                }
+                for (i in 0 until nCount) {
+                    mConfigManager.setItem("${ConfigManager.ITEM_TOKEN_FILTER}${mFormatManager.mCurrFormat.mTokens[idx].mToken}_$i", mTokenCombo[idx].getItemAt(i).toString())
+                }
+                for (i in nCount until ConfigManager.COUNT_TOKEN_FILTER) {
+                    mConfigManager.removeConfigItem("${ConfigManager.ITEM_TOKEN_FILTER}${mFormatManager.mCurrFormat.mTokens[idx].mToken}_$i")
+                }
+            }
         }
 
         nCount = mBoldLogCombo.itemCount
@@ -510,24 +487,20 @@ class MainUI private constructor() : JFrame() {
                 if (result == JOptionPane.YES_OPTION) {
                     mShowLogToggle.isSelected = recentItem.mShowLogCheck
                     mShowLogCombo.setEnabledFilter(mShowLogToggle.isSelected)
-                    mShowTagToggle.isSelected = recentItem.mShowTagCheck
-                    mShowTagCombo.setEnabledFilter(mShowTagToggle.isSelected)
-                    mShowPidToggle.isSelected = recentItem.mShowPidCheck
-                    mShowPidCombo.setEnabledFilter(mShowPidToggle.isSelected)
-                    mShowTidToggle.isSelected = recentItem.mShowTidCheck
-                    mShowTidCombo.setEnabledFilter(mShowTidToggle.isSelected)
+                    for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+                        mTokenToggle[idx].isSelected = recentItem.mTokenCheck[idx]
+                        mTokenCombo[idx].setEnabledFilter(mTokenToggle[idx].isSelected)
+                    }
+                    
                     mBoldLogToggle.isSelected = recentItem.mHighlightLogCheck
                     mBoldLogCombo.setEnabledFilter(mBoldLogToggle.isSelected)
                     mSearchPanel.mSearchMatchCaseToggle.isSelected = recentItem.mSearchMatchCase
 
                     mShowLogCombo.setFilterText(recentItem.mShowLog)
                     mShowLogCombo.applyFilterText(true)
-                    mShowTagCombo.setFilterText(recentItem.mShowTag)
-                    mShowTagCombo.applyFilterText(true)
-                    mShowPidCombo.setFilterText(recentItem.mShowPid)
-                    mShowPidCombo.applyFilterText(true)
-                    mShowTidCombo.setFilterText(recentItem.mShowTid)
-                    mShowTidCombo.applyFilterText(true)
+                    for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+                        mTokenCombo[idx].setFilterText(recentItem.mTokenFilter[idx])
+                    }
                     mBoldLogCombo.setFilterText(recentItem.mHighlightLog)
                     mBoldLogCombo.applyFilterText(true)
                     mSearchPanel.mSearchCombo.setFilterText(recentItem.mSearchLog)
@@ -628,6 +601,9 @@ class MainUI private constructor() : JFrame() {
         mItemLogFile = JMenuItem(Strings.LOGFILE)
         mItemLogFile.addActionListener(mActionHandler)
         mMenuSettings.add(mItemLogFile)
+        mItemLogFormat = JMenuItem(Strings.LOGFORMAT)
+        mItemLogFormat.addActionListener(mActionHandler)
+        mMenuSettings.add(mItemLogFormat)
 
         mMenuSettings.addSeparator()
 
@@ -786,50 +762,24 @@ class MainUI private constructor() : JFrame() {
         mBoldLogTogglePanel.border = BorderFactory.createEmptyBorder(3,3,3,3)
         mBoldLogToggle.addItemListener(mItemHandler)
 
-        mShowTagPanel = JPanel()
-        mShowTagCombo = FilterComboBox(mShowTagComboStyle, false)
-        mShowTagCombo.toolTipText = TooltipStrings.TAG_COMBO
-        mShowTagCombo.isEditable = true
-        mShowTagCombo.renderer = FilterComboBox.ComboBoxRenderer()
-        mShowTagCombo.addItemListener(mItemHandler)
-        mShowTagCombo.editor.editorComponent.addMouseListener(mMouseHandler)
-        mShowTagToggle = ColorToggleButton(Strings.TAG)
-        mShowTagToggle.toolTipText = TooltipStrings.TAG_TOGGLE
-        mShowTagToggle.margin = Insets(0, 0, 0, 0)
-        mShowTagTogglePanel = JPanel(GridLayout(1, 1))
-        mShowTagTogglePanel.add(mShowTagToggle)
-        mShowTagTogglePanel.border = BorderFactory.createEmptyBorder(3,3,3,3)
-        mShowTagToggle.addItemListener(mItemHandler)
 
-        mShowPidPanel = JPanel()
-        mShowPidCombo = FilterComboBox(mShowPidComboStyle, false)
-        mShowPidCombo.toolTipText = TooltipStrings.PID_COMBO
-        mShowPidCombo.isEditable = true
-        mShowPidCombo.renderer = FilterComboBox.ComboBoxRenderer()
-        mShowPidCombo.addItemListener(mItemHandler)
-        mShowPidCombo.editor.editorComponent.addMouseListener(mMouseHandler)
-        mShowPidToggle = ColorToggleButton(Strings.PID)
-        mShowPidToggle.toolTipText = TooltipStrings.PID_TOGGLE
-        mShowPidToggle.margin = Insets(0, 0, 0, 0)
-        mShowPidTogglePanel = JPanel(GridLayout(1, 1))
-        mShowPidTogglePanel.add(mShowPidToggle)
-        mShowPidTogglePanel.border = BorderFactory.createEmptyBorder(3,3,3,3)
-        mShowPidToggle.addItemListener(mItemHandler)
+        mTokenPanel = Array(FormatManager.MAX_TOKEN_COUNT) { JPanel() }
+        mTokenCombo = Array(FormatManager.MAX_TOKEN_COUNT) { FilterComboBox(mTokenComboStyle[it], false) }
+        mTokenToggle = Array(FormatManager.MAX_TOKEN_COUNT) { ColorToggleButton(mFormatManager.mCurrFormat.mTokens[it].mToken) }
+        mTokenTogglePanel = Array(FormatManager.MAX_TOKEN_COUNT) { JPanel(GridLayout(1, 1)) }
 
-        mShowTidPanel = JPanel()
-        mShowTidCombo = FilterComboBox(mShowTidComboStyle, false)
-        mShowTidCombo.toolTipText = TooltipStrings.TID_COMBO
-        mShowTidCombo.isEditable = true
-        mShowTidCombo.renderer = FilterComboBox.ComboBoxRenderer()
-        mShowTidCombo.addItemListener(mItemHandler)
-        mShowTidCombo.editor.editorComponent.addMouseListener(mMouseHandler)
-        mShowTidToggle = ColorToggleButton(Strings.TID)
-        mShowTidToggle.toolTipText = TooltipStrings.TID_TOGGLE
-        mShowTidToggle.margin = Insets(0, 0, 0, 0)
-        mShowTidTogglePanel = JPanel(GridLayout(1, 1))
-        mShowTidTogglePanel.add(mShowTidToggle)
-        mShowTidTogglePanel.border = BorderFactory.createEmptyBorder(3,3,3,3)
-        mShowTidToggle.addItemListener(mItemHandler)
+        for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+//            mTokenCombo[idx].toolTipText = TooltipStrings.TAG_COMBO
+            mTokenCombo[idx].isEditable = true
+            mTokenCombo[idx].renderer = FilterComboBox.ComboBoxRenderer()
+            mTokenCombo[idx].addItemListener(mItemHandler)
+            mTokenCombo[idx].editor.editorComponent.addMouseListener(mMouseHandler)
+//            mTokenToggle.toolTipText = TooltipStrings.TAG_TOGGLE
+            mTokenToggle[idx].margin = Insets(0, 0, 0, 0)
+            mTokenTogglePanel[idx].add(mTokenToggle[idx])
+            mTokenTogglePanel[idx].border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
+            mTokenToggle[idx].addItemListener(mItemHandler)
+        }
 
         mLogCmdCombo = ColorComboBox()
         mLogCmdCombo.toolTipText = TooltipStrings.LOG_CMD_COMBO
@@ -887,34 +837,17 @@ class MainUI private constructor() : JFrame() {
         }
         mBoldLogCombo.preferredSize = Dimension(170, mBoldLogCombo.preferredSize.height)
         mBoldLogPanel.add(mBoldLogCombo, BorderLayout.CENTER)
-//        mBoldPanel.add(mBoldLogPanel)
 
-        mShowTagPanel.layout = BorderLayout()
-        mShowTagPanel.add(mShowTagTogglePanel, BorderLayout.WEST)
-        if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
-            mShowTagCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 3)
-        }
-        mShowTagCombo.preferredSize = Dimension(250, mShowTagCombo.preferredSize.height)
-        mShowTagPanel.add(mShowTagCombo, BorderLayout.CENTER)
-//        mTagPanel.add(mShowTagPanel)
 
-        mShowPidPanel.layout = BorderLayout()
-        mShowPidPanel.add(mShowPidTogglePanel, BorderLayout.WEST)
-        if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
-            mShowPidCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 3)
+        for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+            mTokenPanel[idx].layout = BorderLayout()
+            mTokenPanel[idx].add(mTokenTogglePanel[idx], BorderLayout.WEST)
+            if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
+                mTokenCombo[idx].border = BorderFactory.createEmptyBorder(3, 0, 3, 3)
+            }
+            mTokenCombo[idx].preferredSize = Dimension(mFormatManager.mCurrFormat.mTokens[idx].mUiWidth, mTokenCombo[idx].preferredSize.height)
+            mTokenPanel[idx].add(mTokenCombo[idx], BorderLayout.CENTER)
         }
-        mShowPidCombo.preferredSize = Dimension(120, mShowPidCombo.preferredSize.height)
-        mShowPidPanel.add(mShowPidCombo, BorderLayout.CENTER)
-//        mPidPanel.add(mShowPidPanel)
-
-        mShowTidPanel.layout = BorderLayout()
-        mShowTidPanel.add(mShowTidTogglePanel, BorderLayout.WEST)
-        if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
-            mShowTidCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 3)
-        }
-        mShowTidCombo.preferredSize = Dimension(120, mShowTidCombo.preferredSize.height)
-        mShowTidPanel.add(mShowTidCombo, BorderLayout.CENTER)
-//        mTidPanel.add(mShowTidPanel)
 
         mLogCmdCombo.preferredSize = Dimension(200, mLogCmdCombo.preferredSize.height)
         if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
@@ -958,9 +891,9 @@ class MainUI private constructor() : JFrame() {
 
         val itemFilterPanel = JPanel(FlowLayout(FlowLayout.LEADING, 0, 0))
         itemFilterPanel.border = BorderFactory.createEmptyBorder(0, 0, 0, 0)
-        itemFilterPanel.add(mShowTagPanel)
-        itemFilterPanel.add(mShowPidPanel)
-        itemFilterPanel.add(mShowTidPanel)
+        for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+            itemFilterPanel.add(mTokenPanel[idx])
+        }
         itemFilterPanel.add(mBoldLogPanel)
         itemFilterPanel.add(mMatchCaseTogglePanel)
 
@@ -1028,9 +961,9 @@ class MainUI private constructor() : JFrame() {
         FilterComboBox.IsFilterIncremental = { mItemFilterIncremental.state }
         mShowLogCombo.setApplyFilter { filter -> mFilteredTableModel.mFilterLog = filter }
         mBoldLogCombo.setApplyFilter { filter -> mFilteredTableModel.mFilterHighlightLog = filter }
-        mShowTagCombo.setApplyFilter { filter -> mFilteredTableModel.mFilterTag = filter }
-        mShowPidCombo.setApplyFilter { filter -> mFilteredTableModel.mFilterPid = filter }
-        mShowTidCombo.setApplyFilter { filter -> mFilteredTableModel.mFilterTid = filter }
+        for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+            mTokenCombo[idx].setApplyFilter { filter -> mFilteredTableModel.mFilterTokenMgr.set(idx, filter) }
+        }
 
         mFullLogPanel = LogPanel(this, mFullTableModel, null, FocusHandler(false))
         mFilteredLogPanel = LogPanel(this, mFilteredTableModel, mFullLogPanel, FocusHandler(true))
@@ -1184,42 +1117,31 @@ class MainUI private constructor() : JFrame() {
         }
         mShowLogCombo.isEnabled = mShowLogToggle.isSelected
 
-        for (i in 0 until ConfigManager.COUNT_SHOW_TAG) {
-            item = mConfigManager.getItem(ConfigManager.ITEM_SHOW_TAG + i)
-            if (item == null) {
-                break
+        for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+            if (mFormatManager.mCurrFormat.mTokens[idx].mIsSaveFilter) {
+                for (i in 0 until ConfigManager.COUNT_TOKEN_FILTER) {
+                    item =
+                        mConfigManager.getItem("${ConfigManager.ITEM_TOKEN_FILTER}${mFormatManager.mCurrFormat.mTokens[idx].mToken}_$i")
+                    if (item == null) {
+                        break
+                    }
+                    mTokenCombo[idx].insertItemAt(item, i)
+                    if (i == 0) {
+                        mTokenCombo[idx].selectedIndex = 0
+                    }
+                }
+
+                mTokenCombo[idx].updateTooltip()
             }
-            mShowTagCombo.insertItemAt(item, i)
-            if (i == 0) {
-                mShowTagCombo.selectedIndex = 0
+            
+            check = mConfigManager.getItem("${ConfigManager.ITEM_TOKEN_CHECK}$idx")
+            if (!check.isNullOrEmpty()) {
+                mTokenToggle[idx].isSelected = check.toBoolean()
+            } else {
+                mTokenToggle[idx].isSelected = true
             }
+            mTokenCombo[idx].setEnabledFilter(mTokenToggle[idx].isSelected)
         }
-
-        mShowTagCombo.updateTooltip()
-
-        check = mConfigManager.getItem(ConfigManager.ITEM_SHOW_TAG_CHECK)
-        if (!check.isNullOrEmpty()) {
-            mShowTagToggle.isSelected = check.toBoolean()
-        } else {
-            mShowTagToggle.isSelected = true
-        }
-        mShowTagCombo.setEnabledFilter(mShowTagToggle.isSelected)
-
-        check = mConfigManager.getItem(ConfigManager.ITEM_SHOW_PID_CHECK)
-        if (!check.isNullOrEmpty()) {
-            mShowPidToggle.isSelected = check.toBoolean()
-        } else {
-            mShowPidToggle.isSelected = true
-        }
-        mShowPidCombo.setEnabledFilter(mShowPidToggle.isSelected)
-
-        check = mConfigManager.getItem(ConfigManager.ITEM_SHOW_TID_CHECK)
-        if (!check.isNullOrEmpty()) {
-            mShowTidToggle.isSelected = check.toBoolean()
-        } else {
-            mShowTidToggle.isSelected = true
-        }
-        mShowTidCombo.setEnabledFilter(mShowTidToggle.isSelected)
 
         for (i in 0 until ConfigManager.COUNT_HIGHLIGHT_LOG) {
             item = mConfigManager.getItem(ConfigManager.ITEM_HIGHLIGHT_LOG + i)
@@ -1313,20 +1235,13 @@ class MainUI private constructor() : JFrame() {
         } else {
             mFilteredTableModel.mFilterSearchLog = ""
         }
-        if (mShowTagToggle.isSelected && mShowTagCombo.selectedItem != null) {
-            mFilteredTableModel.mFilterTag = mShowTagCombo.selectedItem!!.toString()
-        } else {
-            mFilteredTableModel.mFilterTag = ""
-        }
-        if (mShowPidToggle.isSelected && mShowPidCombo.selectedItem != null) {
-            mFilteredTableModel.mFilterPid = mShowPidCombo.selectedItem!!.toString()
-        } else {
-            mFilteredTableModel.mFilterPid = ""
-        }
-        if (mShowTidToggle.isSelected && mShowTidCombo.selectedItem != null) {
-            mFilteredTableModel.mFilterTid = mShowTidCombo.selectedItem!!.toString()
-        } else {
-            mFilteredTableModel.mFilterTid = ""
+        
+        for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+            if (mTokenToggle[idx].isSelected && mTokenCombo[idx].selectedItem != null) {
+                mFilteredTableModel.mFilterTokenMgr.set(idx, mTokenCombo[idx].selectedItem!!.toString())
+            } else {
+                mFilteredTableModel.mFilterTokenMgr.set(idx, "")
+            }
         }
 
         check = mConfigManager.getItem(ConfigManager.ITEM_VIEW_FULL)
@@ -1774,9 +1689,9 @@ class MainUI private constructor() : JFrame() {
             item.mPath = openItem.mPath
 
             item.mShowLogCheck = mShowLogToggle.isSelected
-            item.mShowTagCheck = mShowTagToggle.isSelected
-            item.mShowPidCheck = mShowPidToggle.isSelected
-            item.mShowTidCheck = mShowTidToggle.isSelected
+            for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+                item.mTokenCheck[idx] = mTokenToggle[idx].isSelected
+            }
             item.mHighlightLogCheck = mBoldLogToggle.isSelected
             item.mSearchMatchCase = mSearchPanel.mSearchMatchCaseToggle.isSelected
 
@@ -1787,9 +1702,9 @@ class MainUI private constructor() : JFrame() {
             }
 
             item.mShowLog = mShowLogCombo.selectedItem?.toString() ?: ""
-            item.mShowTag = mShowTagCombo.selectedItem?.toString() ?: ""
-            item.mShowPid = mShowPidCombo.selectedItem?.toString() ?: ""
-            item.mShowTid = mShowTidCombo.selectedItem?.toString() ?: ""
+            for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+                item.mTokenFilter[idx] = mTokenCombo[idx].selectedItem?.toString() ?: ""
+            }
             item.mHighlightLog = mBoldLogCombo.selectedItem?.toString() ?: ""
             item.mSearchLog = mSearchPanel.mSearchCombo.selectedItem?.toString() ?: ""
 
@@ -1807,16 +1722,16 @@ class MainUI private constructor() : JFrame() {
         item.mPath = path
 
         item.mShowLogCheck = mShowLogToggle.isSelected
-        item.mShowTagCheck = mShowTagToggle.isSelected
-        item.mShowPidCheck = mShowPidToggle.isSelected
-        item.mShowTidCheck = mShowTidToggle.isSelected
+        for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+            item.mTokenCheck[idx] = mTokenToggle[idx].isSelected
+        }
         item.mHighlightLogCheck = mBoldLogToggle.isSelected
         item.mSearchMatchCase = mSearchPanel.mSearchMatchCaseToggle.isSelected
 
         item.mShowLog = mShowLogCombo.selectedItem?.toString() ?: ""
-        item.mShowTag = mShowTagCombo.selectedItem?.toString() ?: ""
-        item.mShowPid = mShowPidCombo.selectedItem?.toString() ?: ""
-        item.mShowTid = mShowTidCombo.selectedItem?.toString() ?: ""
+        for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+            item.mTokenFilter[idx] = mTokenCombo[idx].selectedItem?.toString() ?: ""
+        }
         item.mHighlightLog = mBoldLogCombo.selectedItem?.toString() ?: ""
         item.mSearchLog = mSearchPanel.mSearchCombo.selectedItem?.toString() ?: ""
 
@@ -2078,6 +1993,9 @@ class MainUI private constructor() : JFrame() {
                     val settingsDialog = LogCmdSettingsDialog(this@MainUI)
                     settingsDialog.setLocationRelativeTo(this@MainUI)
                     settingsDialog.isVisible = true
+                }
+                mItemLogFormat -> {
+                    mFormatManager.showFormatListDialog(this@MainUI)
                 }
                 mItemFull -> {
                     if (mItemFull.state) {
@@ -2459,38 +2377,51 @@ class MainUI private constructor() : JFrame() {
             }
 
             if (SwingUtilities.isRightMouseButton(p0)) {
-                when (p0.source) {
-                    mDeviceCombo.editor.editorComponent -> {
-                        popupMenu = PopUpCombobox(mDeviceCombo)
+                var isNeedCheck = true
+                for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+                    if (p0.source == mTokenCombo[idx].editor.editorComponent) {
+                        popupMenu = PopUpFilterCombobox(mTokenCombo[idx])
                         popupMenu?.show(p0.component, p0.x, p0.y)
+                        isNeedCheck = false
+                        break
                     }
-                    mShowLogCombo.editor.editorComponent, mBoldLogCombo.editor.editorComponent, mShowTagCombo.editor.editorComponent, mShowPidCombo.editor.editorComponent, mShowTidCombo.editor.editorComponent -> {
-                        lateinit var combo: FilterComboBox
-                        when (p0.source) {
-                            mShowLogCombo.editor.editorComponent -> {
-                                combo = mShowLogCombo
-                            }
-                            mBoldLogCombo.editor.editorComponent -> {
-                                combo = mBoldLogCombo
-                            }
-                            mShowTagCombo.editor.editorComponent -> {
-                                combo = mShowTagCombo
-                            }
-                            mShowPidCombo.editor.editorComponent -> {
-                                combo = mShowPidCombo
-                            }
-                            mShowTidCombo.editor.editorComponent -> {
-                                combo = mShowTidCombo
-                            }
+                }
+                if (isNeedCheck) {
+                    when (p0.source) {
+                        mDeviceCombo.editor.editorComponent -> {
+                            popupMenu = PopUpCombobox(mDeviceCombo)
+                            popupMenu?.show(p0.component, p0.x, p0.y)
                         }
-                        popupMenu = PopUpFilterCombobox(combo)
-                        popupMenu?.show(p0.component, p0.x, p0.y)
-                    }
-                    else -> {
-                        val compo = p0.source as JComponent
-                        val event = MouseEvent(compo.parent, p0.id, p0.`when`, p0.modifiers, p0.x + compo.x, p0.y + compo.y, p0.clickCount, p0.isPopupTrigger)
 
-                        compo.parent.dispatchEvent(event)
+                        mShowLogCombo.editor.editorComponent, mBoldLogCombo.editor.editorComponent -> {
+                            lateinit var combo: FilterComboBox
+                            when (p0.source) {
+                                mShowLogCombo.editor.editorComponent -> {
+                                    combo = mShowLogCombo
+                                }
+
+                                mBoldLogCombo.editor.editorComponent -> {
+                                    combo = mBoldLogCombo
+                                }
+                            }
+                            popupMenu = PopUpFilterCombobox(combo)
+                            popupMenu?.show(p0.component, p0.x, p0.y)
+                        }
+                        else -> {
+                            val compo = p0.source as JComponent
+                            val event = MouseEvent(
+                                compo.parent,
+                                p0.id,
+                                p0.`when`,
+                                p0.modifiers,
+                                p0.x + compo.x,
+                                p0.y + compo.y,
+                                p0.clickCount,
+                                p0.isPopupTrigger
+                            )
+
+                            compo.parent.dispatchEvent(event)
+                        }
                     }
                 }
             }
@@ -2677,83 +2608,87 @@ class MainUI private constructor() : JFrame() {
 
     internal inner class ItemHandler : ItemListener {
         override fun itemStateChanged(p0: ItemEvent?) {
-            when (p0?.source) {
-                mShowLogToggle -> {
-                    mShowLogCombo.setEnabledFilter(mShowLogToggle.isSelected)
+            var isNeedCheck = true
+            for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+                if (p0?.source == mTokenToggle[idx]) {
+                    mTokenCombo[idx].setEnabledFilter(mTokenToggle[idx].isSelected)
+                    isNeedCheck = false
+                    break
                 }
-                mBoldLogToggle -> {
-                    mBoldLogCombo.setEnabledFilter(mBoldLogToggle.isSelected)
-                }
-                mShowTagToggle -> {
-                    mShowTagCombo.setEnabledFilter(mShowTagToggle.isSelected)
-                }
-                mShowPidToggle -> {
-                    mShowPidCombo.setEnabledFilter(mShowPidToggle.isSelected)
-                }
-                mShowTidToggle -> {
-                    mShowTidCombo.setEnabledFilter(mShowTidToggle.isSelected)
+            }
+            if (isNeedCheck) {
+                when (p0?.source) {
+                    mShowLogToggle -> {
+                        mShowLogCombo.setEnabledFilter(mShowLogToggle.isSelected)
+                    }
+
+                    mBoldLogToggle -> {
+                        mBoldLogCombo.setEnabledFilter(mBoldLogToggle.isSelected)
+                    }
+
                 }
             }
 
             if (IsCreatingUI) {
                 return
             }
-            when (p0?.source) {
-                mShowLogToggle -> {
-                    if (mShowLogToggle.isSelected && mShowLogCombo.selectedItem != null) {
-                        mFilteredTableModel.mFilterLog = mShowLogCombo.selectedItem!!.toString()
+
+            isNeedCheck = true
+            for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+                if (p0?.source == mTokenToggle[idx]) {
+                    if (mTokenToggle[idx].isSelected && mTokenCombo[idx].selectedItem != null) {
+                        mFilteredTableModel.mFilterTokenMgr.set(idx, mTokenCombo[idx].selectedItem!!.toString())
                     } else {
-                        mFilteredTableModel.mFilterLog = ""
+                        mFilteredTableModel.mFilterTokenMgr.set(idx, "")
                     }
-                    mConfigManager.saveItem(ConfigManager.ITEM_SHOW_LOG_CHECK, mShowLogToggle.isSelected.toString())
+                    mConfigManager.saveItem("${ConfigManager.ITEM_TOKEN_CHECK}$idx", mTokenToggle[idx].isSelected.toString())
+                    isNeedCheck = false
+                    break
                 }
-                mBoldLogToggle -> {
-                    if (mBoldLogToggle.isSelected && mBoldLogCombo.selectedItem != null) {
-                        mFilteredTableModel.mFilterHighlightLog = mBoldLogCombo.selectedItem!!.toString()
-                    } else {
-                        mFilteredTableModel.mFilterHighlightLog = ""
+            }
+            if (isNeedCheck) {
+                when (p0?.source) {
+                    mShowLogToggle -> {
+                        if (mShowLogToggle.isSelected && mShowLogCombo.selectedItem != null) {
+                            mFilteredTableModel.mFilterLog = mShowLogCombo.selectedItem!!.toString()
+                        } else {
+                            mFilteredTableModel.mFilterLog = ""
+                        }
+                        mConfigManager.saveItem(ConfigManager.ITEM_SHOW_LOG_CHECK, mShowLogToggle.isSelected.toString())
                     }
-                    mConfigManager.saveItem(ConfigManager.ITEM_HIGHLIGHT_LOG_CHECK, mBoldLogToggle.isSelected.toString())
-                }
-                mShowTagToggle -> {
-                    if (mShowTagToggle.isSelected && mShowTagCombo.selectedItem != null) {
-                        mFilteredTableModel.mFilterTag = mShowTagCombo.selectedItem!!.toString()
-                    } else {
-                        mFilteredTableModel.mFilterTag = ""
+
+                    mBoldLogToggle -> {
+                        if (mBoldLogToggle.isSelected && mBoldLogCombo.selectedItem != null) {
+                            mFilteredTableModel.mFilterHighlightLog = mBoldLogCombo.selectedItem!!.toString()
+                        } else {
+                            mFilteredTableModel.mFilterHighlightLog = ""
+                        }
+                        mConfigManager.saveItem(
+                            ConfigManager.ITEM_HIGHLIGHT_LOG_CHECK,
+                            mBoldLogToggle.isSelected.toString()
+                        )
                     }
-                    mConfigManager.saveItem(ConfigManager.ITEM_SHOW_TAG_CHECK, mShowTagToggle.isSelected.toString())
-                }
-                mShowPidToggle -> {
-                    if (mShowPidToggle.isSelected && mShowPidCombo.selectedItem != null) {
-                        mFilteredTableModel.mFilterPid = mShowPidCombo.selectedItem!!.toString()
-                    } else {
-                        mFilteredTableModel.mFilterPid = ""
+
+                    mMatchCaseToggle -> {
+                        mFilteredTableModel.mMatchCase = mMatchCaseToggle.isSelected
+                        mConfigManager.saveItem(ConfigManager.ITEM_MATCH_CASE, mMatchCaseToggle.isSelected.toString())
                     }
-                    mConfigManager.saveItem(ConfigManager.ITEM_SHOW_PID_CHECK, mShowPidToggle.isSelected.toString())
-                }
-                mShowTidToggle -> {
-                    if (mShowTidToggle.isSelected && mShowTidCombo.selectedItem != null) {
-                        mFilteredTableModel.mFilterTid = mShowTidCombo.selectedItem!!.toString()
-                    } else {
-                        mFilteredTableModel.mFilterTid = ""
+
+                    mScrollbackKeepToggle -> {
+                        mFilteredTableModel.mScrollbackKeep = mScrollbackKeepToggle.isSelected
                     }
-                    mConfigManager.saveItem(ConfigManager.ITEM_SHOW_TID_CHECK, mShowTidToggle.isSelected.toString())
-                }
-                mMatchCaseToggle -> {
-                    mFilteredTableModel.mMatchCase = mMatchCaseToggle.isSelected
-                    mConfigManager.saveItem(ConfigManager.ITEM_MATCH_CASE, mMatchCaseToggle.isSelected.toString())
-                }
-                mScrollbackKeepToggle -> {
-                    mFilteredTableModel.mScrollbackKeep = mScrollbackKeepToggle.isSelected
-                }
-                mRetryAdbToggle -> {
-                    mConfigManager.saveItem(ConfigManager.ITEM_RETRY_ADB, mRetryAdbToggle.isSelected.toString())
-                }
-                mPauseToggle -> {
-                    pauseAdbScan(mPauseToggle.isSelected)
-                }
-                mPauseFollowToggle -> {
-                    pauseFileFollow(mPauseFollowToggle.isSelected)
+
+                    mRetryAdbToggle -> {
+                        mConfigManager.saveItem(ConfigManager.ITEM_RETRY_ADB, mRetryAdbToggle.isSelected.toString())
+                    }
+
+                    mPauseToggle -> {
+                        pauseAdbScan(mPauseToggle.isSelected)
+                    }
+
+                    mPauseFollowToggle -> {
+                        pauseFileFollow(mPauseFollowToggle.isSelected)
+                    }
                 }
             }
         }
@@ -2815,77 +2750,65 @@ class MainUI private constructor() : JFrame() {
                 mIsCanceled = false
                 return
             }
-            when (p0?.source) {
-                mShowLogCombo -> {
-                    if (mShowLogCombo.selectedIndex < 0) {
+            var isNeedCheck = true
+            for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+                if (p0?.source == mTokenCombo[idx]) {
+                    if (mTokenCombo[idx].selectedIndex < 0) {
                         return
                     }
-                    val combo = mShowLogCombo
-                    val item = combo.selectedItem!!.toString()
-                    if (combo.editor.item.toString() != item) {
-                        return
-                    }
-                    combo.resetComboItem(item)
-                    mFilteredTableModel.mFilterLog = item
-                    combo.updateTooltip()
-                }
-                mBoldLogCombo -> {
-                    if (mBoldLogCombo.selectedIndex < 0) {
-                        return
-                    }
-                    val combo = mBoldLogCombo
+                    val combo = mTokenCombo[idx]
                     val item = combo.selectedItem!!.toString()
                     combo.resetComboItem(item)
-                    mFilteredTableModel.mFilterHighlightLog = item
+                    mFilteredTableModel.mFilterTokenMgr.set(idx, item)
                     combo.updateTooltip()
+                    isNeedCheck = false
+                    break
                 }
-                mShowTagCombo -> {
-                    if (mShowTagCombo.selectedIndex < 0) {
-                        return
+            }
+            if (isNeedCheck) {
+                when (p0?.source) {
+                    mShowLogCombo -> {
+                        if (mShowLogCombo.selectedIndex < 0) {
+                            return
+                        }
+                        val combo = mShowLogCombo
+                        val item = combo.selectedItem!!.toString()
+                        if (combo.editor.item.toString() != item) {
+                            return
+                        }
+                        combo.resetComboItem(item)
+                        mFilteredTableModel.mFilterLog = item
+                        combo.updateTooltip()
                     }
-                    val combo = mShowTagCombo
-                    val item = combo.selectedItem!!.toString()
-                    combo.resetComboItem(item)
-                    mFilteredTableModel.mFilterTag = item
-                    combo.updateTooltip()
-                }
-                mShowPidCombo -> {
-                    if (mShowPidCombo.selectedIndex < 0) {
-                        return
-                    }
-                    val combo = mShowPidCombo
-                    val item = combo.selectedItem!!.toString()
-                    combo.resetComboItem(item)
-                    mFilteredTableModel.mFilterPid = item
-                    combo.updateTooltip()
-                }
-                mShowTidCombo -> {
-                    if (mShowTidCombo.selectedIndex < 0) {
-                        return
-                    }
-                    val combo = mShowTidCombo
-                    val item = combo.selectedItem!!.toString()
-                    combo.resetComboItem(item)
-                    mFilteredTableModel.mFilterTid = item
-                    combo.updateTooltip()
-                }
 
-                mLogCmdCombo -> {
-                    if (mLogCmdCombo.selectedIndex < 0) {
-                        return
+                    mBoldLogCombo -> {
+                        if (mBoldLogCombo.selectedIndex < 0) {
+                            return
+                        }
+                        val combo = mBoldLogCombo
+                        val item = combo.selectedItem!!.toString()
+                        combo.resetComboItem(item)
+                        mFilteredTableModel.mFilterHighlightLog = item
+                        combo.updateTooltip()
                     }
-                    val combo = mLogCmdCombo
-                    val item = combo.selectedItem!!.toString()
-                    mLogCmdManager.mLogCmd = item
-                    updateLogCmdCombo(false)
-                }
 
-                mLogLevelCombo -> {
-                    if (mLogLevelCombo.selectedIndex < 0) {
-                        return
+                    mLogCmdCombo -> {
+                        if (mLogCmdCombo.selectedIndex < 0) {
+                            return
+                        }
+                        val combo = mLogCmdCombo
+                        val item = combo.selectedItem!!.toString()
+                        mLogCmdManager.mLogCmd = item
+                        updateLogCmdCombo(false)
                     }
-                    mFilteredTableModel.mFilterLevel = mLogLevelCombo.selectedIndex
-                    mConfigManager.saveItem(ConfigManager.ITEM_LOG_LEVEL, mLogLevelCombo.selectedIndex.toString())
+
+                    mLogLevelCombo -> {
+                        if (mLogLevelCombo.selectedIndex < 0) {
+                            return
+                        }
+                        mFilteredTableModel.mFilterLevel = mLogLevelCombo.selectedIndex
+                        mConfigManager.saveItem(ConfigManager.ITEM_LOG_LEVEL, mLogLevelCombo.selectedIndex.toString())
+                    }
                 }
             }
         }
@@ -2974,12 +2897,17 @@ class MainUI private constructor() : JFrame() {
             mShowLogCombo.parent.revalidate()
             mShowLogCombo.parent.repaint()
         }
-        if (mShowTagCombo.selectedIndex >= 0 && (mShowTagComboStyle == FilterComboBox.Mode.MULTI_LINE || mShowTagComboStyle == FilterComboBox.Mode.MULTI_LINE_HIGHLIGHT)) {
-            val selectedItem = mShowTagCombo.selectedItem
-            mShowTagCombo.selectedItem = ""
-            mShowTagCombo.selectedItem = selectedItem
-            mShowTagCombo.parent.revalidate()
-            mShowTagCombo.parent.repaint()
+        
+        for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+            if (mFormatManager.mCurrFormat.mTokens[idx].mIsSaveFilter
+                && mTokenCombo[idx].selectedIndex >= 0
+                && (mTokenComboStyle[idx] == FilterComboBox.Mode.MULTI_LINE || mTokenComboStyle[idx] == FilterComboBox.Mode.MULTI_LINE_HIGHLIGHT)) {
+                val selectedItem = mTokenCombo[idx].selectedItem
+                mTokenCombo[idx].selectedItem = ""
+                mTokenCombo[idx].selectedItem = selectedItem
+                mTokenCombo[idx].parent.revalidate()
+                mTokenCombo[idx].parent.repaint()
+            }
         }
         if (mBoldLogCombo.selectedIndex >= 0 && (mBoldLogComboStyle == FilterComboBox.Mode.MULTI_LINE || mBoldLogComboStyle == FilterComboBox.Mode.MULTI_LINE_HIGHLIGHT)) {
             val selectedItem = mBoldLogCombo.selectedItem
@@ -2991,9 +2919,9 @@ class MainUI private constructor() : JFrame() {
         mColorManager.applyFilterStyle()
 
         mShowLogCombo.mEnabledTfTooltip = true
-        mShowTagCombo.mEnabledTfTooltip = true
-        mShowPidCombo.mEnabledTfTooltip = true
-        mShowTidCombo.mEnabledTfTooltip = true
+        for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+            mTokenCombo[idx].mEnabledTfTooltip = true
+        }
 
         var isFirst = true
         for (fileName in args) {

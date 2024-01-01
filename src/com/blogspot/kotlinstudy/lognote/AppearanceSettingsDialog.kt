@@ -303,12 +303,20 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
 
             mComboLabelArray[ComboIdx.LOG.value]!!.text = "Combo Style : Log"
             mStyleComboArray[ComboIdx.LOG.value]!!.selectedIndex = mMainUI.mShowLogComboStyle.value
+//            mComboLabelArray[ComboIdx.TAG.value]!!.text = "Combo Style : Tag"
+//            mStyleComboArray[ComboIdx.TAG.value]!!.selectedIndex = mMainUI.mShowTagComboStyle.value
+//            mComboLabelArray[ComboIdx.PID.value]!!.text = "Combo Style : PID"
+//            mStyleComboArray[ComboIdx.PID.value]!!.selectedIndex = mMainUI.mShowPidComboStyle.value
+//            mComboLabelArray[ComboIdx.TID.value]!!.text = "Combo Style : TID"
+//            mStyleComboArray[ComboIdx.TID.value]!!.selectedIndex = mMainUI.mShowTidComboStyle.value
+//          TODO : TEST TEST change combo style
             mComboLabelArray[ComboIdx.TAG.value]!!.text = "Combo Style : Tag"
-            mStyleComboArray[ComboIdx.TAG.value]!!.selectedIndex = mMainUI.mShowTagComboStyle.value
+            mStyleComboArray[ComboIdx.TAG.value]!!.selectedIndex = FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT.value
             mComboLabelArray[ComboIdx.PID.value]!!.text = "Combo Style : PID"
-            mStyleComboArray[ComboIdx.PID.value]!!.selectedIndex = mMainUI.mShowPidComboStyle.value
+            mStyleComboArray[ComboIdx.PID.value]!!.selectedIndex = FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT.value
             mComboLabelArray[ComboIdx.TID.value]!!.text = "Combo Style : TID"
-            mStyleComboArray[ComboIdx.TID.value]!!.selectedIndex = mMainUI.mShowTidComboStyle.value
+            mStyleComboArray[ComboIdx.TID.value]!!.selectedIndex = FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT.value
+
             mComboLabelArray[ComboIdx.BOLD.value]!!.text = "Combo Style : BOLD"
             mStyleComboArray[ComboIdx.BOLD.value]!!.selectedIndex = mMainUI.mBoldLogComboStyle.value
 //            mComboLabelArray[idx]!!.toolTipText = mColorLabelArray[idx]!!.text

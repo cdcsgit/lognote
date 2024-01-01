@@ -26,6 +26,8 @@ class ConfigManager private constructor() {
         const val COUNT_SHOW_LOG = 20
         const val ITEM_SHOW_TAG = "SHOW_TAG_"
         const val COUNT_SHOW_TAG = 10
+        const val ITEM_TOKEN_FILTER = "TOKEN_FILTER_"
+        const val COUNT_TOKEN_FILTER = 10
 
         const val ITEM_HIGHLIGHT_LOG = "HIGHLIGHT_LOG_"
         const val COUNT_HIGHLIGHT_LOG = 10
@@ -36,9 +38,7 @@ class ConfigManager private constructor() {
         const val ITEM_SEARCH_MATCH_CASE = "SEARCH_MATCH_CASE"
 
         const val ITEM_SHOW_LOG_CHECK = "SHOW_LOG_CHECK"
-        const val ITEM_SHOW_TAG_CHECK = "SHOW_TAG_CHECK"
-        const val ITEM_SHOW_PID_CHECK = "SHOW_PID_CHECK"
-        const val ITEM_SHOW_TID_CHECK = "SHOW_TID_CHECK"
+        const val ITEM_TOKEN_CHECK = "TOKEN_CHECK_"
 
         const val ITEM_HIGHLIGHT_LOG_CHECK = "HIGHLIGHT_LOG_CHECK"
 
@@ -84,6 +84,7 @@ class ConfigManager private constructor() {
         const val ITEM_SHOW_PID_STYLE = "SHOW_PID_STYLE"
         const val ITEM_SHOW_TID_STYLE = "SHOW_TID_STYLE"
         const val ITEM_BOLD_LOG_STYLE = "BOLD_LOG_STYLE"
+        const val ITEM_TOKEN_COMBO_STYLE = "TOKEN_COMBO_STYLE_"
 
         const val ITEM_ICON_TEXT = "ICON_TEXT"
         const val VALUE_ICON_TEXT_I_T = "IconText"
@@ -113,9 +114,9 @@ class ConfigManager private constructor() {
     private fun setDefaultConfig() {
         mProperties[ITEM_LOG_LEVEL] = FormatManager.LEVEL_VERBOSE.toString()
         mProperties[ITEM_SHOW_LOG_CHECK] = "true"
-        mProperties[ITEM_SHOW_TAG_CHECK] = "true"
-        mProperties[ITEM_SHOW_PID_CHECK] = "true"
-        mProperties[ITEM_SHOW_TID_CHECK] = "true"
+        for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+            mProperties["$ITEM_TOKEN_CHECK$idx"] = "false"
+        }
         mProperties[ITEM_HIGHLIGHT_LOG_CHECK] = "true"
     }
 
@@ -332,9 +333,16 @@ class ConfigManager private constructor() {
                 confVer = (mProperties[ITEM_CONFIG_VERSION] ?: "") as String
                 println("manageVersion : $confVer applied")
             }
+
+//            if (confVer == "2") {
+//                updateConfigFromV1ToV2()
+//                confVer = (mProperties[ITEM_CONFIG_VERSION] ?: "") as String
+//                println("manageVersion : $confVer applied")
+//            }
         }
         else {
             mProperties[ITEM_CONFIG_VERSION] = "2"
+//            mProperties[ITEM_CONFIG_VERSION] = "3"
         }
 
         saveConfig()
@@ -376,9 +384,52 @@ class ConfigManager private constructor() {
                 }
             }
         }
-        
+
         mProperties[ITEM_CONFIG_VERSION] = "2"
         println("updateConfigFromV1ToV2 : --")
+    }
+
+    private fun updateConfigFromV2ToV3() {
+        println("updateConfigFromV2ToV3 : change log level properties ++")
+//        prop = mConfigManager.getItem(ConfigManager.ITEM_SHOW_TAG_STYLE)
+//        prop = mConfigManager.getItem(ConfigManager.ITEM_SHOW_PID_STYLE)
+//        prop = mConfigManager.getItem(ConfigManager.ITEM_SHOW_TID_STYLE)
+//        mProperties.remove()
+
+//        nCount = mShowTagCombo.itemCount
+//        if (nCount > ConfigManager.COUNT_SHOW_TAG) {
+//            nCount = ConfigManager.COUNT_SHOW_TAG
+//        }
+//        for (i in 0 until nCount) {
+//            mConfigManager.setItem(ConfigManager.ITEM_SHOW_TAG + i, mShowTagCombo.getItemAt(i).toString())
+//        }
+//        for (i in nCount until ConfigManager.COUNT_SHOW_TAG) {
+//            mConfigManager.removeConfigItem(ConfigManager.ITEM_SHOW_TAG + i)
+//        }
+//        check = mConfigManager.getItem(ConfigManager.ITEM_SHOW_TAG_CHECK)
+//        if (!check.isNullOrEmpty()) {
+//            mShowTagToggle.isSelected = check.toBoolean()
+//        } else {
+//            mShowTagToggle.isSelected = true
+//        }
+//        mShowTagCombo.setEnabledFilter(mShowTagToggle.isSelected)
+//
+//        check = mConfigManager.getItem(ConfigManager.ITEM_SHOW_PID_CHECK)
+//        if (!check.isNullOrEmpty()) {
+//            mShowPidToggle.isSelected = check.toBoolean()
+//        } else {
+//            mShowPidToggle.isSelected = true
+//        }
+//        mShowPidCombo.setEnabledFilter(mShowPidToggle.isSelected)
+//
+//        check = mConfigManager.getItem(ConfigManager.ITEM_SHOW_TID_CHECK)
+//        mProperties[ITEM_SHOW_TAG_CHECK] = "true"
+//        mProperties[ITEM_SHOW_PID_CHECK] = "true"
+//        mProperties[ITEM_SHOW_TID_CHECK] = "true"
+//
+
+        mProperties[ITEM_CONFIG_VERSION] = "3"
+        println("updateConfigFromV2ToV3 : --")
     }
 }
 
