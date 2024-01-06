@@ -75,7 +75,7 @@ class ColorManager private constructor(){
         ;
 
         companion object {
-            fun fromInt(value: Int) = values().first { it.value == value }
+            fun fromInt(value: Int) = entries.first { it.value == value }
         }
     }
 

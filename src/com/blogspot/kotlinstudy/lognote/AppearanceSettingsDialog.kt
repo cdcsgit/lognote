@@ -237,7 +237,7 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
         SIZE(2);
 
         companion object {
-            fun fromInt(value: Int) = values().first { it.value == value }
+            fun fromInt(value: Int) = entries.first { it.value == value }
         }
     }
 

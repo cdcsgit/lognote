@@ -1350,9 +1350,6 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                 var num = 0
                 var saveNum = 0
                 var level: Int
-                var tag: String
-                var pid: String
-                var tid: String
                 var tokens: Array<String>
 
                 var isShow: Boolean
@@ -1612,9 +1609,6 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                 var line: String? = null
                 var num = 0
                 var level: Int
-                var tag: String
-                var pid: String
-                var tid: String
                 var tokens: Array<String>
 
                 var isShow: Boolean

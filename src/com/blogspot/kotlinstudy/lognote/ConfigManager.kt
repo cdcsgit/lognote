@@ -24,8 +24,6 @@ class ConfigManager private constructor() {
 
         const val ITEM_SHOW_LOG = "SHOW_LOG_"
         const val COUNT_SHOW_LOG = 20
-        const val ITEM_SHOW_TAG = "SHOW_TAG_"
-        const val COUNT_SHOW_TAG = 10
         const val ITEM_TOKEN_FILTER = "TOKEN_FILTER_"
         const val COUNT_TOKEN_FILTER = 10
 
