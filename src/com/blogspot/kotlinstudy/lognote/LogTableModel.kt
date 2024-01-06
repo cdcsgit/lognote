@@ -32,7 +32,6 @@ interface LogTableModelListener {
 
 class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableModel() {
     companion object {
-        var IsLogcatLog = false
         var IsColorTagRegex = false
         private const val COLUMN_NUM = 0
         private const val COLUMN_LOGLINE = 1
@@ -79,6 +78,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                 field = value
             }
 
+            mTokenNthMax = mLevelIdx
             for (token in value) {
                 if (token.mNth > mTokenNthMax) {
                     mTokenNthMax = token.mNth
@@ -213,7 +213,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                 }
             }
         }
-    var mPidTokIdx = -1
+    private var mPidTokIdx = mFormatManager.mCurrFormat.mPidTokIdx
     val mFilterTokenMgr = FilterTokenManager()
 
     private var mPatternCase = Pattern.CASE_INSENSITIVE
@@ -319,12 +319,10 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
     private var mPatternShowLog: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
     private var mPatternHideLog: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
 
-    private var mPatternError: Pattern = Pattern.compile("\\bERROR\\b", Pattern.CASE_INSENSITIVE)
-    private var mPatternWarning: Pattern = Pattern.compile("\\bWARNING\\b", Pattern.CASE_INSENSITIVE)
-    private var mPatternInfo: Pattern = Pattern.compile("\\bINFO\\b", Pattern.CASE_INSENSITIVE)
-    private var mPatternDebug: Pattern = Pattern.compile("\\bDEBUG\\b", Pattern.CASE_INSENSITIVE)
-
+    private val mLevelMap: Map<String, Int>
     init {
+        mLevelMap = mFormatManager.mCurrFormat.mLevels
+        mTokenNthMax = mLevelIdx
         for (token in mTokenInfo) {
             if (token.mNth > mTokenNthMax) {
                 mTokenNthMax = token.mNth
@@ -501,32 +499,6 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
         mLogFile = File(path)
     }
 
-    private fun levelToInt(text:String) : Int {
-        var level = LEVEL_NONE
-        when (text) {
-            "V" -> {
-                level = LEVEL_VERBOSE
-            }
-            "D" -> {
-                level = LEVEL_DEBUG
-            }
-            "I" -> {
-                level = LEVEL_INFO
-            }
-            "W" -> {
-                level = LEVEL_WARNING
-            }
-            "E" -> {
-                level = LEVEL_ERROR
-            }
-            "F" -> {
-                level = LEVEL_FATAL
-            }
-        }
-
-        return level
-    }
-
     private fun loadFile(isAppend: Boolean) {
         if (mLogFile == null) {
             return
@@ -542,7 +514,6 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                 num++
             }
         } else {
-            IsLogcatLog = false
             mLogItems.clear()
             mLogItems = mutableListOf()
             mBookmarkManager.clear()
@@ -551,36 +522,23 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
         val bufferedReader = BufferedReader(FileReader(mLogFile!!))
         var line: String?
         var level:Int
-        var tag:String
-        var pid:String
-        var tid:String
         var tokens: Array<String>
-
-        var logcatLogCount = 0
 
         line = bufferedReader.readLine()
         while (line != null) {
             val textSplited = line.trim().split(Regex(mSeparator))
 
             if (mFilterLevel != LEVEL_NONE && textSplited.size > mTokenNthMax) {
-                level = levelToInt(textSplited[mLevelIdx])
+                level = mLevelMap[textSplited[mLevelIdx]] ?: LEVEL_NONE
                 tokens = Array(mTokenInfo.size) { textSplited[mTokenInfo[it].mNth] }
             }  else {
                 level = LEVEL_NONE
                 tokens = mEmptyTokens
             }
 
-            if (level != LEVEL_NONE) {
-                logcatLogCount++
-            }
-
             mLogItems.add(LogItem(num.toString(), line, level, tokens))
             num++
             line = bufferedReader.readLine()
-        }
-
-        if (logcatLogCount > 10) {
-            IsLogcatLog = true
         }
 
         fireLogTableDataChanged()
@@ -641,29 +599,8 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
         return mColumnNames[column]
     }
 
-    private fun checkLevel(item: LogItem): Int {
-        if (IsLogcatLog) {
-            return item.mLevel
-        }
-        else {
-            val logLine = item.mLogLine
-
-            if (mPatternError.matcher(logLine).find()) {
-                return LEVEL_ERROR
-            } else if (mPatternWarning.matcher(logLine).find()) {
-                return LEVEL_WARNING
-            } else if (mPatternInfo.matcher(logLine).find()) {
-                return LEVEL_INFO
-            } else if (mPatternDebug.matcher(logLine).find()) {
-                return LEVEL_DEBUG
-            }
-        }
-
-        return LEVEL_NONE
-    }
-
     fun getFgColor(row: Int) : Color {
-        return when (checkLevel(mLogItems[row])) {
+        return when (mLogItems[row].mLevel) {
             LEVEL_VERBOSE -> {
                 mTableColor.mLogLevelVerbose
             }
@@ -689,7 +626,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
     }
 
     private fun getFgStrColor(row: Int) : String {
-        return when (checkLevel(mLogItems[row])) {
+        return when (mLogItems[row].mLevel) {
             LEVEL_VERBOSE -> {
                 mTableColor.mStrLogLevelVerbose
             }
@@ -1033,26 +970,18 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                 starts.push(boldS)
                 ends.push(boldE)
 
-//                when (boldS) {
-//                    in boldStartTag until boldEndTag -> {
-//                        fgColors.push(mTableColor.mStrTagFG)
-//                        bgColors.push(mTableColor.mStrLogBG)
-//                    }
-//                    in boldStartPid until boldEndPid -> {
-//                        fgColors.push(mTableColor.mStrPidFG)
-//                        bgColors.push(mTableColor.mStrLogBG)
-//                    }
-//                    in boldStartTid until boldEndTid -> {
-//                        fgColors.push(mTableColor.mStrTidFG)
-//                        bgColors.push(mTableColor.mStrLogBG)
-//                    }
-//                }
-//                TODO : TEST TEST change bold color
-                for(tokIdx in 0 until FormatManager.MAX_TOKEN_COUNT) {
-                    if (boldS >= boldStartTokens[tokIdx] && boldS < boldEndTokens[tokIdx]) {
-                        fgColors.push(mTableColor.mStrTagFG)
+                when (boldS) {
+                    in boldStartTokens[0] until boldEndTokens[0] -> {
+                        fgColors.push(mTableColor.mStrToken0FG)
                         bgColors.push(mTableColor.mStrLogBG)
-                        break
+                    }
+                    in boldStartTokens[1] until boldEndTokens[1] -> {
+                        fgColors.push(mTableColor.mStrToken1FG)
+                        bgColors.push(mTableColor.mStrLogBG)
+                    }
+                    in boldStartTokens[2] until boldEndTokens[2] -> {
+                        fgColors.push(mTableColor.mStrToken2FG)
+                        bgColors.push(mTableColor.mStrLogBG)
                     }
                 }
 
@@ -1384,7 +1313,6 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
     }
 
     fun startScan() {
-        IsLogcatLog = true
         if (mLogFile == null) {
             return
         }
@@ -1500,7 +1428,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                             for (tempLine in logLines) {
                                 val textSplited = tempLine.trim().split(Regex(mSeparator))
                                 if (mFilterLevel != LEVEL_NONE && textSplited.size > mTokenNthMax) {
-                                    level = levelToInt(textSplited[mLevelIdx])
+                                    level = mLevelMap[textSplited[mLevelIdx]] ?: LEVEL_NONE
                                     tokens = Array(mTokenInfo.size) { textSplited[mTokenInfo[it].mNth] }
                                 } else {
                                     level = if (tempLine.startsWith(Main.NAME)) {
@@ -1646,7 +1574,6 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
     }
 
     fun startFollow() {
-        IsLogcatLog = false
         if (mLogFile == null) {
             return
         }
@@ -1700,8 +1627,6 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                 val logLines: MutableList<String> = mutableListOf()
                 val logFilterItems: MutableList<LogFilterItem> = mutableListOf()
 
-                var logcatLogCount = 0
-
                 while (mIsKeepReading) {
                     try {
                         nextUpdateTime = System.currentTimeMillis() + 100
@@ -1752,7 +1677,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                             for (tempLine in logLines) {
                                 val textSplited = tempLine.trim().split(Regex(mSeparator))
                                 if (mFilterLevel != LEVEL_NONE && textSplited.size > mTokenNthMax) {
-                                    level = levelToInt(textSplited[mLevelIdx])
+                                    level = mLevelMap[textSplited[mLevelIdx]] ?: LEVEL_NONE
                                     tokens = Array(mTokenInfo.size) { textSplited[mTokenInfo[it].mNth] }
                                 } else {
                                     level = if (tempLine.startsWith(Main.NAME)) {
@@ -1806,13 +1731,6 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                                     mSelectionChanged = false
                                 }
 
-                                if (filterItem.mItem.mLevel != LEVEL_NONE) {
-                                    logcatLogCount++
-                                }
-
-                                if (logcatLogCount > 10) {
-                                    IsLogcatLog = true
-                                }
                                 mBaseModel!!.mLogItems.add(filterItem.mItem)
                                 while (!mScrollbackKeep && mScrollback > 0 && mBaseModel!!.mLogItems.count() > mScrollback) {
                                     mBaseModel!!.mLogItems.removeAt(0)

@@ -75,13 +75,50 @@ class FormatManager private constructor(){
             , "E" to LEVEL_ERROR
             , "F" to LEVEL_FATAL
         )
+        val levelIdx = 4
+
         val tokens: Array<Token> = arrayOf(
             Token("PID", 2, false, 120),
             Token("TID", 3, false, 120),
             Token("Tag", 5, true, 250),
         )
-        val levelIdx = 4
         val pidTokIdx = 0
+
+        // case 1
+//        val separator = "/|\\(?\\s+"
+//        val levels = mapOf("V" to LEVEL_VERBOSE
+//                , "D" to LEVEL_DEBUG
+//                , "I" to LEVEL_INFO
+//                , "W" to LEVEL_WARNING
+//                , "E" to LEVEL_ERROR
+//                , "F" to LEVEL_FATAL
+//        )
+//        val levelIdx = 2
+//
+//        val tokens: Array<Token> = arrayOf(
+//            Token("", 3, false, 120),
+//            Token("", 4, false, 120),
+//            Token("", 5, false, 120),
+//        )
+//        val pidTokIdx = 0
+
+        // case 2
+//        val separator = ":| "
+//        val levels = mapOf("V" to LEVEL_VERBOSE
+//                , "DEBUG" to LEVEL_DEBUG
+//                , "INFO" to LEVEL_INFO
+//                , "NOTICE" to LEVEL_WARNING
+//                , "ERROR" to LEVEL_ERROR
+//                , "F" to LEVEL_FATAL
+//        )
+//        val levelIdx = 4
+//
+//        val tokens: Array<Token> = arrayOf(
+//            Token("", 0, false, 120),
+//            Token("", 0, false, 120),
+//            Token("", 0, false, 120),
+//        )
+//        val pidTokIdx = 0
 
         mFormats[DEFAULT_LOGCAT] = FormatItem(DEFAULT_LOGCAT, separator, levels, levelIdx, tokens, pidTokIdx)
         mCurrFormat = mFormats[DEFAULT_LOGCAT]!!
@@ -101,10 +138,6 @@ class FormatManager private constructor(){
 
     fun getNames(): List<String> {
         return mFormats.keys.toList()
-    }
-
-    fun getLevels(name: String): Map<String, Int> {
-        return mFormats[name]?.mLevels ?: mapOf("" to -1)
     }
 
     fun showFormatListDialog(parent: JFrame) {

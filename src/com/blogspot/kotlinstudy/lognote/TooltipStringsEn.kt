@@ -55,6 +55,9 @@ class TooltipStringsEn private constructor() {
             , "Enter only numeric digits(0-9)"
             , "Log Format"
             , "Log Level"
+            , "Token filter"
+            , "Regex support, filter: search, -filter: exclude search, ex filter1|filter2|-exclude1"
+            , "Token highlight"
 //            , ""
         )
     }

@@ -35,14 +35,6 @@ class MainUI private constructor() : JFrame() {
 
         const val DEFAULT_FONT_NAME = "DialogInput"
 
-        const val LEVEL_TEXT_NONE = "None"
-        const val LEVEL_TEXT_VERBOSE = "Verbose"
-        const val LEVEL_TEXT_DEBUG = "Debug"
-        const val LEVEL_TEXT_INFO = "Info"
-        const val LEVEL_TEXT_WARNING = "Warning"
-        const val LEVEL_TEXT_ERROR = "Error"
-        const val LEVEL_TEXT_FATAL = "Fatal"
-
         const val CROSS_PLATFORM_LAF = "Cross Platform"
         const val SYSTEM_LAF = "System"
         const val FLAT_LIGHT_LAF = "Flat Light"
@@ -769,12 +761,12 @@ class MainUI private constructor() : JFrame() {
         mTokenTogglePanel = Array(FormatManager.MAX_TOKEN_COUNT) { JPanel(GridLayout(1, 1)) }
 
         for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
-//            mTokenCombo[idx].toolTipText = TooltipStrings.TAG_COMBO
+            mTokenCombo[idx].toolTipText = TooltipStrings.TOKEN_COMBO
             mTokenCombo[idx].isEditable = true
             mTokenCombo[idx].renderer = FilterComboBox.ComboBoxRenderer()
             mTokenCombo[idx].addItemListener(mItemHandler)
             mTokenCombo[idx].editor.editorComponent.addMouseListener(mMouseHandler)
-//            mTokenToggle.toolTipText = TooltipStrings.TAG_TOGGLE
+            mTokenToggle[idx].toolTipText = TooltipStrings.TOKEN_TOGGLE
             mTokenToggle[idx].margin = Insets(0, 0, 0, 0)
             mTokenTogglePanel[idx].add(mTokenToggle[idx])
             mTokenTogglePanel[idx].border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
@@ -893,6 +885,9 @@ class MainUI private constructor() : JFrame() {
         itemFilterPanel.border = BorderFactory.createEmptyBorder(0, 0, 0, 0)
         for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
             itemFilterPanel.add(mTokenPanel[idx])
+            if (mTokenToggle[idx].text.isNullOrEmpty()) {
+                mTokenPanel[idx].isVisible = false
+            }
         }
         itemFilterPanel.add(mBoldLogPanel)
         itemFilterPanel.add(mMatchCaseTogglePanel)

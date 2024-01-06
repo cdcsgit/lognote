@@ -80,9 +80,6 @@ class ConfigManager private constructor() {
         const val ITEM_RETRY_ADB = "RETRY_ADB"
 
         const val ITEM_SHOW_LOG_STYLE = "SHOW_LOG_STYLE"
-        const val ITEM_SHOW_TAG_STYLE = "SHOW_TAG_STYLE"
-        const val ITEM_SHOW_PID_STYLE = "SHOW_PID_STYLE"
-        const val ITEM_SHOW_TID_STYLE = "SHOW_TID_STYLE"
         const val ITEM_BOLD_LOG_STYLE = "BOLD_LOG_STYLE"
         const val ITEM_TOKEN_COMBO_STYLE = "TOKEN_COMBO_STYLE_"
 
@@ -210,9 +207,15 @@ class ConfigManager private constructor() {
         saveConfig()
     }
 
-    fun saveFilterStyle(keys: Array<String>, values: Array<String>) {
+    fun saveFilterStyle(
+        keys: Array<String>,
+        values: Array<String>,
+        tokenKeys: Array<String>,
+        tokenValues: Array<String>
+    ) {
         loadConfig()
         setItems(keys, values)
+        setItems(tokenKeys, tokenValues)
         ColorManager.getInstance().putConfigFilterStyle()
         saveConfig()
     }

@@ -13,6 +13,7 @@ import javax.swing.plaf.basic.BasicScrollBarUI
 class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARANCE, true), ActionListener {
     private val mMainUI = mainUI
     private val mConfigManager = ConfigManager.getInstance()
+    private val mFormatManager = FormatManager.getInstance()
 
     private val mSettingsPanel = JPanel()
     private val mScrollPane = JScrollPane()
@@ -232,11 +233,8 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
 
     enum class ComboIdx(val value: Int) {
         LOG(0),
-        TAG(1),
-        PID(2),
-        TID(3),
-        BOLD(4),
-        SIZE(5);
+        BOLD(1),
+        SIZE(2);
 
         companion object {
             fun fromInt(value: Int) = values().first { it.value == value }
@@ -250,6 +248,12 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
 
         private val mComboLabelArray = arrayOfNulls<ColorLabel>(ComboIdx.SIZE.value)
         private val mStyleComboArray = arrayOfNulls<ColorComboBox<String>>(ComboIdx.SIZE.value)
+
+        private val mTokenComboLabelArray = arrayOfNulls<ColorLabel>(FormatManager.MAX_TOKEN_COUNT)
+        private val mTokenStyleComboArray = arrayOfNulls<ColorComboBox<String>>(FormatManager.MAX_TOKEN_COUNT)
+
+        private val mStyleLabelPanel: JPanel
+        private val mStyleComboPanel: JPanel
 
         private var mConfirmLabel: JLabel
 
@@ -270,68 +274,31 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
             mExampleCombo.preferredSize = Dimension(250, 30)
             mExampleCombo.addItem("ABC|DEF|-GHI|JKL")
 
-            val styleLabelPanel = JPanel()
-            styleLabelPanel.layout = BoxLayout(styleLabelPanel, BoxLayout.Y_AXIS)
+            mStyleLabelPanel = JPanel()
+            mStyleLabelPanel.layout = BoxLayout(mStyleLabelPanel, BoxLayout.Y_AXIS)
 
-            val styleComboPanel = JPanel()
-            styleComboPanel.layout = BoxLayout(styleComboPanel, BoxLayout.Y_AXIS)
+            mStyleComboPanel = JPanel()
+            mStyleComboPanel.layout = BoxLayout(mStyleComboPanel, BoxLayout.Y_AXIS)
 
             val rightWidth = 240
-            for (idx in mComboLabelArray.indices) {
-                mComboLabelArray[idx] = ColorLabel(idx)
-                mComboLabelArray[idx]!!.isOpaque = true
-                mComboLabelArray[idx]!!.horizontalAlignment = JLabel.LEFT
-                mComboLabelArray[idx]!!.foreground = Color.DARK_GRAY
-                mComboLabelArray[idx]!!.background = Color.WHITE
-
-                mComboLabelArray[idx]!!.verticalAlignment = JLabel.CENTER
-                mComboLabelArray[idx]!!.border = BorderFactory.createLineBorder(Color.BLACK)
-                mComboLabelArray[idx]!!.minimumSize = Dimension(200, 20)
-                mComboLabelArray[idx]!!.preferredSize = Dimension(200, 20)
-                mComboLabelArray[idx]!!.maximumSize = Dimension(200, 20)
-
-                mStyleComboArray[idx] = ColorComboBox()
-                mStyleComboArray[idx]!!.border = BorderFactory.createLineBorder(Color.BLACK)
-                mStyleComboArray[idx]!!.minimumSize = Dimension(rightWidth, 20)
-                mStyleComboArray[idx]!!.preferredSize = Dimension(rightWidth, 20)
-                mStyleComboArray[idx]!!.maximumSize = Dimension(rightWidth, 20)
-                mStyleComboArray[idx]!!.addItem("SINGLE LINE")
-                mStyleComboArray[idx]!!.addItem("SINGLE LINE / HIGHLIGHT")
-                mStyleComboArray[idx]!!.addItem("MULTI LINE")
-                mStyleComboArray[idx]!!.addItem("MULTI LINE / HIGHLIGHT")
-            }
+            addStyleCombos(mComboLabelArray, mStyleComboArray, ComboIdx.SIZE.value)
 
             mComboLabelArray[ComboIdx.LOG.value]!!.text = "Combo Style : Log"
             mStyleComboArray[ComboIdx.LOG.value]!!.selectedIndex = mMainUI.mShowLogComboStyle.value
-//            mComboLabelArray[ComboIdx.TAG.value]!!.text = "Combo Style : Tag"
-//            mStyleComboArray[ComboIdx.TAG.value]!!.selectedIndex = mMainUI.mShowTagComboStyle.value
-//            mComboLabelArray[ComboIdx.PID.value]!!.text = "Combo Style : PID"
-//            mStyleComboArray[ComboIdx.PID.value]!!.selectedIndex = mMainUI.mShowPidComboStyle.value
-//            mComboLabelArray[ComboIdx.TID.value]!!.text = "Combo Style : TID"
-//            mStyleComboArray[ComboIdx.TID.value]!!.selectedIndex = mMainUI.mShowTidComboStyle.value
-//          TODO : TEST TEST change combo style
-            mComboLabelArray[ComboIdx.TAG.value]!!.text = "Combo Style : Tag"
-            mStyleComboArray[ComboIdx.TAG.value]!!.selectedIndex = FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT.value
-            mComboLabelArray[ComboIdx.PID.value]!!.text = "Combo Style : PID"
-            mStyleComboArray[ComboIdx.PID.value]!!.selectedIndex = FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT.value
-            mComboLabelArray[ComboIdx.TID.value]!!.text = "Combo Style : TID"
-            mStyleComboArray[ComboIdx.TID.value]!!.selectedIndex = FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT.value
-
             mComboLabelArray[ComboIdx.BOLD.value]!!.text = "Combo Style : BOLD"
             mStyleComboArray[ComboIdx.BOLD.value]!!.selectedIndex = mMainUI.mBoldLogComboStyle.value
-//            mComboLabelArray[idx]!!.toolTipText = mColorLabelArray[idx]!!.text
 
-            for (idx in mComboLabelArray.indices) {
-                styleLabelPanel.add(mComboLabelArray[idx])
-                styleLabelPanel.add(Box.createRigidArea(Dimension(5, 3)))
-                styleComboPanel.add(mStyleComboArray[idx])
-                styleComboPanel.add(Box.createRigidArea(Dimension(5, 3)))
+            addStyleCombos(mTokenComboLabelArray, mTokenStyleComboArray, FormatManager.MAX_TOKEN_COUNT)
+
+            for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+                mTokenComboLabelArray[idx]!!.text = "Combo Style : ${mFormatManager.mCurrFormat.mTokens[idx].mToken}"
+                mTokenStyleComboArray[idx]!!.selectedIndex = mMainUI.mTokenComboStyle[idx].value
             }
 
             val stylePanel = JPanel()
             stylePanel.layout = FlowLayout(FlowLayout.LEFT, 0, 0)
-            stylePanel.add(styleLabelPanel)
-            stylePanel.add(styleComboPanel)
+            stylePanel.add(mStyleLabelPanel)
+            stylePanel.add(mStyleComboPanel)
 
             val colorLabelPanel = JPanel()
             colorLabelPanel.layout = BoxLayout(colorLabelPanel, BoxLayout.Y_AXIS)
@@ -428,6 +395,38 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
             add(panel)
         }
 
+        private fun addStyleCombos(comboLabelArray: Array<ColorLabel?>, styleComboArray: Array<ColorComboBox<String>?>, size: Int) {
+            val rightWidth = 240
+            for (idx in 0 until size) {
+                comboLabelArray[idx] = ColorLabel(idx)
+                comboLabelArray[idx]!!.isOpaque = true
+                comboLabelArray[idx]!!.horizontalAlignment = JLabel.LEFT
+                comboLabelArray[idx]!!.foreground = Color.DARK_GRAY
+                comboLabelArray[idx]!!.background = Color.WHITE
+
+                comboLabelArray[idx]!!.verticalAlignment = JLabel.CENTER
+                comboLabelArray[idx]!!.border = BorderFactory.createLineBorder(Color.BLACK)
+                comboLabelArray[idx]!!.minimumSize = Dimension(200, 20)
+                comboLabelArray[idx]!!.preferredSize = Dimension(200, 20)
+                comboLabelArray[idx]!!.maximumSize = Dimension(200, 20)
+
+                styleComboArray[idx] = ColorComboBox()
+                styleComboArray[idx]!!.border = BorderFactory.createLineBorder(Color.BLACK)
+                styleComboArray[idx]!!.minimumSize = Dimension(rightWidth, 20)
+                styleComboArray[idx]!!.preferredSize = Dimension(rightWidth, 20)
+                styleComboArray[idx]!!.maximumSize = Dimension(rightWidth, 20)
+                styleComboArray[idx]!!.addItem("SINGLE LINE")
+                styleComboArray[idx]!!.addItem("SINGLE LINE / HIGHLIGHT")
+                styleComboArray[idx]!!.addItem("MULTI LINE")
+                styleComboArray[idx]!!.addItem("MULTI LINE / HIGHLIGHT")
+
+                mStyleLabelPanel.add(comboLabelArray[idx])
+                mStyleLabelPanel.add(Box.createRigidArea(Dimension(5, 3)))
+                mStyleComboPanel.add(styleComboArray[idx])
+                mStyleComboPanel.add(Box.createRigidArea(Dimension(5, 3)))
+            }
+        }
+
         override fun windowClosing(e: WindowEvent?) {
             println("exit Filter Style, restore $mIsNeedRestore")
 
@@ -438,18 +437,12 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
                 mColorManager.applyFilterStyle()
             }
             else {
-                val keys = arrayOf(ConfigManager.ITEM_SHOW_LOG_STYLE,
-                        ConfigManager.ITEM_SHOW_TAG_STYLE,
-                        ConfigManager.ITEM_SHOW_PID_STYLE,
-                        ConfigManager.ITEM_SHOW_TID_STYLE,
-                        ConfigManager.ITEM_BOLD_LOG_STYLE)
-                val values = arrayOf(mStyleComboArray[ComboIdx.LOG.value]!!.selectedIndex.toString(),
-                        mStyleComboArray[ComboIdx.TAG.value]!!.selectedIndex.toString(),
-                        mStyleComboArray[ComboIdx.PID.value]!!.selectedIndex.toString(),
-                        mStyleComboArray[ComboIdx.TID.value]!!.selectedIndex.toString(),
-                        mStyleComboArray[ComboIdx.BOLD.value]!!.selectedIndex.toString())
+                val keys = arrayOf(ConfigManager.ITEM_SHOW_LOG_STYLE, ConfigManager.ITEM_BOLD_LOG_STYLE)
+                val values = arrayOf(mStyleComboArray[ComboIdx.LOG.value]!!.selectedIndex.toString(), mStyleComboArray[ComboIdx.BOLD.value]!!.selectedIndex.toString())
 
-                mConfigManager.saveFilterStyle(keys, values)
+                val tokenKeys = Array(FormatManager.MAX_TOKEN_COUNT) { ConfigManager.ITEM_TOKEN_COMBO_STYLE + it }
+                val tokenValues = Array(FormatManager.MAX_TOKEN_COUNT) { mTokenStyleComboArray[it]!!.selectedIndex.toString() }
+                mConfigManager.saveFilterStyle(keys, values, tokenKeys, tokenValues)
             }
         }
 

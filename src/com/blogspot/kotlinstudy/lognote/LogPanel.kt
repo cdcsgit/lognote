@@ -18,9 +18,7 @@ class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?, 
     private val mCtrlMainPanel: ButtonPanel
     private var mFirstBtn: ColorButton
     private var mLastBtn: ColorButton
-    private var mTagBtn: ColorToggleButton
-    private var mPidBtn: ColorToggleButton
-    private var mTidBtn: ColorToggleButton
+    private var mTokenBtns: Array<ColorToggleButton>
     private var mWindowedModeBtn: ColorButton
     private var mBookmarksBtn: ColorToggleButton
     private var mFullBtn: ColorToggleButton
@@ -30,6 +28,7 @@ class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?, 
     private val mTable: LogTable
     private var mSelectedRow = -1
     private val mBookmarkManager = BookmarkManager.getInstance()
+    private val mFormatManager = FormatManager.getInstance()
     private val mAdjustmentHandler = AdjustmentHandler()
     private val mListSelectionHandler = ListSelectionHandler()
     private val mTableModelHandler = TableModelHandler()
@@ -63,18 +62,12 @@ class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?, 
         mLastBtn.toolTipText = TooltipStrings.VIEW_LAST_BTN
         mLastBtn.margin = Insets(2, 3, 1, 3)
         mLastBtn.addActionListener(mActionHandler)
-        mTagBtn = ColorToggleButton(Strings.TAG)
-        mTagBtn.toolTipText = TooltipStrings.VIEW_TAG_TOGGLE
-        mTagBtn.margin = Insets(0, 3, 0, 3)
-        mTagBtn.addActionListener(mActionHandler)
-        mPidBtn = ColorToggleButton(Strings.PID)
-        mPidBtn.toolTipText = TooltipStrings.VIEW_PID_TOGGLE
-        mPidBtn.margin = Insets(0, 3, 0, 3)
-        mPidBtn.addActionListener(mActionHandler)
-        mTidBtn = ColorToggleButton(Strings.TID)
-        mTidBtn.toolTipText = TooltipStrings.VIEW_TID_TOGGLE
-        mTidBtn.margin = Insets(0, 3, 0, 3)
-        mTidBtn.addActionListener(mActionHandler)
+        mTokenBtns = Array(FormatManager.MAX_TOKEN_COUNT) { ColorToggleButton(mFormatManager.mCurrFormat.mTokens[it].mToken) }
+        for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+            mTokenBtns[idx].toolTipText = TooltipStrings.TOKEN_VIEW_TOGGLE
+            mTokenBtns[idx].margin = Insets(0, 3, 0, 3)
+            mTokenBtns[idx].addActionListener(mActionHandler)
+        }
         mWindowedModeBtn = ColorButton(Strings.WINDOWED_MODE)
         mWindowedModeBtn.toolTipText = TooltipStrings.VIEW__WINDOWED_MODE_BTN
         mWindowedModeBtn.margin = Insets(0, 3, 0, 3)
@@ -242,9 +235,12 @@ class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?, 
         mCtrlMainPanel.removeAll()
         mCtrlMainPanel.add(mFirstBtn)
         mCtrlMainPanel.add(mLastBtn)
-        mCtrlMainPanel.add(mPidBtn)
-        mCtrlMainPanel.add(mTidBtn)
-        mCtrlMainPanel.add(mTagBtn)
+        for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+            mCtrlMainPanel.add(mTokenBtns[idx])
+            if (mTokenBtns[idx].text.isNullOrEmpty()) {
+                mTokenBtns[idx].isVisible = false
+            }
+        }
 
         if (mBasePanel != null) {
             mCtrlMainPanel.add(mFullBtn)
@@ -477,65 +473,47 @@ class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?, 
 
     internal inner class ActionHandler : ActionListener {
         override fun actionPerformed(p0: ActionEvent?) {
-            when (p0?.source) {
-                mFirstBtn -> {
-                    goToFirst()
-                }
-                mLastBtn -> {
-                    goToLast()
-                }
-                mWindowedModeBtn -> {
-                    mMainUI.windowedModeLogPanel(this@LogPanel)
-                }
-//                mTagBtn -> {
-//                    val selected = mTagBtn.model.isSelected
-//                    mTable.mTableModel.mBoldTag = selected
-//                    mTable.repaint()
-//                }
-//                mPidBtn -> {
-//                    val selected = mPidBtn.model.isSelected
-//                    mTable.mTableModel.mBoldPid = selected
-//                    mTable.repaint()
-//                }
-//                mTidBtn -> {
-//                    val selected = mTidBtn.model.isSelected
-//                    mTable.mTableModel.mBoldTid = selected
-//                    mTable.repaint()
-//                }
-                // TODO : TEST TEST change bold button
-                mTagBtn -> {
-                    val selected = mTagBtn.model.isSelected
-                    mTable.mTableModel.mBoldTokens[2] = selected
+            var isNeedCheck = true
+            for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+                if (p0?.source == mTokenBtns[idx]) {
+                    mTable.mTableModel.mBoldTokens[idx] = mTokenBtns[idx].model.isSelected
                     mTable.mTableModel.mBoldTokenEndIdx = -1
                     mTable.repaint()
+                    isNeedCheck = false
+                    break
                 }
-                mPidBtn -> {
-                    val selected = mPidBtn.model.isSelected
-                    mTable.mTableModel.mBoldTokens[0] = selected
-                    mTable.mTableModel.mBoldTokenEndIdx = -1
-                    mTable.repaint()
-                }
-                mTidBtn -> {
-                    val selected = mTidBtn.model.isSelected
-                    mTable.mTableModel.mBoldTokens[1] = selected
-                    mTable.mTableModel.mBoldTokenEndIdx = -1
-                    mTable.repaint()
-                }
-                mBookmarksBtn -> {
-                    val selected = mBookmarksBtn.model.isSelected
-                    if (selected) {
-                        mFullBtn.model.isSelected = false
+            }
+            if (isNeedCheck) {
+                when (p0?.source) {
+                    mFirstBtn -> {
+                        goToFirst()
                     }
-                    mTable.mTableModel.mBookmarkMode = selected
-                    mTable.repaint()
-                }
-                mFullBtn -> {
-                    val selected = mFullBtn.model.isSelected
-                    if (selected) {
-                        mBookmarksBtn.model.isSelected = false
+
+                    mLastBtn -> {
+                        goToLast()
                     }
-                    mTable.mTableModel.mFullMode = selected
-                    mTable.repaint()
+
+                    mWindowedModeBtn -> {
+                        mMainUI.windowedModeLogPanel(this@LogPanel)
+                    }
+
+                    mBookmarksBtn -> {
+                        val selected = mBookmarksBtn.model.isSelected
+                        if (selected) {
+                            mFullBtn.model.isSelected = false
+                        }
+                        mTable.mTableModel.mBookmarkMode = selected
+                        mTable.repaint()
+                    }
+
+                    mFullBtn -> {
+                        val selected = mFullBtn.model.isSelected
+                        if (selected) {
+                            mBookmarksBtn.model.isSelected = false
+                        }
+                        mTable.mTableModel.mFullMode = selected
+                        mTable.repaint()
+                    }
                 }
             }
         }

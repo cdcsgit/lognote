@@ -30,12 +30,6 @@ class ColorManager private constructor(){
         mColorEventListeners.remove(listener)
     }
 
-//    class ColorItem(order: Int, name: String, strColor: String) {
-//        val mOrder = order
-//        val mName = name
-//        var mStrColor = strColor
-//    }
-
     data class ColorItem(val mOrder: Int, val mName: String, var mStrColor: String)
 
     private val mConfigManager = ConfigManager.getInstance()
@@ -45,7 +39,7 @@ class ColorManager private constructor(){
         FILTER_LOG_TABLE(1);
 
         companion object {
-            fun fromInt(value: Int) = values().first { it.value == value }
+            fun fromInt(value: Int) = entries.first { it.value == value }
         }
     }
 
@@ -63,9 +57,9 @@ class ColorManager private constructor(){
         LOG_LEVEL_WARNING(10),
         LOG_LEVEL_ERROR(11),
         LOG_LEVEL_FATAL(12),
-        PID_FG(13),
-        TID_FG(14),
-        TAG_FG(15),
+        TOKEN0_FG(13),
+        TOKEN1_FG(14),
+        TOKEN2_FG(15),
         HIGHLIGHT_FG(16),
         LINE_NUM_FG(17),
         NUM_LOG_SEPERATOR_BG(18),
@@ -202,28 +196,28 @@ class ColorManager private constructor(){
         var mFilteredBG: Color = Color.decode(mStrFilteredBG)
             private set
 
-        var mStrPidFG = "#000000"
+        var mStrToken0FG = "#000000"
             set(value) {
                 field = value
-                mPidFG = Color.decode(value)
+                mToken0FG = Color.decode(value)
             }
-        var mPidFG: Color = Color.decode(mStrPidFG)
+        var mToken0FG: Color = Color.decode(mStrToken0FG)
             private set
 
-        var mStrTidFG = "#000000"
+        var mStrToken1FG = "#000000"
             set(value) {
                 field = value
-                mTidFG = Color.decode(value)
+                mToken1FG = Color.decode(value)
             }
-        var mTidFG: Color = Color.decode(mStrTidFG)
+        var mToken1FG: Color = Color.decode(mStrToken1FG)
             private set
 
-        var mStrTagFG = "#000000"
+        var mStrToken2FG = "#000000"
             set(value) {
                 field = value
-                mTagFG = Color.decode(value)
+                mToken2FG = Color.decode(value)
             }
-        var mTagFG: Color = Color.decode(mStrTagFG)
+        var mToken2FG: Color = Color.decode(mStrToken2FG)
             private set
 
         var mStrHighlightFG = "#000000"
@@ -432,9 +426,9 @@ class ColorManager private constructor(){
                 ColorItem(5, "Log Level Warning", mColorSchemeLight[10]),
                 ColorItem(6, "Log Level Error", mColorSchemeLight[11]),
                 ColorItem(7, "Log Level Fatal", mColorSchemeLight[12]),
-                ColorItem(8, "PID FG", mColorSchemeLight[13]),
-                ColorItem(9, "TID FG", mColorSchemeLight[14]),
-                ColorItem(10, "Tag FG", mColorSchemeLight[15]),
+                ColorItem(8, "Token0 FG", mColorSchemeLight[13]),
+                ColorItem(9, "Token1 FG", mColorSchemeLight[14]),
+                ColorItem(10, "Token2 FG", mColorSchemeLight[15]),
                 ColorItem(11, "Highlight FG", mColorSchemeLight[16]),
                 ColorItem(13, "LineNum FG", mColorSchemeLight[17]),
                 ColorItem(19, "NumLogSeperator BG", mColorSchemeLight[18]),
@@ -494,9 +488,9 @@ class ColorManager private constructor(){
             mStrLogLevelWarning = mColorArray[TableColorIdx.LOG_LEVEL_WARNING.value].mStrColor
             mStrLogLevelError = mColorArray[TableColorIdx.LOG_LEVEL_ERROR.value].mStrColor
             mStrLogLevelFatal = mColorArray[TableColorIdx.LOG_LEVEL_FATAL.value].mStrColor
-            mStrPidFG = mColorArray[TableColorIdx.PID_FG.value].mStrColor
-            mStrTidFG = mColorArray[TableColorIdx.TID_FG.value].mStrColor
-            mStrTagFG = mColorArray[TableColorIdx.TAG_FG.value].mStrColor
+            mStrToken0FG = mColorArray[TableColorIdx.TOKEN0_FG.value].mStrColor
+            mStrToken1FG = mColorArray[TableColorIdx.TOKEN1_FG.value].mStrColor
+            mStrToken2FG = mColorArray[TableColorIdx.TOKEN2_FG.value].mStrColor
             mStrHighlightFG = mColorArray[TableColorIdx.HIGHLIGHT_FG.value].mStrColor
             mStrSearchFG = mColorArray[TableColorIdx.SEARCH_FG.value].mStrColor
             mStrLineNumFG = mColorArray[TableColorIdx.LINE_NUM_FG.value].mStrColor
