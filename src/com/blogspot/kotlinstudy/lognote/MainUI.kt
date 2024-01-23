@@ -154,7 +154,7 @@ class MainUI private constructor() : JFrame() {
     private lateinit var mPauseFollowToggle: ColorToggleButton
 
     private lateinit var mLogFormatCombo: ColorComboBox<String>
-    private lateinit var mLogLevelCombo: ColorComboBox<String>
+    lateinit var mLogLevelCombo: ColorComboBox<String>
 
     private val mFrameMouseListener = FrameMouseListener(this)
     private val mKeyHandler = KeyHandler()
@@ -1042,7 +1042,7 @@ class MainUI private constructor() : JFrame() {
         mLogFormatCombo.toolTipText = TooltipStrings.LOG_FORMAT_COMBO
         mLogFormatCombo.isEditable = false
         mLogFormatCombo.renderer = ColorComboBox.ComboBoxRenderer()
-//        mLogFormatCombo.addItemListener(mItemHandler)
+        mLogFormatCombo.addPopupMenuListener(mPopupMenuHandler)
         mLogFormatCombo.preferredSize = Dimension(100, mLogFormatCombo.preferredSize.height)
         if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
             mLogFormatCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 5)
@@ -1073,11 +1073,12 @@ class MainUI private constructor() : JFrame() {
         val logFormat = null
         if (logFormat != null) {
         }
-        else {
-            mLogFormatCombo.insertItemAt(mFormatManager.mCurrFormat.mName, 0)
-            for (item in FormatManager.TEXT_LEVEL) {
-                mLogLevelCombo.addItem(item)
-            }
+
+        for (format in mFormatManager.mFormats) {
+            mLogFormatCombo.addItem(format.mName)
+        }
+        for (item in FormatManager.TEXT_LEVEL) {
+            mLogLevelCombo.addItem(item)
         }
         mLogFormatCombo.selectedIndex = 0
 
@@ -2803,6 +2804,14 @@ class MainUI private constructor() : JFrame() {
                         }
                         mFilteredTableModel.mFilterLevel = mLogLevelCombo.selectedIndex
                         mConfigManager.saveItem(ConfigManager.ITEM_LOG_LEVEL, mLogLevelCombo.selectedIndex.toString())
+                    }
+
+                    mLogFormatCombo -> {
+                        if (mLogFormatCombo.selectedIndex < 0) {
+                            return
+                        }
+                        mFormatManager.setCurrFormat(mLogFormatCombo.selectedItem.toString())
+//                        mConfigManager.saveItem(ConfigManager.ITEM_LOG_LEVEL, mLogLevelCombo.selectedIndex.toString())
                     }
                 }
             }

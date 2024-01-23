@@ -12,7 +12,7 @@ import javax.swing.event.ListSelectionListener
 import javax.swing.plaf.basic.BasicScrollBarUI
 
 
-class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?, focusHandler: MainUI.FocusHandler) :JPanel() {
+class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?, focusHandler: MainUI.FocusHandler) :JPanel(), FormatManager.FormatEventListener {
     private val mMainUI = mainUI
     private val mBasePanel = basePanel
     private val mCtrlMainPanel: ButtonPanel
@@ -67,6 +67,9 @@ class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?, 
             mTokenBtns[idx].toolTipText = TooltipStrings.TOKEN_VIEW_TOGGLE
             mTokenBtns[idx].margin = Insets(0, 3, 0, 3)
             mTokenBtns[idx].addActionListener(mActionHandler)
+            if (mTokenBtns[idx].text.isNullOrEmpty()) {
+                mTokenBtns[idx].isVisible = false
+            }
         }
         mWindowedModeBtn = ColorButton(Strings.WINDOWED_MODE)
         mWindowedModeBtn.toolTipText = TooltipStrings.VIEW__WINDOWED_MODE_BTN
@@ -122,6 +125,8 @@ class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?, 
 
         transferHandler = TableTransferHandler()
         addComponentListener(mComponentHandler)
+
+        mFormatManager.addFormatEventListener(this)
 
         mIsCreatingUI = false
     }
@@ -476,7 +481,12 @@ class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?, 
             var isNeedCheck = true
             for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
                 if (p0?.source == mTokenBtns[idx]) {
-                    mTable.mTableModel.mBoldTokens[idx] = mTokenBtns[idx].model.isSelected
+                    for (sortIdx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+                        if (mTokenBtns[idx].text == mFormatManager.mCurrFormat.mSortedTokens[sortIdx].mToken) {
+                            mTable.mTableModel.mBoldTokens[sortIdx] = mTokenBtns[idx].model.isSelected
+                            break
+                        }
+                    }
                     mTable.mTableModel.mBoldTokenEndIdx = -1
                     mTable.repaint()
                     isNeedCheck = false
@@ -718,4 +728,14 @@ class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?, 
         }
     }
 
+    override fun formatChanged(format: FormatManager.FormatItem) {
+        for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+            mTokenBtns[idx].text = format.mTokens[idx].mToken
+            mTokenBtns[idx].model.isSelected = false
+            mTable.mTableModel.mBoldTokens[idx] = false
+            mTokenBtns[idx].isVisible = !mTokenBtns[idx].text.isNullOrEmpty()
+        }
+        mTable.mTableModel.mBoldTokenEndIdx = -1
+        mTable.repaint()
+    }
 }
