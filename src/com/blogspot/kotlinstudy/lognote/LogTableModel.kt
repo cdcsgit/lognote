@@ -78,6 +78,8 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                 field = value
             }
 
+            mSortedTokensIdxs = mFormatManager.mCurrFormat.mSortedTokensIdxs
+
             mTokenNthMax = mLevelIdx
             for (token in value) {
                 if (token.mNth > mTokenNthMax) {
@@ -87,6 +89,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
             mEmptyTokens = Array(value.size) { "" }
         }
 
+    private var mSortedTokensIdxs = mFormatManager.mCurrFormat.mSortedTokensIdxs
     private var mTokenNthMax = 0
     private var mEmptyTokens = arrayOf("")
     private var mLevelIdx = mFormatManager.mCurrFormat.mLevelNth
@@ -1179,7 +1182,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
     private fun isNotMatchShowToken(item: LogItem): Boolean {
         var isNotMatch = false
         for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
-            if (mFilterShowTokens[idx].isNotEmpty() && !mPatternShowTokens[idx].matcher(item.mTokens[idx]).find()) {
+            if (mFilterShowTokens[idx].isNotEmpty() && mSortedTokensIdxs[idx] >= 0 && !mPatternShowTokens[idx].matcher(item.mTokens[mSortedTokensIdxs[idx]]).find()) {
                 isNotMatch = true
                 break
             }

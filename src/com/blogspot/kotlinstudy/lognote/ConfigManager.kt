@@ -335,15 +335,14 @@ class ConfigManager private constructor() {
                 println("manageVersion : $confVer applied")
             }
 
-//            if (confVer == "2") {
-//                updateConfigFromV1ToV2()
-//                confVer = (mProperties[ITEM_CONFIG_VERSION] ?: "") as String
-//                println("manageVersion : $confVer applied")
-//            }
+            if (confVer == "2") {
+                updateConfigFromV2ToV3()
+                confVer = (mProperties[ITEM_CONFIG_VERSION] ?: "") as String
+                println("manageVersion : $confVer applied")
+            }
         }
         else {
-            mProperties[ITEM_CONFIG_VERSION] = "2"
-//            mProperties[ITEM_CONFIG_VERSION] = "3"
+            mProperties[ITEM_CONFIG_VERSION] = "3"
         }
 
         saveConfig()
@@ -392,42 +391,38 @@ class ConfigManager private constructor() {
 
     private fun updateConfigFromV2ToV3() {
         println("updateConfigFromV2ToV3 : change log level properties ++")
-//        prop = mConfigManager.getItem(ConfigManager.ITEM_SHOW_TAG_STYLE)
-//        prop = mConfigManager.getItem(ConfigManager.ITEM_SHOW_PID_STYLE)
-//        prop = mConfigManager.getItem(ConfigManager.ITEM_SHOW_TID_STYLE)
-//        mProperties.remove()
 
-//        nCount = mShowTagCombo.itemCount
-//        if (nCount > ConfigManager.COUNT_SHOW_TAG) {
-//            nCount = ConfigManager.COUNT_SHOW_TAG
-//        }
-//        for (i in 0 until nCount) {
-//            mConfigManager.setItem(ConfigManager.ITEM_SHOW_TAG + i, mShowTagCombo.getItemAt(i).toString())
-//        }
-//        for (i in nCount until ConfigManager.COUNT_SHOW_TAG) {
-//            mConfigManager.removeConfigItem(ConfigManager.ITEM_SHOW_TAG + i)
-//        }
-//        check = mConfigManager.getItem(ConfigManager.ITEM_SHOW_TAG_CHECK)
-//        if (!check.isNullOrEmpty()) {
-//            mShowTagToggle.isSelected = check.toBoolean()
-//        } else {
-//            mShowTagToggle.isSelected = true
-//        }
-//        mShowTagCombo.setEnabledFilter(mShowTagToggle.isSelected)
-//
-//        check = mConfigManager.getItem(ConfigManager.ITEM_SHOW_PID_CHECK)
-//        if (!check.isNullOrEmpty()) {
-//            mShowPidToggle.isSelected = check.toBoolean()
-//        } else {
-//            mShowPidToggle.isSelected = true
-//        }
-//        mShowPidCombo.setEnabledFilter(mShowPidToggle.isSelected)
-//
-//        check = mConfigManager.getItem(ConfigManager.ITEM_SHOW_TID_CHECK)
-//        mProperties[ITEM_SHOW_TAG_CHECK] = "true"
-//        mProperties[ITEM_SHOW_PID_CHECK] = "true"
-//        mProperties[ITEM_SHOW_TID_CHECK] = "true"
-//
+        val formatName = FormatManager.getInstance().mCurrFormat.mName
+        val tokens = FormatManager.getInstance().mCurrFormat.mTokens
+
+        val itemShowTag = "SHOW_TAG_"
+        val itemShowTagCheck = "SHOW_TAG_CHECK"
+        val itemShowPidCheck = "SHOW_PID_CHECK"
+        val itemShowTidCheck = "SHOW_TID_CHECK"
+        val itemShowTagStyle = "SHOW_TAG_STYLE"
+        val itemShowPidStyle = "SHOW_PID_STYLE"
+        val itemShowTidStyle = "SHOW_TID_STYLE"
+
+        mProperties[itemShowTagStyle]?.let { mProperties[ITEM_TOKEN_COMBO_STYLE + 0] = it }
+        mProperties[itemShowPidStyle]?.let { mProperties[ITEM_TOKEN_COMBO_STYLE + 1] = it }
+        mProperties[itemShowTidStyle]?.let { mProperties[ITEM_TOKEN_COMBO_STYLE + 2] = it }
+        mProperties.remove(itemShowTagStyle)
+        mProperties.remove(itemShowPidStyle)
+        mProperties.remove(itemShowTidStyle)
+
+        for (i in 0 until COUNT_TOKEN_FILTER) {
+            mProperties[itemShowTag + i]?.let {
+                mProperties["${ITEM_TOKEN_FILTER}${formatName}_${tokens[0].mToken}_$i"] = it
+            }
+            mProperties.remove(itemShowTag + i)
+        }
+
+        mProperties[itemShowTagCheck]?.let { mProperties["${ITEM_TOKEN_CHECK}${formatName}_${tokens[0].mToken}"] = it }
+        mProperties[itemShowTagCheck]?.let { mProperties["${ITEM_TOKEN_CHECK}${formatName}_${tokens[1].mToken}"] = it }
+        mProperties[itemShowTagCheck]?.let { mProperties["${ITEM_TOKEN_CHECK}${formatName}_${tokens[2].mToken}"] = it }
+        mProperties.remove(itemShowTagCheck)
+        mProperties.remove(itemShowPidCheck)
+        mProperties.remove(itemShowTidCheck)
 
         mProperties[ITEM_CONFIG_VERSION] = "3"
         println("updateConfigFromV2ToV3 : --")

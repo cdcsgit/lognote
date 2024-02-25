@@ -23,7 +23,7 @@ import javax.swing.text.JTextComponent
 import kotlin.math.roundToInt
 import kotlin.system.exitProcess
 
-class MainUI private constructor() : JFrame() {
+class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener {
     companion object {
         private const val SPLIT_WEIGHT = 0.7
 
@@ -323,6 +323,7 @@ class MainUI private constructor() : JFrame() {
         if (mLogCmdManager.getType() == LogCmdManager.TYPE_LOGCAT) {
             mLogCmdManager.getDevices()
         }
+        mFormatManager.addFormatEventListener(this)
     }
 
     private fun exit() {
@@ -387,6 +388,9 @@ class MainUI private constructor() : JFrame() {
             mConfigManager.removeConfigItem(ConfigManager.ITEM_SHOW_LOG + i)
         }
 
+        val formatName = mFormatManager.mCurrFormat.mName
+        val tokens = mFormatManager.mCurrFormat.mTokens
+
         for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
             if (mFormatManager.mCurrFormat.mTokens[idx].mIsSaveFilter) {
                 nCount = mTokenCombo[idx].itemCount
@@ -394,10 +398,10 @@ class MainUI private constructor() : JFrame() {
                     nCount = ConfigManager.COUNT_TOKEN_FILTER
                 }
                 for (i in 0 until nCount) {
-                    mConfigManager.setItem("${ConfigManager.ITEM_TOKEN_FILTER}${mFormatManager.mCurrFormat.mTokens[idx].mToken}_$i", mTokenCombo[idx].getItemAt(i).toString())
+                    mConfigManager.setItem("${ConfigManager.ITEM_TOKEN_FILTER}${formatName}_${tokens[idx].mToken}_$i", mTokenCombo[idx].getItemAt(i).toString())
                 }
                 for (i in nCount until ConfigManager.COUNT_TOKEN_FILTER) {
-                    mConfigManager.removeConfigItem("${ConfigManager.ITEM_TOKEN_FILTER}${mFormatManager.mCurrFormat.mTokens[idx].mToken}_$i")
+                    mConfigManager.removeConfigItem("${ConfigManager.ITEM_TOKEN_FILTER}${formatName}_${tokens[idx].mToken}_$i")
                 }
             }
         }
@@ -1113,11 +1117,12 @@ class MainUI private constructor() : JFrame() {
         }
         mShowLogCombo.isEnabled = mShowLogToggle.isSelected
 
+        val formatName = mFormatManager.mCurrFormat.mName
+        val tokens = mFormatManager.mCurrFormat.mTokens
         for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
-            if (mFormatManager.mCurrFormat.mTokens[idx].mIsSaveFilter) {
+            if (tokens[idx].mIsSaveFilter) {
                 for (i in 0 until ConfigManager.COUNT_TOKEN_FILTER) {
-                    item =
-                        mConfigManager.getItem("${ConfigManager.ITEM_TOKEN_FILTER}${mFormatManager.mCurrFormat.mTokens[idx].mToken}_$i")
+                    item = mConfigManager.getItem("${ConfigManager.ITEM_TOKEN_FILTER}${formatName}_${tokens[idx].mToken}_$i")
                     if (item == null) {
                         break
                     }
@@ -1130,11 +1135,11 @@ class MainUI private constructor() : JFrame() {
                 mTokenCombo[idx].updateTooltip()
             }
             
-            check = mConfigManager.getItem("${ConfigManager.ITEM_TOKEN_CHECK}$idx")
+            check = mConfigManager.getItem("${ConfigManager.ITEM_TOKEN_CHECK}${formatName}_${tokens[idx].mToken}")
             if (!check.isNullOrEmpty()) {
                 mTokenToggle[idx].isSelected = check.toBoolean()
             } else {
-                mTokenToggle[idx].isSelected = true
+                mTokenToggle[idx].isSelected = false
             }
             mTokenCombo[idx].setEnabledFilter(mTokenToggle[idx].isSelected)
         }
@@ -1156,7 +1161,7 @@ class MainUI private constructor() : JFrame() {
         if (!check.isNullOrEmpty()) {
             mBoldLogToggle.isSelected = check.toBoolean()
         } else {
-            mBoldLogToggle.isSelected = true
+            mBoldLogToggle.isSelected = false
         }
         mBoldLogCombo.setEnabledFilter(mBoldLogToggle.isSelected)
 
@@ -2630,6 +2635,8 @@ class MainUI private constructor() : JFrame() {
             }
 
             isNeedCheck = true
+            val formatName = mFormatManager.mCurrFormat.mName
+            val tokens = mFormatManager.mCurrFormat.mTokens
             for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
                 if (p0?.source == mTokenToggle[idx]) {
                     if (mTokenToggle[idx].isSelected && mTokenCombo[idx].selectedItem != null) {
@@ -2637,7 +2644,7 @@ class MainUI private constructor() : JFrame() {
                     } else {
                         mFilteredTableModel.mFilterTokenMgr.set(idx, "")
                     }
-                    mConfigManager.saveItem("${ConfigManager.ITEM_TOKEN_CHECK}$idx", mTokenToggle[idx].isSelected.toString())
+                    mConfigManager.saveItem("${ConfigManager.ITEM_TOKEN_CHECK}${formatName}_${tokens[idx].mToken}", mTokenToggle[idx].isSelected.toString())
                     isNeedCheck = false
                     break
                 }
@@ -3339,6 +3346,40 @@ class MainUI private constructor() : JFrame() {
         override fun focusGained(e: FocusEvent?) {
             super.focusGained(e)
             mSearchPanel.setTargetView(mIsFilter)
+        }
+    }
+
+    override fun formatChanged(format: FormatManager.FormatItem) {
+        val formatName = mFormatManager.mCurrFormat.mName
+        val tokens = mFormatManager.mCurrFormat.mTokens
+        var item: String?
+        var check: String?
+        for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+            if (tokens[idx].mIsSaveFilter) {
+                for (i in 0 until ConfigManager.COUNT_TOKEN_FILTER) {
+                    item = mConfigManager.getItem("${ConfigManager.ITEM_TOKEN_FILTER}${formatName}_${tokens[idx].mToken}_$i")
+                    if (item == null) {
+                        break
+                    }
+                    mTokenCombo[idx].insertItemAt(item, i)
+                    if (i == 0) {
+                        mTokenCombo[idx].selectedIndex = 0
+                    }
+                }
+
+                mTokenCombo[idx].updateTooltip()
+            }
+
+            check = mConfigManager.getItem("${ConfigManager.ITEM_TOKEN_CHECK}${formatName}_${tokens[idx].mToken}")
+            if (!check.isNullOrEmpty()) {
+                mTokenToggle[idx].isSelected = check.toBoolean()
+            } else {
+                mTokenToggle[idx].isSelected = false
+            }
+            mTokenCombo[idx].setEnabledFilter(mTokenToggle[idx].isSelected)
+
+            mTokenToggle[idx].text = tokens[idx].mToken
+            mTokenPanel[idx].isVisible = !mTokenToggle[idx].text.isNullOrEmpty()
         }
     }
 }

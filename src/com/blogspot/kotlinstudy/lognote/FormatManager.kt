@@ -5,6 +5,9 @@ import java.awt.*
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import javax.swing.*
+import javax.swing.border.AbstractBorder
+import javax.swing.event.DocumentEvent
+import javax.swing.event.DocumentListener
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
 import javax.swing.table.DefaultTableModel
@@ -36,6 +39,7 @@ class FormatManager private constructor(){
     data class FormatItem(val mName: String, val mSeparator: String, val mLevelNth: Int, val mLevels: Map<String, Int>, val mTokens: Array<Token>, val mPidTokIdx: Int) {
         data class Token(val mToken: String, val mNth: Int, val mIsSaveFilter: Boolean, var mUiWidth: Int)
         val mSortedTokens: Array<out Token> = mTokens.sortedArrayWith { t1: Token, t2: Token -> t1.mNth - t2.mNth }
+        val mSortedTokensIdxs = Array(MAX_TOKEN_COUNT) { -1 }
         val mSortedPidTokIdx: Int
 
         init {
@@ -54,6 +58,15 @@ class FormatManager private constructor(){
                     }
                 }
                 mSortedPidTokIdx = tokIdx
+            }
+
+            for (idx in 0 until MAX_TOKEN_COUNT) {
+                for (idxSorted in 0 until MAX_TOKEN_COUNT) {
+                    if (mTokens[idx].mToken == mSortedTokens[idxSorted].mToken) {
+                        mSortedTokensIdxs[idx] = idxSorted
+                        break
+                    }
+                }
             }
         }
 
@@ -106,29 +119,10 @@ class FormatManager private constructor(){
         var tokens: Array<Token> = arrayOf(
             Token("Tag", 5, true, 250),
             Token("PID", 2, false, 120),
-            Token("TID", 3, false, 0),
+            Token("TID", 3, false, 120),
         )
         var pidTokIdx = 1
         mFormats.add(0, FormatItem(DEFAULT_LOGCAT, separator, levelNth, levels, tokens, pidTokIdx))
-
-        // case logcat -time
-        separator = "/|\\(?\\s+"
-        levels = mapOf("V" to LEVEL_VERBOSE
-                , "D" to LEVEL_DEBUG
-                , "I" to LEVEL_INFO
-                , "W" to LEVEL_WARNING
-                , "E" to LEVEL_ERROR
-                , "F" to LEVEL_FATAL
-        )
-        levelNth = 2
-
-        tokens = arrayOf(
-            Token("", 0, false, 120),
-            Token("", 0, false, 120),
-            Token("", 0, false, 120),
-        )
-        pidTokIdx = -1
-        mFormats.add(FormatItem("logcat -time", separator, levelNth, levels, tokens, pidTokIdx))
 
         // case plain text
         separator = ""
@@ -142,6 +136,25 @@ class FormatManager private constructor(){
         )
         pidTokIdx = -1
         mFormats.add(FormatItem("plain text", separator, levelNth, levels, tokens, pidTokIdx))
+
+        // case logcat -time
+        separator = "/|\\(?\\s+"
+        levels = mapOf("V" to LEVEL_VERBOSE
+            , "D" to LEVEL_DEBUG
+            , "I" to LEVEL_INFO
+            , "W" to LEVEL_WARNING
+            , "E" to LEVEL_ERROR
+            , "F" to LEVEL_FATAL
+        )
+        levelNth = 2
+
+        tokens = arrayOf(
+            Token("", 0, false, 120),
+            Token("", 0, false, 120),
+            Token("", 0, false, 120),
+        )
+        pidTokIdx = -1
+        mFormats.add(FormatItem("logcat -time", separator, levelNth, levels, tokens, pidTokIdx))
 
         // case 2
 //        val separator = ":| "
@@ -198,9 +211,34 @@ class FormatManager private constructor(){
     }
 
     inner class FormatListDialog(parent: JFrame) : JDialog(parent, Strings.LOGFORMAT, true), ActionListener {
+        internal inner class TitleDocumentHandler: DocumentListener {
+            override fun insertUpdate(e: DocumentEvent?) {
+                checkValue()
+            }
+
+            override fun removeUpdate(e: DocumentEvent?) {
+                checkValue()
+            }
+
+            override fun changedUpdate(e: DocumentEvent?) {
+                checkValue()
+            }
+
+            private fun checkValue() {
+                if (mNameTF.text.isEmpty() || mNameTF.text == mFormats[0].mName || mNameTF.text == mFormats[1].mName) {
+                    mSaveBtn.isEnabled = false
+                    mDeleteBtn.isEnabled = false
+                } else {
+                    mSaveBtn.isEnabled = true
+                    mDeleteBtn.isEnabled = true
+                }
+            }
+        }
+
         inner class MultiLineCellRenderer : JTextPane(), TableCellRenderer {
             init {
                 contentType = "text/html"
+                border = Utils.CustomLineBorder(mFormatTable.gridColor, 1, Utils.CustomLineBorder.BOTTOM)
             }
 
             override fun getTableCellRendererComponent(
@@ -279,7 +317,7 @@ class FormatManager private constructor(){
         internal inner class ListSelectionHandler : ListSelectionListener {
             private var mSelectedRow = -1
             override fun valueChanged(p0: ListSelectionEvent?) {
-                if (mSelectedRow != mFormatTable.selectedRow) {
+                if (mFormatTable.selectedRow >= 0 && mSelectedRow != mFormatTable.selectedRow) {
                     mSelectedRow = mFormatTable.selectedRow
                     val format = mFormats[mSelectedRow]
                     mNameTF.text = format.mName
@@ -344,7 +382,27 @@ class FormatManager private constructor(){
             }
             
             fun getToken(): Token {
-                return Token("1", 0, true, 0)
+                val name = mTokenTF.text.trim()
+
+                val nth: Int
+                try {
+                    nth = mNthTF.text.toInt()
+                } catch (ex: NumberFormatException) {
+                    mNthTF.background = Color.RED
+                    throw ex
+                }
+
+                val isSaveFilter = mIsSaveFilterCheck.isSelected
+
+                val uiWidth: Int
+                try {
+                    uiWidth = mUiWidthTF.text.toInt()
+                } catch (ex: NumberFormatException) {
+                    mUiWidthTF.background = Color.RED
+                    throw ex
+                }
+
+                return Token(name, nth, isSaveFilter, uiWidth)
             }
         }
         
@@ -396,6 +454,7 @@ class FormatManager private constructor(){
             mNameLabel.text = "Name"
             mNameTF.preferredSize = Dimension(150, mNameTF.preferredSize.height)
             mNameTF.text = ""
+            mNameTF.document.addDocumentListener(TitleDocumentHandler())
             mSeparatorLabel.text = "Separator"
             mSeparatorTF.text = ""
             mSeparatorTF.preferredSize = Dimension(100, mSeparatorTF.preferredSize.height)
@@ -445,8 +504,10 @@ class FormatManager private constructor(){
 
             mSaveBtn = ColorButton(Strings.SAVE)
             mSaveBtn.addActionListener(this)
+            mSaveBtn.isEnabled = false
             mDeleteBtn = ColorButton(Strings.DELETE)
             mDeleteBtn.addActionListener(this)
+            mDeleteBtn.isEnabled = false
             mCloseBtn = ColorButton(Strings.CLOSE)
             mCloseBtn.addActionListener(this)
 
@@ -499,10 +560,61 @@ class FormatManager private constructor(){
         override fun actionPerformed(e: ActionEvent?) {
             when (e?.source) {
                 mSaveBtn -> {
-                    dispose()
+                    val name = mNameTF.text.trim()
+                    if (name.isEmpty() || mFormats[0].mName == name || mFormats[1].mName == name) {
+                        mNameTF.background = Color.RED
+                        JOptionPane.showMessageDialog(this, "Invalid Name", "Error", JOptionPane.ERROR_MESSAGE)
+                        return
+                    }
+                    val separator = mSeparatorTF.text.trim()
+                    val levels = emptyMap<String, Int>().toMutableMap()
+                    for (idx in 1 until TEXT_LEVEL.size) {
+                        val level = mLevelsTFArr[idx].text.trim()
+                        if (level.isNotEmpty()) {
+                            levels[level] = idx
+                        }
+                    }
+
+                    val levelNth: Int
+                    try {
+                        levelNth = mLevelNthTF.text.toInt()
+                    } catch (ex: NumberFormatException) {
+                        mLevelNthTF.background = Color.RED
+                        JOptionPane.showMessageDialog(this, "Invalid Level Format(Only number)", "Error", JOptionPane.ERROR_MESSAGE)
+                        return
+                    }
+
+                    val tokens: Array<Token>
+                    try {
+                        tokens = Array(MAX_TOKEN_COUNT) { mTokenArr[it].getToken() }
+                    } catch (ex: Exception) {
+                        JOptionPane.showMessageDialog(this, "Invalid Level Format(Only number)", "Error", JOptionPane.ERROR_MESSAGE)
+                        return
+                    }
+
+                    val pidTokIdx: Int = if (mPidTokIdxCombo.selectedItem == null) {
+                        -1
+                    } else {
+                        mPidTokIdxCombo.selectedItem!!.toString().toInt()
+                    }
+
+                    for (idx in 0 until mFormats.size) {
+                        if (idx > 1 && mFormats[idx].mName == name) {
+                            mFormats.removeAt(idx)
+                            break
+                        }
+                    }
+                    mFormats.add(FormatItem(name, separator, levelNth, levels, tokens, pidTokIdx))
+                    mFormatTableModel.fireTableDataChanged()
+                    updateRowHeights()
                 }
                 mDeleteBtn -> {
-                    dispose()
+                    val row = mFormatTable.selectedRow
+                    if (row > 1) {
+                        mFormats.removeAt(row)
+                        mFormatTableModel.fireTableDataChanged()
+                        updateRowHeights()
+                    }
                 }
                 mCloseBtn -> {
                     dispose()
