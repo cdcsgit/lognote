@@ -54,7 +54,7 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
         contentPane.add(bottomPanel, BorderLayout.SOUTH)
 
         preferredSize = Dimension(940, 900)
-        minimumSize = Dimension(940, 800)
+        minimumSize = Dimension(940, 500)
 
         pack()
 
