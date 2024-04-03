@@ -845,12 +845,12 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mTokenPanel[idx].add(mTokenCombo[idx], BorderLayout.CENTER)
         }
 
-        mLogCmdCombo.preferredSize = Dimension(200, mLogCmdCombo.preferredSize.height)
+        mLogCmdCombo.preferredSize = Dimension(200 * mUIFontPercent / 100, mLogCmdCombo.preferredSize.height)
         if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
             mLogCmdCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 5)
         }
 
-        mDeviceCombo.preferredSize = Dimension(200, mDeviceCombo.preferredSize.height)
+        mDeviceCombo.preferredSize = Dimension(200 * mUIFontPercent / 100, mDeviceCombo.preferredSize.height)
         if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
             mDeviceCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 5)
         }
@@ -1047,7 +1047,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mLogFormatCombo.isEditable = false
         mLogFormatCombo.renderer = ColorComboBox.ComboBoxRenderer()
         mLogFormatCombo.addPopupMenuListener(mPopupMenuHandler)
-        mLogFormatCombo.preferredSize = Dimension(100, mLogFormatCombo.preferredSize.height)
+        mLogFormatCombo.preferredSize = Dimension(100 * mUIFontPercent / 100, mLogFormatCombo.preferredSize.height)
         if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
             mLogFormatCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 5)
         }
@@ -1056,7 +1056,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mLogLevelCombo.isEditable = false
         mLogLevelCombo.renderer = ColorComboBox.ComboBoxRenderer()
         mLogLevelCombo.addPopupMenuListener(mPopupMenuHandler)
-        mLogLevelCombo.preferredSize = Dimension(100, mLogLevelCombo.preferredSize.height)
+        mLogLevelCombo.preferredSize = Dimension(100 * mUIFontPercent / 100, mLogLevelCombo.preferredSize.height)
         if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
             mLogLevelCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 5)
         }
