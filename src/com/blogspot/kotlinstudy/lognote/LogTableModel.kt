@@ -502,6 +502,10 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
             mBaseModel!!.mBookmarkManager.clear()
             mLogItems.clear()
             mLogItems = mutableListOf()
+
+            fireLogTableDataCleared()
+            mBaseModel!!.fireLogTableDataCleared()
+
             mIsFilterUpdated = true
             System.gc()
         }
