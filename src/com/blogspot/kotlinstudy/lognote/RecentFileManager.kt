@@ -6,10 +6,9 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.util.*
 
-class RecentFileManager private constructor() {
+class RecentFileManager private constructor(fileName: String) : PropertiesBase(fileName){
     companion object {
         private const val RECENTES_LIST_FILE = "lognote_recents.xml"
-        val LOGNOTE_HOME: String = System.getenv("LOGNOTE_HOME") ?: ""
         const val ITEM_VERSION = "RECENT_VERSION"
 
         const val ITEM_PATH = "_PATH"
@@ -25,7 +24,7 @@ class RecentFileManager private constructor() {
         const val ITEM_SEARCH_MATCH_CASE = "_SEARCH_MATCH_CASE"
 
         const val MAX_RECENT_FILE = 30
-        private val mInstance: RecentFileManager = RecentFileManager()
+        private val mInstance: RecentFileManager = RecentFileManager(RECENTES_LIST_FILE)
 
         fun getInstance(): RecentFileManager {
             return mInstance
@@ -34,15 +33,9 @@ class RecentFileManager private constructor() {
 
     val mRecentList = mutableListOf<RecentItem>()
     val mOpenList = mutableListOf<OpenItem>()
-    private val mProperties = Properties()
-    private var mRecentListPath = RECENTES_LIST_FILE
     private val mFormatManager = FormatManager.getInstance()
 
     init {
-        if (LOGNOTE_HOME.isNotEmpty()) {
-            mRecentListPath = "$LOGNOTE_HOME${File.separator}$RECENTES_LIST_FILE"
-        }
-        println("Recent list : $mRecentListPath")
         manageVersion()
         loadList()
     }
@@ -62,50 +55,6 @@ class RecentFileManager private constructor() {
     }
 
     data class OpenItem(val mPath: String, var mStartLine: Int, var mEndLine: Int)
-
-    private fun loadXml(): Boolean {
-        var ret = true
-        var fileInput: FileInputStream? = null
-
-        try {
-            fileInput = FileInputStream(mRecentListPath)
-            mProperties.loadFromXML(fileInput)
-        } catch (ex: Exception) {
-            ex.printStackTrace()
-            ret = false
-        } finally {
-            if (null != fileInput) {
-                try {
-                    fileInput.close()
-                } catch (ex: IOException) {
-                    ex.printStackTrace()
-                }
-            }
-        }
-
-        return ret
-    }
-
-    private fun saveXml(): Boolean {
-        var ret = true
-        var fileOutput: FileOutputStream? = null
-        try {
-            fileOutput = FileOutputStream(mRecentListPath)
-            mProperties.storeToXML(fileOutput, "")
-        } catch (ex: Exception) {
-            ex.printStackTrace()
-            ret = false
-        } finally {
-            if (null != fileOutput) {
-                try {
-                    fileOutput.close()
-                } catch (ex: IOException) {
-                    ex.printStackTrace()
-                }
-            }
-        }
-        return ret
-    }
 
     fun loadList() {
         loadXml()
@@ -222,33 +171,11 @@ class RecentFileManager private constructor() {
         saveList()
     }
 
-    fun getItem(key: String): String? {
-        return mProperties[key] as String?
-    }
-
-    fun setItem(key: String, value: String) {
-        mProperties[key] = value
-    }
-
-    private fun setItems(keys: Array<String>, values: Array<String>) {
-        if (keys.size != values.size) {
-            println("saveItem : size not match ${keys.size}, ${values.size}")
-            return
-        }
-        for (idx in keys.indices) {
-            mProperties[keys[idx]] = values[idx]
-        }
-    }
-
-    fun removeItem(key: String) {
-        mProperties.remove(key)
-    }
-
     fun addOpenFile(openItem: OpenItem) {
         mOpenList.add(openItem)
     }
 
-    private fun manageVersion() {
+    override fun manageVersion() {
         val isLoaded = loadXml()
 
         if (isLoaded) {

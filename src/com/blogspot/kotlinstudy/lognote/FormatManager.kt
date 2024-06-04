@@ -4,10 +4,9 @@ import com.blogspot.kotlinstudy.lognote.FormatManager.FormatItem.Token
 import java.awt.*
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
+import java.awt.event.WindowAdapter
+import java.awt.event.WindowEvent
 import javax.swing.*
-import javax.swing.border.AbstractBorder
-import javax.swing.event.DocumentEvent
-import javax.swing.event.DocumentListener
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
 import javax.swing.table.DefaultTableModel
@@ -15,9 +14,10 @@ import javax.swing.table.TableCellRenderer
 import kotlin.math.max
 
 
-class FormatManager private constructor(){
+class FormatManager private constructor(fileName: String) : PropertiesBase(fileName){
     interface FormatEventListener {
         fun formatChanged(format: FormatItem)
+        fun formatListChanged()
     }
 
     private val mEventListeners = ArrayList<FormatEventListener>()
@@ -33,6 +33,12 @@ class FormatManager private constructor(){
     private fun notifyFormatChanged() {
         for (listener in mEventListeners) {
             listener.formatChanged(mCurrFormat)
+        }
+    }
+
+    private fun notifyFormatListChanged() {
+        for (listener in mEventListeners) {
+            listener.formatListChanged()
         }
     }
 
@@ -85,8 +91,21 @@ class FormatManager private constructor(){
     }
 
     companion object {
+        private const val FORMATS_LIST_FILE = "lognote_formats.xml"
+        const val ITEM_VERSION = "FORMAT_VERSION"
+
+        const val ITEM_NAME = "_NAME"
+        const val ITEM_SEPARATOR = "_SEPARATOR"
+        const val ITEM_LEVEL = "_LEVEL_"
+        const val ITEM_LEVEL_NTH = "_LEVEL_NTH"
+        const val ITEM_TOKEN_NAME = "_TOKEN_NAME_"
+        const val ITEM_TOKEN_NTH = "_TOKEN_NTH_"
+        const val ITEM_TOKEN_SAVE_FILTER = "_TOKEN_SAVE_FILTER_"
+        const val ITEM_TOKEN_UI_WIDTH = "_TOKEN_UI_WIDTH_"
+        const val ITEM_PID_TOK_IDX = "_PID_TOK_IDX"
+
+        const val MAX_FORMAT_COUNT = 50
         const val MAX_TOKEN_COUNT = 3
-        const val DEFAULT_LOGCAT = "logcat"
 
         val TEXT_LEVEL = arrayOf("None", "Verbose", "Debug", "Info", "Warning", "Error", "Fatal")
         const val LEVEL_NONE = 0
@@ -97,22 +116,44 @@ class FormatManager private constructor(){
         const val LEVEL_ERROR = 5
         const val LEVEL_FATAL = 6
 
-        private val mInstance: FormatManager = FormatManager()
+        private val mInstance: FormatManager = FormatManager(FORMATS_LIST_FILE)
         fun getInstance(): FormatManager {
             return mInstance
         }
     }
 
-    val mFormats = mutableListOf<FormatItem>()
+    val mFormatList = mutableListOf<FormatItem>()
     var mCurrFormat: FormatItem
+
+    private val mConfigManager = ConfigManager.getInstance()
+
     init {
+        manageVersion()
+        loadList()
+
+        if (mFormatList.isEmpty()) {
+            addDefaultFormats(mFormatList)
+        }
+
+        mCurrFormat = mFormatList[0]
+        val logFormat = mConfigManager.getItem(ConfigManager.ITEM_LOG_FORMAT)
+        if (logFormat != null) {
+            setCurrFormat(logFormat.toString().trim())
+        }
+        else {
+            setCurrFormat("")
+        }
+    }
+
+    private fun addDefaultFormats(formatList: MutableList<FormatItem>) {
         var separator = ":?\\s+"
-        var levels = mapOf("V" to LEVEL_VERBOSE
-            , "D" to LEVEL_DEBUG
-            , "I" to LEVEL_INFO
-            , "W" to LEVEL_WARNING
-            , "E" to LEVEL_ERROR
-            , "F" to LEVEL_FATAL
+        var levels = mapOf(
+            "V" to LEVEL_VERBOSE,
+            "D" to LEVEL_DEBUG,
+            "I" to LEVEL_INFO,
+            "W" to LEVEL_WARNING,
+            "E" to LEVEL_ERROR,
+            "F" to LEVEL_FATAL
         )
         var levelNth = 4
 
@@ -122,7 +163,7 @@ class FormatManager private constructor(){
             Token("TID", 3, false, 120),
         )
         var pidTokIdx = 1
-        mFormats.add(0, FormatItem(DEFAULT_LOGCAT, separator, levelNth, levels, tokens, pidTokIdx))
+        formatList.add(0, FormatItem("logcat", separator, levelNth, levels, tokens, pidTokIdx))
 
         // case plain text
         separator = ""
@@ -135,16 +176,17 @@ class FormatManager private constructor(){
             Token("", 0, false, 0),
         )
         pidTokIdx = -1
-        mFormats.add(FormatItem("plain text", separator, levelNth, levels, tokens, pidTokIdx))
+        formatList.add(FormatItem("plain text", separator, levelNth, levels, tokens, pidTokIdx))
 
         // case logcat -time
         separator = "/|\\(?\\s+"
-        levels = mapOf("V" to LEVEL_VERBOSE
-            , "D" to LEVEL_DEBUG
-            , "I" to LEVEL_INFO
-            , "W" to LEVEL_WARNING
-            , "E" to LEVEL_ERROR
-            , "F" to LEVEL_FATAL
+        levels = mapOf(
+            "V" to LEVEL_VERBOSE,
+            "D" to LEVEL_DEBUG,
+            "I" to LEVEL_INFO,
+            "W" to LEVEL_WARNING,
+            "E" to LEVEL_ERROR,
+            "F" to LEVEL_FATAL
         )
         levelNth = 2
 
@@ -154,43 +196,125 @@ class FormatManager private constructor(){
             Token("", 0, false, 120),
         )
         pidTokIdx = -1
-        mFormats.add(FormatItem("logcat -time", separator, levelNth, levels, tokens, pidTokIdx))
+        formatList.add(FormatItem("logcat -time", separator, levelNth, levels, tokens, pidTokIdx))
+    }
 
-        // case 2
-//        val separator = ":| "
-//        val levels = mapOf("V" to LEVEL_VERBOSE
-//                , "DEBUG" to LEVEL_DEBUG
-//                , "INFO" to LEVEL_INFO
-//                , "NOTICE" to LEVEL_WARNING
-//                , "ERROR" to LEVEL_ERROR
-//                , "F" to LEVEL_FATAL
-//        )
-//        val levelNth = 4
-//
-//        val tokens: Array<Token> = arrayOf(
-//            Token("", 0, false, 120),
-//            Token("", 0, false, 120),
-//            Token("", 0, false, 120),
-//        )
-//        val pidTokIdx = 0
+    private fun loadList() {
+        loadXml()
+        mFormatList.clear()
 
-        mCurrFormat = mFormats[0]
+        for (i in 0 until MAX_FORMAT_COUNT) {
+            val name = (mProperties["$i$ITEM_NAME"] ?: "") as String
+            if (name.trim().isEmpty()) {
+                break
+            }
+            val separator = (mProperties["$i$ITEM_SEPARATOR"] ?: "") as String
+            val levels = emptyMap<String, Int>().toMutableMap()
+            for (idx in 1 until TEXT_LEVEL.size) {
+                val level = ((mProperties["$i$ITEM_LEVEL$idx"] ?: "") as String).trim()
+                if (level.isNotEmpty()) {
+                    levels[level] = idx
+                }
+            }
+
+            val levelNth = try {
+                ((mProperties["$i$ITEM_LEVEL_NTH"] ?: "") as String).toInt()
+            } catch (ex: NumberFormatException) {
+                -1
+            }
+
+            var tokens: Array<Token>
+            try {
+                tokens = Array(MAX_TOKEN_COUNT) {
+                    val tokenName = ((mProperties["$i$ITEM_TOKEN_NAME$it"] ?: "") as String).trim()
+                    val nth = try {
+                        ((mProperties["$i$ITEM_TOKEN_NTH$it"] ?: "") as String).toInt()
+                    } catch (ex: NumberFormatException) {
+                        0
+                    }
+                    val check = (mProperties["$i$ITEM_TOKEN_SAVE_FILTER$it"] ?: "") as String
+                    val isSaveFilter = if (check.isNotEmpty()) {
+                        check.toBoolean()
+                    } else {
+                        false
+                    }
+                    val uiWidth = try {
+                        ((mProperties["$i$ITEM_TOKEN_UI_WIDTH$it"] ?: "") as String).toInt()
+                    } catch (ex: NumberFormatException) {
+                        0
+                    }
+
+                    Token(tokenName, nth, isSaveFilter, uiWidth)
+                }
+            } catch (ex: Exception) {
+                println("Failed load format($name) tokens")
+                ex.printStackTrace()
+                tokens = arrayOf(
+                    Token("", 0, false, 120),
+                    Token("", 0, false, 120),
+                    Token("", 0, false, 120),
+                )
+            }
+
+            val pidTokIdx = try {
+                ((mProperties["$i$ITEM_PID_TOK_IDX"] ?: "") as String).toInt()
+            } catch (ex: NumberFormatException) {
+                -1
+            }
+
+            mFormatList.add(FormatItem(name, separator, levelNth, levels, tokens, pidTokIdx))
+        }
+    }
+
+    private fun saveList() {
+        mProperties.clear()
+        var format: FormatItem
+        for (i in 0 until mFormatList.size) {
+            format = mFormatList[i]
+            mProperties["$i$ITEM_NAME"] = format.mName
+            mProperties["$i$ITEM_SEPARATOR"] = format.mSeparator
+            val keyList = format.mLevels.keys.toList()
+            for (key in keyList) {
+                val level = format.mLevels[key]
+                if (level != null) {
+                    mProperties["$i$ITEM_LEVEL$level"] = key
+                }
+            }
+
+            mProperties["$i$ITEM_LEVEL_NTH"] = format.mLevelNth.toString()
+
+            for (idx in 0 until MAX_TOKEN_COUNT) {
+                mProperties["$i$ITEM_TOKEN_NAME$idx"] = format.mTokens[idx].mToken
+                mProperties["$i$ITEM_TOKEN_NTH$idx"] = format.mTokens[idx].mNth.toString()
+                mProperties["$i$ITEM_TOKEN_SAVE_FILTER$idx"] = format.mTokens[idx].mIsSaveFilter.toString()
+                mProperties["$i$ITEM_TOKEN_UI_WIDTH$idx"] = format.mTokens[idx].mUiWidth.toString()
+            }
+
+            mProperties["$i$ITEM_PID_TOK_IDX"] = format.mPidTokIdx.toString()
+        }
+
+        saveXml()
+        notifyFormatListChanged()
+    }
+
+    override fun manageVersion() {
+        // do nothing
     }
 
 //    fun updateFormat(name: String, value: FormatItem) {
-//        mFormats[name] = value
+//        mFormatList[name] = value
 //    }
 //
 //    fun removeFormat(name: String) {
-//        mFormats.remove(name)
+//        mFormatList.remove(name)
 //    }
 
     fun clear() {
-        mFormats.clear()
+        mFormatList.clear()
     }
 
 //    fun getNames(): List<String> {
-//        return mFormats.keys.toList()
+//        return mFormatList.keys.toList()
 //    }
 
     fun showFormatListDialog(parent: JFrame) {
@@ -200,41 +324,37 @@ class FormatManager private constructor(){
     }
 
     fun setCurrFormat(selectedItem: String) {
-        for (format in mFormats) {
+        var isUpdated = false
+        for (format in mFormatList) {
             if (format.mName == selectedItem) {
                 mCurrFormat = format
+                isUpdated = true
                 break
             }
+        }
+
+        if (!isUpdated && mFormatList.isNotEmpty()) {
+            mCurrFormat = mFormatList[0]
         }
 
         notifyFormatChanged()
     }
 
-    inner class FormatListDialog(parent: JFrame) : JDialog(parent, Strings.LOGFORMAT, true), ActionListener {
-        internal inner class TitleDocumentHandler: DocumentListener {
-            override fun insertUpdate(e: DocumentEvent?) {
-                checkValue()
-            }
-
-            override fun removeUpdate(e: DocumentEvent?) {
-                checkValue()
-            }
-
-            override fun changedUpdate(e: DocumentEvent?) {
-                checkValue()
-            }
-
-            private fun checkValue() {
-                if (mNameTF.text.isEmpty() || mNameTF.text == mFormats[0].mName || mNameTF.text == mFormats[1].mName) {
-                    mSaveBtn.isEnabled = false
-                    mDeleteBtn.isEnabled = false
-                } else {
-                    mSaveBtn.isEnabled = true
-                    mDeleteBtn.isEnabled = true
-                }
-            }
+    private fun copyFormatList(src: MutableList<FormatItem>, dest: MutableList<FormatItem>) {
+        dest.clear()
+        for (item in src) {
+            dest.add(item.copy())
         }
+        return
+    }
+    
+    inner class FormatListDialog(parent: JFrame) : JDialog(parent, Strings.LOGFORMAT, true), ActionListener {
+        private val mDialogFormatList = mutableListOf<FormatItem>()
 
+        init {
+            copyFormatList(mFormatList, mDialogFormatList)
+        }
+        
         inner class MultiLineCellRenderer : JTextPane(), TableCellRenderer {
             init {
                 contentType = "text/html"
@@ -273,7 +393,7 @@ class FormatManager private constructor(){
             }
 
             override fun getRowCount(): Int {
-                return mFormats.size
+                return mDialogFormatList.size
             }
 
             override fun isCellEditable(row: Int, column: Int): Boolean {
@@ -281,7 +401,7 @@ class FormatManager private constructor(){
             }
 
             override fun getValueAt(row: Int, column: Int): Any {
-                val format = mFormats[row]
+                val format = mDialogFormatList[row]
                 when (column) {
                     0 -> {
                         return "<html><center>${format.mName}</center></html>"
@@ -319,7 +439,7 @@ class FormatManager private constructor(){
             override fun valueChanged(p0: ListSelectionEvent?) {
                 if (mFormatTable.selectedRow >= 0 && mSelectedRow != mFormatTable.selectedRow) {
                     mSelectedRow = mFormatTable.selectedRow
-                    val format = mFormats[mSelectedRow]
+                    val format = mDialogFormatList[mSelectedRow]
                     mNameTF.text = format.mName
                     mSeparatorTF.text = format.mSeparator
                     mLevelNthTF.text = format.mLevelNth.toString()
@@ -382,32 +502,52 @@ class FormatManager private constructor(){
             }
             
             fun getToken(): Token {
+                var isValid = true
                 val name = mTokenTF.text.trim()
 
-                val nth: Int
+                var nth: Int = 0
                 try {
                     nth = mNthTF.text.toInt()
+                    mNthTF.background = mTextFieldBg
+                    mNthTF.toolTipText = ""
                 } catch (ex: NumberFormatException) {
                     mNthTF.background = Color.RED
-                    throw ex
+                    mNthTF.toolTipText = "Invalid Level Format(Only number)"
+                    isValid = false
                 }
 
                 val isSaveFilter = mIsSaveFilterCheck.isSelected
 
-                val uiWidth: Int
+                var uiWidth: Int = 0
                 try {
                     uiWidth = mUiWidthTF.text.toInt()
+                    mUiWidthTF.background = mTextFieldBg
+                    mUiWidthTF.toolTipText = ""
                 } catch (ex: NumberFormatException) {
                     mUiWidthTF.background = Color.RED
-                    throw ex
+                    mUiWidthTF.toolTipText = "Invalid Level Format(Only number)"
+                    isValid = false
+                }
+
+                if (!isValid) {
+                    throw NumberFormatException()
                 }
 
                 return Token(name, nth, isSaveFilter, uiWidth)
             }
         }
-        
-        private val mSaveBtn: ColorButton
+
+        private val mFirstBtn: ColorButton
+        private val mPrevBtn: ColorButton
+        private val mNextBtn: ColorButton
+        private val mLastBtn: ColorButton
+
+        private val mAddBtn: ColorButton
+        private val mCopyBtn: ColorButton
+        private val mReplaceBtn: ColorButton
         private val mDeleteBtn: ColorButton
+        private val mResetBtn: ColorButton
+        private val mSaveBtn: ColorButton
         private val mCloseBtn: ColorButton
         private val mFormatPanel = JPanel()
         private val mFormatTableModel = FormatTableModel()
@@ -427,6 +567,8 @@ class FormatManager private constructor(){
         private val mLevelsPanel = JPanel()
         private val mTokenArr = Array(MAX_TOKEN_COUNT) { TokenPanel(it) }
         private val mTokensPanel = JPanel()
+        private val mTextFieldBg: Color
+        private var mIsChanged = false
 
         init {
             mFormatPanel.layout = BoxLayout(mFormatPanel, BoxLayout.Y_AXIS)
@@ -454,7 +596,7 @@ class FormatManager private constructor(){
             mNameLabel.text = "Name"
             mNameTF.preferredSize = Dimension(150, mNameTF.preferredSize.height)
             mNameTF.text = ""
-            mNameTF.document.addDocumentListener(TitleDocumentHandler())
+            mTextFieldBg = mNameTF.background
             mSeparatorLabel.text = "Separator"
             mSeparatorTF.text = ""
             mSeparatorTF.preferredSize = Dimension(100, mSeparatorTF.preferredSize.height)
@@ -491,6 +633,10 @@ class FormatManager private constructor(){
                 mTokensPanel.add(mTokenArr[idx])
             }
 
+            val inUsePanel = JPanel(FlowLayout(FlowLayout.LEFT))
+            val inUseLabel = JLabel(" In use - [${mCurrFormat.mName}] ")
+            inUsePanel.add(inUseLabel)
+            mFormatPanel.add(inUsePanel)
             mFormatPanel.add(mScrollPane)
             addHEmptySeparator(mFormatPanel, 20)
             addHSeparator(mFormatPanel, " Name ")
@@ -502,28 +648,86 @@ class FormatManager private constructor(){
             addHSeparator(mFormatPanel, " Tokens ")
             mFormatPanel.add(mTokensPanel)
 
-            mSaveBtn = ColorButton(Strings.SAVE)
-            mSaveBtn.addActionListener(this)
-            mSaveBtn.isEnabled = false
+            mFirstBtn = ColorButton("↑")
+            mFirstBtn.addActionListener(this)
+            mPrevBtn = ColorButton("∧")
+            mPrevBtn.addActionListener(this)
+            mNextBtn = ColorButton("∨")
+            mNextBtn.addActionListener(this)
+            mLastBtn = ColorButton("↓")
+            mLastBtn.addActionListener(this)
+
+            mAddBtn = ColorButton(Strings.ADD)
+            mAddBtn.addActionListener(this)
+            mCopyBtn = ColorButton(Strings.COPY)
+            mCopyBtn.addActionListener(this)
+            mReplaceBtn = ColorButton(Strings.REPLACE)
+            mReplaceBtn.addActionListener(this)
             mDeleteBtn = ColorButton(Strings.DELETE)
             mDeleteBtn.addActionListener(this)
-            mDeleteBtn.isEnabled = false
+            mResetBtn = ColorButton(Strings.RESET)
+            mResetBtn.addActionListener(this)
+            mSaveBtn = ColorButton(Strings.SAVE)
+            mSaveBtn.addActionListener(this)
             mCloseBtn = ColorButton(Strings.CLOSE)
             mCloseBtn.addActionListener(this)
 
-            val confirmPanel = JPanel(FlowLayout(FlowLayout.RIGHT))
-            confirmPanel.alignmentX = JPanel.RIGHT_ALIGNMENT
-            confirmPanel.add(mSaveBtn)
-            confirmPanel.add(mDeleteBtn)
-            confirmPanel.add(mCloseBtn)
+            val bottomPanel = JPanel()
+            bottomPanel.add(mFirstBtn)
+            bottomPanel.add(mPrevBtn)
+            bottomPanel.add(mNextBtn)
+            bottomPanel.add(mLastBtn)
+            Utils.addVSeparator(bottomPanel, 20)
+            bottomPanel.add(mAddBtn)
+            bottomPanel.add(mCopyBtn)
+            bottomPanel.add(mReplaceBtn)
+            bottomPanel.add(mDeleteBtn)
+            bottomPanel.add(mResetBtn)
+            Utils.addVSeparator(bottomPanel, 20)
+            bottomPanel.add(mSaveBtn)
+            bottomPanel.add(mCloseBtn)
 
             val panel = JPanel(BorderLayout())
             panel.add(mFormatPanel, BorderLayout.CENTER)
-            panel.add(confirmPanel, BorderLayout.SOUTH)
+            panel.add(bottomPanel, BorderLayout.SOUTH)
 
             contentPane.add(panel)
             pack()
 
+            setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE)
+            addWindowListener(object : WindowAdapter() {
+                override fun windowClosing(e: WindowEvent?) {
+                    if (mIsChanged) {
+                        val dialogResult = JOptionPane.showConfirmDialog(this@FormatListDialog, "The values changed. Save it?", "Warning", JOptionPane.YES_NO_CANCEL_OPTION)
+                        when (dialogResult) {
+                            JOptionPane.YES_OPTION -> {
+                                copyFormatList(mDialogFormatList, mFormatList)
+                                saveList()
+                                mIsChanged = false
+                                dispose()
+                            }
+                            JOptionPane.NO_OPTION -> {
+                                dispose()
+                            }
+                            else -> {
+                                // do nothing
+                            }
+                        }
+                    }
+                    else {
+                        dispose()
+                    }
+                }
+
+                override fun windowClosed(e: WindowEvent?) {
+                    if (mFormatList.isEmpty()) {
+                        addDefaultFormats(mFormatList)
+                    }
+                    setCurrFormat(mCurrFormat.mName)
+
+                    super.windowClosed(e)
+                }
+            })
             Utils.installKeyStrokeEscClosing(this)
         }
 
@@ -557,67 +761,231 @@ class FormatManager private constructor(){
             target.add(panel)
         }
 
+        private fun isValidFormatItem(): Boolean {
+            var isValid = true
+            val name = mNameTF.text.trim()
+            if (name.isEmpty()) {
+                mNameTF.background = Color.RED
+                mNameTF.toolTipText = "Invalid Name"
+                isValid = false
+            }
+            else {
+                mNameTF.background = mTextFieldBg
+                mNameTF.toolTipText = ""
+            }
+
+            try {
+                mLevelNthTF.text.toInt()
+                mLevelNthTF.background = mTextFieldBg
+                mLevelNthTF.toolTipText = ""
+            } catch (ex: NumberFormatException) {
+                mLevelNthTF.background = Color.RED
+                mLevelNthTF.toolTipText = "Invalid Level Format(Only number)"
+                isValid = false
+            }
+
+            for (idx in 0 until MAX_TOKEN_COUNT) {
+                try {
+                    mTokenArr[idx].getToken()
+                } catch (ex: Exception) {
+                    isValid = false
+                }
+            }
+
+            return isValid
+        }
+
+        private fun makeFormatItem(): FormatItem {
+            if (!isValidFormatItem()) {
+                throw Exception()
+            }
+
+            val name = mNameTF.text.trim()
+            val separator = mSeparatorTF.text
+            val levels = emptyMap<String, Int>().toMutableMap()
+            for (idx in 1 until TEXT_LEVEL.size) {
+                val level = mLevelsTFArr[idx].text.trim()
+                if (level.isNotEmpty()) {
+                    levels[level] = idx
+                }
+            }
+
+            val levelNth = mLevelNthTF.text.toInt()
+            val tokens = Array(MAX_TOKEN_COUNT) { mTokenArr[it].getToken() }
+            val pidTokIdx: Int = if (mPidTokIdxCombo.selectedItem == null) {
+                -1
+            } else {
+                mPidTokIdxCombo.selectedItem!!.toString().toInt()
+            }
+
+            return FormatItem(name, separator, levelNth, levels, tokens, pidTokIdx)
+        }
+
+        private fun isExistFormat(name: String): Boolean {
+            var isExist = false
+            for (idx in 0 until mDialogFormatList.size) {
+                if (name == mDialogFormatList[idx].mName) {
+                    isExist = true
+                    break
+                }
+            }
+
+            return isExist
+        }
+
         override fun actionPerformed(e: ActionEvent?) {
             when (e?.source) {
-                mSaveBtn -> {
-                    val name = mNameTF.text.trim()
-                    if (name.isEmpty() || mFormats[0].mName == name || mFormats[1].mName == name) {
-                        mNameTF.background = Color.RED
-                        JOptionPane.showMessageDialog(this, "Invalid Name", "Error", JOptionPane.ERROR_MESSAGE)
-                        return
+                mFirstBtn -> {
+                    val selectedIdx = mFormatTable.selectedRow
+                    if (mDialogFormatList.size > 1 && mDialogFormatList.size > selectedIdx) {
+                        mIsChanged = true
+                        val format = mDialogFormatList[selectedIdx]
+                        mDialogFormatList.removeAt(selectedIdx)
+                        mDialogFormatList.add(0, format)
+                        mFormatTableModel.fireTableDataChanged()
+                        updateRowHeights()
+                        mFormatTable.setRowSelectionInterval(0, 0)
                     }
-                    val separator = mSeparatorTF.text.trim()
-                    val levels = emptyMap<String, Int>().toMutableMap()
-                    for (idx in 1 until TEXT_LEVEL.size) {
-                        val level = mLevelsTFArr[idx].text.trim()
-                        if (level.isNotEmpty()) {
-                            levels[level] = idx
+                }
+                mPrevBtn -> {
+                    val selectedIdx = mFormatTable.selectedRow
+                    if (mDialogFormatList.size > 1 && mDialogFormatList.size > selectedIdx && selectedIdx > 0) {
+                        mIsChanged = true
+                        val format = mDialogFormatList[selectedIdx]
+                        mDialogFormatList.removeAt(selectedIdx)
+                        mDialogFormatList.add(selectedIdx - 1, format)
+                        mFormatTableModel.fireTableDataChanged()
+                        updateRowHeights()
+                        mFormatTable.setRowSelectionInterval(selectedIdx - 1, selectedIdx - 1)
+                    }
+                }
+                mNextBtn -> {
+                    val selectedIdx = mFormatTable.selectedRow
+                    if (mDialogFormatList.size > 1 && mDialogFormatList.size > selectedIdx && selectedIdx < (mDialogFormatList.size - 1)) {
+                        mIsChanged = true
+                        val format = mDialogFormatList[selectedIdx]
+                        mDialogFormatList.removeAt(selectedIdx)
+                        mDialogFormatList.add(selectedIdx + 1, format)
+                        mFormatTableModel.fireTableDataChanged()
+                        updateRowHeights()
+                        mFormatTable.setRowSelectionInterval(selectedIdx + 1, selectedIdx + 1)
+                    }
+                }
+                mLastBtn -> {
+                    val selectedIdx = mFormatTable.selectedRow
+                    if (mDialogFormatList.size > 1 && mDialogFormatList.size > selectedIdx) {
+                        mIsChanged = true
+                        val format = mDialogFormatList[selectedIdx]
+                        mDialogFormatList.removeAt(selectedIdx)
+                        mDialogFormatList.add(mDialogFormatList.size, format)
+                        mFormatTableModel.fireTableDataChanged()
+                        updateRowHeights()
+                        mFormatTable.setRowSelectionInterval(mDialogFormatList.size - 1, mDialogFormatList.size - 1)
+                    }
+                }
+
+                mAddBtn -> {
+                    val format: FormatItem
+                    try {
+                        format = makeFormatItem()
+                        val isExist = isExistFormat(format.mName)
+                        if (isExist) {
+                            JOptionPane.showMessageDialog(this, "Invalid Value, Name \"${format.mName}\" is exist", "Error", JOptionPane.ERROR_MESSAGE)
                         }
-                    }
-
-                    val levelNth: Int
-                    try {
-                        levelNth = mLevelNthTF.text.toInt()
-                    } catch (ex: NumberFormatException) {
-                        mLevelNthTF.background = Color.RED
-                        JOptionPane.showMessageDialog(this, "Invalid Level Format(Only number)", "Error", JOptionPane.ERROR_MESSAGE)
-                        return
-                    }
-
-                    val tokens: Array<Token>
-                    try {
-                        tokens = Array(MAX_TOKEN_COUNT) { mTokenArr[it].getToken() }
+                        else {
+                            mIsChanged = true
+                            mDialogFormatList.add(format)
+                            mFormatTableModel.fireTableDataChanged()
+                            updateRowHeights()
+                            mFormatTable.setRowSelectionInterval(mDialogFormatList.size - 1, mDialogFormatList.size - 1)
+                            mFormatTable.scrollRectToVisible(mFormatTable.getCellRect(mFormatTable.getRowCount() - 1, 0, true))
+                        }
                     } catch (ex: Exception) {
-                        JOptionPane.showMessageDialog(this, "Invalid Level Format(Only number)", "Error", JOptionPane.ERROR_MESSAGE)
+                        JOptionPane.showMessageDialog(this, "Invalid Value", "Error", JOptionPane.ERROR_MESSAGE)
+                    }
+                }
+
+                mCopyBtn -> {
+                    val row = mFormatTable.selectedRow
+                    if (row < 0 || row >= mDialogFormatList.size) {
+                        JOptionPane.showMessageDialog(this, "Index $row is invalid", "Error", JOptionPane.ERROR_MESSAGE)
                         return
                     }
 
-                    val pidTokIdx: Int = if (mPidTokIdxCombo.selectedItem == null) {
-                        -1
-                    } else {
-                        mPidTokIdxCombo.selectedItem!!.toString().toInt()
-                    }
+                    mIsChanged = true
+                    var num = 2
+                    var name = mDialogFormatList[row].mName + " - $num"
 
-                    for (idx in 0 until mFormats.size) {
-                        if (idx > 1 && mFormats[idx].mName == name) {
-                            mFormats.removeAt(idx)
+                    while (true) {
+                        if (!isExistFormat(name)) {
                             break
                         }
+                        num++
+                        name = mDialogFormatList[row].mName + " - $num"
                     }
-                    mFormats.add(FormatItem(name, separator, levelNth, levels, tokens, pidTokIdx))
+
+                    val format: FormatItem = mDialogFormatList[row].copy(mName = name)
+                    mDialogFormatList.add(format)
                     mFormatTableModel.fireTableDataChanged()
                     updateRowHeights()
+                    mFormatTable.setRowSelectionInterval(mDialogFormatList.size - 1, mDialogFormatList.size - 1)
+                    mFormatTable.scrollRectToVisible(mFormatTable.getCellRect(mFormatTable.getRowCount() - 1, 0, true))
                 }
+
+                mReplaceBtn -> {
+                    val row = mFormatTable.selectedRow
+                    if (row < 0 || row >= mDialogFormatList.size) {
+                        JOptionPane.showMessageDialog(this, "Selected row($row) is invalid", "Error", JOptionPane.ERROR_MESSAGE)
+                        return
+                    }
+
+                    val format: FormatItem
+                    try {
+                        format = makeFormatItem()
+                        val isExist = isExistFormat(format.mName)
+                        if (isExist && mDialogFormatList[row].mName != format.mName) {
+                            JOptionPane.showMessageDialog(this, "Invalid Value, Name \"${format.mName}\" is exist", "Error", JOptionPane.ERROR_MESSAGE)
+                        }
+                        else {
+                            mIsChanged = true
+                            mDialogFormatList.removeAt(row)
+                            mDialogFormatList.add(row, format)
+                            mFormatTableModel.fireTableDataChanged()
+                            updateRowHeights()
+                            mFormatTable.setRowSelectionInterval(mDialogFormatList.size - 1, mDialogFormatList.size - 1)
+                            mFormatTable.scrollRectToVisible(mFormatTable.getCellRect(mFormatTable.getRowCount() - 1, 0, true))
+                        }
+                    } catch (ex: Exception) {
+                        JOptionPane.showMessageDialog(this, "Invalid Value", "Error", JOptionPane.ERROR_MESSAGE)
+                    }
+                }
+
                 mDeleteBtn -> {
                     val row = mFormatTable.selectedRow
-                    if (row > 1) {
-                        mFormats.removeAt(row)
+                    if (row >= 0 && row < mDialogFormatList.size) {
+                        mIsChanged = true
+                        mDialogFormatList.removeAt(row)
                         mFormatTableModel.fireTableDataChanged()
                         updateRowHeights()
                     }
                 }
+
+                mResetBtn -> {
+                    mIsChanged = true
+                    mDialogFormatList.clear()
+                    addDefaultFormats(mDialogFormatList)
+                    mFormatTableModel.fireTableDataChanged()
+                    updateRowHeights()
+                }
+
+                mSaveBtn -> {
+                    copyFormatList(mDialogFormatList, mFormatList)
+                    saveList()
+                    mIsChanged = false
+                    JOptionPane.showMessageDialog(this, "Saved Format List ($FORMATS_LIST_FILE)", "Info", JOptionPane.INFORMATION_MESSAGE)
+                }
                 mCloseBtn -> {
-                    dispose()
+                    dispatchEvent(WindowEvent(this, WindowEvent.WINDOW_CLOSING))
                 }
             }
         }

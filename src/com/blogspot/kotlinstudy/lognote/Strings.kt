@@ -70,7 +70,10 @@ class Strings private constructor() {
         private val IDX_NEW = idx++
         private val IDX_COPY = idx++
         private val IDX_EDIT = idx++
+        private val IDX_ADD = idx++
+        private val IDX_REPLACE = idx++
         private val IDX_DELETE = idx++
+        private val IDX_RESET = idx++
         private val IDX_SAVE = idx++
         private val IDX_SELECT = idx++
         private val IDX_ADB_PATH = idx++
@@ -223,8 +226,14 @@ class Strings private constructor() {
             get() { return currStrings[IDX_COPY] }
         val EDIT: String
             get() { return currStrings[IDX_EDIT] }
+        val ADD: String
+            get() { return currStrings[IDX_ADD] }
+        val REPLACE: String
+            get() { return currStrings[IDX_REPLACE] }
         val DELETE: String
             get() { return currStrings[IDX_DELETE] }
+        val RESET: String
+            get() { return currStrings[IDX_RESET] }
         val SAVE: String
             get() { return currStrings[IDX_SAVE] }
         val SELECT: String

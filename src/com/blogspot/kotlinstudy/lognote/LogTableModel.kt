@@ -548,10 +548,16 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
             }
             else {
                 val textSplited = line.trim().split(Regex(mSeparator))
-
                 if (textSplited.size > mTokenNthMax) {
                     level = mLevelMap[textSplited[mLevelIdx]] ?: LEVEL_NONE
-                    tokens = Array(mSortedTokens.size) { textSplited[mSortedTokens[it].mNth] }
+                    tokens = Array(mSortedTokens.size) {
+                        if (mSortedTokens[it].mToken.isNotBlank() && mSortedTokens[it].mNth >= 0) {
+                            textSplited[mSortedTokens[it].mNth]
+                        }
+                        else {
+                            ""
+                        }
+                    }
                 } else {
                     level = LEVEL_NONE
                     tokens = mEmptyTokens
@@ -1453,7 +1459,15 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                                     val textSplited = tempLine.trim().split(Regex(mSeparator))
                                     if (textSplited.size > mTokenNthMax) {
                                         level = mLevelMap[textSplited[mLevelIdx]] ?: LEVEL_NONE
-                                        tokens = Array(mSortedTokens.size) { textSplited[mSortedTokens[it].mNth] }
+                                        tokens = Array(mSortedTokens.size) {
+                                            if (mSortedTokens[it].mToken.isNotBlank() && mSortedTokens[it].mNth >= 0) {
+                                                textSplited[mSortedTokens[it].mNth]
+                                            }
+                                            else {
+                                                ""
+                                            }
+                                        }
+
                                     } else {
                                         level = if (tempLine.startsWith(Main.NAME)) {
                                             LEVEL_ERROR
@@ -1705,7 +1719,14 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                                     val textSplited = tempLine.trim().split(Regex(mSeparator))
                                     if (textSplited.size > mTokenNthMax) {
                                         level = mLevelMap[textSplited[mLevelIdx]] ?: LEVEL_NONE
-                                        tokens = Array(mSortedTokens.size) { textSplited[mSortedTokens[it].mNth] }
+                                        tokens = Array(mSortedTokens.size) {
+                                            if (mSortedTokens[it].mToken.isNotBlank() && mSortedTokens[it].mNth >= 0) {
+                                                textSplited[mSortedTokens[it].mNth]
+                                            }
+                                            else {
+                                                ""
+                                            }
+                                        }
                                     } else {
                                         level = if (tempLine.startsWith(Main.NAME)) {
                                             LEVEL_ERROR
@@ -1939,11 +1960,10 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
         mLevelIdx = mFormatManager.mCurrFormat.mLevelNth
         mSortedTokens = mFormatManager.mCurrFormat.mSortedTokens
         mSeparator = mFormatManager.mCurrFormat.mSeparator
-        if (mSeparator.isEmpty()) {
-            mFilterLevel = LEVEL_NONE
-        }
-        else {
-            mFilterLevel = mMainUI.mLogLevelCombo.selectedIndex
+        mFilterLevel = if (mSeparator.isEmpty()) {
+            LEVEL_NONE
+        } else {
+            mMainUI.mLogLevelCombo.selectedIndex
         }
         mLevelMap = mFormatManager.mCurrFormat.mLevels
 
@@ -1956,12 +1976,23 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                 val textSplited = item.mLogLine.trim().split(Regex(mSeparator))
                 if (textSplited.size > mTokenNthMax) {
                     item.mLevel = mLevelMap[textSplited[mLevelIdx]] ?: LEVEL_NONE
-                    item.mTokens = Array(mSortedTokens.size) { textSplited[mSortedTokens[it].mNth] }
+                    item.mTokens = Array(mSortedTokens.size) {
+                        if (mSortedTokens[it].mToken.isNotBlank() && mSortedTokens[it].mNth >= 0) {
+                            textSplited[mSortedTokens[it].mNth]
+                        }
+                        else {
+                            ""
+                        }
+                    }
                 } else {
                     item.mLevel = LEVEL_NONE
                     item.mTokens = mEmptyTokens
                 }
             }
         }
+    }
+
+    override fun formatListChanged() {
+        // do nothing
     }
 }

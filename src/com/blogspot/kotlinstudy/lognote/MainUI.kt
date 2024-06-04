@@ -324,6 +324,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mLogCmdManager.getDevices()
         }
         mFormatManager.addFormatEventListener(this)
+        mFormatManager.setCurrFormat(mFormatManager.mCurrFormat.mName)
     }
 
     private fun exit() {
@@ -1047,7 +1048,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mLogFormatCombo.isEditable = false
         mLogFormatCombo.renderer = ColorComboBox.ComboBoxRenderer()
         mLogFormatCombo.addPopupMenuListener(mPopupMenuHandler)
-        mLogFormatCombo.preferredSize = Dimension(100 * mUIFontPercent / 100, mLogFormatCombo.preferredSize.height)
+        mLogFormatCombo.preferredSize = Dimension(150 * mUIFontPercent / 100, mLogFormatCombo.preferredSize.height)
         if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
             mLogFormatCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 5)
         }
@@ -1073,22 +1074,20 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mStatusBar.add(mStatusTF, BorderLayout.CENTER)
         mStatusBar.add(statusRightPanel, BorderLayout.EAST)
 
-//        val logFormat = mConfigManager.getItem(ConfigManager.ITEM_LOG_FORMAT)
-        val logFormat = null
-        if (logFormat != null) {
-        }
-
-        for (format in mFormatManager.mFormats) {
+        for (format in mFormatManager.mFormatList) {
             mLogFormatCombo.addItem(format.mName)
         }
+
+        mLogFormatCombo.selectedItem = mFormatManager.mCurrFormat.mName
+
         for (item in FormatManager.TEXT_LEVEL) {
             mLogLevelCombo.addItem(item)
         }
-        mLogFormatCombo.selectedIndex = 0
 
         val logLevel = mConfigManager.getItem(ConfigManager.ITEM_LOG_LEVEL)
         if (!logLevel.isNullOrEmpty()) {
             mLogLevelCombo.selectedIndex = logLevel.toInt()
+            mFilteredTableModel.mFilterLevel = mLogLevelCombo.selectedIndex
         }
 
         var item: String?
@@ -2817,8 +2816,8 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                         if (mLogFormatCombo.selectedIndex < 0) {
                             return
                         }
-                        mFormatManager.setCurrFormat(mLogFormatCombo.selectedItem.toString())
-//                        mConfigManager.saveItem(ConfigManager.ITEM_LOG_LEVEL, mLogLevelCombo.selectedIndex.toString())
+                        mLogFormatCombo.selectedItem?.let { mFormatManager.setCurrFormat(it.toString()) }
+                        mConfigManager.saveItem(ConfigManager.ITEM_LOG_FORMAT, mFormatManager.mCurrFormat.mName)
                     }
                 }
             }
@@ -3381,6 +3380,15 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mTokenToggle[idx].text = tokens[idx].mToken
             mTokenPanel[idx].isVisible = !mTokenToggle[idx].text.isNullOrEmpty()
         }
+    }
+
+    override fun formatListChanged() {
+        mLogFormatCombo.removeAllItems()
+        for (format in mFormatManager.mFormatList) {
+            mLogFormatCombo.addItem(format.mName)
+        }
+
+        mLogFormatCombo.selectedItem = mFormatManager.mCurrFormat.mName
     }
 }
 

@@ -738,4 +738,8 @@ class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?, 
         mTable.mTableModel.mBoldTokenEndIdx = -1
         mTable.repaint()
     }
+
+    override fun formatListChanged() {
+        // do nothing
+    }
 }

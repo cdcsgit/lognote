@@ -110,12 +110,12 @@ abstract class CustomListManager(mainUI: MainUI, logPanel: LogPanel) {
             bottomPanel.add(mPrevBtn)
             bottomPanel.add(mNextBtn)
             bottomPanel.add(mLastBtn)
-            addVSeparator(bottomPanel)
+            Utils.addVSeparator(bottomPanel, 20)
             bottomPanel.add(mNewBtn)
             bottomPanel.add(mCopyBtn)
             bottomPanel.add(mEditBtn)
             bottomPanel.add(mDeleteBtn)
-            addVSeparator(bottomPanel)
+            Utils.addVSeparator(bottomPanel, 20)
             bottomPanel.add(mSaveBtn)
             bottomPanel.add(mCloseBtn)
 
@@ -126,20 +126,6 @@ abstract class CustomListManager(mainUI: MainUI, logPanel: LogPanel) {
             pack()
 
             Utils.installKeyStrokeEscClosing(this)
-        }
-
-        private fun addVSeparator(panel:JPanel) {
-            val separator1 = JSeparator(SwingConstants.VERTICAL)
-            separator1.preferredSize = Dimension(separator1.preferredSize.width, 20)
-            if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
-                separator1.foreground = Color.GRAY
-                separator1.background = Color.GRAY
-            }
-            else {
-                separator1.foreground = Color.DARK_GRAY
-                separator1.background = Color.DARK_GRAY
-            }
-            panel.add(separator1)
         }
 
         fun initDialog() {
@@ -234,104 +220,115 @@ abstract class CustomListManager(mainUI: MainUI, logPanel: LogPanel) {
         }
 
         override fun actionPerformed(e: ActionEvent?) {
-            if (e?.source == mFirstBtn) {
-                val startIdx = if (mFirstElement == null) 0 else 1
-                mList.valueIsAdjusting = true
-                val selectedIdx = mList.selectedIndex
-                if (mModel.size >= (3 - startIdx)) {
-                    val selection = mList.selectedValue
-                    if (mFirstElement == null || mFirstElement!!.mTitle != selection.mTitle) {
-                        mModel.remove(selectedIdx)
-                        mModel.add(startIdx, selection)
-                        mList.selectedIndex = startIdx
-                    }
-                }
-                mList.valueIsAdjusting = false
-            } else if (e?.source == mPrevBtn) {
-                val startIdx = if (mFirstElement == null) 0 else 1
-                mList.valueIsAdjusting = true
-                val selectedIdx = mList.selectedIndex
-                if (mModel.size >= (3 - startIdx) && selectedIdx > startIdx) {
-                    val selection = mList.selectedValue
-                    if (mFirstElement == null || mFirstElement!!.mTitle != selection.mTitle) {
-                        mModel.remove(selectedIdx)
-                        mModel.add(selectedIdx - 1, selection)
-                        mList.selectedIndex = selectedIdx - 1
-                    }
-                }
-                mList.valueIsAdjusting = false
-            } else if (e?.source == mNextBtn) {
-                val startIdx = if (mFirstElement == null) 0 else 1
-                mList.valueIsAdjusting = true
-                val selectedIdx = mList.selectedIndex
-                if (mModel.size >= (3 - startIdx) && selectedIdx >= startIdx && selectedIdx < (mModel.size() - 1)) {
-                    val selection = mList.selectedValue
-                    if (mFirstElement == null || mFirstElement!!.mTitle != selection.mTitle) {
-                        mModel.remove(selectedIdx)
-                        mModel.add(selectedIdx + 1, selection)
-                        mList.selectedIndex = selectedIdx + 1
-                    }
-                }
-                mList.valueIsAdjusting = false
-            } else if (e?.source == mLastBtn) {
-                val startIdx = if (mFirstElement == null) 0 else 1
-                mList.valueIsAdjusting = true
-                val selectedIdx = mList.selectedIndex
-                if (mModel.size >= (3 - startIdx)) {
-                    val selection = mList.selectedValue
-                    if (mFirstElement == null || mFirstElement!!.mTitle != selection.mTitle) {
-                        mModel.remove(selectedIdx)
-                        mModel.add(mModel.size(), selection)
-                        mList.selectedIndex = mModel.size() - 1
-                    }
-                }
-                mList.valueIsAdjusting = false
-            } else if (e?.source == mNewBtn) {
-                val editDialog = EditDialog(this, CMD_NEW, "", "", false)
-                editDialog.setLocationRelativeTo(this)
-                editDialog.isVisible = true
-            } else if (e?.source == mCopyBtn) {
-                if (mList.selectedIndex >= 0) {
-                    val selection = mList.selectedValue
-                    val editDialog = EditDialog(this, CMD_COPY, selection.mTitle, selection.mValue, selection.mTableBar)
-                    editDialog.setLocationRelativeTo(this)
-                    editDialog.isVisible = true
-                }
-            } else if (e?.source == mEditBtn) {
-                if (mList.selectedIndex >= 0) {
-                    val selection = mList.selectedValue
-                    val cmd = if (mFirstElement == null || mFirstElement!!.mTitle != selection.mTitle) {
-                        CMD_EDIT
-                    } else {
-                        CMD_COPY
-                    }
-                    val editDialog = EditDialog(this, cmd, selection.mTitle, selection.mValue, selection.mTableBar)
-                    editDialog.setLocationRelativeTo(this)
-                    editDialog.isVisible = true
-                }
-            } else if (e?.source == mDeleteBtn) {
-                if (mList.selectedIndex >= 0) {
+            when (e?.source) {
+                mFirstBtn -> {
+                    val startIdx = if (mFirstElement == null) 0 else 1
                     mList.valueIsAdjusting = true
                     val selectedIdx = mList.selectedIndex
-                    mModel.remove(mList.selectedIndex)
-                    if (selectedIdx > 0) {
-                        mList.selectedIndex = selectedIdx - 1
+                    if (mModel.size >= (3 - startIdx)) {
+                        val selection = mList.selectedValue
+                        if (mFirstElement == null || mFirstElement!!.mTitle != selection.mTitle) {
+                            mModel.remove(selectedIdx)
+                            mModel.add(startIdx, selection)
+                            mList.selectedIndex = startIdx
+                        }
                     }
                     mList.valueIsAdjusting = false
                 }
-            } else if (e?.source == mSaveBtn) {
-                val customListArray = ArrayList<CustomElement>()
-                for (item in mModel.elements()) {
-                    if (mFirstElement == null || mFirstElement!!.mTitle != item.mTitle) {
-                        customListArray.add(item)
+                mPrevBtn -> {
+                    val startIdx = if (mFirstElement == null) 0 else 1
+                    mList.valueIsAdjusting = true
+                    val selectedIdx = mList.selectedIndex
+                    if (mModel.size >= (3 - startIdx) && selectedIdx > startIdx) {
+                        val selection = mList.selectedValue
+                        if (mFirstElement == null || mFirstElement!!.mTitle != selection.mTitle) {
+                            mModel.remove(selectedIdx)
+                            mModel.add(selectedIdx - 1, selection)
+                            mList.selectedIndex = selectedIdx - 1
+                        }
+                    }
+                    mList.valueIsAdjusting = false
+                }
+                mNextBtn -> {
+                    val startIdx = if (mFirstElement == null) 0 else 1
+                    mList.valueIsAdjusting = true
+                    val selectedIdx = mList.selectedIndex
+                    if (mModel.size >= (3 - startIdx) && selectedIdx >= startIdx && selectedIdx < (mModel.size() - 1)) {
+                        val selection = mList.selectedValue
+                        if (mFirstElement == null || mFirstElement!!.mTitle != selection.mTitle) {
+                            mModel.remove(selectedIdx)
+                            mModel.add(selectedIdx + 1, selection)
+                            mList.selectedIndex = selectedIdx + 1
+                        }
+                    }
+                    mList.valueIsAdjusting = false
+                }
+                mLastBtn -> {
+                    val startIdx = if (mFirstElement == null) 0 else 1
+                    mList.valueIsAdjusting = true
+                    val selectedIdx = mList.selectedIndex
+                    if (mModel.size >= (3 - startIdx)) {
+                        val selection = mList.selectedValue
+                        if (mFirstElement == null || mFirstElement!!.mTitle != selection.mTitle) {
+                            mModel.remove(selectedIdx)
+                            mModel.add(mModel.size(), selection)
+                            mList.selectedIndex = mModel.size() - 1
+                        }
+                    }
+                    mList.valueIsAdjusting = false
+                }
+                mNewBtn -> {
+                    val editDialog = EditDialog(this, CMD_NEW, "", "", false)
+                    editDialog.setLocationRelativeTo(this)
+                    editDialog.isVisible = true
+                }
+                mCopyBtn -> {
+                    if (mList.selectedIndex >= 0) {
+                        val selection = mList.selectedValue
+                        val editDialog = EditDialog(this, CMD_COPY, selection.mTitle, selection.mValue, selection.mTableBar)
+                        editDialog.setLocationRelativeTo(this)
+                        editDialog.isVisible = true
                     }
                 }
+                mEditBtn -> {
+                    if (mList.selectedIndex >= 0) {
+                        val selection = mList.selectedValue
+                        val cmd = if (mFirstElement == null || mFirstElement!!.mTitle != selection.mTitle) {
+                            CMD_EDIT
+                        } else {
+                            CMD_COPY
+                        }
+                        val editDialog = EditDialog(this, cmd, selection.mTitle, selection.mValue, selection.mTableBar)
+                        editDialog.setLocationRelativeTo(this)
+                        editDialog.isVisible = true
+                    }
+                }
+                mDeleteBtn -> {
+                    if (mList.selectedIndex >= 0) {
+                        mList.valueIsAdjusting = true
+                        val selectedIdx = mList.selectedIndex
+                        mModel.remove(mList.selectedIndex)
+                        if (selectedIdx > 0) {
+                            mList.selectedIndex = selectedIdx - 1
+                        }
+                        mList.valueIsAdjusting = false
+                    }
+                }
+                mSaveBtn -> {
+                    val customListArray = ArrayList<CustomElement>()
+                    for (item in mModel.elements()) {
+                        if (mFirstElement == null || mFirstElement!!.mTitle != item.mTitle) {
+                            customListArray.add(item)
+                        }
+                    }
 
-                saveList(customListArray)
+                    saveList(customListArray)
 
-                mLogPanel.updateTableBar(customListArray)
-            } else if (e?.source == mCloseBtn) {
-                dispose()
+                    mLogPanel.updateTableBar(customListArray)
+                }
+                mCloseBtn -> {
+                    dispose()
+                }
             }
         }
 

@@ -41,6 +41,7 @@ class ConfigManager private constructor() {
         const val ITEM_HIGHLIGHT_LOG_CHECK = "HIGHLIGHT_LOG_CHECK"
 
         const val ITEM_LOG_LEVEL = "LOG_LEVEL"
+        const val ITEM_LOG_FORMAT = "LOG_FORMAT"
 
         const val ITEM_LOOK_AND_FEEL = "LOOK_AND_FEEL"
         const val ITEM_UI_FONT_SIZE = "UI_FONT_SIZE"
