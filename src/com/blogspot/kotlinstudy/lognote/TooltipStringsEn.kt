@@ -58,6 +58,8 @@ class TooltipStringsEn private constructor() {
             , "Token filter"
             , "Regex support, filter: search, -filter: exclude search, ex filter1|filter2|-exclude1"
             , "Token highlight"
+            , "Invalid Format(Only number)"
+            , "Invalid Name(Blank is not allowed)"
 //            , ""
         )
     }

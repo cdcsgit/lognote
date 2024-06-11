@@ -598,7 +598,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mItemLogFile = JMenuItem(Strings.LOGFILE)
         mItemLogFile.addActionListener(mActionHandler)
         mMenuSettings.add(mItemLogFile)
-        mItemLogFormat = JMenuItem(Strings.LOGFORMAT)
+        mItemLogFormat = JMenuItem(Strings.LOG_FORMAT)
         mItemLogFormat.addActionListener(mActionHandler)
         mMenuSettings.add(mItemLogFormat)
 
@@ -2975,6 +2975,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     inner class SearchPanel : JPanel() {
         var mSearchCombo: FilterComboBox
         var mSearchMatchCaseToggle: ColorToggleButton
+        private var mSearchLabel: JLabel
         private var mTargetLabel: JLabel
         private var mUpBtn: ColorButton
         private var mDownBtn: ColorButton
@@ -2987,6 +2988,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         private val mSearchPopupMenuHandler = SearchPopupMenuHandler()
 
         init {
+            mSearchLabel = JLabel("${Strings.SEARCH} ")
             mSearchCombo = FilterComboBox(FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT, false)
             mSearchCombo.preferredSize = Dimension(700, mSearchCombo.preferredSize.height)
             if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
@@ -3044,6 +3046,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
 
             val searchPanel = JPanel(FlowLayout(FlowLayout.LEFT, 5, 2))
+            searchPanel.add(mSearchLabel)
             searchPanel.add(mSearchCombo)
             searchPanel.add(mSearchMatchCaseToggle)
             searchPanel.add(mUpBtn)

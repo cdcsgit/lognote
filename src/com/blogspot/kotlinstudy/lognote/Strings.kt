@@ -119,7 +119,23 @@ class Strings private constructor() {
         private val IDX_COLOR_TAG_REGEX = idx++
         private val IDX_SAVE_FULL = idx++
         private val IDX_SAVE_FILTERED = idx++
-        private val IDX_LOGFORMAT = idx++
+        private val IDX_LOG_FORMAT = idx++
+        private val IDX_NAME = idx++
+        private val IDX_SEPARATOR = idx++
+        private val IDX_LEVEL_NTH = idx++
+        private val IDX_LEVELS = idx++
+        private val IDX_TOKENS = idx++
+        private val IDX_PID_TOKEN = idx++
+        private val IDX_NTH = idx++
+        private val IDX_SAVE_FILTER = idx++
+        private val IDX_WIDTH = idx++
+        private val IDX_OPTIONAL = idx++
+        private val IDX_IN_USE = idx++
+        private val IDX_VAL_CHANGE_SAVE = idx++
+        private val IDX_INVALID_VALUE = idx++
+        private val IDX_INVALID_NAME_EXIST = idx++
+        private val IDX_INVALID_INDEX = idx++
+        private val IDX_SAVED_FORMAT_LIST = idx++
 //        private val IDX_ = idx++
 
         val FILE: String
@@ -324,7 +340,39 @@ class Strings private constructor() {
             get() { return currStrings[IDX_SAVE_FULL] }
         val SAVE_FILTERED: String
             get() { return currStrings[IDX_SAVE_FILTERED] }
-        val LOGFORMAT: String
-            get() { return currStrings[IDX_LOGFORMAT] }
+        val LOG_FORMAT: String
+            get() { return currStrings[IDX_LOG_FORMAT] }
+        val NAME: String
+            get() { return currStrings[IDX_NAME] }
+        val SEPARATOR: String
+            get() { return currStrings[IDX_SEPARATOR] }
+        val LEVEL_NTH: String
+            get() { return currStrings[IDX_LEVEL_NTH] }
+        val LEVELS: String
+            get() { return currStrings[IDX_LEVELS] }
+        val TOKENS: String
+            get() { return currStrings[IDX_TOKENS] }
+        val PID_TOKEN: String
+            get() { return currStrings[IDX_PID_TOKEN] }
+        val NTH: String
+            get() { return currStrings[IDX_NTH] }
+        val SAVE_FILTER: String
+            get() { return currStrings[IDX_SAVE_FILTER] }
+        val WIDTH: String
+            get() { return currStrings[IDX_WIDTH] }
+        val OPTIONAL: String
+            get() { return currStrings[IDX_OPTIONAL] }
+        val IN_USE: String
+            get() { return currStrings[IDX_IN_USE] }
+        val VAL_CHANGE_SAVE: String
+            get() { return currStrings[IDX_VAL_CHANGE_SAVE] }
+        val INVALID_VALUE: String
+            get() { return currStrings[IDX_INVALID_VALUE] }
+        val INVALID_NAME_EXIST: String
+            get() { return currStrings[IDX_INVALID_NAME_EXIST] }
+        val INVALID_INDEX: String
+            get() { return currStrings[IDX_INVALID_INDEX] }
+        val SAVED_FORMAT_LIST: String
+            get() { return currStrings[IDX_SAVED_FORMAT_LIST] }
     }
 }

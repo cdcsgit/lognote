@@ -70,6 +70,8 @@ class TooltipStrings private constructor() {
         private val IDX_TOKEN_TOGGLE = idx++
         private val IDX_TOKEN_COMBO = idx++
         private val IDX_TOKEN_VIEW_TOGGLE = idx++
+        private val IDX_INVALID_NUMBER_FORMAT = idx++
+        private val IDX_INVALID_NAME = idx++
 //        private val IDX_ = idx++
 
         val START_BTN: String
@@ -182,5 +184,9 @@ class TooltipStrings private constructor() {
             get() { return currStrings[IDX_TOKEN_COMBO] }
         val TOKEN_VIEW_TOGGLE: String
             get() { return currStrings[IDX_TOKEN_VIEW_TOGGLE] }
+        val INVALID_NUMBER_FORMAT: String
+            get() { return currStrings[IDX_INVALID_NUMBER_FORMAT] }
+        val INVALID_NAME: String
+            get() { return currStrings[IDX_INVALID_NAME] }
     }
 }
