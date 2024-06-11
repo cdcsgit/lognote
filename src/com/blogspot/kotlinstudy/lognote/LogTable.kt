@@ -17,6 +17,11 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         const val VIEW_LINE_WRAP = 1
 
         const val COLUMN_0_WIDTH = 80
+
+        const val MIN_LOG_WIDTH = 720
+        const val DEFAULT_LOG_WIDTH = 1920
+//        const val DEFAULT_LOG_WIDTH = 3840
+        var LogWidth = DEFAULT_LOG_WIDTH
     }
 
     init {
@@ -61,8 +66,8 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         val value = mTableModel.getValueAt(rowCount - 1, 0)
         val column0Width = fontMetrics.stringWidth(value.toString()) + 20
         var newWidth = width
-        if (width < 1920) {
-            newWidth = 1920
+        if (width < LogWidth) {
+            newWidth = LogWidth
         }
         val preferredLogWidth = newWidth - column0Width - VStatusPanel.VIEW_RECT_WIDTH - scrollVBarWidth - 2
 

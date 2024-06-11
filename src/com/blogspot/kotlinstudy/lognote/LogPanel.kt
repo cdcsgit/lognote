@@ -352,6 +352,10 @@ class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?, 
         return mTable.selectedRow
     }
 
+    fun updateTableWidth() {
+        mTable.updateColumnWidth(width, mScrollPane.verticalScrollBar.width)
+    }
+
     internal inner class AdjustmentHandler : AdjustmentListener {
         override fun adjustmentValueChanged(p0: AdjustmentEvent?) {
             if (p0?.source == mScrollPane.verticalScrollBar) {

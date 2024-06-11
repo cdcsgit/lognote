@@ -109,6 +109,8 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
         private val MAX_DIVIDER_POS = 20
         private val mPrevDividerSize = mMainUI.mLogSplitPane.dividerSize
 
+        private val mLogWidthTF: JTextField
+
         init {
             layout = FlowLayout(FlowLayout.LEFT)
 
@@ -149,7 +151,7 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
             examplePanel.border = BorderFactory.createLineBorder(Color.GRAY)
 
             val sliderPanel = JPanel(FlowLayout(FlowLayout.LEFT))
-            val sliderLabel = JLabel("UI Size(%, Restart)")
+            val sliderLabel = JLabel("UI ${Strings.SIZE}(%, Restart)")
             sliderPanel.add(sliderLabel)
             mBaseFontSize = mExampleLabel.font.size * 100 / mMainUI.mUIFontPercent
             mFontSlider = JSlider(MIN_FONT_POS, MAX_FONT_POS, mMainUI.mUIFontPercent)
@@ -174,7 +176,7 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
             lafSizePanel.add(sizePanel, BorderLayout.CENTER)
 
             val dividerPanel = JPanel(FlowLayout(FlowLayout.LEFT))
-            val dividerLabel = JLabel("Divider Size(1 ~ 20) [${mMainUI.mLogSplitPane.dividerSize}]")
+            val dividerLabel = JLabel("Divider ${Strings.SIZE}(1 ~ 20) [${mMainUI.mLogSplitPane.dividerSize}]")
             dividerPanel.add(dividerLabel)
             mDividerSlider = JSlider(0, MAX_DIVIDER_POS, mMainUI.mLogSplitPane.dividerSize)
             mDividerSlider.majorTickSpacing = 5
@@ -186,12 +188,20 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
                     mDividerSlider.value = MIN_DIVIDER_POS
                 }
                 mMainUI.mLogSplitPane.dividerSize = mDividerSlider.value
-                dividerLabel.text = "Divider Size(1 ~ 20) [${mMainUI.mLogSplitPane.dividerSize}]"
+                dividerLabel.text = "Divider ${Strings.SIZE}(1 ~ 20) [${mMainUI.mLogSplitPane.dividerSize}]"
             }
             dividerPanel.add(mDividerSlider)
 
+            val logWidthPanel = JPanel(FlowLayout(FlowLayout.LEFT))
+            val logWidthLabel = JLabel("Log View ${Strings.WIDTH}(min : ${LogTable.MIN_LOG_WIDTH}) : ")
+            logWidthPanel.add(logWidthLabel)
+            mLogWidthTF = JTextField(LogTable.LogWidth.toString())
+            mLogWidthTF.preferredSize = Dimension(120, mLogWidthTF.preferredSize.height)
+            logWidthPanel.add(mLogWidthTF)
+
             val optionsPanel = JPanel(BorderLayout())
             optionsPanel.add(dividerPanel, BorderLayout.CENTER)
+            optionsPanel.add(logWidthPanel, BorderLayout.SOUTH)
 
             val dialogPanel = JPanel(BorderLayout())
             dialogPanel.add(lafSizePanel, BorderLayout.NORTH)
@@ -220,11 +230,23 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
                 for (item in mLaFGroup.elements) {
                     if (item.isSelected) {
                         ConfigManager.getInstance().saveItem(ConfigManager.ITEM_LOOK_AND_FEEL, item.text)
-                        ConfigManager.getInstance().saveItem(ConfigManager.ITEM_UI_FONT_SIZE, mFontSlider.value.toString())
-                        ConfigManager.getInstance().saveItem(ConfigManager.ITEM_APPEARANCE_DIVIDER_SIZE, mMainUI.mLogSplitPane.dividerSize.toString())
                         break
                     }
                 }
+                ConfigManager.getInstance().saveItem(ConfigManager.ITEM_UI_FONT_SIZE, mFontSlider.value.toString())
+                ConfigManager.getInstance().saveItem(ConfigManager.ITEM_APPEARANCE_DIVIDER_SIZE, mMainUI.mLogSplitPane.dividerSize.toString())
+
+                LogTable.LogWidth = try {
+                    mLogWidthTF.text.trim().toInt()
+                } catch (ex: NumberFormatException) {
+                    LogTable.DEFAULT_LOG_WIDTH
+                }
+
+                if (LogTable.LogWidth < LogTable.MIN_LOG_WIDTH) {
+                    LogTable.LogWidth = LogTable.MIN_LOG_WIDTH
+                }
+                ConfigManager.getInstance().saveItem(ConfigManager.ITEM_LOG_VIEW_WIDTH, LogTable.LogWidth.toString())
+                mMainUI.updateLogViewWidth()
             } else {
                 mMainUI.mLogSplitPane.dividerSize = mPrevDividerSize
             }

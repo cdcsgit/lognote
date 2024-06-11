@@ -997,6 +997,14 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mLogSplitPane.dividerSize = dividerSize.toInt()
         }
 
+        val logWidth = mConfigManager.getItem(ConfigManager.ITEM_LOG_VIEW_WIDTH)
+        if (!logWidth.isNullOrEmpty()) {
+            LogTable.LogWidth = logWidth.toInt()
+            if (LogTable.LogWidth < LogTable.MIN_LOG_WIDTH) {
+                LogTable.LogWidth = LogTable.MIN_LOG_WIDTH
+            }
+        }
+
         mLogSplitPane.isOneTouchExpandable = false
 
         mStatusBar = JPanel(BorderLayout())
@@ -2948,6 +2956,11 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     }
 
     fun repaintUI() {
+    }
+
+    fun updateLogViewWidth() {
+        mFullLogPanel.updateTableWidth()
+        mFilteredLogPanel.updateTableWidth()
     }
 
     internal inner class StatusTextField(text: String?) : JTextField(text) {
