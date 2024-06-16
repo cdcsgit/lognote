@@ -1,6 +1,5 @@
 package com.blogspot.kotlinstudy.lognote
 
-import com.sun.xml.internal.fastinfoset.alphabet.BuiltInRestrictedAlphabets.table
 import java.awt.*
 import java.awt.event.*
 import java.io.BufferedReader
@@ -518,13 +517,13 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
 
                 val itemPanel = JPanel()
                 itemPanel.layout = BoxLayout(itemPanel, BoxLayout.Y_AXIS)
-                itemPanel.add(Box.createRigidArea(Dimension(0, 5)));
+                itemPanel.add(Box.createRigidArea(Dimension(0, 5)))
                 itemPanel.add(panel1)
-                itemPanel.add(Box.createRigidArea(Dimension(0, 5)));
+                itemPanel.add(Box.createRigidArea(Dimension(0, 5)))
                 itemPanel.add(panel2)
-                itemPanel.add(Box.createRigidArea(Dimension(0, 5)));
+                itemPanel.add(Box.createRigidArea(Dimension(0, 5)))
                 itemPanel.add(panel3)
-                itemPanel.add(Box.createRigidArea(Dimension(0, 5)));
+                itemPanel.add(Box.createRigidArea(Dimension(0, 5)))
                 itemPanel.add(panel4)
                 itemPanel.preferredSize = Dimension(dialogWidth, itemPanel.preferredSize.height)
                 itemPanel.addComponentListener(ComponentHandler())

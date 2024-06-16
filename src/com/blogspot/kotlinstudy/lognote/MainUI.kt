@@ -3286,9 +3286,9 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     }
 
     private fun registerTriggerKeyStroke() {
-        var stroke = KeyStroke.getKeyStroke(KeyEvent.VK_T, KeyEvent.CTRL_MASK)
-        var actionMapKey = javaClass.name + ":TRIGGER_OPENING_CLOSING"
-        var action: Action = object : AbstractAction() {
+        val stroke = KeyStroke.getKeyStroke(KeyEvent.VK_T, KeyEvent.CTRL_MASK)
+        val actionMapKey = javaClass.name + ":TRIGGER_OPENING_CLOSING"
+        val action: Action = object : AbstractAction() {
             override fun actionPerformed(event: ActionEvent) {
                 if (!mAgingTestManager.mTriggerPanel.isVisible) {
                     mAgingTestManager.mTriggerPanel.isVisible = true
