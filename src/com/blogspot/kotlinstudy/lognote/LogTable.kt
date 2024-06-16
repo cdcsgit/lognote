@@ -493,8 +493,8 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
     }
 
     internal inner class MouseHandler : MouseAdapter() {
-        var firstClickRow = 0
-        var secondClickRow = 0
+        private var firstClickRow = 0
+        private var secondClickRow = 0
 
         override fun mousePressed(p0: MouseEvent?) {
             super.mousePressed(p0)

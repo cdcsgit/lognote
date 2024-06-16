@@ -69,6 +69,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     private lateinit var mMenuView: JMenu
     private lateinit var mItemFull: JCheckBoxMenuItem
     private lateinit var mItemSearch: JCheckBoxMenuItem
+    private lateinit var mItemTrigger: JCheckBoxMenuItem
     private lateinit var mItemRotation: JMenuItem
     private lateinit var mMenuSettings: JMenu
     private lateinit var mItemLogCmd: JMenuItem
@@ -170,6 +171,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     private val mColorManager = ColorManager.getInstance()
     private val mBookmarkManager = BookmarkManager.getInstance()
     private val mFormatManager = FormatManager.getInstance()
+    private val mAgingTestManager = AgingTestManager.getInstance()
 
     private val mLogCmdManager = LogCmdManager.getInstance()
     lateinit var mFiltersManager:FiltersManager
@@ -570,6 +572,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
         mMenuView = JMenu(Strings.VIEW)
         mMenuView.mnemonic = KeyEvent.VK_V
+        mMenuView.addMenuListener(MenuHandler())
 
         mItemFull = JCheckBoxMenuItem(Strings.VIEW_FULL)
         mItemFull.addActionListener(mActionHandler)
@@ -580,6 +583,10 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mItemSearch = JCheckBoxMenuItem(Strings.SEARCH)
         mItemSearch.addActionListener(mActionHandler)
         mMenuView.add(mItemSearch)
+
+        mItemTrigger = JCheckBoxMenuItem(Strings.LOG_TRIGGER)
+        mItemTrigger.addActionListener(mActionHandler)
+        mMenuView.add(mItemTrigger)
 
         mMenuView.addSeparator()
 
@@ -905,8 +912,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mFilterLeftPanel.add(mLogPanel, BorderLayout.NORTH)
         mFilterLeftPanel.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
 
-        mFilterPanel.layout = BorderLayout()
-        mFilterPanel.add(mFilterLeftPanel, BorderLayout.CENTER)
+        mFilterPanel.layout = BoxLayout(mFilterPanel, BoxLayout.Y_AXIS)
         mFilterPanel.addMouseListener(mMouseHandler)
 
         mLogToolBar.add(mStartBtn)
@@ -947,11 +953,16 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         toolBarPanel.add(mLogToolBar, BorderLayout.CENTER)
         toolBarPanel.add(scrollbackPanel, BorderLayout.EAST)
 
-        mFilterPanel.add(toolBarPanel, BorderLayout.NORTH)
-        mFilterPanel.add(mSearchPanel, BorderLayout.SOUTH)
+        mFilterPanel.add(toolBarPanel)
+        mFilterPanel.add(mFilterLeftPanel)
+        mFilterPanel.add(mSearchPanel)
+        mFilterPanel.add(mAgingTestManager.mTriggerPanel)
 
         mSearchPanel.isVisible = false
         mItemSearch.state = mSearchPanel.isVisible
+
+        mAgingTestManager.mTriggerPanel.isVisible = false
+        mItemSearch.state = mAgingTestManager.mTriggerPanel.isVisible
 
         layout = BorderLayout()
 
@@ -1348,6 +1359,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
         registerKeyStroke()
         registerSearchKeyStroke()
+        registerTriggerKeyStroke()
 
         IsCreatingUI = false
     }
@@ -2018,6 +2030,20 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                 mItemSearch -> {
                     mSearchPanel.isVisible = !mSearchPanel.isVisible
                     mItemSearch.state = mSearchPanel.isVisible
+                }
+
+                mItemTrigger -> {
+                    if (!mAgingTestManager.mTriggerPanel.isVisible) {
+                        mAgingTestManager.mTriggerPanel.isVisible = true
+                    }
+                    else {
+                        if (mAgingTestManager.mTriggerPanel.canHide()) {
+                            mAgingTestManager.mTriggerPanel.isVisible = false
+                        }
+                        else {
+                            JOptionPane.showMessageDialog(this@MainUI, Strings.TRIGGER_CANNOT_HIDE, Strings.WARNING, JOptionPane.WARNING_MESSAGE)
+                        }
+                    }
                 }
 
                 mItemFilterIncremental -> {
@@ -2854,7 +2880,12 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
     internal inner class MenuHandler : MenuListener {
         override fun menuSelected(e: MenuEvent?) {
-            updateRecentFiles()
+            if (e?.source == mItemFileOpenRecents) {
+                updateRecentFiles()
+            }
+            else if (e?.source == mMenuView) {
+                mItemTrigger.state = mAgingTestManager.mTriggerPanel.isVisible
+            }
         }
 
         override fun menuDeselected(e: MenuEvent?) {
@@ -3247,6 +3278,28 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             override fun actionPerformed(event: ActionEvent) {
                 if (mSearchPanel.isVisible) {
                     mSearchPanel.moveToNext()
+                }
+            }
+        }
+        rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(stroke, actionMapKey)
+        rootPane.actionMap.put(actionMapKey, action)
+    }
+
+    private fun registerTriggerKeyStroke() {
+        var stroke = KeyStroke.getKeyStroke(KeyEvent.VK_T, KeyEvent.CTRL_MASK)
+        var actionMapKey = javaClass.name + ":TRIGGER_OPENING_CLOSING"
+        var action: Action = object : AbstractAction() {
+            override fun actionPerformed(event: ActionEvent) {
+                if (!mAgingTestManager.mTriggerPanel.isVisible) {
+                    mAgingTestManager.mTriggerPanel.isVisible = true
+                }
+                else {
+                    if (mAgingTestManager.mTriggerPanel.canHide()) {
+                        mAgingTestManager.mTriggerPanel.isVisible = false
+                    }
+                    else {
+                        JOptionPane.showMessageDialog(this@MainUI, Strings.TRIGGER_CANNOT_HIDE, Strings.WARNING, JOptionPane.WARNING_MESSAGE)
+                    }
                 }
             }
         }

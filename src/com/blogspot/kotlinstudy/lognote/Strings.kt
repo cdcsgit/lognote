@@ -136,6 +136,33 @@ class Strings private constructor() {
         private val IDX_INVALID_NAME_EXIST = idx++
         private val IDX_INVALID_INDEX = idx++
         private val IDX_SAVED_FORMAT_LIST = idx++
+        private val IDX_SHOW_DIALOG = idx++
+        private val IDX_RUN_CMD = idx++
+        private val IDX_CMD_RESULT = idx++
+        private val IDX_CMD_RESULT_ERROR = idx++
+        private val IDX_AGING_TEST_TRIGGER = idx++
+        private val IDX_HIDE_LIST = idx++
+        private val IDX_SHOW_LIST = idx++
+        private val IDX_ACTION = idx++
+        private val IDX_ACTION_PARAMETER = idx++
+        private val IDX_ONCE = idx++
+        private val IDX_REPEAT = idx++
+        private val IDX_STATUS = idx++
+        private val IDX_STOPPED = idx++
+        private val IDX_STARTED = idx++
+        private val IDX_TRIGGER_CANNOT_ADD = idx++
+        private val IDX_ERROR = idx++
+        private val IDX_WARNING = idx++
+        private val IDX_INFO = idx++
+        private val IDX_TRIGGER = idx++
+        private val IDX_MOVE_FIRST = idx++
+        private val IDX_MOVE_UP = idx++
+        private val IDX_MOVE_DOWN = idx++
+        private val IDX_MOVE_LAST = idx++
+        private val IDX_TRIGGER_CANNOT_EDIT = idx++
+        private val IDX_TRIGGER_CANNOT_DELETE = idx++
+        private val IDX_TRIGGER_CANNOT_HIDE = idx++
+        private val IDX_LOG_TRIGGER = idx++
 //        private val IDX_ = idx++
 
         val FILE: String
@@ -374,5 +401,59 @@ class Strings private constructor() {
             get() { return currStrings[IDX_INVALID_INDEX] }
         val SAVED_FORMAT_LIST: String
             get() { return currStrings[IDX_SAVED_FORMAT_LIST] }
+        val SHOW_DIALOG: String
+            get() { return currStrings[IDX_SHOW_DIALOG] }
+        val RUN_CMD: String
+            get() { return currStrings[IDX_RUN_CMD] }
+        val CMD_RESULT: String
+            get() { return currStrings[IDX_CMD_RESULT] }
+        val CMD_RESULT_ERROR: String
+            get() { return currStrings[IDX_CMD_RESULT_ERROR] }
+        val AGING_TEST_TRIGGER: String
+            get() { return currStrings[IDX_AGING_TEST_TRIGGER] }
+        val HIDE_LIST: String
+            get() { return currStrings[IDX_HIDE_LIST] }
+        val SHOW_LIST: String
+            get() { return currStrings[IDX_SHOW_LIST] }
+        val ACTION: String
+            get() { return currStrings[IDX_ACTION] }
+        val ACTION_PARAMETER: String
+            get() { return currStrings[IDX_ACTION_PARAMETER] }
+        val ONCE: String
+            get() { return currStrings[IDX_ONCE] }
+        val REPEAT: String
+            get() { return currStrings[IDX_REPEAT] }
+        val STATUS: String
+            get() { return currStrings[IDX_STATUS] }
+        val STOPPED: String
+            get() { return currStrings[IDX_STOPPED] }
+        val STARTED: String
+            get() { return currStrings[IDX_STARTED] }
+        val TRIGGER_CANNOT_ADD: String
+            get() { return currStrings[IDX_TRIGGER_CANNOT_ADD] }
+        val ERROR: String
+            get() { return currStrings[IDX_ERROR] }
+        val WARNING: String
+            get() { return currStrings[IDX_WARNING] }
+        val INFO: String
+            get() { return currStrings[IDX_INFO] }
+        val TRIGGER: String
+            get() { return currStrings[IDX_TRIGGER] }
+        val MOVE_FIRST: String
+            get() { return currStrings[IDX_MOVE_FIRST] }
+        val MOVE_UP: String
+            get() { return currStrings[IDX_MOVE_UP] }
+        val MOVE_DOWN: String
+            get() { return currStrings[IDX_MOVE_DOWN] }
+        val MOVE_LAST: String
+            get() { return currStrings[IDX_MOVE_LAST] }
+        val TRIGGER_CANNOT_EDIT: String
+            get() { return currStrings[IDX_TRIGGER_CANNOT_EDIT] }
+        val TRIGGER_CANNOT_DELETE: String
+            get() { return currStrings[IDX_TRIGGER_CANNOT_DELETE] }
+        val TRIGGER_CANNOT_HIDE: String
+            get() { return currStrings[IDX_TRIGGER_CANNOT_HIDE] }
+        val LOG_TRIGGER: String
+            get() { return currStrings[IDX_LOG_TRIGGER] }
     }
 }

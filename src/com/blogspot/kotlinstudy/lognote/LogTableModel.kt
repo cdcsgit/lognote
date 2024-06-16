@@ -44,6 +44,8 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
         const val LEVEL_FATAL = FormatManager.LEVEL_FATAL
     }
 
+    private val mAgingTestManager = AgingTestManager.getInstance()
+
     data class FilteredColor(val mColor: String, val mPattern: Pattern?)
 
     inner class FilterTokenManager() {
@@ -64,6 +66,7 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
     private var mPatternSearchLog: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
     private var mMatcherSearchLog: Matcher = mPatternSearchLog.matcher("")
     private var mNormalSearchLogSplit: List<String>? = null
+
     private var mTableColor: ColorManager.TableColor
     private val mColumnNames = arrayOf("line", "log")
     private var mLogItems:MutableList<LogItem> = mutableListOf()
@@ -203,6 +206,14 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
             if (mBaseModel != null) {
                 mBaseModel!!.mFilterSearchLog = value
             }
+        }
+
+    private var mPatternTriggerLog: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
+    private var mTriggerPatternCase = Pattern.CASE_INSENSITIVE
+    var mFilterTriggerLog: String = ""
+        set(value) {
+            field = value
+            mPatternTriggerLog = compilePattern(value, mTriggerPatternCase, mPatternTriggerLog, null)
         }
 
     var mFilterTokens = Array(FormatManager.MAX_TOKEN_COUNT) { "" }
@@ -1521,6 +1532,9 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                                     mSelectionChanged = false
                                 }
 
+                                if (mFilterTriggerLog.isNotEmpty() && mPatternTriggerLog.matcher(filterItem.mItem.mLogLine).find()) {
+                                    mAgingTestManager.pullTheTrigger(filterItem.mItem.mLogLine)
+                                }
                                 mBaseModel!!.mLogItems.add(filterItem.mItem)
                                 while (!mScrollbackKeep && mScrollback > 0 && mBaseModel!!.mLogItems.count() > mScrollback) {
                                     mBaseModel!!.mLogItems.removeAt(0)
@@ -1778,6 +1792,10 @@ class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableMo
                                     baseRemovedCount = 0
                                     removedCount = 0
                                     mSelectionChanged = false
+                                }
+
+                                if (mFilterTriggerLog.isNotEmpty() && mPatternTriggerLog.matcher(filterItem.mItem.mLogLine).find()) {
+                                    mAgingTestManager.pullTheTrigger(filterItem.mItem.mLogLine)
                                 }
 
                                 mBaseModel!!.mLogItems.add(filterItem.mItem)
