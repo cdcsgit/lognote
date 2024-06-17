@@ -23,6 +23,8 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
 
         const val MAX_TRIGGER_COUNT = 30
 
+        const val MAX_RESULT_LOG = 30
+
         private val mInstance: AgingTestManager = AgingTestManager(AGING_TESTS_LIST_FILE)
         fun getInstance(): AgingTestManager {
             return mInstance
@@ -95,7 +97,7 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
                 true
             }
 
-            mTriggerList.add(TriggerItem(name, filter, TriggerAction.fromInt(action), actionParameter, once, TriggerStatus.STOPPED))
+            mTriggerList.add(TriggerItem(name, filter, TriggerAction.fromInt(action), actionParameter, once))
         }
     }
 
@@ -121,18 +123,24 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
     fun pullTheTrigger(log: String) {
         for (item in mTriggerList) {
             if (item.mFilterPattern.matcher(log).find()) {
-                runAction(item, log)
-                item.mStatus = TriggerStatus.STOPPED
-                mTriggerPanel.updateInUseTrigger()
-                mTriggerPanel.repaint()
-                MainUI.getInstance().mFilteredTableModel.mFilterTriggerLog = makeFilterTrigger()
+                if (!item.mOnce) {
+                    item.mRunCount++
+                }
+                item.addLog(log)
+                runAction(item)
+                if (item.mOnce) {
+                    item.mStatus = TriggerStatus.STOPPED
+                    mTriggerPanel.updateInUseTrigger()
+                    mTriggerPanel.repaint()
+                    MainUI.getInstance().mFilteredTableModel.mFilterTriggerLog = makeFilterTrigger()
+                }
                 break
             }
         }
     }
 
-    private fun runAction(item: TriggerItem, log: String) {
-        Thread(ActionRunner(item.copy(), log)).start()
+    private fun runAction(item: TriggerItem) {
+        Thread(ActionRunner(item)).start()
     }
 
     private fun makeFilterTrigger(): String {
@@ -167,23 +175,101 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
         }
     }
 
-    inner class ActionRunner(val item: TriggerItem, val log: String): Runnable {
+    inner class ActionRunner(val item: TriggerItem): Runnable {
         override fun run() {
-            if (item.mAction == TriggerAction.SHOW_DIALOG) {
-                JOptionPane.showMessageDialog(MainUI.getInstance(), "${ACTION_MAP[TriggerAction.SHOW_DIALOG]}\n$log", Strings.INFO, JOptionPane.INFORMATION_MESSAGE)
-            }
-            else if (item.mAction == TriggerAction.RUN_CMD) {
-                runCmd(item)
-            }
-            else if (item.mAction == TriggerAction.RUN_CMD_SHOW_DIALOG) {
-                runCmd(item)
-                JOptionPane.showMessageDialog(MainUI.getInstance(), "${ACTION_MAP[TriggerAction.RUN_CMD]}\n${item.mActionParam}\n$log", Strings.ERROR, JOptionPane.ERROR_MESSAGE)
+            when (item.mAction) {
+                TriggerAction.SHOW_DIALOG -> {
+                    if (item.mResultDialog.isVisible) {
+                        item.mResultDialog.updateData(item)
+                    }
+                    else {
+                        item.mResultDialog.setLocationRelativeTo(MainUI.getInstance())
+                        item.mResultDialog.isVisible = true
+                    }
+                }
+                TriggerAction.RUN_CMD -> {
+                    runCmd(item)
+                }
+                TriggerAction.RUN_CMD_SHOW_DIALOG -> {
+                    runCmd(item)
+                    if (item.mResultDialog.isVisible) {
+                        item.mResultDialog.updateData(item)
+                    }
+                    else {
+                        item.mResultDialog.setLocationRelativeTo(MainUI.getInstance())
+                        item.mResultDialog.isVisible = true
+                    }
+                }
             }
         }
     }
 
-    data class TriggerItem(val mName: String, val mFilter: String, val mAction: TriggerAction, val mActionParam: String, val mOnce: Boolean, var mStatus: TriggerStatus) {
+    fun startTrigger(selectedRow: Int) {
+        if (mTriggerList[selectedRow].mStatus != TriggerStatus.STARTED) {
+            mTriggerList[selectedRow].clearLogs()
+            mTriggerList[selectedRow].mStatus = TriggerStatus.STARTED
+            mTriggerPanel.updateInUseTrigger()
+            mTriggerPanel.repaint()
+            MainUI.getInstance().mFilteredTableModel.mFilterTriggerLog = makeFilterTrigger()
+        }
+    }
+
+    fun stopTrigger(selectedRow: Int) {
+        if (mTriggerList[selectedRow].mStatus != TriggerStatus.STOPPED) {
+            mTriggerList[selectedRow].mStatus = TriggerStatus.STOPPED
+            mTriggerPanel.updateInUseTrigger()
+            mTriggerPanel.repaint()
+            MainUI.getInstance().mFilteredTableModel.mFilterTriggerLog = makeFilterTrigger()
+        }
+    }
+
+    fun stopTrigger(name: String) {
+        for (trigger in mTriggerList) {
+            if (trigger.mName == name) {
+                if (trigger.mStatus != TriggerStatus.STOPPED) {
+                    trigger.mStatus = TriggerStatus.STOPPED
+                    mTriggerPanel.updateInUseTrigger()
+                    mTriggerPanel.repaint()
+                    MainUI.getInstance().mFilteredTableModel.mFilterTriggerLog = makeFilterTrigger()
+                }
+                break
+            }
+        }
+    }
+
+    inner class TriggerItem(val mName: String, val mFilter: String, val mAction: TriggerAction, val mActionParam: String, val mOnce: Boolean) {
+        var mStatus: TriggerStatus = TriggerStatus.STOPPED
+        var mRunCount: Int = 0
         val mFilterPattern: Pattern = Pattern.compile(mFilter)
+        private var mResultDialogImpl: ResultDialog? = null
+        val mResultDialog: ResultDialog
+            get() {
+                if (mResultDialogImpl == null) {
+                    mResultDialogImpl = ResultDialog(MainUI.getInstance(), this)
+                }
+                return mResultDialogImpl!!
+            }
+
+        private val mLogList = mutableListOf<String>()
+
+        fun addLog(log: String) {
+            if (mLogList.size > MAX_RESULT_LOG) {
+                mLogList.removeAt(0)
+            }
+            mLogList.add(log)
+        }
+
+        fun getLogs(): String {
+            val resultLog = StringBuilder("")
+            for (result in mLogList) {
+                resultLog.append("$result\n")
+            }
+            return resultLog.toString()
+        }
+
+        fun clearLogs() {
+            mLogList.clear()
+        }
     }
 
     inner class TriggerPanel: JPanel(), ActionListener {
@@ -230,9 +316,9 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
             mTriggerTable.autoResizeMode = JTable.AUTO_RESIZE_LAST_COLUMN
             mTriggerTable.tableHeader.reorderingAllowed = false
             mTriggerTable.columnModel.getColumn(0).preferredWidth = 40
-            mTriggerTable.columnModel.getColumn(1).preferredWidth = 250
+            mTriggerTable.columnModel.getColumn(1).preferredWidth = 400
             mTriggerTable.columnModel.getColumn(2).preferredWidth = 60
-            mTriggerTable.columnModel.getColumn(3).preferredWidth = 600
+            mTriggerTable.columnModel.getColumn(3).preferredWidth = 450
             mTriggerTable.columnModel.getColumn(4).preferredWidth = 20
             mTriggerTable.columnModel.getColumn(5).preferredWidth = 20
             mTriggerTable.addMouseListener(TableMouseHandler())
@@ -390,27 +476,9 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
                 JOptionPane.showMessageDialog(MainUI.getInstance(), "${Strings.TRIGGER_CANNOT_ADD} : $MAX_TRIGGER_COUNT", Strings.ERROR, JOptionPane.ERROR_MESSAGE)
                 return
             }
-            val editDialog = EditDialog(MainUI.getInstance(), TRIGGER_NEW, TriggerItem("", "", TriggerAction.SHOW_DIALOG, "", true, TriggerStatus.STOPPED))
+            val editDialog = EditDialog(MainUI.getInstance(), TRIGGER_NEW, TriggerItem("", "", TriggerAction.SHOW_DIALOG, "", true))
             editDialog.setLocationRelativeTo(MainUI.getInstance())
             editDialog.isVisible = true
-        }
-
-        fun startTrigger(selectedRow: Int) {
-            if (mTriggerList[selectedRow].mStatus != TriggerStatus.STARTED) {
-                mTriggerList[selectedRow].mStatus = TriggerStatus.STARTED
-                mTriggerPanel.updateInUseTrigger()
-                mTriggerPanel.repaint()
-                MainUI.getInstance().mFilteredTableModel.mFilterTriggerLog = makeFilterTrigger()
-            }
-        }
-
-        fun stopTrigger(selectedRow: Int) {
-            if (mTriggerList[selectedRow].mStatus != TriggerStatus.STOPPED) {
-                mTriggerList[selectedRow].mStatus = TriggerStatus.STOPPED
-                mTriggerPanel.updateInUseTrigger()
-                mTriggerPanel.repaint()
-                MainUI.getInstance().mFilteredTableModel.mFilterTriggerLog = makeFilterTrigger()
-            }
         }
 
         internal inner class EditDialog(parent: MainUI, cmd: Int, item: TriggerItem) :JDialog(parent, Strings.EDIT, true), ActionListener {
@@ -436,14 +504,13 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
             private var mCmd = cmd
 
             init {
-                val dialogWidth = 500
+                val panelWidth = 700
                 mOkBtn = ColorButton(Strings.OK)
                 mOkBtn.addActionListener(this)
                 mCancelBtn = ColorButton(Strings.CANCEL)
                 mCancelBtn.addActionListener(this)
 
                 mNameLabel = JLabel(" ${Strings.NAME} : ")
-                mNameLabel.preferredSize = Dimension(55, mNameLabel.preferredSize.height)
                 mNameTF = JTextField(item.mName)
                 mNameTF.preferredSize = Dimension(150, mNameTF.preferredSize.height)
                 if (mCmd == TRIGGER_EDIT) {
@@ -451,35 +518,29 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
                 }
 
                 mOnceLabel = JLabel("      ${Strings.ONCE}/${Strings.REPEAT} : ")
-                mOnceLabel.preferredSize = Dimension(110, mOnceLabel.preferredSize.height)
                 mOnceCombo = ColorComboBox()
-//                mOnceCombo.toolTipText = TooltipStrings.LOG_LEVEL_COMBO
                 mOnceCombo.isEditable = false
                 mOnceCombo.renderer = ColorComboBox.ComboBoxRenderer()
                 mOnceCombo.preferredSize = Dimension(100, mOnceCombo.preferredSize.height)
                 mOnceCombo.addItem(Strings.ONCE)
                 mOnceCombo.addItem(Strings.REPEAT)
+                mOnceCombo.selectedIndex = if (item.mOnce) 0 else 1
 
                 mFilterLabel = JLabel(" ${Strings.FILTER} : ")
-                mFilterLabel.preferredSize = Dimension(55, mFilterLabel.preferredSize.height)
                 mFilterTF = JTextField(item.mFilter)
-                mFilterTF.preferredSize = Dimension(dialogWidth - 60, mFilterTF.preferredSize.height)
 
                 mActionLabel = JLabel(" ${Strings.ACTION} : ")
-                mActionLabel.preferredSize = Dimension(55, mActionLabel.preferredSize.height)
                 mActionCombo = ColorComboBox()
-//                mActionCombo.toolTipText = TooltipStrings.LOG_LEVEL_COMBO
                 mActionCombo.isEditable = false
                 mActionCombo.renderer = ColorComboBox.ComboBoxRenderer()
                 mActionCombo.preferredSize = Dimension(200, mNameTF.preferredSize.height)
                 for (action in ACTION_MAP) {
                     mActionCombo.addItem(action.value)
                 }
+                mActionCombo.selectedIndex = item.mAction.value
 
                 mActionParamLabel = JLabel(" ${Strings.ACTION_PARAMETER} : ")
-                mActionParamLabel.preferredSize = Dimension(120, mActionParamLabel.preferredSize.height)
                 mActionParamTF = JTextField(item.mActionParam)
-                mActionParamTF.preferredSize = Dimension(dialogWidth - 125, mActionParamTF.preferredSize.height)
 
                 val panel1 = JPanel(FlowLayout(FlowLayout.LEFT))
                 val layout1 = FlowLayout(FlowLayout.LEFT)
@@ -525,11 +586,11 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
                 itemPanel.add(panel3)
                 itemPanel.add(Box.createRigidArea(Dimension(0, 5)))
                 itemPanel.add(panel4)
-                itemPanel.preferredSize = Dimension(dialogWidth, itemPanel.preferredSize.height)
+                itemPanel.preferredSize = Dimension(panelWidth, itemPanel.preferredSize.height)
                 itemPanel.addComponentListener(ComponentHandler())
 
                 val confirmPanel = JPanel()
-                confirmPanel.preferredSize = Dimension(dialogWidth, 40)
+                confirmPanel.preferredSize = Dimension(panelWidth, 40)
                 confirmPanel.add(mOkBtn)
                 confirmPanel.add(mCancelBtn)
 
@@ -540,6 +601,11 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
 
                 contentPane.add(panel)
                 pack()
+                mFilterTF.preferredSize = Dimension(panelWidth - (mFilterLabel.width + 5), mFilterTF.preferredSize.height)
+                mActionParamTF.preferredSize = Dimension(panelWidth - (mActionParamLabel.width + 5), mActionParamTF.preferredSize.height)
+                contentPane.remove(panel)
+                contentPane.add(panel)
+                pack()
 
                 Utils.installKeyStrokeEscClosing(this)
                 mTFBackground = mNameTF.background
@@ -547,8 +613,8 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
 
             inner class ComponentHandler: ComponentAdapter() {
                 override fun componentResized(e: ComponentEvent) {
-                    mFilterTF.preferredSize = Dimension(e.component.width - 60, mFilterTF.preferredSize.height)
-                    mActionParamTF.preferredSize = Dimension(e.component.width - 125, mActionParamTF.preferredSize.height)
+                    mFilterTF.preferredSize = Dimension(e.component.width - (mFilterLabel.width + 5), mFilterTF.preferredSize.height)
+                    mActionParamTF.preferredSize = Dimension(e.component.width - (mActionParamLabel.width + 5), mActionParamTF.preferredSize.height)
                     super.componentResized(e)
                 }
             }
@@ -579,7 +645,7 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
 
                     mActionParamTF.background = mTFBackground
                     val triggerActionParams = mActionParamTF.text
-                    if (mActionCombo.selectedIndex == TriggerAction.RUN_CMD.value) {
+                    if (mActionCombo.selectedIndex == TriggerAction.RUN_CMD.value ||mActionCombo.selectedIndex == TriggerAction.RUN_CMD_SHOW_DIALOG.value) {
                         if (triggerActionParams.isBlank()) {
                             mActionParamTF.background = Color.RED
                             isValid = false
@@ -590,16 +656,14 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
                         if (mCmd == TRIGGER_EDIT) {
                             mTriggerList.removeAt(mTriggerTable.selectedRow)
                             mTriggerList.add(mTriggerTable.selectedRow, TriggerItem(triggerName, triggerFilter, TriggerAction.fromInt(mActionCombo.selectedIndex),
-                                triggerActionParams, mOnceCombo.selectedIndex == 0, TriggerStatus.STOPPED))
+                                triggerActionParams, mOnceCombo.selectedIndex == 0))
 
                         }
                         else {
                             mTriggerList.add(
                                 TriggerItem(
                                     triggerName, triggerFilter, TriggerAction.fromInt(mActionCombo.selectedIndex),
-                                    triggerActionParams, mOnceCombo.selectedIndex == 0, TriggerStatus.STOPPED
-                                )
-                            )
+                                    triggerActionParams, mOnceCombo.selectedIndex == 0))
                         }
                         saveList()
                         mTriggerTableModel.fireTableDataChanged()
@@ -820,6 +884,124 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
                         }
                     }
                 }
+            }
+        }
+    }
+    
+    inner class ResultDialog(parent: MainUI, item: TriggerItem) :JDialog(parent, Strings.INFO, false), ActionListener {
+        private var mName = item.mName
+        private var mStopBtn: ColorButton
+        private var mOkBtn: ColorButton
+
+        private var mNameLabel: JLabel
+        private var mFilterLabel: JLabel
+        private var mActionLabel: JLabel
+        private var mActionParamLabel: JLabel
+
+        private val mResultArea: JTextArea
+        private val mScrollPane: JScrollPane
+
+        init {
+            val panelWidth = 700
+            mStopBtn = ColorButton(Strings.STOP)
+            mStopBtn.addActionListener(this)
+            mOkBtn = ColorButton(Strings.OK)
+            mOkBtn.addActionListener(this)
+
+            mNameLabel = JLabel(" ${Strings.NAME} : ${item.mName} (${if (item.mOnce) Strings.ONCE else "${Strings.REPEAT} ${item.mRunCount}"})")
+            mFilterLabel = JLabel(" ${Strings.FILTER} : ${item.mFilter}")
+            mActionLabel = JLabel(" ${Strings.ACTION} : ${ACTION_MAP[item.mAction]}")
+            mActionParamLabel = JLabel(" ${Strings.ACTION_PARAMETER} : ${item.mActionParam}")
+
+            val panel1 = JPanel(FlowLayout(FlowLayout.LEFT))
+            val layout1 = FlowLayout(FlowLayout.LEFT)
+            layout1.vgap = 0
+            layout1.hgap = 0
+            panel1.layout = layout1
+            panel1.add(mNameLabel)
+
+            val panel2 = JPanel()
+            val layout2 = FlowLayout(FlowLayout.LEFT)
+            layout2.vgap = 0
+            layout2.hgap = 0
+            panel2.layout = layout2
+            panel2.add(mFilterLabel)
+
+            val panel3 = JPanel()
+            val layout3 = FlowLayout(FlowLayout.LEFT)
+            layout3.vgap = 0
+            layout3.hgap = 0
+            panel3.layout = layout3
+            panel3.add(mActionLabel)
+
+            val panel4 = JPanel()
+            val layout4 = FlowLayout(FlowLayout.LEFT)
+            layout4.vgap = 0
+            layout4.hgap = 0
+            panel4.layout = layout4
+            panel4.add(mActionParamLabel)
+
+            val itemPanel = JPanel()
+            itemPanel.layout = BoxLayout(itemPanel, BoxLayout.Y_AXIS)
+            Utils.addHSeparator(itemPanel, Strings.TRIGGER)
+            itemPanel.add(Box.createRigidArea(Dimension(0, 5)))
+            itemPanel.add(panel1)
+            itemPanel.add(Box.createRigidArea(Dimension(0, 5)))
+            itemPanel.add(panel2)
+            itemPanel.add(Box.createRigidArea(Dimension(0, 5)))
+            itemPanel.add(panel3)
+            itemPanel.add(Box.createRigidArea(Dimension(0, 5)))
+            itemPanel.add(panel4)
+            itemPanel.preferredSize = Dimension(panelWidth, itemPanel.preferredSize.height)
+
+            val resultPanel = JPanel()
+            resultPanel.layout = BoxLayout(resultPanel, BoxLayout.Y_AXIS)
+            mResultArea = JTextArea()
+            mResultArea.text = item.getLogs()
+            mResultArea.isEditable = false
+            mResultArea.isOpaque = false
+            mResultArea.wrapStyleWord = true
+            mResultArea.lineWrap = true
+            mScrollPane = JScrollPane(mResultArea)
+            mScrollPane.preferredSize = Dimension(panelWidth, 500)
+            mScrollPane.verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
+            mScrollPane.horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
+
+            mScrollPane.isOpaque = false
+            mScrollPane.viewport.isOpaque = false
+
+            resultPanel.add(mScrollPane)
+
+            val confirmPanel = JPanel()
+            confirmPanel.preferredSize = Dimension(panelWidth, 40)
+            confirmPanel.add(mOkBtn)
+            confirmPanel.add(mStopBtn)
+
+            val panel = JPanel()
+            panel.layout = BorderLayout()
+            panel.add(itemPanel, BorderLayout.NORTH)
+            panel.add(resultPanel, BorderLayout.CENTER)
+            panel.add(confirmPanel, BorderLayout.SOUTH)
+
+            contentPane.add(panel)
+            pack()
+
+            Utils.installKeyStrokeEscClosing(this)
+        }
+
+        fun updateData(item: TriggerItem) {
+            mNameLabel.text = " ${Strings.NAME} : ${item.mName} (${if (item.mOnce) Strings.ONCE else "${Strings.REPEAT} ${item.mRunCount}"})"
+            mFilterLabel.text = " ${Strings.FILTER} : ${item.mFilter}"
+            mActionLabel.text = " ${Strings.ACTION} : ${ACTION_MAP[item.mAction]}"
+            mActionParamLabel.text = " ${Strings.ACTION_PARAMETER} : ${item.mActionParam}"
+            mResultArea.text = item.getLogs()
+        }
+
+        override fun actionPerformed(e: ActionEvent?) {
+            if (e?.source == mOkBtn) {
+                dispose()
+            } else if (e?.source == mStopBtn) {
+                stopTrigger(mName)
             }
         }
     }
