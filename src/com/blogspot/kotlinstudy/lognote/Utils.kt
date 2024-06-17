@@ -54,6 +54,25 @@ class Utils {
             }
             panel.add(separator1)
         }
+
+        fun addHSeparator(target:JPanel, title: String) {
+            val titleHtml = title.replace(" ", "&nbsp;")
+            val separator = JSeparator(SwingConstants.HORIZONTAL)
+            val label = JLabel("<html><b>$titleHtml</b></html>")
+            val panel = JPanel(BorderLayout())
+            val separPanel = JPanel(BorderLayout())
+            separPanel.add(Box.createVerticalStrut(label.font.size / 2), BorderLayout.NORTH)
+            separPanel.add(separator, BorderLayout.CENTER)
+            panel.add(label, BorderLayout.WEST)
+            panel.add(separPanel, BorderLayout.CENTER)
+            target.add(panel)
+        }
+
+        fun addHEmptySeparator(target:JPanel, height: Int) {
+            val panel = JPanel()
+            panel.preferredSize = Dimension(1, height)
+            target.add(panel)
+        }
     }
 
     class CustomLineBorder(private val mColor: Color, private val mThickness: Int, private val mTarget: Int) :

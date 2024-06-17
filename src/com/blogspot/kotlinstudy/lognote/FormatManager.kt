@@ -638,14 +638,14 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
             inUsePanel.add(inUseLabel)
             mFormatPanel.add(inUsePanel)
             mFormatPanel.add(mScrollPane)
-            addHEmptySeparator(mFormatPanel, 20)
-            addHSeparator(mFormatPanel, " ${Strings.LOG_FORMAT} ")
+            Utils.addHEmptySeparator(mFormatPanel, 20)
+            Utils.addHSeparator(mFormatPanel, " ${Strings.LOG_FORMAT} ")
             mFormatPanel.add(mNamePanel)
-            addHEmptySeparator(mFormatPanel, 20)
-            addHSeparator(mFormatPanel, " ${Strings.LEVELS} ")
+            Utils.addHEmptySeparator(mFormatPanel, 20)
+            Utils.addHSeparator(mFormatPanel, " ${Strings.LEVELS} ")
             mFormatPanel.add(mLevelsPanel)
-            addHEmptySeparator(mFormatPanel, 20)
-            addHSeparator(mFormatPanel, " ${Strings.TOKENS} ")
+            Utils.addHEmptySeparator(mFormatPanel, 20)
+            Utils.addHSeparator(mFormatPanel, " ${Strings.TOKENS} ")
             mFormatPanel.add(mTokensPanel)
 
             mFirstBtn = ColorButton("↑")
@@ -740,25 +740,6 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                 }
                 mFormatTable.setRowHeight(row, rowHeight)
             }
-        }
-
-        private fun addHSeparator(target:JPanel, title: String) {
-            val titleHtml = title.replace(" ", "&nbsp;")
-            val separator = JSeparator(SwingConstants.HORIZONTAL)
-            val label = JLabel("<html><b>$titleHtml</b></html>")
-            val panel = JPanel(BorderLayout())
-            val separPanel = JPanel(BorderLayout())
-            separPanel.add(Box.createVerticalStrut(label.font.size / 2), BorderLayout.NORTH)
-            separPanel.add(separator, BorderLayout.CENTER)
-            panel.add(label, BorderLayout.WEST)
-            panel.add(separPanel, BorderLayout.CENTER)
-            target.add(panel)
-        }
-
-        private fun addHEmptySeparator(target:JPanel, height: Int) {
-            val panel = JPanel()
-            panel.preferredSize = Dimension(1, height)
-            target.add(panel)
         }
 
         private fun isValidFormatItem(): Boolean {

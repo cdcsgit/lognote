@@ -30,13 +30,13 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
         mScrollPane.verticalScrollBar.unitIncrement = 10
         mSettingsPanel.layout = BoxLayout(mSettingsPanel, BoxLayout.Y_AXIS)
         mScrollPane.horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
-        addHSeparator(mSettingsPanel, " ${Strings.LOOK_AND_FEEL}, ${Strings.OPTIONS} ")
+        Utils.addHSeparator(mSettingsPanel, " ${Strings.LOOK_AND_FEEL}, ${Strings.OPTIONS} ")
         mSettingsPanel.add(mLnFPanel)
-        addHEmptySeparator(mSettingsPanel, 20)
-        addHSeparator(mSettingsPanel, " ${Strings.FILTER_STYLE} ")
+        Utils.addHEmptySeparator(mSettingsPanel, 20)
+        Utils.addHSeparator(mSettingsPanel, " ${Strings.FILTER_STYLE} ")
         mSettingsPanel.add(mFilterComboPanel)
-        addHEmptySeparator(mSettingsPanel, 20)
-        addHSeparator(mSettingsPanel, " ${Strings.LOG} ${Strings.FONT} & ${Strings.COLOR} ")
+        Utils.addHEmptySeparator(mSettingsPanel, 20)
+        Utils.addHSeparator(mSettingsPanel, " ${Strings.LOG} ${Strings.FONT} & ${Strings.COLOR} ")
         mSettingsPanel.add(mFontColorPanel)
 
         mOkBtn.addActionListener(this)
@@ -59,25 +59,6 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
         pack()
 
         Utils.installKeyStrokeEscClosing(this)
-    }
-
-    private fun addHSeparator(target:JPanel, title: String) {
-        val titleHtml = title.replace(" ", "&nbsp;")
-        val separator = JSeparator(SwingConstants.HORIZONTAL)
-        val label = JLabel("<html><b>$titleHtml</b></html>")
-        val panel = JPanel(BorderLayout())
-        val separPanel = JPanel(BorderLayout())
-        separPanel.add(Box.createVerticalStrut(label.font.size / 2), BorderLayout.NORTH)
-        separPanel.add(separator, BorderLayout.CENTER)
-        panel.add(label, BorderLayout.WEST)
-        panel.add(separPanel, BorderLayout.CENTER)
-        target.add(panel)
-    }
-
-    private fun addHEmptySeparator(target:JPanel, height: Int) {
-        val panel = JPanel()
-        panel.preferredSize = Dimension(1, height)
-        target.add(panel)
     }
 
     override fun actionPerformed(e: ActionEvent?) {

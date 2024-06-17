@@ -179,7 +179,7 @@ class LogCmdSettingsDialog(mainUI: MainUI) :JDialog(mainUI, "${Strings.LOG_CMD} 
 
         val pathPanel = JPanel()
         pathPanel.layout = BoxLayout(pathPanel, BoxLayout.Y_AXIS)
-        addHSeparator(pathPanel, "ADB " + Strings.SETTING)
+        Utils.addHSeparator(pathPanel, "ADB " + Strings.SETTING)
         pathPanel.add(cmdPathPanel, BorderLayout.NORTH)
 
         val cmdPanel = JPanel(BorderLayout())
@@ -196,7 +196,7 @@ class LogCmdSettingsDialog(mainUI: MainUI) :JDialog(mainUI, "${Strings.LOG_CMD} 
 
         val logCmdPanel = JPanel()
         logCmdPanel.layout = BoxLayout(logCmdPanel, BoxLayout.Y_AXIS)
-        addHSeparator(logCmdPanel, Strings.LOG_CMD)
+        Utils.addHSeparator(logCmdPanel, Strings.LOG_CMD)
         logCmdPanel.add(logCmdTablePanel)
         logCmdPanel.add(logCmdLable1Panel)
         logCmdPanel.add(logCmdLable2Panel)
@@ -218,20 +218,6 @@ class LogCmdSettingsDialog(mainUI: MainUI) :JDialog(mainUI, "${Strings.LOG_CMD} 
 
         Utils.installKeyStrokeEscClosing(this)
     }
-
-    private fun addHSeparator(target:JPanel, title: String) {
-        val titleHtml = title.replace(" ", "&nbsp;")
-        val separator = JSeparator(SwingConstants.HORIZONTAL)
-        val label = JLabel("<html><b>$titleHtml</b></html>")
-        val panel = JPanel(BorderLayout())
-        val separPanel = JPanel(BorderLayout())
-        separPanel.add(Box.createVerticalStrut(label.font.size / 2), BorderLayout.NORTH)
-        separPanel.add(separator, BorderLayout.CENTER)
-        panel.add(label, BorderLayout.WEST)
-        panel.add(separPanel, BorderLayout.CENTER)
-        target.add(panel)
-    }
-
 
     override fun actionPerformed(e: ActionEvent?) {
         if (e?.source == mAdbCmdBtn) {
