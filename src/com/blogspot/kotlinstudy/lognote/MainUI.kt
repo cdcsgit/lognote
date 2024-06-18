@@ -55,6 +55,16 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         }
     }
 
+    private val mConfigManager = ConfigManager.getInstance()
+    init {
+        val prop = mConfigManager.getItem(ConfigManager.ITEM_LANG)
+        if (!prop.isNullOrEmpty()) {
+            Strings.lang = prop.toInt()
+        } else {
+            Strings.lang = Strings.EN
+        }
+    }
+
     private lateinit var mMenuBar: JMenuBar
     private lateinit var mMenuFile: JMenu
     private lateinit var mItemFileOpen: JMenuItem
@@ -166,7 +176,6 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     private val mComponentHandler = ComponentHandler()
     private val mStatusChangeListener = StatusChangeListener()
 
-    private val mConfigManager = ConfigManager.getInstance()
     private val mRecentFileManager = RecentFileManager.getInstance()
     private val mColorManager = ColorManager.getInstance()
     private val mBookmarkManager = BookmarkManager.getInstance()
@@ -286,14 +295,6 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         prop = mConfigManager.getItem(ConfigManager.ITEM_ROTATION)
         if (!prop.isNullOrEmpty()) {
             mRotationStatus = prop.toInt()
-        }
-
-        prop = mConfigManager.getItem(ConfigManager.ITEM_LANG)
-        if (!prop.isNullOrEmpty()) {
-            Strings.lang = prop.toInt()
-        }
-        else {
-            Strings.lang = Strings.EN
         }
 
         prop = mConfigManager.getItem(ConfigManager.ITEM_SHOW_LOG_STYLE)

@@ -163,6 +163,7 @@ class Strings private constructor() {
         private val IDX_TRIGGER_CANNOT_DELETE = idx++
         private val IDX_TRIGGER_CANNOT_HIDE = idx++
         private val IDX_LOG_TRIGGER = idx++
+        private val IDX_RESULT = idx++
 //        private val IDX_ = idx++
 
         val FILE: String
@@ -455,5 +456,7 @@ class Strings private constructor() {
             get() { return currStrings[IDX_TRIGGER_CANNOT_HIDE] }
         val LOG_TRIGGER: String
             get() { return currStrings[IDX_LOG_TRIGGER] }
+        val RESULT: String
+            get() { return currStrings[IDX_RESULT] }
     }
 }

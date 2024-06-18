@@ -533,7 +533,7 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
                 mActionCombo = ColorComboBox()
                 mActionCombo.isEditable = false
                 mActionCombo.renderer = ColorComboBox.ComboBoxRenderer()
-                mActionCombo.preferredSize = Dimension(200, mNameTF.preferredSize.height)
+                mActionCombo.preferredSize = Dimension(270, mNameTF.preferredSize.height)
                 for (action in ACTION_MAP) {
                     mActionCombo.addItem(action.value)
                 }
@@ -689,7 +689,7 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
 
                 if (SwingUtilities.isRightMouseButton(p0)) {
                     val point = Point(p0.x, p0.y)
-                    popupMenu = PopUpTable(point)
+                    popupMenu = PopUpTable(point, mTriggerTable.selectedRow)
                     popupMenu?.show(p0.component, p0.x, p0.y)
                 }
                 else {
@@ -741,7 +741,7 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
             }
         }
 
-        internal inner class PopUpTable(point: Point) : JPopupMenu() {
+        internal inner class PopUpTable(point: Point, row: Int) : JPopupMenu() {
             var mStartItem: JMenuItem = JMenuItem(Strings.START)
             var mStopItem = JMenuItem(Strings.STOP)
             var mAddItem = JMenuItem(Strings.ADD)
@@ -752,7 +752,10 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
             var mPrevItem = JMenuItem(Strings.MOVE_UP)
             var mNextItem = JMenuItem(Strings.MOVE_DOWN)
             var mLastItem = JMenuItem(Strings.MOVE_LAST)
+            var mResultItem = JMenuItem(Strings.RESULT)
             private val mActionHandler = ActionHandler()
+            
+            val mRow = row
 
             init {
                 mStartItem.addActionListener(mActionHandler)
@@ -777,22 +780,31 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
                 add(mNextItem)
                 mLastItem.addActionListener(mActionHandler)
                 add(mLastItem)
+                addSeparator()
+                mResultItem.addActionListener(mActionHandler)
+                add(mResultItem)
+                if (mRow < 0) {
+                    mStartItem.isEnabled = false
+                    mStopItem.isEnabled = false
+                    mCopyItem.isEnabled = false
+                    mEditItem.isEnabled = false
+                    mDeleteItem.isEnabled = false
+                    mFirstItem.isEnabled = false
+                    mPrevItem.isEnabled = false
+                    mNextItem.isEnabled = false
+                    mLastItem.isEnabled = false
+                    mResultItem.isEnabled = false
+                }
             }
 
             internal inner class ActionHandler : ActionListener {
                 override fun actionPerformed(p0: ActionEvent?) {
-                    val selectedRow = mTriggerTable.selectedRow
-                    if (selectedRow < 0) {
-                        JOptionPane.showMessageDialog(this@TriggerPanel, "${Strings.INVALID_INDEX} \"$selectedRow\"", Strings.ERROR, JOptionPane.ERROR_MESSAGE)
-                        return
-                    }
-
                     when (p0?.source) {
                         mStartItem -> {
-                            startTrigger(selectedRow)
+                            startTrigger(mRow)
                         }
                         mStopItem -> {
-                            stopTrigger(selectedRow)
+                            stopTrigger(mRow)
                         }
                         mAddItem -> {
                             showAddDialog()
@@ -803,46 +815,45 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
                                 return
                             }
 
-                            val editDialog = EditDialog(MainUI.getInstance(), TRIGGER_COPY, mTriggerList[selectedRow])
+                            val editDialog = EditDialog(MainUI.getInstance(), TRIGGER_COPY, mTriggerList[mRow])
                             editDialog.setLocationRelativeTo(MainUI.getInstance())
                             editDialog.isVisible = true
                         }
                         mEditItem -> {
-                            if (mTriggerList[selectedRow].mStatus == TriggerStatus.STOPPED) {
+                            if (mTriggerList[mRow].mStatus == TriggerStatus.STOPPED) {
                                 val editDialog =
-                                    EditDialog(MainUI.getInstance(), TRIGGER_EDIT, mTriggerList[selectedRow])
+                                    EditDialog(MainUI.getInstance(), TRIGGER_EDIT, mTriggerList[mRow])
                                 editDialog.setLocationRelativeTo(MainUI.getInstance())
                                 editDialog.isVisible = true
                             }
                             else {
-                                JOptionPane.showMessageDialog(this@TriggerPanel, "${Strings.TRIGGER_CANNOT_EDIT}, ${mTriggerList[selectedRow].mName}", Strings.ERROR, JOptionPane.ERROR_MESSAGE)
+                                JOptionPane.showMessageDialog(this@TriggerPanel, "${Strings.TRIGGER_CANNOT_EDIT}, ${mTriggerList[mRow].mName}", Strings.ERROR, JOptionPane.ERROR_MESSAGE)
                             }
                         }
                         mDeleteItem -> {
-                            if (mTriggerList[selectedRow].mStatus == TriggerStatus.STOPPED) {
+                            if (mTriggerList[mRow].mStatus == TriggerStatus.STOPPED) {
                                 val ret = JOptionPane.showConfirmDialog(
                                     MainUI.getInstance(),
-                                    "${Strings.DELETE} ${mTriggerList[selectedRow].mName} ?",
+                                    "${Strings.DELETE} ${mTriggerList[mRow].mName} ?",
                                     Strings.DELETE,
                                     JOptionPane.OK_CANCEL_OPTION,
                                     JOptionPane.PLAIN_MESSAGE
                                 )
                                 if (ret == JOptionPane.OK_OPTION) {
-                                    mTriggerList.removeAt(selectedRow)
+                                    mTriggerList.removeAt(mRow)
                                     saveList()
                                     mTriggerTableModel.fireTableDataChanged()
                                 }
                             }
                             else {
-                                JOptionPane.showMessageDialog(this@TriggerPanel, "${Strings.TRIGGER_CANNOT_DELETE}, ${mTriggerList[selectedRow].mName}", Strings.ERROR, JOptionPane.ERROR_MESSAGE)
+                                JOptionPane.showMessageDialog(this@TriggerPanel, "${Strings.TRIGGER_CANNOT_DELETE}, ${mTriggerList[mRow].mName}", Strings.ERROR, JOptionPane.ERROR_MESSAGE)
                             }
 
                         }
                         mFirstItem -> {
-                            val selectedIdx = mTriggerTable.selectedRow
-                            if (mTriggerList.size > 1 && mTriggerList.size > selectedIdx) {
-                                val trigger = mTriggerList[selectedIdx]
-                                mTriggerList.removeAt(selectedIdx)
+                            if (mTriggerList.size > 1 && mTriggerList.size > mRow) {
+                                val trigger = mTriggerList[mRow]
+                                mTriggerList.removeAt(mRow)
                                 mTriggerList.add(0, trigger)
                                 saveList()
                                 mTriggerTableModel.fireTableDataChanged()
@@ -850,37 +861,37 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
                             }
                         }
                         mPrevItem -> {
-                            val selectedIdx = mTriggerTable.selectedRow
-                            if (mTriggerList.size > 1 && mTriggerList.size > selectedIdx && selectedIdx > 0) {
-                                val trigger = mTriggerList[selectedIdx]
-                                mTriggerList.removeAt(selectedIdx)
-                                mTriggerList.add(selectedIdx - 1, trigger)
+                            if (mTriggerList.size > 1 && mTriggerList.size > mRow && mRow > 0) {
+                                val trigger = mTriggerList[mRow]
+                                mTriggerList.removeAt(mRow)
+                                mTriggerList.add(mRow - 1, trigger)
                                 saveList()
                                 mTriggerTableModel.fireTableDataChanged()
-                                mTriggerTable.setRowSelectionInterval(selectedIdx - 1, selectedIdx - 1)
+                                mTriggerTable.setRowSelectionInterval(mRow - 1, mRow - 1)
                             }
                         }
                         mNextItem -> {
-                            val selectedIdx = mTriggerTable.selectedRow
-                            if (mTriggerList.size > 1 && mTriggerList.size > selectedIdx && selectedIdx < (mTriggerList.size - 1)) {
-                                val trigger = mTriggerList[selectedIdx]
-                                mTriggerList.removeAt(selectedIdx)
-                                mTriggerList.add(selectedIdx + 1, trigger)
+                            if (mTriggerList.size > 1 && mTriggerList.size > mRow && mRow < (mTriggerList.size - 1)) {
+                                val trigger = mTriggerList[mRow]
+                                mTriggerList.removeAt(mRow)
+                                mTriggerList.add(mRow + 1, trigger)
                                 saveList()
                                 mTriggerTableModel.fireTableDataChanged()
-                                mTriggerTable.setRowSelectionInterval(selectedIdx + 1, selectedIdx + 1)
+                                mTriggerTable.setRowSelectionInterval(mRow + 1, mRow + 1)
                             }
                         }
                         mLastItem -> {
-                            val selectedIdx = mTriggerTable.selectedRow
-                            if (mTriggerList.size > 1 && mTriggerList.size > selectedIdx) {
-                                val trigger = mTriggerList[selectedIdx]
-                                mTriggerList.removeAt(selectedIdx)
+                            if (mTriggerList.size > 1 && mTriggerList.size > mRow) {
+                                val trigger = mTriggerList[mRow]
+                                mTriggerList.removeAt(mRow)
                                 mTriggerList.add(mTriggerList.size, trigger)
                                 saveList()
                                 mTriggerTableModel.fireTableDataChanged()
                                 mTriggerTable.setRowSelectionInterval(mTriggerList.size - 1, mTriggerList.size - 1)
                             }
+                        }
+                        mResultItem -> {
+                            mTriggerList[mRow].mResultDialog.isVisible = true
                         }
                     }
                 }

@@ -148,6 +148,7 @@ class StringsEn private constructor() {
             , "Trigger cannot be deleted while in use"
             , "Trigger View cannot be hidden while in use"
             , "Log Trigger(Aging Test)"
+            , "Result"
 //            , ""
         )
     }
