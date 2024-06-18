@@ -55,6 +55,7 @@ Default current path
 1. Ctrl + G : Go to line
 1. Ctrl + ` : Focus to log combo
 1. Ctrl + Del : Clear log view
+1. Ctrl + T : Show trigger list panel(aging test util)
 
 
 <br/>
@@ -107,6 +108,20 @@ When mode is logcat receiving, process info is shown as a tooltip \
 Right click > Popup menu > Process info => Show all process list \
 ![Lognote_processInfo_1](https://github.com/cdcsgit/lognote/assets/75207513/e0baa448-29e7-416c-89ed-f40af4c42e37)
 ![Lognote_processInfo_2](https://github.com/cdcsgit/lognote/assets/75207513/4f06ee28-e6cf-46d5-a1ec-dd919062aa07)
+
+<br/>
+
+# Log format setting
+In addition to logcat logs, you can also use other logs by setting the format \
+![Lognote_manage_format](https://github.com/cdcsgit/lognote/assets/75207513/56f6b18d-e56f-4da8-b56a-2a28a27c65d6)
+
+
+<br/>
+
+# Log trigger - Aging test util(Ctrl-T)
+When a specific log occurs, a command is executed or a dialog is displayed \
+![lognote_trigger_list](https://github.com/cdcsgit/lognote/assets/75207513/2b551a70-9b75-4ee1-b36f-f4077cc3949e)
+
 
 <br/>
 
