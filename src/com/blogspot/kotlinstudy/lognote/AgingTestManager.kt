@@ -705,14 +705,14 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
                         if (p0.source == mTriggerTable) {
                             val selectedRow = mTriggerTable.selectedRow
                             if (selectedRow < 0) {
-                                JOptionPane.showMessageDialog(this@TriggerPanel, "${Strings.INVALID_INDEX} \"$selectedRow\"", Strings.ERROR, JOptionPane.ERROR_MESSAGE)
+                                JOptionPane.showMessageDialog(MainUI.getInstance(), "${Strings.INVALID_INDEX} \"$selectedRow\"", Strings.ERROR, JOptionPane.ERROR_MESSAGE)
                                 return
                             }
 
                             if (mTriggerList[selectedRow].mStatus == TriggerStatus.STOPPED) {
                                 val ret = JOptionPane.showConfirmDialog(
                                     MainUI.getInstance(),
-                                    "${Strings.START} ${Strings.TRIGGER} \"${mTriggerList[selectedRow].mName}\" ?",
+                                    String.format(Strings.CONFIRM_START_TRIGGER, mTriggerList[selectedRow].mName),
                                     Strings.START,
                                     JOptionPane.OK_CANCEL_OPTION,
                                     JOptionPane.PLAIN_MESSAGE
@@ -724,7 +724,7 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
                             else {
                                 val ret = JOptionPane.showConfirmDialog(
                                     MainUI.getInstance(),
-                                    "${Strings.STOP} ${Strings.TRIGGER} \"${mTriggerList[selectedRow].mName}\" ?",
+                                    String.format(Strings.CONFIRM_STOP_TRIGGER, mTriggerList[selectedRow].mName),
                                     Strings.STOP,
                                     JOptionPane.OK_CANCEL_OPTION,
                                     JOptionPane.PLAIN_MESSAGE
@@ -827,14 +827,14 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
                                 editDialog.isVisible = true
                             }
                             else {
-                                JOptionPane.showMessageDialog(this@TriggerPanel, "${Strings.TRIGGER_CANNOT_EDIT}, ${mTriggerList[mRow].mName}", Strings.ERROR, JOptionPane.ERROR_MESSAGE)
+                                JOptionPane.showMessageDialog(MainUI.getInstance(), String.format(Strings.TRIGGER_CANNOT_EDIT, mTriggerList[mRow].mName), Strings.ERROR, JOptionPane.ERROR_MESSAGE)
                             }
                         }
                         mDeleteItem -> {
                             if (mTriggerList[mRow].mStatus == TriggerStatus.STOPPED) {
                                 val ret = JOptionPane.showConfirmDialog(
                                     MainUI.getInstance(),
-                                    "${Strings.DELETE} ${mTriggerList[mRow].mName} ?",
+                                    String.format(Strings.CONFIRM_DELETE_TRIGGER, mTriggerList[mRow].mName),
                                     Strings.DELETE,
                                     JOptionPane.OK_CANCEL_OPTION,
                                     JOptionPane.PLAIN_MESSAGE
@@ -846,7 +846,7 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
                                 }
                             }
                             else {
-                                JOptionPane.showMessageDialog(this@TriggerPanel, "${Strings.TRIGGER_CANNOT_DELETE}, ${mTriggerList[mRow].mName}", Strings.ERROR, JOptionPane.ERROR_MESSAGE)
+                                JOptionPane.showMessageDialog(MainUI.getInstance(), String.format(Strings.TRIGGER_CANNOT_DELETE, mTriggerList[mRow].mName), Strings.ERROR, JOptionPane.ERROR_MESSAGE)
                             }
 
                         }
@@ -891,6 +891,7 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
                             }
                         }
                         mResultItem -> {
+                            mTriggerList[mRow].mResultDialog.setLocationRelativeTo(MainUI.getInstance())
                             mTriggerList[mRow].mResultDialog.isVisible = true
                         }
                     }

@@ -144,11 +144,14 @@ class StringsEn private constructor() {
             , "Move Up"
             , "Move Down"
             , "Move Last"
-            , "Trigger cannot be edited while in use"
-            , "Trigger cannot be deleted while in use"
+            , "Trigger(%s) cannot be edited while in use"
+            , "Trigger(%s) cannot be deleted while in use"
             , "Trigger View cannot be hidden while in use"
             , "Log Trigger(Aging Test)"
             , "Result"
+            , "Do you want to start trigger \"%s\"?"
+            , "Do you want to stop trigger \"%s\"?"
+            , "Do you want to delete trigger \"%s\"?"
 //            , ""
         )
     }
