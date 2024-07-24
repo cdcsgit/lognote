@@ -573,7 +573,12 @@ class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?, 
                     for (item in splitData) {
                         if (item.isNotEmpty()) {
                             println("importData item = $item")
-                            fileList.add(File(URI(item.trim())))
+                            try {
+                                fileList.add(File(URI("file://${item.trim()}")))
+                            } catch (ex: Exception) {
+                                println("failed fileList.add")
+                                fileList.add(File(item.trim()))
+                            }
                         }
                     }
                 } catch (ex: Exception) {
