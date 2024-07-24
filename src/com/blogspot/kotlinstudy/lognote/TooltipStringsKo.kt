@@ -2,7 +2,9 @@ package com.blogspot.kotlinstudy.lognote
 
 class TooltipStringsKo private constructor() {
     companion object {
-        val STRINGS = listOf(
+        val STRINGS = TooltipStrings.DEFAULT_STRINGS.toMutableMap()
+        init {
+            val stringList = listOf(
                 "adb logcat 시작 및 로그 수신"
                 , "adb logcat 일시 중지"
                 , "adb logcat 중지"
@@ -61,6 +63,13 @@ class TooltipStringsKo private constructor() {
                 , "잘못된 포멧(숫자)"
                 , "잘못된 이름(공백 허용 안됨)"
 //            , ""
-        )
+            )
+
+            for ((idx, str) in stringList.withIndex()) {
+                if (str.isNotEmpty()) {
+                    STRINGS[idx.toString()] = str
+                }
+            }
+        }
     }
 }
