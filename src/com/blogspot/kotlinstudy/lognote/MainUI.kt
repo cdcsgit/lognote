@@ -3448,7 +3448,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mTokenCombo[idx].setEnabledFilter(mTokenToggle[idx].isSelected)
 
             mTokenToggle[idx].text = tokens[idx].mToken
-            mTokenPanel[idx].isVisible = !mTokenToggle[idx].text.isNullOrEmpty()
+            mTokenPanel[idx].isVisible = (tokens[idx].mToken.isNotEmpty() && tokens[idx].mUiWidth > 0)
         }
     }
 
