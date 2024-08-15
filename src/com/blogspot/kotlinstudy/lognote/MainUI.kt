@@ -3076,19 +3076,16 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mDownBtn.border = BorderFactory.createEmptyBorder()
 
             mTargetLabel = if (mTargetView) {
-                JLabel("${Strings.FILTER} ${Strings.LOG}")
+                JLabel("  # ${Strings.FILTER} ${Strings.LOG} View")
             } else {
-                JLabel("${Strings.FULL} ${Strings.LOG}")
+                JLabel("  # ${Strings.FULL} ${Strings.LOG} View")
             }
             mTargetLabel.toolTipText = TooltipStrings.SEARCH_TARGET_LABEL
 
-            mCloseBtn = ColorButton("X")
+            mCloseBtn = ColorButton(Strings.HIDE)
             mCloseBtn.toolTipText = TooltipStrings.SEARCH_CLOSE_BTN
-            mCloseBtn.margin = Insets(0, 0, 0, 0)
+            mCloseBtn.margin = Insets(0, 3, 0, 3)
             mCloseBtn.addActionListener(mSearchActionHandler)
-            mCloseBtn.background = background
-            mCloseBtn.border = BorderFactory.createEmptyBorder()
-
 
             val searchPanel = JPanel(FlowLayout(FlowLayout.LEFT, 5, 2))
             searchPanel.add(mSearchLabel)
@@ -3097,13 +3094,11 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             searchPanel.add(mUpBtn)
             searchPanel.add(mDownBtn)
 
-            val statusPanel = JPanel(FlowLayout(FlowLayout.RIGHT, 5, 2))
-            statusPanel.add(mTargetLabel)
-            statusPanel.add(mCloseBtn)
+            searchPanel.add(mTargetLabel)
+            searchPanel.add(mCloseBtn)
 
             layout = BorderLayout()
             add(searchPanel, BorderLayout.WEST)
-            add(statusPanel, BorderLayout.EAST)
         }
 
         override fun setVisible(aFlag: Boolean) {
@@ -3128,9 +3123,9 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         fun setTargetView(aFlag: Boolean) {
             mTargetView = aFlag
             if (mTargetView) {
-                mTargetLabel.text = "${Strings.FILTER} ${Strings.LOG}"
+                mTargetLabel.text = "  # ${Strings.FILTER} ${Strings.LOG} View"
             } else {
-                mTargetLabel.text = "${Strings.FULL} ${Strings.LOG}"
+                mTargetLabel.text = "  # ${Strings.FULL} ${Strings.LOG} View"
             }
         }
 

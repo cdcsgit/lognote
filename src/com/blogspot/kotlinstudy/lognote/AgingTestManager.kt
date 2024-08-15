@@ -288,8 +288,8 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
             layout = BoxLayout(this, BoxLayout.Y_AXIS)
             addMouseListener(mMouseHandler)
 
-            val inUsePanel = JPanel(FlowLayout(FlowLayout.LEFT))
-            mInUseLabel = JLabel(" ${Strings.AGING_TEST_TRIGGER} / ${Strings.IN_USE} - [$mInUseTrigger] ")
+            val inUsePanel = JPanel(FlowLayout(FlowLayout.LEFT, 5, 2))
+            mInUseLabel = JLabel("${Strings.AGING_TEST_TRIGGER} / ${Strings.IN_USE} - [$mInUseTrigger] ")
             inUsePanel.add(mInUseLabel)
 
             mHideBtn = ColorButton(Strings.HIDE)
@@ -301,8 +301,8 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
             mHideListBtn = ColorButton(Strings.HIDE_LIST)
             mHideListBtn.margin = Insets(0, 3, 0, 3)
             mHideListBtn.addActionListener(this)
-            inUsePanel.add(mHideBtn)
             inUsePanel.add(mHideListBtn)
+            inUsePanel.add(mHideBtn)
 
             mScrollPane.verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
             mScrollPane.horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
