@@ -1,4 +1,4 @@
-package com.blogspot.kotlinstudy.lognote
+package com.blogspot.cdcsutils.lognote
 
 class StringsKo private constructor() {
     companion object {

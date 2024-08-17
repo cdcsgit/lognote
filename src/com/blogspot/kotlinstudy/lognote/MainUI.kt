@@ -1,4 +1,4 @@
-package com.blogspot.kotlinstudy.lognote
+package com.blogspot.cdcsutils.lognote
 
 import com.formdev.flatlaf.FlatDarkLaf
 import com.formdev.flatlaf.FlatLightLaf

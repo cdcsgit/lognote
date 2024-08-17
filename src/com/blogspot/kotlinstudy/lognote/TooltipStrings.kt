@@ -1,4 +1,4 @@
-package com.blogspot.kotlinstudy.lognote
+package com.blogspot.cdcsutils.lognote
 
 class TooltipStrings private constructor() {
     companion object {

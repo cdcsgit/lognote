@@ -1,4 +1,4 @@
-package com.blogspot.kotlinstudy.lognote
+package com.blogspot.cdcsutils.lognote
 
 import java.awt.*
 import java.awt.datatransfer.DataFlavor

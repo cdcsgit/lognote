@@ -1,6 +1,5 @@
-package com.blogspot.kotlinstudy.lognote
+package com.blogspot.cdcsutils.lognote
 
-import com.blogspot.kotlinstudy.lognote.FormatManager.FormatItem.Token
 import java.awt.*
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
@@ -157,10 +156,10 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
         )
         var levelNth = 4
 
-        var tokens: Array<Token> = arrayOf(
-            Token("Tag", 5, true, 250),
-            Token("PID", 2, false, 120),
-            Token("TID", 3, false, 120),
+        var tokens: Array<FormatItem.Token> = arrayOf(
+            FormatItem.Token("Tag", 5, true, 250),
+            FormatItem.Token("PID", 2, false, 120),
+            FormatItem.Token("TID", 3, false, 120),
         )
         var pidTokIdx = 1
         formatList.add(0, FormatItem("logcat", separator, levelNth, levels, tokens, pidTokIdx))
@@ -171,9 +170,9 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
         levelNth = -1
 
         tokens = arrayOf(
-            Token("", 0, false, 0),
-            Token("", 0, false, 0),
-            Token("", 0, false, 0),
+            FormatItem.Token("", 0, false, 0),
+            FormatItem.Token("", 0, false, 0),
+            FormatItem.Token("", 0, false, 0),
         )
         pidTokIdx = -1
         formatList.add(FormatItem("plain text", separator, levelNth, levels, tokens, pidTokIdx))
@@ -191,9 +190,9 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
         levelNth = 2
 
         tokens = arrayOf(
-            Token("", 0, false, 120),
-            Token("", 0, false, 120),
-            Token("", 0, false, 120),
+            FormatItem.Token("", 0, false, 120),
+            FormatItem.Token("", 0, false, 120),
+            FormatItem.Token("", 0, false, 120),
         )
         pidTokIdx = -1
         formatList.add(FormatItem("logcat -time", separator, levelNth, levels, tokens, pidTokIdx))
@@ -223,7 +222,7 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                 -1
             }
 
-            var tokens: Array<Token>
+            var tokens: Array<FormatItem.Token>
             try {
                 tokens = Array(MAX_TOKEN_COUNT) {
                     val tokenName = ((mProperties["$i$ITEM_TOKEN_NAME$it"] ?: "") as String).trim()
@@ -244,15 +243,15 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                         0
                     }
 
-                    Token(tokenName, nth, isSaveFilter, uiWidth)
+                    FormatItem.Token(tokenName, nth, isSaveFilter, uiWidth)
                 }
             } catch (ex: Exception) {
                 println("Failed load format($name) tokens")
                 ex.printStackTrace()
                 tokens = arrayOf(
-                    Token("", 0, false, 120),
-                    Token("", 0, false, 120),
-                    Token("", 0, false, 120),
+                    FormatItem.Token("", 0, false, 120),
+                    FormatItem.Token("", 0, false, 120),
+                    FormatItem.Token("", 0, false, 120),
                 )
             }
 
@@ -490,14 +489,14 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                 add(mUiWidthTF)
             }
             
-            fun setToken(token: Token) {
+            fun setToken(token: FormatItem.Token) {
                 mTokenTF.text = token.mToken
                 mNthTF.text = token.mNth.toString()
                 mIsSaveFilterCheck.isSelected = token.mIsSaveFilter
                 mUiWidthTF.text = token.mUiWidth.toString()
             }
             
-            fun getToken(): Token {
+            fun getToken(): FormatItem.Token {
                 var isValid = true
                 val name = mTokenTF.text.trim()
 
@@ -529,7 +528,7 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                     throw NumberFormatException()
                 }
 
-                return Token(name, nth, isSaveFilter, uiWidth)
+                return FormatItem.Token(name, nth, isSaveFilter, uiWidth)
             }
         }
 

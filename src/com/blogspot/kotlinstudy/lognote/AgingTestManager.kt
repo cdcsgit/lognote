@@ -1,4 +1,4 @@
-package com.blogspot.kotlinstudy.lognote
+package com.blogspot.cdcsutils.lognote
 
 import java.awt.*
 import java.awt.event.*
@@ -342,7 +342,7 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
                 hasFocus = true,
                 row = 0,
                 column = 0
-            ).preferredSize.height;
+            ).preferredSize.height
 
             add(inUsePanel)
             add(mScrollPane)

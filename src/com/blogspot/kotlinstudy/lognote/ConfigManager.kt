@@ -1,6 +1,5 @@
-package com.blogspot.kotlinstudy.lognote
+package com.blogspot.cdcsutils.lognote
 
-import com.blogspot.kotlinstudy.lognote.FormatManager.FormatItem.Token
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -396,10 +395,10 @@ class ConfigManager private constructor() {
         println("updateConfigFromV2ToV3 : change log level properties ++")
 
         val formatName = "logcat"
-        val tokens: Array<Token> = arrayOf(
-            Token("Tag", 5, true, 250),
-            Token("PID", 2, false, 120),
-            Token("TID", 3, false, 120),
+        val tokens: Array<FormatManager.FormatItem.Token> = arrayOf(
+            FormatManager.FormatItem.Token("Tag", 5, true, 250),
+            FormatManager.FormatItem.Token("PID", 2, false, 120),
+            FormatManager.FormatItem.Token("TID", 3, false, 120),
         )
 
         val itemShowTag = "SHOW_TAG_"
