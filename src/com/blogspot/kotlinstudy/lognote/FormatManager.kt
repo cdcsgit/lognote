@@ -437,20 +437,9 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
         internal inner class ListSelectionHandler : ListSelectionListener {
             private var mSelectedRow = -1
             override fun valueChanged(p0: ListSelectionEvent?) {
-                if (mFormatTable.selectedRow >= 0 && mSelectedRow != mFormatTable.selectedRow) {
+                if (mDialogFormatList.size > 0 && mFormatTable.selectedRow >= 0 && mSelectedRow != mFormatTable.selectedRow) {
                     mSelectedRow = mFormatTable.selectedRow
-                    val format = mDialogFormatList[mSelectedRow]
-                    mNameTF.text = format.mName
-                    mSeparatorTF.text = format.mSeparator
-                    mLevelNthTF.text = format.mLevelNth.toString()
-                    mPidTokIdxCombo.selectedItem = format.mPidTokIdx.toString()
-                    for (idx in TEXT_LEVEL.indices) {
-                        mLevelsTFArr[idx].text = ""
-                    }
-                    format.mLevels.forEach { mLevelsTFArr[it.value].text = it.key }
-                    for (idx in 0 until MAX_TOKEN_COUNT) {
-                        mTokenArr[idx].setToken(format.mTokens[idx])
-                    }
+                    mDetailPanel.setFormat(mDialogFormatList[mSelectedRow])
                 }
 
                 return
@@ -467,7 +456,14 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
             private val mUiWidthLabel = JLabel()
             private val mUiWidthTF = JTextField()
             private val mIdx = idx
-            
+
+            fun setIsEditable(enabled: Boolean) {
+                mTokenTF.isEditable = enabled
+                mNthTF.isEditable = enabled
+                mIsSaveFilterCheck.isEnabled = enabled
+                mUiWidthTF.isEditable = enabled
+            }
+
             init {
                 mTokenLabel.text = "$mIdx : ${Strings.NAME}"
                 mTokenTF.text = ""
@@ -508,7 +504,7 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                 var nth: Int = 0
                 try {
                     nth = mNthTF.text.toInt()
-                    mNthTF.background = mTextFieldBg
+                    mNthTF.background = mDetailPanel.mTextFieldBg
                     mNthTF.toolTipText = ""
                 } catch (ex: NumberFormatException) {
                     mNthTF.background = Color.RED
@@ -521,7 +517,7 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                 var uiWidth: Int = 0
                 try {
                     uiWidth = mUiWidthTF.text.toInt()
-                    mUiWidthTF.background = mTextFieldBg
+                    mUiWidthTF.background = mDetailPanel.mTextFieldBg
                     mUiWidthTF.toolTipText = ""
                 } catch (ex: NumberFormatException) {
                     mUiWidthTF.background = Color.RED
@@ -537,6 +533,172 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
             }
         }
 
+        inner class DetailPanel(isEditable: Boolean) : JPanel() {
+//            val mRow = row
+            private val mNameLabel = JLabel()
+            val mNameTF = JTextField()
+            private val mSeparatorLabel = JLabel()
+            val mSeparatorTF = JTextField()
+            private val mLevelNthLabel = JLabel()
+            val mLevelNthTF = JTextField()
+            private val mPidTokIdxLabel = JLabel()
+            val mPidTokIdxCombo = ColorComboBox<String>()
+            private val mNamePanel = JPanel()
+            private val mLevelsLabelArr = Array(TEXT_LEVEL.size) { JLabel(TEXT_LEVEL[it]) }
+            val mLevelsTFArr = Array(TEXT_LEVEL.size) { JTextField() }
+            private val mLevelsPanel = JPanel()
+            val mTokenArr = Array(MAX_TOKEN_COUNT) { TokenPanel(it) }
+            private val mTokensPanel = JPanel()
+            val mTextFieldBg: Color
+
+            init {
+                mNamePanel.layout = FlowLayout(FlowLayout.LEFT)
+                mNameLabel.text = Strings.NAME
+                mNameTF.preferredSize = Dimension(150, mNameTF.preferredSize.height)
+                mNameTF.text = ""
+                mTextFieldBg = mNameTF.background
+                mSeparatorLabel.text = Strings.SEPARATOR
+                mSeparatorTF.text = ""
+                mSeparatorTF.preferredSize = Dimension(100, mSeparatorTF.preferredSize.height)
+                mLevelNthLabel.text = Strings.LEVEL_NTH
+                mLevelNthTF.text = "-1"
+                mPidTokIdxLabel.text = "${Strings.PID_TOKEN}(${Strings.OPTIONAL})"
+                for (idx in -1 until MAX_TOKEN_COUNT) {
+                    mPidTokIdxCombo.addItem("$idx")
+                }
+
+                mNamePanel.add(JLabel("   "))
+                mNamePanel.add(mNameLabel)
+                mNamePanel.add(mNameTF)
+                mNamePanel.add(JLabel("   "))
+                mNamePanel.add(mSeparatorLabel)
+                mNamePanel.add(mSeparatorTF)
+                mNamePanel.add(JLabel("   "))
+                mNamePanel.add(mLevelNthLabel)
+                mNamePanel.add(mLevelNthTF)
+                mNamePanel.add(JLabel("   "))
+                mNamePanel.add(mPidTokIdxLabel)
+                mNamePanel.add(mPidTokIdxCombo)
+
+                mLevelsPanel.layout = FlowLayout(FlowLayout.LEFT)
+                mLevelsPanel.add(JLabel("   "))
+                for (idx in 1 until TEXT_LEVEL.size) {
+                    mLevelsPanel.add(mLevelsLabelArr[idx])
+                    mLevelsPanel.add(mLevelsTFArr[idx])
+                    mLevelsPanel.add(JLabel("   "))
+                }
+
+                mTokensPanel.layout = BoxLayout(mTokensPanel, BoxLayout.Y_AXIS)
+                for (idx in 0 until MAX_TOKEN_COUNT) {
+                    mTokensPanel.add(mTokenArr[idx])
+                }
+
+                if (!isEditable) {
+                    mNameTF.isEditable = false
+                    mSeparatorTF.isEditable = false
+                    mLevelNthTF.isEditable = false
+                    mPidTokIdxCombo.isEnabled = false
+                    for (idx in TEXT_LEVEL.indices) {
+                        mLevelsTFArr[idx].isEditable = false
+                    }
+                    for (idx in 0 until MAX_TOKEN_COUNT) {
+                        mTokenArr[idx].setIsEditable(false)
+                    }
+                }
+
+                layout = BoxLayout(this, BoxLayout.Y_AXIS)
+
+                Utils.addHSeparator(this, " ${Strings.LOG_FORMAT} ")
+                add(mNamePanel)
+                Utils.addHEmptySeparator(this, 20)
+                Utils.addHSeparator(this, " ${Strings.LEVELS} ")
+                add(mLevelsPanel)
+                Utils.addHEmptySeparator(this, 20)
+                Utils.addHSeparator(this, " ${Strings.TOKENS} ")
+                add(mTokensPanel)
+            }
+
+            fun setFormat(format: FormatItem) {
+                if (format.mName.isNotEmpty()) {
+                    mNameTF.text = format.mName
+                    mSeparatorTF.text = format.mSeparator
+                    mLevelNthTF.text = format.mLevelNth.toString()
+                    mPidTokIdxCombo.selectedItem = format.mPidTokIdx.toString()
+                    for (idx in TEXT_LEVEL.indices) {
+                        mLevelsTFArr[idx].text = ""
+                    }
+                    format.mLevels.forEach { mLevelsTFArr[it.value].text = it.key }
+                    for (idx in 0 until MAX_TOKEN_COUNT) {
+                        mTokenArr[idx].setToken(format.mTokens[idx])
+                    }
+                }
+            }
+
+            fun getFormat(): FormatItem {
+                return mDialogFormatList[0]
+            }
+
+            private fun isValidFormatItem(): Boolean {
+                var isValid = true
+                val name = mNameTF.text.trim()
+                if (name.isEmpty()) {
+                    mNameTF.background = Color.RED
+                    mNameTF.toolTipText = TooltipStrings.INVALID_NAME
+                    isValid = false
+                }
+                else {
+                    mNameTF.background = mTextFieldBg
+                    mNameTF.toolTipText = ""
+                }
+
+                try {
+                    mLevelNthTF.text.toInt()
+                    mLevelNthTF.background = mTextFieldBg
+                    mLevelNthTF.toolTipText = ""
+                } catch (ex: NumberFormatException) {
+                    mLevelNthTF.background = Color.RED
+                    mLevelNthTF.toolTipText = TooltipStrings.INVALID_NUMBER_FORMAT
+                    isValid = false
+                }
+
+                for (idx in 0 until MAX_TOKEN_COUNT) {
+                    try {
+                        mTokenArr[idx].getToken()
+                    } catch (ex: Exception) {
+                        isValid = false
+                    }
+                }
+
+                return isValid
+            }
+
+            fun makeFormatItem(): FormatItem {
+                if (!isValidFormatItem()) {
+                    throw Exception()
+                }
+
+                val name = mNameTF.text.trim()
+                val separator = mSeparatorTF.text
+                val levels = emptyMap<String, Int>().toMutableMap()
+                for (idx in 1 until TEXT_LEVEL.size) {
+                    val level = mLevelsTFArr[idx].text.trim()
+                    if (level.isNotEmpty()) {
+                        levels[level] = idx
+                    }
+                }
+
+                val levelNth = mLevelNthTF.text.toInt()
+                val tokens = Array(MAX_TOKEN_COUNT) { mTokenArr[it].getToken() }
+                val pidTokIdx: Int = if (mPidTokIdxCombo.selectedItem == null) {
+                    -1
+                } else {
+                    mPidTokIdxCombo.selectedItem!!.toString().toInt()
+                }
+
+                return FormatItem(name, separator, levelNth, levels, tokens, pidTokIdx)
+            }
+        }
+
         private val mFirstBtn: ColorButton
         private val mPrevBtn: ColorButton
         private val mNextBtn: ColorButton
@@ -544,35 +706,19 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
 
         private val mAddBtn: ColorButton
         private val mCopyBtn: ColorButton
-        private val mReplaceBtn: ColorButton
+        private val mEditBtn: ColorButton
         private val mDeleteBtn: ColorButton
         private val mResetBtn: ColorButton
-        private val mSaveBtn: ColorButton
-        private val mCloseBtn: ColorButton
+        private val mOkBtn: ColorButton
+        private val mCancelBtn: ColorButton
         private val mFormatPanel = JPanel()
         private val mFormatTableModel = FormatTableModel()
         private val mFormatTable = JTable(mFormatTableModel)
         private val mScrollPane = JScrollPane(mFormatTable)
-        private val mNameLabel = JLabel()
-        private val mNameTF = JTextField()
-        private val mSeparatorLabel = JLabel()
-        private val mSeparatorTF = JTextField()
-        private val mLevelNthLabel = JLabel()
-        private val mLevelNthTF = JTextField()
-        private val mPidTokIdxLabel = JLabel()
-        private val mPidTokIdxCombo = ColorComboBox<String>()
-        private val mNamePanel = JPanel()
-        private val mLevelsLabelArr = Array(TEXT_LEVEL.size) { JLabel(TEXT_LEVEL[it]) }
-        private val mLevelsTFArr = Array(TEXT_LEVEL.size) { JTextField() }
-        private val mLevelsPanel = JPanel()
-        private val mTokenArr = Array(MAX_TOKEN_COUNT) { TokenPanel(it) }
-        private val mTokensPanel = JPanel()
-        private val mTextFieldBg: Color
+        private val mDetailPanel = DetailPanel(false)
         private var mIsChanged = false
 
         init {
-            mFormatPanel.layout = BoxLayout(mFormatPanel, BoxLayout.Y_AXIS)
-
             mScrollPane.preferredSize = Dimension(1000, 500)
             mScrollPane.verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
             mScrollPane.horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
@@ -592,61 +738,13 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
             mFormatTable.selectionModel.addListSelectionListener(ListSelectionHandler())
             updateRowHeights()
 
-            mNamePanel.layout = FlowLayout(FlowLayout.LEFT)
-            mNameLabel.text = Strings.NAME
-            mNameTF.preferredSize = Dimension(150, mNameTF.preferredSize.height)
-            mNameTF.text = ""
-            mTextFieldBg = mNameTF.background
-            mSeparatorLabel.text = Strings.SEPARATOR
-            mSeparatorTF.text = ""
-            mSeparatorTF.preferredSize = Dimension(100, mSeparatorTF.preferredSize.height)
-            mLevelNthLabel.text = Strings.LEVEL_NTH
-            mLevelNthTF.text = "-1"
-            mPidTokIdxLabel.text = "${Strings.PID_TOKEN}(${Strings.OPTIONAL})"
-            for (idx in -1 until MAX_TOKEN_COUNT) {
-                mPidTokIdxCombo.addItem("$idx")
-            }
-
-            mNamePanel.add(JLabel("   "))
-            mNamePanel.add(mNameLabel)
-            mNamePanel.add(mNameTF)
-            mNamePanel.add(JLabel("   "))
-            mNamePanel.add(mSeparatorLabel)
-            mNamePanel.add(mSeparatorTF)
-            mNamePanel.add(JLabel("   "))
-            mNamePanel.add(mLevelNthLabel)
-            mNamePanel.add(mLevelNthTF)
-            mNamePanel.add(JLabel("   "))
-            mNamePanel.add(mPidTokIdxLabel)
-            mNamePanel.add(mPidTokIdxCombo)
-
-            mLevelsPanel.layout = FlowLayout(FlowLayout.LEFT)
-            mLevelsPanel.add(JLabel("   "))
-            for (idx in 1 until TEXT_LEVEL.size) {
-                mLevelsPanel.add(mLevelsLabelArr[idx])
-                mLevelsPanel.add(mLevelsTFArr[idx])
-                mLevelsPanel.add(JLabel("   "))
-            }
-
-            mTokensPanel.layout = BoxLayout(mTokensPanel, BoxLayout.Y_AXIS)
-            for (idx in 0 until MAX_TOKEN_COUNT) {
-                mTokensPanel.add(mTokenArr[idx])
-            }
+            mFormatPanel.layout = BoxLayout(mFormatPanel, BoxLayout.Y_AXIS)
 
             val inUsePanel = JPanel(FlowLayout(FlowLayout.LEFT))
             val inUseLabel = JLabel(" ${Strings.IN_USE} - [${mCurrFormat.mName}] ")
             inUsePanel.add(inUseLabel)
             mFormatPanel.add(inUsePanel)
             mFormatPanel.add(mScrollPane)
-            Utils.addHEmptySeparator(mFormatPanel, 20)
-            Utils.addHSeparator(mFormatPanel, " ${Strings.LOG_FORMAT} ")
-            mFormatPanel.add(mNamePanel)
-            Utils.addHEmptySeparator(mFormatPanel, 20)
-            Utils.addHSeparator(mFormatPanel, " ${Strings.LEVELS} ")
-            mFormatPanel.add(mLevelsPanel)
-            Utils.addHEmptySeparator(mFormatPanel, 20)
-            Utils.addHSeparator(mFormatPanel, " ${Strings.TOKENS} ")
-            mFormatPanel.add(mTokensPanel)
 
             mFirstBtn = ColorButton("↑")
             mFirstBtn.addActionListener(this)
@@ -661,31 +759,36 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
             mAddBtn.addActionListener(this)
             mCopyBtn = ColorButton(Strings.COPY)
             mCopyBtn.addActionListener(this)
-            mReplaceBtn = ColorButton(Strings.REPLACE)
-            mReplaceBtn.addActionListener(this)
+            mEditBtn = ColorButton(Strings.EDIT)
+            mEditBtn.addActionListener(this)
             mDeleteBtn = ColorButton(Strings.DELETE)
             mDeleteBtn.addActionListener(this)
             mResetBtn = ColorButton(Strings.RESET)
             mResetBtn.addActionListener(this)
-            mSaveBtn = ColorButton(Strings.SAVE)
-            mSaveBtn.addActionListener(this)
-            mCloseBtn = ColorButton(Strings.CLOSE)
-            mCloseBtn.addActionListener(this)
+            val buttonPanel = JPanel()
+            buttonPanel.add(mAddBtn)
+            buttonPanel.add(mCopyBtn)
+            buttonPanel.add(mEditBtn)
+            buttonPanel.add(mDeleteBtn)
+            buttonPanel.add(mResetBtn)
+            Utils.addVSeparator(buttonPanel, 20)
+            buttonPanel.add(mFirstBtn)
+            buttonPanel.add(mPrevBtn)
+            buttonPanel.add(mNextBtn)
+            buttonPanel.add(mLastBtn)
+
+            mFormatPanel.add(buttonPanel)
+            mFormatPanel.add(mDetailPanel)
+            Utils.addHEmptySeparator(mFormatPanel, 20)
+
+            mOkBtn = ColorButton(Strings.OK)
+            mOkBtn.addActionListener(this)
+            mCancelBtn = ColorButton(Strings.CANCEL)
+            mCancelBtn.addActionListener(this)
 
             val bottomPanel = JPanel()
-            bottomPanel.add(mFirstBtn)
-            bottomPanel.add(mPrevBtn)
-            bottomPanel.add(mNextBtn)
-            bottomPanel.add(mLastBtn)
-            Utils.addVSeparator(bottomPanel, 20)
-            bottomPanel.add(mAddBtn)
-            bottomPanel.add(mCopyBtn)
-            bottomPanel.add(mReplaceBtn)
-            bottomPanel.add(mDeleteBtn)
-            bottomPanel.add(mResetBtn)
-            Utils.addVSeparator(bottomPanel, 20)
-            bottomPanel.add(mSaveBtn)
-            bottomPanel.add(mCloseBtn)
+            bottomPanel.add(mOkBtn)
+            bottomPanel.add(mCancelBtn)
 
             val panel = JPanel(BorderLayout())
             panel.add(mFormatPanel, BorderLayout.CENTER)
@@ -694,7 +797,7 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
             contentPane.add(panel)
             pack()
 
-            setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE)
+            defaultCloseOperation = WindowConstants.DO_NOTHING_ON_CLOSE
             addWindowListener(object : WindowAdapter() {
                 override fun windowClosing(e: WindowEvent?) {
                     if (mIsChanged) {
@@ -740,66 +843,6 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                 }
                 mFormatTable.setRowHeight(row, rowHeight)
             }
-        }
-
-        private fun isValidFormatItem(): Boolean {
-            var isValid = true
-            val name = mNameTF.text.trim()
-            if (name.isEmpty()) {
-                mNameTF.background = Color.RED
-                mNameTF.toolTipText = TooltipStrings.INVALID_NAME
-                isValid = false
-            }
-            else {
-                mNameTF.background = mTextFieldBg
-                mNameTF.toolTipText = ""
-            }
-
-            try {
-                mLevelNthTF.text.toInt()
-                mLevelNthTF.background = mTextFieldBg
-                mLevelNthTF.toolTipText = ""
-            } catch (ex: NumberFormatException) {
-                mLevelNthTF.background = Color.RED
-                mLevelNthTF.toolTipText = TooltipStrings.INVALID_NUMBER_FORMAT
-                isValid = false
-            }
-
-            for (idx in 0 until MAX_TOKEN_COUNT) {
-                try {
-                    mTokenArr[idx].getToken()
-                } catch (ex: Exception) {
-                    isValid = false
-                }
-            }
-
-            return isValid
-        }
-
-        private fun makeFormatItem(): FormatItem {
-            if (!isValidFormatItem()) {
-                throw Exception()
-            }
-
-            val name = mNameTF.text.trim()
-            val separator = mSeparatorTF.text
-            val levels = emptyMap<String, Int>().toMutableMap()
-            for (idx in 1 until TEXT_LEVEL.size) {
-                val level = mLevelsTFArr[idx].text.trim()
-                if (level.isNotEmpty()) {
-                    levels[level] = idx
-                }
-            }
-
-            val levelNth = mLevelNthTF.text.toInt()
-            val tokens = Array(MAX_TOKEN_COUNT) { mTokenArr[it].getToken() }
-            val pidTokIdx: Int = if (mPidTokIdxCombo.selectedItem == null) {
-                -1
-            } else {
-                mPidTokIdxCombo.selectedItem!!.toString().toInt()
-            }
-
-            return FormatItem(name, separator, levelNth, levels, tokens, pidTokIdx)
         }
 
         private fun isExistFormat(name: String): Boolean {
@@ -866,23 +909,17 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                 }
 
                 mAddBtn -> {
-                    val format: FormatItem
-                    try {
-                        format = makeFormatItem()
-                        val isExist = isExistFormat(format.mName)
-                        if (isExist) {
-                            JOptionPane.showMessageDialog(this, "${Strings.INVALID_NAME_EXIST} \"${format.mName}\"", "Error", JOptionPane.ERROR_MESSAGE)
-                        }
-                        else {
-                            mIsChanged = true
-                            mDialogFormatList.add(format)
-                            mFormatTableModel.fireTableDataChanged()
-                            updateRowHeights()
-                            mFormatTable.setRowSelectionInterval(mDialogFormatList.size - 1, mDialogFormatList.size - 1)
-                            mFormatTable.scrollRectToVisible(mFormatTable.getCellRect(mFormatTable.getRowCount() - 1, 0, true))
-                        }
-                    } catch (ex: Exception) {
-                        JOptionPane.showMessageDialog(this, Strings.INVALID_VALUE, "Error", JOptionPane.ERROR_MESSAGE)
+                    val editDialog = FormatEditDialog(this, Strings.ADD, "ADD")
+                    editDialog.setLocationRelativeTo(parent)
+                    editDialog.isVisible = true
+
+                    editDialog.mFormat?.let {
+                        mIsChanged = true
+                        mDialogFormatList.add(it)
+                        mFormatTableModel.fireTableDataChanged()
+                        updateRowHeights()
+                        mFormatTable.setRowSelectionInterval(mDialogFormatList.size - 1, mDialogFormatList.size - 1)
+                        mFormatTable.scrollRectToVisible(mFormatTable.getCellRect(mFormatTable.rowCount - 1, 0, true))
                     }
                 }
 
@@ -893,7 +930,6 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                         return
                     }
 
-                    mIsChanged = true
                     var num = 2
                     var name = mDialogFormatList[row].mName + " - $num"
 
@@ -906,44 +942,54 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                     }
 
                     val format: FormatItem = mDialogFormatList[row].copy(mName = name)
-                    mDialogFormatList.add(format)
-                    mFormatTableModel.fireTableDataChanged()
-                    updateRowHeights()
-                    mFormatTable.setRowSelectionInterval(mDialogFormatList.size - 1, mDialogFormatList.size - 1)
-                    mFormatTable.scrollRectToVisible(mFormatTable.getCellRect(mFormatTable.getRowCount() - 1, 0, true))
+                    val editDialog = FormatEditDialog(this, Strings.COPY, "COPY")
+                    editDialog.setFormat(format)
+                    editDialog.setLocationRelativeTo(this)
+                    editDialog.isVisible = true
+
+                    editDialog.mFormat?.let {
+                        mIsChanged = true
+                        mDialogFormatList.add(it)
+                        mFormatTableModel.fireTableDataChanged()
+                        updateRowHeights()
+                        mFormatTable.setRowSelectionInterval(mDialogFormatList.size - 1, mDialogFormatList.size - 1)
+                        mFormatTable.scrollRectToVisible(mFormatTable.getCellRect(mFormatTable.rowCount - 1, 0, true))
+                    }
                 }
 
-                mReplaceBtn -> {
+
+                mEditBtn -> {
                     val row = mFormatTable.selectedRow
                     if (row < 0 || row >= mDialogFormatList.size) {
                         JOptionPane.showMessageDialog(this, "${Strings.INVALID_INDEX} \"$row\"", "Error", JOptionPane.ERROR_MESSAGE)
                         return
                     }
 
-                    val format: FormatItem
-                    try {
-                        format = makeFormatItem()
-                        val isExist = isExistFormat(format.mName)
-                        if (isExist && mDialogFormatList[row].mName != format.mName) {
-                            JOptionPane.showMessageDialog(this, "${Strings.INVALID_NAME_EXIST} \"${format.mName}\"", "Error", JOptionPane.ERROR_MESSAGE)
-                        }
-                        else {
-                            mIsChanged = true
-                            mDialogFormatList.removeAt(row)
-                            mDialogFormatList.add(row, format)
-                            mFormatTableModel.fireTableDataChanged()
-                            updateRowHeights()
-                            mFormatTable.setRowSelectionInterval(mDialogFormatList.size - 1, mDialogFormatList.size - 1)
-                            mFormatTable.scrollRectToVisible(mFormatTable.getCellRect(mFormatTable.getRowCount() - 1, 0, true))
-                        }
-                    } catch (ex: Exception) {
-                        JOptionPane.showMessageDialog(this, Strings.INVALID_VALUE, "Error", JOptionPane.ERROR_MESSAGE)
+                    val editDialog = FormatEditDialog(this, Strings.EDIT, "EDIT")
+                    editDialog.setFormat(mDialogFormatList[row])
+                    editDialog.setLocationRelativeTo(this)
+                    editDialog.isVisible = true
+
+                    editDialog.mFormat?.let {
+                        mIsChanged = true
+                        mDialogFormatList.removeAt(row)
+                        mDialogFormatList.add(row, it)
+                        mFormatTableModel.fireTableDataChanged()
+                        updateRowHeights()
+                        mFormatTable.setRowSelectionInterval(mDialogFormatList.size - 1, mDialogFormatList.size - 1)
+                        mFormatTable.scrollRectToVisible(mFormatTable.getCellRect(mFormatTable.rowCount - 1, 0, true))
                     }
                 }
 
                 mDeleteBtn -> {
                     val row = mFormatTable.selectedRow
-                    if (row >= 0 && row < mDialogFormatList.size) {
+                    if (row < 0 || row >= mDialogFormatList.size) {
+                        JOptionPane.showMessageDialog(this, "${Strings.INVALID_INDEX} \"$row\"", "Error", JOptionPane.ERROR_MESSAGE)
+                        return
+                    }
+
+                    val dialogResult = JOptionPane.showConfirmDialog(this, String.format(Strings.CONFIRM_DELETE_FORMAT, mDialogFormatList[row].mName), "Warning", JOptionPane.YES_NO_OPTION)
+                    if (dialogResult == JOptionPane.YES_OPTION) {
                         mIsChanged = true
                         mDialogFormatList.removeAt(row)
                         mFormatTableModel.fireTableDataChanged()
@@ -952,21 +998,106 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                 }
 
                 mResetBtn -> {
-                    mIsChanged = true
-                    mDialogFormatList.clear()
-                    addDefaultFormats(mDialogFormatList)
-                    mFormatTableModel.fireTableDataChanged()
-                    updateRowHeights()
+                    val dialogResult = JOptionPane.showConfirmDialog(this, Strings.CONFIRM_RESET_FORMAT_LIST, "Warning", JOptionPane.YES_NO_OPTION)
+                    if (dialogResult == JOptionPane.YES_OPTION) {
+                        mIsChanged = true
+                        mDialogFormatList.clear()
+                        addDefaultFormats(mDialogFormatList)
+                        mFormatTableModel.fireTableDataChanged()
+                        updateRowHeights()
+                    }
                 }
 
-                mSaveBtn -> {
+                mOkBtn -> {
                     copyFormatList(mDialogFormatList, mFormatList)
                     saveList()
                     mIsChanged = false
                     JOptionPane.showMessageDialog(this, "${Strings.SAVED_FORMAT_LIST} ($FORMATS_LIST_FILE)", "Info", JOptionPane.INFORMATION_MESSAGE)
+                    dispose()
                 }
-                mCloseBtn -> {
+                mCancelBtn -> {
                     dispatchEvent(WindowEvent(this, WindowEvent.WINDOW_CLOSING))
+                }
+            }
+        }
+
+        inner class FormatEditDialog(parent: JDialog, title: String, cmd: String) : JDialog(parent, title, true), ActionListener {
+            private val mDetailPanel = DetailPanel(true)
+            private val mOkBtn: ColorButton
+            private val mCancelBtn: ColorButton
+            private val mFormatPanel = JPanel()
+            private val mCmd = cmd
+            var mFormat: FormatItem? = null
+
+            init {
+                mFormatPanel.layout = BoxLayout(mFormatPanel, BoxLayout.Y_AXIS)
+
+                if (cmd == "EDIT") {
+                    mDetailPanel.mNameTF.isEditable = false
+                }
+                mFormatPanel.add(mDetailPanel)
+                Utils.addHEmptySeparator(mFormatPanel, 20)
+
+                mOkBtn = ColorButton(Strings.OK)
+                mOkBtn.addActionListener(this)
+                mCancelBtn = ColorButton(Strings.CANCEL)
+                mCancelBtn.addActionListener(this)
+
+                val bottomPanel = JPanel()
+                bottomPanel.add(mOkBtn)
+                bottomPanel.add(mCancelBtn)
+
+                val panel = JPanel(BorderLayout())
+                panel.add(mFormatPanel, BorderLayout.CENTER)
+                panel.add(bottomPanel, BorderLayout.SOUTH)
+
+                contentPane.add(panel)
+                pack()
+            }
+
+            fun setFormat(format: FormatItem) {
+                mDetailPanel.setFormat(format)
+            }
+
+            override fun actionPerformed(e: ActionEvent?) {
+                when (e?.source) {
+                    mOkBtn -> {
+                        mFormat = null
+                        when (mCmd) {
+                            "ADD", "COPY" -> {
+                                var format: FormatItem? = null
+                                try {
+                                    format = mDetailPanel.makeFormatItem()
+                                    val isExist = isExistFormat(format.mName)
+                                    if (isExist) {
+                                        JOptionPane.showMessageDialog(this, "${Strings.INVALID_NAME_EXIST} \"${format.mName}\"", "Error", JOptionPane.ERROR_MESSAGE)
+                                    }
+                                    else {
+                                        mFormat = format
+                                    }
+                                } catch (ex: Exception) {
+                                    JOptionPane.showMessageDialog(this, Strings.INVALID_VALUE, "Error", JOptionPane.ERROR_MESSAGE)
+                                }
+                            }
+                            "EDIT" -> {
+                                var format: FormatItem? = null
+                                try {
+                                    format = mDetailPanel.makeFormatItem()
+                                    mFormat = format
+                                } catch (ex: Exception) {
+                                    JOptionPane.showMessageDialog(this, Strings.INVALID_VALUE, "Error", JOptionPane.ERROR_MESSAGE)
+                                }
+                            }
+                        }
+
+                        if (mFormat != null) {
+                            dispose()
+                        }
+                    }
+                    mCancelBtn -> {
+                        mFormat = null
+                        dispose()
+                    }
                 }
             }
         }

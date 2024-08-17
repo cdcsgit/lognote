@@ -154,6 +154,8 @@ class StringsEn private constructor() {
                 , "Do you want to start trigger \"%s\"?"
                 , "Do you want to stop trigger \"%s\"?"
                 , "Do you want to delete trigger \"%s\"?"
+                , "The format list will be reset to default. Do you want to reset?"
+                , "Do you want to delete format \"%s\"?"
 //            , ""
             )
 

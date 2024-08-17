@@ -203,9 +203,8 @@ class LogCmdSettingsDialog(mainUI: MainUI) :JDialog(mainUI, "${Strings.LOG_CMD} 
 
         cmdPanel.add(logCmdPanel, BorderLayout.CENTER)
 
-        val confirmPanel = JPanel(FlowLayout(FlowLayout.RIGHT))
+        val confirmPanel = JPanel(FlowLayout(FlowLayout.CENTER))
         confirmPanel.preferredSize = Dimension(400, 40)
-        confirmPanel.alignmentX = JPanel.RIGHT_ALIGNMENT
         confirmPanel.add(mOkBtn)
         confirmPanel.add(mCancelBtn)
 

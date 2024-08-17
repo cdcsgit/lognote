@@ -318,5 +318,9 @@ class Strings private constructor() {
             get() { return currStrings[field]!! }
         val CONFIRM_DELETE_TRIGGER: String = idx++.toString()
             get() { return currStrings[field]!! }
+        val CONFIRM_RESET_FORMAT_LIST: String = idx++.toString()
+            get() { return currStrings[field]!! }
+        val CONFIRM_DELETE_FORMAT: String = idx++.toString()
+            get() { return currStrings[field]!! }
     }
 }

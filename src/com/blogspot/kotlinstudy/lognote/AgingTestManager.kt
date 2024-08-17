@@ -4,10 +4,12 @@ import java.awt.*
 import java.awt.event.*
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import java.util.*
 import java.util.regex.Pattern
 import javax.swing.*
 import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.DefaultTableModel
+import javax.swing.table.TableCellEditor
 
 
 class AgingTestManager private constructor(fileName: String) : PropertiesBase(fileName) {
@@ -280,6 +282,7 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
         private val mInUseLabel: JLabel
         private var mInUseTrigger = ""
 
+        private var mAddBtn: ColorButton
         private var mHideBtn: ColorButton
         private var mHideListBtn: ColorButton
 
@@ -288,10 +291,17 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
             layout = BoxLayout(this, BoxLayout.Y_AXIS)
             addMouseListener(mMouseHandler)
 
-            val inUsePanel = JPanel(FlowLayout(FlowLayout.LEFT, 5, 2))
+            val inUsePanel = JPanel(FlowLayout(FlowLayout.LEFT))
             mInUseLabel = JLabel("${Strings.AGING_TEST_TRIGGER} / ${Strings.IN_USE} - [$mInUseTrigger] ")
             inUsePanel.add(mInUseLabel)
 
+            mAddBtn = ColorButton(Strings.ADD)
+            mAddBtn.margin = Insets(0, 3, 0, 3)
+            if (mInUseTrigger.isNotEmpty()) {
+                mAddBtn.isEnabled = false
+            }
+            mAddBtn.addActionListener(this)
+            
             mHideBtn = ColorButton(Strings.HIDE)
             mHideBtn.margin = Insets(0, 3, 0, 3)
             if (mInUseTrigger.isNotEmpty()) {
@@ -301,6 +311,7 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
             mHideListBtn = ColorButton(Strings.HIDE_LIST)
             mHideListBtn.margin = Insets(0, 3, 0, 3)
             mHideListBtn.addActionListener(this)
+            inUsePanel.add(mAddBtn)
             inUsePanel.add(mHideListBtn)
             inUsePanel.add(mHideBtn)
 
@@ -311,20 +322,27 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
             mScrollPane.addMouseListener(mMouseHandler)
             mScrollPane.preferredSize = Dimension(mScrollPane.preferredSize.width, 120)
 
-
-            mTriggerTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
+            mTriggerTable.rowSelectionAllowed = false
             mTriggerTable.autoResizeMode = JTable.AUTO_RESIZE_LAST_COLUMN
             mTriggerTable.tableHeader.reorderingAllowed = false
             mTriggerTable.columnModel.getColumn(0).preferredWidth = 40
             mTriggerTable.columnModel.getColumn(1).preferredWidth = 400
             mTriggerTable.columnModel.getColumn(2).preferredWidth = 60
             mTriggerTable.columnModel.getColumn(3).preferredWidth = 450
-            mTriggerTable.columnModel.getColumn(4).preferredWidth = 20
-            mTriggerTable.columnModel.getColumn(5).preferredWidth = 20
+            mTriggerTable.columnModel.getColumn(4).preferredWidth = 15
+            mTriggerTable.columnModel.getColumn(5).preferredWidth = 25
             mTriggerTable.addMouseListener(TableMouseHandler())
-            val centerRenderer = DefaultTableCellRenderer()
-            centerRenderer.horizontalAlignment = JLabel.CENTER
-            mTriggerTable.setDefaultRenderer(String::class.java, centerRenderer)
+            mTriggerTable.setDefaultRenderer(String::class.java, TriggerTextRenderer())
+
+            val triggerCtrlRenderer = TriggerCtrlRenderer()
+            mTriggerTable.columnModel.getColumn(5).cellRenderer = TriggerCtrlRenderer()
+            mTriggerTable.columnModel.getColumn(5).cellEditor = TriggerCtrlEditor()
+            mTriggerTable.rowHeight = triggerCtrlRenderer.getTableCellRendererComponent(mTriggerTable, "",
+                isSelected = true,
+                hasFocus = true,
+                row = 0,
+                column = 0
+            ).preferredSize.height;
 
             add(inUsePanel)
             add(mScrollPane)
@@ -352,6 +370,9 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
 
         override fun actionPerformed(e: ActionEvent?) {
             when (e?.source) {
+                mAddBtn -> {
+                    showAddDialog()
+                }
                 mHideBtn -> {
                     isVisible = false
                 }
@@ -368,7 +389,7 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
         }
 
         inner class TriggerTableModel() : DefaultTableModel() {
-            private val colNames = arrayOf(Strings.NAME, Strings.FILTER, Strings.ACTION, Strings.ACTION_PARAMETER, "${Strings.ONCE}/${Strings.REPEAT}", Strings.STATUS)
+            private val colNames = arrayOf(Strings.NAME, Strings.FILTER, Strings.ACTION, Strings.ACTION_PARAMETER, "${Strings.ONCE}/${Strings.REPEAT}", Strings.SETTING)
             init {
                 setColumnIdentifiers(colNames)
             }
@@ -382,7 +403,7 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
             }
 
             override fun isCellEditable(row: Int, column: Int): Boolean {
-                return false
+                return column == 5
             }
 
             override fun getValueAt(row: Int, column: Int): Any {
@@ -411,53 +432,232 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
             }
         }
 
-        internal inner class PopUpTriggerPanel : JPopupMenu() {
-            private var mAddItem = JMenuItem(Strings.ADD)
-            private val mActionHandler = ActionHandler()
-
+        inner class TriggerTextRenderer : DefaultTableCellRenderer() {
             init {
-                mAddItem.addActionListener(mActionHandler)
-                add(mAddItem)
+                horizontalAlignment = JLabel.CENTER
             }
 
-            internal inner class ActionHandler : ActionListener {
-                override fun actionPerformed(p0: ActionEvent?) {
-                    when (p0?.source) {
-                        mAddItem -> {
-                            showAddDialog()
+            override fun getTableCellRendererComponent(
+                table: JTable,
+                value: Any,
+                isSelected: Boolean,
+                hasFocus: Boolean,
+                row: Int,
+                column: Int
+            ): Component {
+                return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
+            }
+        }
+
+        inner class TriggerCtrlPane(row: Int) : JPanel(), ActionListener {
+            private val mBtns: Array<ColorButton>
+            private var mBtnNum = 0
+            private val mIdxStartStop = mBtnNum++
+            private val mIdxResult = mBtnNum++
+            private val mIdxEdit = mBtnNum++
+            private val mIdxCopy = mBtnNum++
+            private val mIdxRemove = mBtnNum++
+            private val mIdxUp = mBtnNum++
+            private val mIdxDown = mBtnNum++
+            private var mRow = row
+            private var mStatus: TriggerStatus = TriggerStatus.STOPPED
+
+            override fun getToolTipText(event: MouseEvent?): String {
+                toolTipText = ""
+                for (btn in mBtns) {
+                    if (event != null && event.x >= btn.x && event.x < (btn.x + btn.width)) {
+                        toolTipText = btn.toolTipText
+                        break
+                    }
+                }
+                return super.getToolTipText(event)
+            }
+
+            init {
+                layout = FlowLayout(FlowLayout.LEFT, 0, 0)
+                mBtns = Array(mBtnNum) { ColorButton("") }
+                mBtns[mIdxStartStop].actionCommand = "START_STOP"
+                mBtns[mIdxStartStop].icon = ImageIcon(this.javaClass.getResource("/images/trigger_start.png"))
+                mBtns[mIdxStartStop].toolTipText = "${Strings.START} / ${Strings.STOP}"
+                mBtns[mIdxResult].actionCommand = "RESULT"
+                mBtns[mIdxResult].icon = ImageIcon(this.javaClass.getResource("/images/trigger_result.png"))
+                mBtns[mIdxResult].toolTipText = "${Strings.TRIGGER} ${Strings.RESULT}"
+
+                mBtns[mIdxEdit].actionCommand = "EDIT"
+                mBtns[mIdxEdit].icon = ImageIcon(this.javaClass.getResource("/images/trigger_edit.png"))
+                mBtns[mIdxEdit].toolTipText = Strings.EDIT
+                mBtns[mIdxCopy].actionCommand = "COPY"
+                mBtns[mIdxCopy].icon = ImageIcon(this.javaClass.getResource("/images/trigger_copy.png"))
+                mBtns[mIdxCopy].toolTipText = Strings.COPY
+                mBtns[mIdxRemove].actionCommand = "REMOVE"
+                mBtns[mIdxRemove].icon = ImageIcon(this.javaClass.getResource("/images/trigger_remove.png"))
+                mBtns[mIdxRemove].toolTipText = Strings.DELETE
+
+                mBtns[mIdxUp].actionCommand = "MOVE_UP"
+                mBtns[mIdxUp].icon = ImageIcon(this.javaClass.getResource("/images/trigger_up.png"))
+                mBtns[mIdxUp].toolTipText = Strings.MOVE_UP
+                mBtns[mIdxDown].actionCommand = "MOVE_DOWN"
+                mBtns[mIdxDown].icon = ImageIcon(this.javaClass.getResource("/images/trigger_down.png"))
+                mBtns[mIdxDown].toolTipText = Strings.MOVE_DOWN
+
+                // flatLaf workaround : Make the cell editor panel hierarchy three or more levels
+                val p2 = JPanel(FlowLayout(FlowLayout.LEFT, 0, 0))
+                for (btn in mBtns) {
+                    btn.margin = Insets(2, 2, 2, 2)
+                    p2.add(btn)
+                    btn.addActionListener(this@TriggerCtrlPane)
+                }
+                val p1 = JPanel(FlowLayout(FlowLayout.LEFT, 0, 0))
+                p1.add(p2)
+                add(p1)
+            }
+
+            fun addActionListener(listener: ActionListener?) {
+                for (btn in mBtns) {
+                    btn.addActionListener(listener)
+                }
+            }
+
+            fun updatePane(row: Int) {
+                mRow = row
+                if (mTriggerList.isNotEmpty() && mTriggerList[mRow].mStatus != mStatus) {
+                    if (mTriggerList[row].mStatus == TriggerStatus.STOPPED) {
+                        mBtns[mIdxStartStop].icon = ImageIcon(this.javaClass.getResource("/images/trigger_start.png"))
+                        mBtns[mIdxEdit].isEnabled = true
+                        mBtns[mIdxRemove].isEnabled = true
+                    }
+                    else {
+                        mBtns[mIdxStartStop].icon = ImageIcon(this.javaClass.getResource("/images/trigger_stop.png"))
+                        mBtns[mIdxEdit].isEnabled = false
+                        mBtns[mIdxRemove].isEnabled = false
+                    }
+                    mStatus = mTriggerList[mRow].mStatus
+                }
+            }
+
+            override fun actionPerformed(p0: ActionEvent?) {
+                when (p0?.actionCommand) {
+                    "START_STOP" -> {
+                        if (mTriggerList[mRow].mStatus == TriggerStatus.STOPPED) {
+                            startTrigger(mRow)
+                        } else {
+                            stopTrigger(mRow)
+                        }
+                    }
+                    "RESULT" -> {
+                        mTriggerList[mRow].mResultDialog.setLocationRelativeTo(MainUI.getInstance())
+                        mTriggerList[mRow].mResultDialog.isVisible = true
+                    }
+                    "EDIT" -> {
+                        if (mTriggerList[mRow].mStatus == TriggerStatus.STOPPED) {
+                            val editDialog =
+                                EditDialog(MainUI.getInstance(), TRIGGER_EDIT, mTriggerList[mRow])
+                            editDialog.setLocationRelativeTo(MainUI.getInstance())
+                            editDialog.isVisible = true
+                        }
+                        else {
+                            JOptionPane.showMessageDialog(MainUI.getInstance(), String.format(Strings.TRIGGER_CANNOT_EDIT, mTriggerList[mRow].mName), Strings.ERROR, JOptionPane.ERROR_MESSAGE)
+                        }
+                    }
+                    "COPY" -> {
+                        if (mTriggerList.size >= MAX_TRIGGER_COUNT) {
+                            JOptionPane.showMessageDialog(MainUI.getInstance(), "${Strings.TRIGGER_CANNOT_ADD} : $MAX_TRIGGER_COUNT", Strings.ERROR, JOptionPane.ERROR_MESSAGE)
+                            return
+                        }
+
+                        val editDialog = EditDialog(MainUI.getInstance(), TRIGGER_COPY, mTriggerList[mRow])
+                        editDialog.setLocationRelativeTo(MainUI.getInstance())
+                        editDialog.isVisible = true
+                    }
+                    "REMOVE" -> {
+                        if (mTriggerList[mRow].mStatus == TriggerStatus.STOPPED) {
+                            val ret = JOptionPane.showConfirmDialog(
+                                MainUI.getInstance(),
+                                String.format(Strings.CONFIRM_DELETE_TRIGGER, mTriggerList[mRow].mName),
+                                Strings.DELETE,
+                                JOptionPane.OK_CANCEL_OPTION,
+                                JOptionPane.PLAIN_MESSAGE
+                            )
+                            if (ret == JOptionPane.OK_OPTION) {
+                                mTriggerList.removeAt(mRow)
+                                saveList()
+                                mTriggerTableModel.fireTableDataChanged()
+                            }
+                        }
+                        else {
+                            JOptionPane.showMessageDialog(MainUI.getInstance(), String.format(Strings.TRIGGER_CANNOT_DELETE, mTriggerList[mRow].mName), Strings.ERROR, JOptionPane.ERROR_MESSAGE)
+                        }
+
+                    }
+                    "MOVE_UP" -> {
+                        if (mTriggerList.size > 1 && mTriggerList.size > mRow && mRow > 0) {
+                            val trigger = mTriggerList[mRow]
+                            mTriggerList.removeAt(mRow)
+                            mTriggerList.add(mRow - 1, trigger)
+                            saveList()
+                            mTriggerTableModel.fireTableDataChanged()
+                            mTriggerTable.setRowSelectionInterval(mRow - 1, mRow - 1)
+                        }
+                    }
+                    "MOVE_DOWN" -> {
+                        if (mTriggerList.size > 1 && mTriggerList.size > mRow && mRow < (mTriggerList.size - 1)) {
+                            val trigger = mTriggerList[mRow]
+                            mTriggerList.removeAt(mRow)
+                            mTriggerList.add(mRow + 1, trigger)
+                            saveList()
+                            mTriggerTableModel.fireTableDataChanged()
+                            mTriggerTable.setRowSelectionInterval(mRow + 1, mRow + 1)
                         }
                     }
                 }
             }
         }
 
+        inner class TriggerCtrlRenderer : DefaultTableCellRenderer() {
+            private val mTriggerCtrlPane = TriggerCtrlPane(-1)
+
+            override fun getTableCellRendererComponent(
+                table: JTable,
+                value: Any,
+                isSelected: Boolean,
+                hasFocus: Boolean,
+                row: Int,
+                column: Int
+            ): Component {
+                mTriggerCtrlPane.updatePane(row)
+                return mTriggerCtrlPane
+            }
+        }
+
+        inner class TriggerCtrlEditor : AbstractCellEditor(), TableCellEditor {
+            private val mTriggerCtrlPane = TriggerCtrlPane(-1)
+
+            init {
+                mTriggerCtrlPane.addActionListener { SwingUtilities.invokeLater { stopCellEditing() } }
+            }
+
+            override fun getCellEditorValue(): Any {
+                return ""
+            }
+
+            override fun isCellEditable(e: EventObject): Boolean {
+                return true
+            }
+
+            override fun getTableCellEditorComponent(
+                table: JTable,
+                value: Any,
+                isSelected: Boolean,
+                row: Int,
+                column: Int
+            ): Component {
+                mTriggerCtrlPane.updatePane(row)
+                return mTriggerCtrlPane
+            }
+        }
+
+
         internal inner class MouseHandler : MouseAdapter() {
-            override fun mousePressed(p0: MouseEvent?) {
-                super.mousePressed(p0)
-            }
-
-            private var popupMenu: JPopupMenu? = null
-            override fun mouseReleased(p0: MouseEvent?) {
-                if (p0 == null) {
-                    super.mouseReleased(p0)
-                    return
-                }
-
-                if (SwingUtilities.isRightMouseButton(p0)) {
-                    popupMenu = PopUpTriggerPanel()
-                    popupMenu?.show(p0.component, p0.x, p0.y)
-                } else {
-                    popupMenu?.isVisible = false
-                }
-
-                super.mouseReleased(p0)
-            }
-
-            override fun mouseDragged(e: MouseEvent?) {
-                println("mouseDragged")
-                super.mouseDragged(e)
-            }
-
             override fun mouseClicked(p0: MouseEvent?) {
                 if (SwingUtilities.isLeftMouseButton(p0)) {
                     if (p0?.clickCount == 2) {
@@ -676,29 +876,6 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
         }
 
         internal inner class TableMouseHandler : MouseAdapter() {
-            override fun mousePressed(p0: MouseEvent?) {
-                super.mousePressed(p0)
-            }
-
-            private var popupMenu: JPopupMenu? = null
-            override fun mouseReleased(p0: MouseEvent?) {
-                if (p0 == null) {
-                    super.mouseReleased(p0)
-                    return
-                }
-
-                if (SwingUtilities.isRightMouseButton(p0)) {
-                    val point = Point(p0.x, p0.y)
-                    popupMenu = PopUpTable(point, mTriggerTable.selectedRow)
-                    popupMenu?.show(p0.component, p0.x, p0.y)
-                }
-                else {
-                    popupMenu?.isVisible = false
-                }
-
-                super.mouseReleased(p0)
-            }
-
             override fun mouseClicked(p0: MouseEvent?) {
                 if (SwingUtilities.isLeftMouseButton(p0)) {
                     if (p0?.clickCount == 2) {
@@ -738,164 +915,6 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
                 }
 
                 super.mouseClicked(p0)
-            }
-        }
-
-        internal inner class PopUpTable(point: Point, row: Int) : JPopupMenu() {
-            var mStartItem: JMenuItem = JMenuItem(Strings.START)
-            var mStopItem = JMenuItem(Strings.STOP)
-            var mAddItem = JMenuItem(Strings.ADD)
-            var mCopyItem = JMenuItem(Strings.COPY)
-            var mEditItem = JMenuItem(Strings.EDIT)
-            var mDeleteItem = JMenuItem(Strings.DELETE)
-            var mFirstItem = JMenuItem(Strings.MOVE_FIRST)
-            var mPrevItem = JMenuItem(Strings.MOVE_UP)
-            var mNextItem = JMenuItem(Strings.MOVE_DOWN)
-            var mLastItem = JMenuItem(Strings.MOVE_LAST)
-            var mResultItem = JMenuItem(Strings.RESULT)
-            private val mActionHandler = ActionHandler()
-            
-            val mRow = row
-
-            init {
-                mStartItem.addActionListener(mActionHandler)
-                add(mStartItem)
-                mStopItem.addActionListener(mActionHandler)
-                add(mStopItem)
-                addSeparator()
-                mAddItem.addActionListener(mActionHandler)
-                add(mAddItem)
-                mCopyItem.addActionListener(mActionHandler)
-                add(mCopyItem)
-                mEditItem.addActionListener(mActionHandler)
-                add(mEditItem)
-                mDeleteItem.addActionListener(mActionHandler)
-                add(mDeleteItem)
-                addSeparator()
-                mFirstItem.addActionListener(mActionHandler)
-                add(mFirstItem)
-                mPrevItem.addActionListener(mActionHandler)
-                add(mPrevItem)
-                mNextItem.addActionListener(mActionHandler)
-                add(mNextItem)
-                mLastItem.addActionListener(mActionHandler)
-                add(mLastItem)
-                addSeparator()
-                mResultItem.addActionListener(mActionHandler)
-                add(mResultItem)
-                if (mRow < 0) {
-                    mStartItem.isEnabled = false
-                    mStopItem.isEnabled = false
-                    mCopyItem.isEnabled = false
-                    mEditItem.isEnabled = false
-                    mDeleteItem.isEnabled = false
-                    mFirstItem.isEnabled = false
-                    mPrevItem.isEnabled = false
-                    mNextItem.isEnabled = false
-                    mLastItem.isEnabled = false
-                    mResultItem.isEnabled = false
-                }
-            }
-
-            internal inner class ActionHandler : ActionListener {
-                override fun actionPerformed(p0: ActionEvent?) {
-                    when (p0?.source) {
-                        mStartItem -> {
-                            startTrigger(mRow)
-                        }
-                        mStopItem -> {
-                            stopTrigger(mRow)
-                        }
-                        mAddItem -> {
-                            showAddDialog()
-                        }
-                        mCopyItem -> {
-                            if (mTriggerList.size >= MAX_TRIGGER_COUNT) {
-                                JOptionPane.showMessageDialog(MainUI.getInstance(), "${Strings.TRIGGER_CANNOT_ADD} : $MAX_TRIGGER_COUNT", Strings.ERROR, JOptionPane.ERROR_MESSAGE)
-                                return
-                            }
-
-                            val editDialog = EditDialog(MainUI.getInstance(), TRIGGER_COPY, mTriggerList[mRow])
-                            editDialog.setLocationRelativeTo(MainUI.getInstance())
-                            editDialog.isVisible = true
-                        }
-                        mEditItem -> {
-                            if (mTriggerList[mRow].mStatus == TriggerStatus.STOPPED) {
-                                val editDialog =
-                                    EditDialog(MainUI.getInstance(), TRIGGER_EDIT, mTriggerList[mRow])
-                                editDialog.setLocationRelativeTo(MainUI.getInstance())
-                                editDialog.isVisible = true
-                            }
-                            else {
-                                JOptionPane.showMessageDialog(MainUI.getInstance(), String.format(Strings.TRIGGER_CANNOT_EDIT, mTriggerList[mRow].mName), Strings.ERROR, JOptionPane.ERROR_MESSAGE)
-                            }
-                        }
-                        mDeleteItem -> {
-                            if (mTriggerList[mRow].mStatus == TriggerStatus.STOPPED) {
-                                val ret = JOptionPane.showConfirmDialog(
-                                    MainUI.getInstance(),
-                                    String.format(Strings.CONFIRM_DELETE_TRIGGER, mTriggerList[mRow].mName),
-                                    Strings.DELETE,
-                                    JOptionPane.OK_CANCEL_OPTION,
-                                    JOptionPane.PLAIN_MESSAGE
-                                )
-                                if (ret == JOptionPane.OK_OPTION) {
-                                    mTriggerList.removeAt(mRow)
-                                    saveList()
-                                    mTriggerTableModel.fireTableDataChanged()
-                                }
-                            }
-                            else {
-                                JOptionPane.showMessageDialog(MainUI.getInstance(), String.format(Strings.TRIGGER_CANNOT_DELETE, mTriggerList[mRow].mName), Strings.ERROR, JOptionPane.ERROR_MESSAGE)
-                            }
-
-                        }
-                        mFirstItem -> {
-                            if (mTriggerList.size > 1 && mTriggerList.size > mRow) {
-                                val trigger = mTriggerList[mRow]
-                                mTriggerList.removeAt(mRow)
-                                mTriggerList.add(0, trigger)
-                                saveList()
-                                mTriggerTableModel.fireTableDataChanged()
-                                mTriggerTable.setRowSelectionInterval(0, 0)
-                            }
-                        }
-                        mPrevItem -> {
-                            if (mTriggerList.size > 1 && mTriggerList.size > mRow && mRow > 0) {
-                                val trigger = mTriggerList[mRow]
-                                mTriggerList.removeAt(mRow)
-                                mTriggerList.add(mRow - 1, trigger)
-                                saveList()
-                                mTriggerTableModel.fireTableDataChanged()
-                                mTriggerTable.setRowSelectionInterval(mRow - 1, mRow - 1)
-                            }
-                        }
-                        mNextItem -> {
-                            if (mTriggerList.size > 1 && mTriggerList.size > mRow && mRow < (mTriggerList.size - 1)) {
-                                val trigger = mTriggerList[mRow]
-                                mTriggerList.removeAt(mRow)
-                                mTriggerList.add(mRow + 1, trigger)
-                                saveList()
-                                mTriggerTableModel.fireTableDataChanged()
-                                mTriggerTable.setRowSelectionInterval(mRow + 1, mRow + 1)
-                            }
-                        }
-                        mLastItem -> {
-                            if (mTriggerList.size > 1 && mTriggerList.size > mRow) {
-                                val trigger = mTriggerList[mRow]
-                                mTriggerList.removeAt(mRow)
-                                mTriggerList.add(mTriggerList.size, trigger)
-                                saveList()
-                                mTriggerTableModel.fireTableDataChanged()
-                                mTriggerTable.setRowSelectionInterval(mTriggerList.size - 1, mTriggerList.size - 1)
-                            }
-                        }
-                        mResultItem -> {
-                            mTriggerList[mRow].mResultDialog.setLocationRelativeTo(MainUI.getInstance())
-                            mTriggerList[mRow].mResultDialog.isVisible = true
-                        }
-                    }
-                }
             }
         }
     }
