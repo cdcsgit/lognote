@@ -322,5 +322,11 @@ class Strings private constructor() {
             get() { return currStrings[field]!! }
         val CONFIRM_DELETE_FORMAT: String = idx++.toString()
             get() { return currStrings[field]!! }
+        val SHOW_ENTIRE_LINE: String = idx++.toString()
+            get() { return currStrings[field]!! }
+        val BOOKMARK: String = idx++.toString()
+            get() { return currStrings[field]!! }
+        val RECONNECT: String = idx++.toString()
+            get() { return currStrings[field]!! }
     }
 }

@@ -17,7 +17,7 @@ class TooltipStringsEn private constructor() {
                 , "Number of log lines to keep in the log view (0: no limit)"
                 , "Save file is changed every number of scroll lines"
                 , "Apply Line Count and File Split"
-                , "Log is kept in the log view, used when the log is pushed up by the number of applied lines when reviewing the log"
+                , "Log is kept in the log view\nused when the log is pushed up by the number of applied lines when reviewing the log\nMemory shortage occurs when keep logs for a long time"
                 , "Change log views position up/down, left/right"
                 , "Log filter case-sensitive"
                 , "Manage frequently used filters"

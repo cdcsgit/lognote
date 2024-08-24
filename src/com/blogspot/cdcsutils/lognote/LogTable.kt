@@ -384,13 +384,13 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
 
     internal inner class PopUpTable(point: Point) : JPopupMenu() {
         var mProcessItem: JMenuItem = JMenuItem("")
-        var mCopyItem: JMenuItem = JMenuItem("Copy")
-        var mShowEntireItem = JMenuItem("Show entire line")
-        var mBookmarkItem = JMenuItem("Bookmark")
-        var mReconnectItem = JMenuItem("Reconnect adb")
-        var mStartItem = JMenuItem("Start")
-        var mStopItem = JMenuItem("Stop")
-        var mClearItem = JMenuItem("Clear")
+        var mCopyItem: JMenuItem = JMenuItem(Strings.COPY)
+        var mShowEntireItem = JMenuItem(Strings.SHOW_ENTIRE_LINE)
+        var mBookmarkItem = JMenuItem(Strings.BOOKMARK)
+        var mReconnectItem = JMenuItem("${Strings.RECONNECT} - adb")
+        var mStartItem = JMenuItem(Strings.START)
+        var mStopItem = JMenuItem(Strings.STOP)
+        var mClearItem = JMenuItem(Strings.CLEAR_VIEWS)
 //        var mClearSaveItem = JMenuItem("Clear/Save")
         private val mActionHandler = ActionHandler()
 
