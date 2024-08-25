@@ -252,8 +252,8 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
         private val mComboLabelArray = arrayOfNulls<ColorLabel>(ComboIdx.SIZE.value)
         private val mStyleComboArray = arrayOfNulls<ColorComboBox<String>>(ComboIdx.SIZE.value)
 
-        private val mTokenComboLabelArray = arrayOfNulls<ColorLabel>(FormatManager.MAX_TOKEN_COUNT)
-        private val mTokenStyleComboArray = arrayOfNulls<ColorComboBox<String>>(FormatManager.MAX_TOKEN_COUNT)
+        private val mTokenComboLabelArray = arrayOfNulls<ColorLabel>(FormatManager.MAX_TOKEN_FILTER_COUNT)
+        private val mTokenStyleComboArray = arrayOfNulls<ColorComboBox<String>>(FormatManager.MAX_TOKEN_FILTER_COUNT)
 
         private val mStyleLabelPanel: JPanel
         private val mStyleComboPanel: JPanel
@@ -291,10 +291,10 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
             mComboLabelArray[ComboIdx.BOLD.value]!!.text = "Combo Style : BOLD"
             mStyleComboArray[ComboIdx.BOLD.value]!!.selectedIndex = mMainUI.mBoldLogComboStyle.value
 
-            addStyleCombos(mTokenComboLabelArray, mTokenStyleComboArray, FormatManager.MAX_TOKEN_COUNT)
+            addStyleCombos(mTokenComboLabelArray, mTokenStyleComboArray, FormatManager.MAX_TOKEN_FILTER_COUNT)
 
-            for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
-                mTokenComboLabelArray[idx]!!.text = "Combo Style : ${mFormatManager.mCurrFormat.mTokens[idx].mToken}"
+            for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+                mTokenComboLabelArray[idx]!!.text = "Combo Style : ${mFormatManager.mCurrFormat.mTokenFilters[idx].mToken}"
                 mTokenStyleComboArray[idx]!!.selectedIndex = mMainUI.mTokenComboStyle[idx].value
             }
 
@@ -443,8 +443,8 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
                 val keys = arrayOf(ConfigManager.ITEM_SHOW_LOG_STYLE, ConfigManager.ITEM_BOLD_LOG_STYLE)
                 val values = arrayOf(mStyleComboArray[ComboIdx.LOG.value]!!.selectedIndex.toString(), mStyleComboArray[ComboIdx.BOLD.value]!!.selectedIndex.toString())
 
-                val tokenKeys = Array(FormatManager.MAX_TOKEN_COUNT) { ConfigManager.ITEM_TOKEN_COMBO_STYLE + it }
-                val tokenValues = Array(FormatManager.MAX_TOKEN_COUNT) { mTokenStyleComboArray[it]!!.selectedIndex.toString() }
+                val tokenKeys = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { ConfigManager.ITEM_TOKEN_COMBO_STYLE + it }
+                val tokenValues = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { mTokenStyleComboArray[it]!!.selectedIndex.toString() }
                 mConfigManager.saveFilterStyle(keys, values, tokenKeys, tokenValues)
             }
         }

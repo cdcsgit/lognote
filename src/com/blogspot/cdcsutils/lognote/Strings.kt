@@ -328,5 +328,11 @@ class Strings private constructor() {
             get() { return currStrings[field]!! }
         val RECONNECT: String = idx++.toString()
             get() { return currStrings[field]!! }
+        val COLUMN: String = idx++.toString()
+            get() { return currStrings[field]!! }
+        val TOKEN_COUNT: String = idx++.toString()
+            get() { return currStrings[field]!! }
+        val DIVIDED_BY_COLUMN: String = idx++.toString()
+            get() { return currStrings[field]!! }
     }
 }

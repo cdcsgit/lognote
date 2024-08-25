@@ -134,7 +134,7 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
                     item.mStatus = TriggerStatus.STOPPED
                     mTriggerPanel.updateInUseTrigger()
                     mTriggerPanel.repaint()
-                    MainUI.getInstance().mFilteredTableModel.mFilterTriggerLog = makeFilterTrigger()
+                    MainUI.getInstance().mFilteredLogPanel.mTableModel.mFilterTriggerLog = makeFilterTrigger()
                 }
                 break
             }
@@ -212,7 +212,7 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
             mTriggerList[selectedRow].mStatus = TriggerStatus.STARTED
             mTriggerPanel.updateInUseTrigger()
             mTriggerPanel.repaint()
-            MainUI.getInstance().mFilteredTableModel.mFilterTriggerLog = makeFilterTrigger()
+            MainUI.getInstance().mFilteredLogPanel.mTableModel.mFilterTriggerLog = makeFilterTrigger()
         }
     }
 
@@ -221,7 +221,7 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
             mTriggerList[selectedRow].mStatus = TriggerStatus.STOPPED
             mTriggerPanel.updateInUseTrigger()
             mTriggerPanel.repaint()
-            MainUI.getInstance().mFilteredTableModel.mFilterTriggerLog = makeFilterTrigger()
+            MainUI.getInstance().mFilteredLogPanel.mTableModel.mFilterTriggerLog = makeFilterTrigger()
         }
     }
 
@@ -232,7 +232,7 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
                     trigger.mStatus = TriggerStatus.STOPPED
                     mTriggerPanel.updateInUseTrigger()
                     mTriggerPanel.repaint()
-                    MainUI.getInstance().mFilteredTableModel.mFilterTriggerLog = makeFilterTrigger()
+                    MainUI.getInstance().mFilteredLogPanel.mTableModel.mFilterTriggerLog = makeFilterTrigger()
                 }
                 break
             }

@@ -1,11 +1,5 @@
 package com.blogspot.cdcsutils.lognote
 
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.io.IOException
-import java.util.*
-
 class RecentFileManager private constructor(fileName: String) : PropertiesBase(fileName){
     companion object {
         private const val RECENTES_LIST_FILE = "lognote_recents.xml"
@@ -43,13 +37,13 @@ class RecentFileManager private constructor(fileName: String) : PropertiesBase(f
     class RecentItem() {
         var mPath = ""
         var mShowLog = ""
-        var mTokenFilter = Array(FormatManager.MAX_TOKEN_COUNT) { "" }
+        var mTokenFilter = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { "" }
         var mHighlightLog = ""
         var mSearchLog = ""
         var mBookmarks = ""
 
         var mShowLogCheck = true
-        var mTokenCheck = Array(FormatManager.MAX_TOKEN_COUNT) { true }
+        var mTokenCheck = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { true }
         var mHighlightLogCheck = true
         var mSearchMatchCase = true
     }
@@ -60,7 +54,7 @@ class RecentFileManager private constructor(fileName: String) : PropertiesBase(f
         loadXml()
 
         val formatName = mFormatManager.mCurrFormat.mName
-        val tokens = mFormatManager.mCurrFormat.mTokens
+        val tokens = mFormatManager.mCurrFormat.mTokenFilters
 
         mRecentList.clear()
         for (i in 0 until MAX_RECENT_FILE) {
@@ -70,7 +64,7 @@ class RecentFileManager private constructor(fileName: String) : PropertiesBase(f
                 break
             }
             recentItem.mShowLog = (mProperties["$i$ITEM_SHOW_LOG"] ?: "") as String
-            for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+            for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
                 if (tokens[idx].mToken.isEmpty()) {
                     recentItem.mTokenFilter[idx] = ""
                 }
@@ -85,7 +79,7 @@ class RecentFileManager private constructor(fileName: String) : PropertiesBase(f
 
             var check = (mProperties["$i$ITEM_SHOW_LOG_CHECK"] ?: "false") as String
             recentItem.mShowLogCheck = check.toBoolean()
-            for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+            for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
                 if (tokens[idx].mToken.isEmpty()) {
                     recentItem.mTokenCheck[idx] = false
                 }
@@ -105,11 +99,11 @@ class RecentFileManager private constructor(fileName: String) : PropertiesBase(f
 
     fun saveList() {
         val formatName = mFormatManager.mCurrFormat.mName
-        val tokens = mFormatManager.mCurrFormat.mTokens
+        val tokens = mFormatManager.mCurrFormat.mTokenFilters
         for (i in 0 until MAX_RECENT_FILE) {
             mProperties.remove("$i$ITEM_PATH")
             mProperties.remove("$i$ITEM_SHOW_LOG")
-            for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+            for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
                 mProperties.remove("$i$ITEM_TOKEN_FILTER${formatName}_${tokens[idx].mToken}")
             }
             mProperties.remove("$i$ITEM_HIGHLIGHT_LOG")
@@ -117,7 +111,7 @@ class RecentFileManager private constructor(fileName: String) : PropertiesBase(f
             mProperties.remove("$i$ITEM_BOOKMARKS")
 
             mProperties.remove("$i$ITEM_SHOW_LOG_CHECK")
-            for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+            for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
                 mProperties.remove("$i$ITEM_TOKEN_CHECK${formatName}_${tokens[idx].mToken}")
             }
             mProperties.remove("$i$ITEM_HIGHLIGHT_LOG_CHECK")
@@ -134,7 +128,7 @@ class RecentFileManager private constructor(fileName: String) : PropertiesBase(f
                 mSaveList.add(recentItem.mPath)
                 mProperties["$i$ITEM_PATH"] = recentItem.mPath
                 mProperties["$i$ITEM_SHOW_LOG"] = recentItem.mShowLog
-                for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+                for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
                     if (tokens[idx].mToken.isNotEmpty()) {
                         mProperties["$i$ITEM_TOKEN_FILTER${formatName}_${tokens[idx].mToken}"] =
                             recentItem.mTokenFilter[idx]
@@ -145,7 +139,7 @@ class RecentFileManager private constructor(fileName: String) : PropertiesBase(f
                 mProperties["$i$ITEM_BOOKMARKS"] = recentItem.mBookmarks
 
                 mProperties["$i$ITEM_SHOW_LOG_CHECK"] = recentItem.mShowLogCheck.toString()
-                for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+                for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
                     if (tokens[idx].mToken.isNotEmpty()) {
                         mProperties["$i$ITEM_TOKEN_CHECK${formatName}_${tokens[idx].mToken}"] =
                             recentItem.mTokenCheck[idx].toString()
@@ -202,7 +196,7 @@ class RecentFileManager private constructor(fileName: String) : PropertiesBase(f
     private fun updateRecentFileFromV0ToV1() {
         println("updateRecentFileFromV0ToV1 : tag,pid,tid to token properties ++")
         val formatName = mFormatManager.mCurrFormat.mName
-        val tokens = mFormatManager.mCurrFormat.mTokens
+        val tokens = mFormatManager.mCurrFormat.mTokenFilters
 
         val itemShowTag = "_SHOW_TAG"
         val itemShowPid = "_SHOW_PID"

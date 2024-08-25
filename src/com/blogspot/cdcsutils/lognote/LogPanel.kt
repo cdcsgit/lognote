@@ -12,7 +12,7 @@ import javax.swing.event.ListSelectionListener
 import javax.swing.plaf.basic.BasicScrollBarUI
 
 
-class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?, focusHandler: MainUI.FocusHandler) :JPanel(), FormatManager.FormatEventListener {
+class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusHandler, columnMode: Boolean) :JPanel() {
     private val mMainUI = mainUI
     private val mBasePanel = basePanel
     private val mCtrlMainPanel: ButtonPanel
@@ -26,6 +26,7 @@ class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?, 
     private val mScrollPane: JScrollPane
     private val mVStatusPanel: VStatusPanel
     private val mTable: LogTable
+    val mTableModel: LogTableModel
     private var mSelectedRow = -1
     private val mBookmarkManager = BookmarkManager.getInstance()
     private val mFormatManager = FormatManager.getInstance()
@@ -47,10 +48,11 @@ class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?, 
             mWindowedModeBtn.isEnabled = !value
         }
 
+    private var mColumnMode = columnMode
+
     init {
         layout = BorderLayout()
         mCtrlMainPanel = ButtonPanel()
-//        mFirstBtn = ColorButton("∧") // △ ▲ ▽ ▼ ↑ ↓ ∧ ∨
         mFirstBtn = ColorButton("")
         mFirstBtn.icon = ImageIcon(this.javaClass.getResource("/images/top.png"))
         mFirstBtn.toolTipText = TooltipStrings.VIEW_FIRST_BTN
@@ -62,8 +64,8 @@ class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?, 
         mLastBtn.toolTipText = TooltipStrings.VIEW_LAST_BTN
         mLastBtn.margin = Insets(2, 3, 1, 3)
         mLastBtn.addActionListener(mActionHandler)
-        mTokenBtns = Array(FormatManager.MAX_TOKEN_COUNT) { ColorToggleButton(mFormatManager.mCurrFormat.mTokens[it].mToken) }
-        for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+        mTokenBtns = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { ColorToggleButton(mFormatManager.mCurrFormat.mTokenFilters[it].mToken) }
+        for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
             mTokenBtns[idx].toolTipText = TooltipStrings.TOKEN_VIEW_TOGGLE
             mTokenBtns[idx].margin = Insets(0, 3, 0, 3)
             mTokenBtns[idx].addActionListener(mActionHandler)
@@ -86,9 +88,19 @@ class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?, 
 
         updateTableBar(null)
 
-        tableModel.addLogTableModelListener(mTableModelHandler)
-        mTable = LogTable(tableModel)
-        mTable.addFocusListener(mFocusHandler)
+        if (mColumnMode) {
+            mTableModel = LogColumnTableModel(mMainUI, mBasePanel?.mTableModel)
+            mTableModel.addLogTableModelListener(mTableModelHandler)
+            mTable = LogColumnTable(mTableModel as LogColumnTableModel)
+            mTable.addFocusListener(mFocusHandler)
+        }
+        else {
+            mTableModel = LogTableModel(mMainUI, mBasePanel?.mTableModel)
+            mTableModel.addLogTableModelListener(mTableModelHandler)
+            mTable = LogTable(mTableModel)
+            mTable.tableHeader = null
+            mTable.addFocusListener(mFocusHandler)
+        }
 
         mTable.columnSelectionAllowed = true
         mTable.selectionModel.addListSelectionListener(mListSelectionHandler)
@@ -125,8 +137,6 @@ class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?, 
 
         transferHandler = TableTransferHandler()
         addComponentListener(mComponentHandler)
-
-        mFormatManager.addFormatEventListener(this)
 
         mIsCreatingUI = false
     }
@@ -240,7 +250,7 @@ class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?, 
         mCtrlMainPanel.removeAll()
         mCtrlMainPanel.add(mFirstBtn)
         mCtrlMainPanel.add(mLastBtn)
-        for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+        for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
             mCtrlMainPanel.add(mTokenBtns[idx])
             if (mTokenBtns[idx].text.isNullOrEmpty()) {
                 mTokenBtns[idx].isVisible = false
@@ -483,9 +493,9 @@ class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?, 
     internal inner class ActionHandler : ActionListener {
         override fun actionPerformed(p0: ActionEvent?) {
             var isNeedCheck = true
-            for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+            for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
                 if (p0?.source == mTokenBtns[idx]) {
-                    for (sortIdx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+                    for (sortIdx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
                         if (mTokenBtns[idx].text == mFormatManager.mCurrFormat.mSortedTokens[sortIdx].mToken) {
                             mTable.mTableModel.mBoldTokens[sortIdx] = mTokenBtns[idx].model.isSelected
                             break
@@ -735,20 +745,5 @@ class LogPanel(mainUI: MainUI, tableModel: LogTableModel, basePanel: LogPanel?, 
             println("mouseDragged")
             super.mouseDragged(e)
         }
-    }
-
-    override fun formatChanged(format: FormatManager.FormatItem) {
-        for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
-            mTokenBtns[idx].text = format.mTokens[idx].mToken
-            mTokenBtns[idx].model.isSelected = false
-            mTable.mTableModel.mBoldTokens[idx] = false
-            mTokenBtns[idx].isVisible = !mTokenBtns[idx].text.isNullOrEmpty()
-        }
-        mTable.mTableModel.mBoldTokenEndIdx = -1
-        mTable.repaint()
-    }
-
-    override fun formatListChanged() {
-        // do nothing
     }
 }

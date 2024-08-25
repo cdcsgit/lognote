@@ -78,6 +78,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     private lateinit var mItemFileExit: JMenuItem
     private lateinit var mMenuView: JMenu
     private lateinit var mItemFull: JCheckBoxMenuItem
+    private lateinit var mItemColumnMode: JCheckBoxMenuItem
     private lateinit var mItemSearch: JCheckBoxMenuItem
     private lateinit var mItemTrigger: JCheckBoxMenuItem
     private lateinit var mItemRotation: JMenuItem
@@ -144,11 +145,6 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     private lateinit var mScrollbackApplyBtn: ColorButton
     private lateinit var mScrollbackKeepToggle: ColorToggleButton
 
-    lateinit var mFilteredTableModel: LogTableModel
-        private set
-
-    private lateinit var mFullTableModel: LogTableModel
-
     lateinit var mLogSplitPane: JSplitPane
 
     lateinit var mFilteredLogPanel: LogPanel
@@ -204,6 +200,8 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         }
 
     var mUIFontPercent = 100
+
+    private var mColumnMode = false
 
     init {
         loadConfigOnCreate()
@@ -313,12 +311,19 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT
         }
 
-        mTokenComboStyle = Array(FormatManager.MAX_TOKEN_COUNT) { FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT }
-        for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+        mTokenComboStyle = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT }
+        for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
             prop = mConfigManager.getItem(ConfigManager.ITEM_TOKEN_COMBO_STYLE + idx)
             if (!prop.isNullOrEmpty()) {
                 mTokenComboStyle[idx] = FilterComboBox.Mode.fromInt(prop.toInt())
             }
+        }
+
+        prop = mConfigManager.getItem(ConfigManager.ITEM_VIEW_COLUMN_MODE)
+        if (!prop.isNullOrEmpty()) {
+            mColumnMode = prop.toBoolean()
+        } else {
+            mColumnMode = false
         }
 
         createUI()
@@ -333,8 +338,10 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     private fun exit() {
         saveConfigOnDestroy()
         saveRecentFile()
-        mFilteredTableModel.stopScan()
-        mFullTableModel.stopScan()
+        mFilteredLogPanel.mTableModel.stopScan()
+        mFilteredLogPanel.mTableModel.stopFollow()
+        mFullLogPanel.mTableModel.stopScan()
+        mFullLogPanel.mTableModel.stopFollow()
         mLogCmdManager.stop()
         exitProcess(0)
     }
@@ -393,10 +400,10 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         }
 
         val formatName = mFormatManager.mCurrFormat.mName
-        val tokens = mFormatManager.mCurrFormat.mTokens
+        val tokens = mFormatManager.mCurrFormat.mTokenFilters
 
-        for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
-            if (mFormatManager.mCurrFormat.mTokens[idx].mIsSaveFilter) {
+        for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+            if (mFormatManager.mCurrFormat.mTokenFilters[idx].mIsSaveFilter) {
                 nCount = mTokenCombo[idx].itemCount
                 if (nCount > ConfigManager.COUNT_TOKEN_FILTER) {
                     nCount = ConfigManager.COUNT_TOKEN_FILTER
@@ -487,7 +494,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                 if (result == JOptionPane.YES_OPTION) {
                     mShowLogToggle.isSelected = recentItem.mShowLogCheck
                     mShowLogCombo.setEnabledFilter(mShowLogToggle.isSelected)
-                    for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+                    for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
                         mTokenToggle[idx].isSelected = recentItem.mTokenCheck[idx]
                         mTokenCombo[idx].setEnabledFilter(mTokenToggle[idx].isSelected)
                     }
@@ -498,7 +505,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
                     mShowLogCombo.setFilterText(recentItem.mShowLog)
                     mShowLogCombo.applyFilterText(true)
-                    for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+                    for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
                         mTokenCombo[idx].setFilterText(recentItem.mTokenFilter[idx])
                     }
                     mBoldLogCombo.setFilterText(recentItem.mHighlightLog)
@@ -578,6 +585,11 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mItemFull = JCheckBoxMenuItem(Strings.VIEW_FULL)
         mItemFull.addActionListener(mActionHandler)
         mMenuView.add(mItemFull)
+
+        mItemColumnMode = JCheckBoxMenuItem(Strings.DIVIDED_BY_COLUMN)
+        mItemColumnMode.state = mColumnMode
+        mItemColumnMode.addActionListener(mActionHandler)
+        mMenuView.add(mItemColumnMode)
 
         mMenuView.addSeparator()
 
@@ -718,21 +730,6 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mSaveBtn.toolTipText = TooltipStrings.SAVE_BTN
         mSaveBtn.addActionListener(mActionHandler)
         mSaveBtn.addMouseListener(mMouseHandler)
-//        mRotationBtn = ColorButton(Strings.ROTATION)
-//        mRotationBtn.margin = btnMargin
-//        mRotationBtn.toolTipText = TooltipStrings.ROTATION_BTN
-//        mRotationBtn.addActionListener(mActionHandler)
-//        mRotationBtn.addMouseListener(mMouseHandler)
-//        mFiltersBtn = ColorButton(Strings.FILTERS)
-//        mFiltersBtn.margin = btnMargin
-//        mFiltersBtn.toolTipText = TooltipStrings.FILTER_LIST_BTN
-//        mFiltersBtn.addActionListener(mActionHandler)
-//        mFiltersBtn.addMouseListener(mMouseHandler)
-//        mCmdsBtn = ColorButton(Strings.CMDS)
-//        mCmdsBtn.margin = btnMargin
-//        mCmdsBtn.toolTipText = TooltipStrings.CMD_LIST_BTN
-//        mCmdsBtn.addActionListener(mActionHandler)
-//        mCmdsBtn.addMouseListener(mMouseHandler)
 
         mLogPanel = JPanel()
         mShowLogPanel = JPanel()
@@ -768,12 +765,12 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mBoldLogToggle.addItemListener(mItemHandler)
 
 
-        mTokenPanel = Array(FormatManager.MAX_TOKEN_COUNT) { JPanel() }
-        mTokenCombo = Array(FormatManager.MAX_TOKEN_COUNT) { FilterComboBox(mTokenComboStyle[it], false) }
-        mTokenToggle = Array(FormatManager.MAX_TOKEN_COUNT) { ColorToggleButton(mFormatManager.mCurrFormat.mTokens[it].mToken) }
-        mTokenTogglePanel = Array(FormatManager.MAX_TOKEN_COUNT) { JPanel(GridLayout(1, 1)) }
+        mTokenPanel = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { JPanel() }
+        mTokenCombo = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { FilterComboBox(mTokenComboStyle[it], false) }
+        mTokenToggle = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { ColorToggleButton(mFormatManager.mCurrFormat.mTokenFilters[it].mToken) }
+        mTokenTogglePanel = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { JPanel(GridLayout(1, 1)) }
 
-        for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+        for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
             mTokenCombo[idx].toolTipText = TooltipStrings.TOKEN_COMBO
             mTokenCombo[idx].isEditable = true
             mTokenCombo[idx].renderer = FilterComboBox.ComboBoxRenderer()
@@ -844,13 +841,13 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mBoldLogPanel.add(mBoldLogCombo, BorderLayout.CENTER)
 
 
-        for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+        for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
             mTokenPanel[idx].layout = BorderLayout()
             mTokenPanel[idx].add(mTokenTogglePanel[idx], BorderLayout.WEST)
             if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
                 mTokenCombo[idx].border = BorderFactory.createEmptyBorder(3, 0, 3, 3)
             }
-            mTokenCombo[idx].preferredSize = Dimension(mFormatManager.mCurrFormat.mTokens[idx].mUiWidth, mTokenCombo[idx].preferredSize.height)
+            mTokenCombo[idx].preferredSize = Dimension(mFormatManager.mCurrFormat.mTokenFilters[idx].mUiWidth, mTokenCombo[idx].preferredSize.height)
             mTokenPanel[idx].add(mTokenCombo[idx], BorderLayout.CENTER)
         }
 
@@ -896,7 +893,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
         val itemFilterPanel = JPanel(FlowLayout(FlowLayout.LEADING, 0, 0))
         itemFilterPanel.border = BorderFactory.createEmptyBorder(0, 0, 0, 0)
-        for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+        for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
             itemFilterPanel.add(mTokenPanel[idx])
             if (mTokenToggle[idx].text.isNullOrEmpty()) {
                 mTokenPanel[idx].isVisible = false
@@ -967,18 +964,16 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
         layout = BorderLayout()
 
-        mFullTableModel = LogTableModel(this, null)
-        mFilteredTableModel = LogTableModel(this, mFullTableModel)
+        mFullLogPanel = LogPanel(this, null, FocusHandler(false), mItemColumnMode.state)
+        mFilteredLogPanel = LogPanel(this, mFullLogPanel, FocusHandler(true), mItemColumnMode.state)
 
         FilterComboBox.IsFilterIncremental = { mItemFilterIncremental.state }
-        mShowLogCombo.setApplyFilter { filter -> mFilteredTableModel.mFilterLog = filter }
-        mBoldLogCombo.setApplyFilter { filter -> mFilteredTableModel.mFilterHighlightLog = filter }
-        for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
-            mTokenCombo[idx].setApplyFilter { filter -> mFilteredTableModel.mFilterTokenMgr.set(idx, filter) }
+        mShowLogCombo.setApplyFilter { filter -> mFilteredLogPanel.mTableModel.mFilterLog = filter }
+        mBoldLogCombo.setApplyFilter { filter -> mFilteredLogPanel.mTableModel.mFilterHighlightLog = filter }
+        for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+            mTokenCombo[idx].setApplyFilter { filter -> mFilteredLogPanel.mTableModel.mFilterTokenMgr.set(idx, filter) }
         }
 
-        mFullLogPanel = LogPanel(this, mFullTableModel, null, FocusHandler(false))
-        mFilteredLogPanel = LogPanel(this, mFilteredTableModel, mFullLogPanel, FocusHandler(true))
         mFullLogPanel.updateTableBar(mConfigManager.loadCmds())
         mFilteredLogPanel.updateTableBar(mConfigManager.loadFilters())
 
@@ -1107,7 +1102,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         val logLevel = mConfigManager.getItem(ConfigManager.ITEM_LOG_LEVEL)
         if (!logLevel.isNullOrEmpty()) {
             mLogLevelCombo.selectedIndex = logLevel.toInt()
-            mFilteredTableModel.mFilterLevel = mLogLevelCombo.selectedIndex
+            mFilteredLogPanel.mTableModel.mFilterLevel = mLogLevelCombo.selectedIndex
         }
 
         var item: String?
@@ -1137,8 +1132,8 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mShowLogCombo.isEnabled = mShowLogToggle.isSelected
 
         val formatName = mFormatManager.mCurrFormat.mName
-        val tokens = mFormatManager.mCurrFormat.mTokens
-        for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+        val tokens = mFormatManager.mCurrFormat.mTokenFilters
+        for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
             if (tokens[idx].mIsSaveFilter) {
                 for (i in 0 until ConfigManager.COUNT_TOKEN_FILTER) {
                     item = mConfigManager.getItem("${ConfigManager.ITEM_TOKEN_FILTER}${formatName}_${tokens[idx].mToken}_$i")
@@ -1237,30 +1232,30 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         }
 
         if (mLogLevelCombo.selectedIndex >= 0) {
-            mFilteredTableModel.mFilterLevel = mLogLevelCombo.selectedIndex
+            mFilteredLogPanel.mTableModel.mFilterLevel = mLogLevelCombo.selectedIndex
         }
 
         if (mShowLogToggle.isSelected && mShowLogCombo.selectedItem != null) {
-            mFilteredTableModel.mFilterLog = mShowLogCombo.selectedItem!!.toString()
+            mFilteredLogPanel.mTableModel.mFilterLog = mShowLogCombo.selectedItem!!.toString()
         } else {
-            mFilteredTableModel.mFilterLog = ""
+            mFilteredLogPanel.mTableModel.mFilterLog = ""
         }
         if (mBoldLogToggle.isSelected && mBoldLogCombo.selectedItem != null) {
-            mFilteredTableModel.mFilterHighlightLog = mBoldLogCombo.selectedItem!!.toString()
+            mFilteredLogPanel.mTableModel.mFilterHighlightLog = mBoldLogCombo.selectedItem!!.toString()
         } else {
-            mFilteredTableModel.mFilterHighlightLog = ""
+            mFilteredLogPanel.mTableModel.mFilterHighlightLog = ""
         }
         if (mSearchPanel.isVisible && mSearchPanel.mSearchCombo.selectedItem != null) {
-            mFilteredTableModel.mFilterSearchLog = mSearchPanel.mSearchCombo.selectedItem!!.toString()
+            mFilteredLogPanel.mTableModel.mFilterSearchLog = mSearchPanel.mSearchCombo.selectedItem!!.toString()
         } else {
-            mFilteredTableModel.mFilterSearchLog = ""
+            mFilteredLogPanel.mTableModel.mFilterSearchLog = ""
         }
         
-        for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+        for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
             if (mTokenToggle[idx].isSelected && mTokenCombo[idx].selectedItem != null) {
-                mFilteredTableModel.mFilterTokenMgr.set(idx, mTokenCombo[idx].selectedItem!!.toString())
+                mFilteredLogPanel.mTableModel.mFilterTokenMgr.set(idx, mTokenCombo[idx].selectedItem!!.toString())
             } else {
-                mFilteredTableModel.mFilterTokenMgr.set(idx, "")
+                mFilteredLogPanel.mTableModel.mFilterTokenMgr.set(idx, "")
             }
         }
 
@@ -1294,7 +1289,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         } else {
             mScrollbackTF.text = "100000"
         }
-        mFilteredTableModel.mScrollback = mScrollbackTF.text.toInt()
+        mFilteredLogPanel.mTableModel.mScrollback = mScrollbackTF.text.toInt()
 
         check = mConfigManager.getItem(ConfigManager.ITEM_SCROLLBACK_SPLIT_FILE)
         if (!check.isNullOrEmpty()) {
@@ -1302,7 +1297,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         } else {
             mScrollbackSplitFileToggle.isSelected = true
         }
-        mFilteredTableModel.mScrollbackSplitFile = mScrollbackSplitFileToggle.isSelected
+        mFilteredLogPanel.mTableModel.mScrollbackSplitFile = mScrollbackSplitFileToggle.isSelected
 
         check = mConfigManager.getItem(ConfigManager.ITEM_MATCH_CASE)
         if (!check.isNullOrEmpty()) {
@@ -1310,7 +1305,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         } else {
             mMatchCaseToggle.isSelected = false
         }
-        mFilteredTableModel.mMatchCase = mMatchCaseToggle.isSelected
+        mFilteredLogPanel.mTableModel.mMatchCase = mMatchCaseToggle.isSelected
 
         check = mConfigManager.getItem(ConfigManager.ITEM_SEARCH_MATCH_CASE)
         if (!check.isNullOrEmpty()) {
@@ -1318,7 +1313,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         } else {
             mSearchPanel.mSearchMatchCaseToggle.isSelected = false
         }
-        mFilteredTableModel.mSearchMatchCase = mSearchPanel.mSearchMatchCaseToggle.isSelected
+        mFilteredLogPanel.mTableModel.mSearchMatchCase = mSearchPanel.mSearchMatchCaseToggle.isSelected
 
         check = mConfigManager.getItem(ConfigManager.ITEM_COLOR_TAG_REGEX)
         if (!check.isNullOrEmpty()) {
@@ -1365,6 +1360,110 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         IsCreatingUI = false
     }
 
+    private fun resetLogPanel() {
+        mFilteredLogPanel.mTableModel.stopScan()
+        mFilteredLogPanel.mTableModel.stopFollow()
+        mFullLogPanel.mTableModel.stopScan()
+        mFullLogPanel.mTableModel.stopFollow()
+        mLogCmdManager.stop()
+
+        mLogSplitPane.remove(mFilteredLogPanel)
+        mLogSplitPane.remove(mFullLogPanel)
+
+        mFullLogPanel = LogPanel(this, null, FocusHandler(false), mItemColumnMode.state)
+        mFilteredLogPanel = LogPanel(this, mFullLogPanel, FocusHandler(true), mItemColumnMode.state)
+
+        mShowLogCombo.setApplyFilter { filter -> mFilteredLogPanel.mTableModel.mFilterLog = filter }
+        mBoldLogCombo.setApplyFilter { filter -> mFilteredLogPanel.mTableModel.mFilterHighlightLog = filter }
+        for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+            mTokenCombo[idx].setApplyFilter { filter -> mFilteredLogPanel.mTableModel.mFilterTokenMgr.set(idx, filter) }
+        }
+
+        mFullLogPanel.updateTableBar(mConfigManager.loadCmds())
+        mFilteredLogPanel.updateTableBar(mConfigManager.loadFilters())
+
+        mFiltersManager = FiltersManager(this, mFilteredLogPanel)
+        mCmdManager = CmdManager(this, mFullLogPanel)
+
+        mFilteredLogPanel.mFont = mFont
+        mFullLogPanel.mFont = mFont
+
+        if (mLogLevelCombo.selectedIndex >= 0) {
+            mFilteredLogPanel.mTableModel.mFilterLevel = mLogLevelCombo.selectedIndex
+        }
+
+        if (mShowLogToggle.isSelected && mShowLogCombo.selectedItem != null) {
+            mFilteredLogPanel.mTableModel.mFilterLog = mShowLogCombo.selectedItem!!.toString()
+        } else {
+            mFilteredLogPanel.mTableModel.mFilterLog = ""
+        }
+        if (mBoldLogToggle.isSelected && mBoldLogCombo.selectedItem != null) {
+            mFilteredLogPanel.mTableModel.mFilterHighlightLog = mBoldLogCombo.selectedItem!!.toString()
+        } else {
+            mFilteredLogPanel.mTableModel.mFilterHighlightLog = ""
+        }
+        if (mSearchPanel.isVisible && mSearchPanel.mSearchCombo.selectedItem != null) {
+            mFilteredLogPanel.mTableModel.mFilterSearchLog = mSearchPanel.mSearchCombo.selectedItem!!.toString()
+        } else {
+            mFilteredLogPanel.mTableModel.mFilterSearchLog = ""
+        }
+
+        for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+            if (mTokenToggle[idx].isSelected && mTokenCombo[idx].selectedItem != null) {
+                mFilteredLogPanel.mTableModel.mFilterTokenMgr.set(idx, mTokenCombo[idx].selectedItem!!.toString())
+            } else {
+                mFilteredLogPanel.mTableModel.mFilterTokenMgr.set(idx, "")
+            }
+        }
+
+        if (!mItemFull.state) {
+            windowedModeLogPanel(mFullLogPanel)
+        }
+
+        mFilteredLogPanel.mTableModel.mScrollback = mScrollbackTF.text.toInt()
+        mFilteredLogPanel.mTableModel.mScrollbackSplitFile = mScrollbackSplitFileToggle.isSelected
+        mFilteredLogPanel.mTableModel.mMatchCase = mMatchCaseToggle.isSelected
+        mFilteredLogPanel.mTableModel.mSearchMatchCase = mSearchPanel.mSearchMatchCaseToggle.isSelected
+
+        rotateLogSplitPane(false)
+
+        mStatusTF.text = Strings.NONE
+        mStatusMethod.text = ""
+        title = Main.NAME
+    }
+
+    private fun rotateLogSplitPane(isNeedRemove: Boolean) {
+        if (isNeedRemove) {
+            mLogSplitPane.remove(mFilteredLogPanel)
+            mLogSplitPane.remove(mFullLogPanel)
+        }
+        when (mRotationStatus) {
+            ROTATION_LEFT_RIGHT -> {
+                mLogSplitPane.orientation = JSplitPane.HORIZONTAL_SPLIT
+                mLogSplitPane.add(mFilteredLogPanel)
+                mLogSplitPane.add(mFullLogPanel)
+                mLogSplitPane.resizeWeight = SPLIT_WEIGHT
+            }
+            ROTATION_RIGHT_LEFT -> {
+                mLogSplitPane.orientation = JSplitPane.HORIZONTAL_SPLIT
+                mLogSplitPane.add(mFullLogPanel)
+                mLogSplitPane.add(mFilteredLogPanel)
+                mLogSplitPane.resizeWeight = 1 - SPLIT_WEIGHT
+            }
+            ROTATION_TOP_BOTTOM -> {
+                mLogSplitPane.orientation = JSplitPane.VERTICAL_SPLIT
+                mLogSplitPane.add(mFilteredLogPanel)
+                mLogSplitPane.add(mFullLogPanel)
+                mLogSplitPane.resizeWeight = SPLIT_WEIGHT
+            }
+            ROTATION_BOTTOM_TOP -> {
+                mLogSplitPane.orientation = JSplitPane.VERTICAL_SPLIT
+                mLogSplitPane.add(mFullLogPanel)
+                mLogSplitPane.add(mFilteredLogPanel)
+                mLogSplitPane.resizeWeight = 1 - SPLIT_WEIGHT
+            }
+        }
+    }
     private fun setBtnIcons(isShow:Boolean) {
         if (isShow) {
             mStartBtn.icon = ImageIcon(this.javaClass.getResource("/images/start.png"))
@@ -1610,34 +1709,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         if (logPanel.parent != mLogSplitPane) {
             logPanel.mIsWindowedMode = false
             mItemRotation.isEnabled = true
-            mLogSplitPane.remove(mFilteredLogPanel)
-            mLogSplitPane.remove(mFullLogPanel)
-            when (mRotationStatus) {
-                ROTATION_LEFT_RIGHT -> {
-                    mLogSplitPane.orientation = JSplitPane.HORIZONTAL_SPLIT
-                    mLogSplitPane.add(mFilteredLogPanel)
-                    mLogSplitPane.add(mFullLogPanel)
-                    mLogSplitPane.resizeWeight = SPLIT_WEIGHT
-                }
-                ROTATION_RIGHT_LEFT -> {
-                    mLogSplitPane.orientation = JSplitPane.HORIZONTAL_SPLIT
-                    mLogSplitPane.add(mFullLogPanel)
-                    mLogSplitPane.add(mFilteredLogPanel)
-                    mLogSplitPane.resizeWeight = 1 - SPLIT_WEIGHT
-                }
-                ROTATION_TOP_BOTTOM -> {
-                    mLogSplitPane.orientation = JSplitPane.VERTICAL_SPLIT
-                    mLogSplitPane.add(mFilteredLogPanel)
-                    mLogSplitPane.add(mFullLogPanel)
-                    mLogSplitPane.resizeWeight = SPLIT_WEIGHT
-                }
-                ROTATION_BOTTOM_TOP -> {
-                    mLogSplitPane.orientation = JSplitPane.VERTICAL_SPLIT
-                    mLogSplitPane.add(mFullLogPanel)
-                    mLogSplitPane.add(mFilteredLogPanel)
-                    mLogSplitPane.resizeWeight = 1 - SPLIT_WEIGHT
-                }
-            }
+            rotateLogSplitPane(true)
         }
     }
 
@@ -1646,8 +1718,8 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         saveRecentFile()
         mStatusMethod.text = " ${Strings.OPEN} "
         CurrentMethod = METHOD_OPEN
-        mFilteredTableModel.stopScan()
-        mFilteredTableModel.stopFollow()
+        mFilteredLogPanel.mTableModel.stopScan()
+        mFilteredLogPanel.mTableModel.stopFollow()
         if (isAppend) {
             mStatusTF.text += "| $path"
         } else {
@@ -1656,14 +1728,14 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         }
 
         val openItem = RecentFileManager.OpenItem(path.trim(), 0, 0)
-        mFullTableModel.setLogFile(path)
-        mFilteredTableModel.setLogFile(path)
+        mFullLogPanel.mTableModel.setLogFile(path)
+        mFilteredLogPanel.mTableModel.setLogFile(path)
 
-        openItem.mStartLine = if (isAppend) mFullTableModel.rowCount + 1 else 0
-        mFullTableModel.loadItems(isAppend)
-        openItem.mEndLine = mFullTableModel.rowCount - 1
+        openItem.mStartLine = if (isAppend) mFullLogPanel.mTableModel.rowCount + 1 else 0
+        mFullLogPanel.mTableModel.loadItems(isAppend)
+        openItem.mEndLine = mFullLogPanel.mTableModel.rowCount - 1
         mRecentFileManager.addOpenFile(openItem)
-        mFilteredTableModel.loadItems(isAppend)
+        mFilteredLogPanel.mTableModel.loadItems(isAppend)
 
         if (ConfigManager.LaF == FLAT_DARK_LAF) {
             mStatusMethod.background = Color(0x50, 0x50, 0x00)
@@ -1710,7 +1782,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             item.mPath = openItem.mPath
 
             item.mShowLogCheck = mShowLogToggle.isSelected
-            for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+            for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
                 item.mTokenCheck[idx] = mTokenToggle[idx].isSelected
             }
             item.mHighlightLogCheck = mBoldLogToggle.isSelected
@@ -1723,7 +1795,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             }
 
             item.mShowLog = mShowLogCombo.selectedItem?.toString() ?: ""
-            for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+            for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
                 item.mTokenFilter[idx] = mTokenCombo[idx].selectedItem?.toString() ?: ""
             }
             item.mHighlightLog = mBoldLogCombo.selectedItem?.toString() ?: ""
@@ -1743,14 +1815,14 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         item.mPath = path
 
         item.mShowLogCheck = mShowLogToggle.isSelected
-        for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+        for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
             item.mTokenCheck[idx] = mTokenToggle[idx].isSelected
         }
         item.mHighlightLogCheck = mBoldLogToggle.isSelected
         item.mSearchMatchCase = mSearchPanel.mSearchMatchCaseToggle.isSelected
 
         item.mShowLog = mShowLogCombo.selectedItem?.toString() ?: ""
-        for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+        for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
             item.mTokenFilter[idx] = mTokenCombo[idx].selectedItem?.toString() ?: ""
         }
         item.mHighlightLog = mBoldLogCombo.selectedItem?.toString() ?: ""
@@ -1778,8 +1850,8 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             idx++
         }
 
-        mFullTableModel.setLogFile(filePathSaved)
-        mFilteredTableModel.setLogFile(filePathSaved)
+        mFullLogPanel.mTableModel.setLogFile(filePathSaved)
+        mFilteredLogPanel.mTableModel.setLogFile(filePathSaved)
         mStatusTF.text = filePathSaved
     }
 
@@ -1799,14 +1871,14 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             CurrentMethod = METHOD_ADB
         }
 
-        mFilteredTableModel.stopScan()
-        mFilteredTableModel.stopFollow()
+        mFilteredLogPanel.mTableModel.stopScan()
+        mFilteredLogPanel.mTableModel.stopFollow()
         mPauseToggle.isSelected = false
         setSaveLogFile()
         if (reconnect) {
             mLogCmdManager.startLogcat()
         }
-        mFilteredTableModel.startScan()
+        mFilteredLogPanel.mTableModel.startScan()
         if (ConfigManager.LaF == FLAT_DARK_LAF) {
             mStatusMethod.background = Color(0x00, 0x50, 0x00)
         }
@@ -1826,11 +1898,11 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         }
          mStatusTF.text = mStatusTF.text
 
-        if (!mFilteredTableModel.isScanning()) {
+        if (!mFilteredLogPanel.mTableModel.isScanning()) {
             println("stopAdbScan : not adb scanning mode")
             return
         }
-        mFilteredTableModel.stopScan()
+        mFilteredLogPanel.mTableModel.stopScan()
         if (ConfigManager.LaF == FLAT_DARK_LAF) {
             mStatusMethod.background = Color(0x50, 0x50, 0x50)
         }
@@ -1853,29 +1925,29 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     }
 
     fun pauseAdbScan(pause: Boolean) {
-        if (!mFilteredTableModel.isScanning()) {
+        if (!mFilteredLogPanel.mTableModel.isScanning()) {
             println("pauseAdbScan : not adb scanning mode")
             return
         }
-        mFilteredTableModel.pauseScan(pause)
+        mFilteredLogPanel.mTableModel.pauseScan(pause)
     }
 
     fun startFileFollow(filePath: String) {
         saveRecentFile()
 
         if (filePath.isNotEmpty()) {
-            mFullTableModel.setLogFile(filePath)
-            mFilteredTableModel.setLogFile(filePath)
+            mFullLogPanel.mTableModel.setLogFile(filePath)
+            mFilteredLogPanel.mTableModel.setLogFile(filePath)
             CurrentMethod = METHOD_FOLLOW
             mStatusTF.text = filePath
         }
 
         mStatusMethod.text = " ${Strings.FOLLOW} "
 
-        mFilteredTableModel.stopScan()
-        mFilteredTableModel.stopFollow()
+        mFilteredLogPanel.mTableModel.stopScan()
+        mFilteredLogPanel.mTableModel.stopFollow()
         mPauseFollowToggle.isSelected = false
-        mFilteredTableModel.startFollow()
+        mFilteredLogPanel.mTableModel.startFollow()
 
         if (ConfigManager.LaF == FLAT_DARK_LAF) {
             mStatusMethod.background = Color(0x00, 0x00, 0x50)
@@ -1889,12 +1961,12 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     }
 
     fun stopFileFollow() {
-        if (!mFilteredTableModel.isFollowing()) {
+        if (!mFilteredLogPanel.mTableModel.isFollowing()) {
             println("stopAdbScan : not file follow mode")
             return
         }
         mStatusMethod.text = " ${Strings.FOLLOW} ${Strings.STOP} "
-        mFilteredTableModel.stopFollow()
+        mFilteredLogPanel.mTableModel.stopFollow()
         if (ConfigManager.LaF == FLAT_DARK_LAF) {
             mStatusMethod.background = Color(0x50, 0x50, 0x50)
         }
@@ -1905,11 +1977,11 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     }
 
     fun pauseFileFollow(pause: Boolean) {
-        if (!mFilteredTableModel.isFollowing()) {
+        if (!mFilteredLogPanel.mTableModel.isFollowing()) {
             println("pauseFileFollow : not file follow mode")
             return
         }
-        mFilteredTableModel.pauseFollow(pause)
+        mFilteredLogPanel.mTableModel.pauseFollow(pause)
     }
 
     private fun enabledFollowBtn(enabled: Boolean) {
@@ -1925,7 +1997,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                 mItemFileOpen -> {
                     val fileDialog = FileDialog(this@MainUI, Strings.FILE + " " + Strings.OPEN, FileDialog.LOAD)
                     fileDialog.isMultipleMode = false
-                    fileDialog.directory = mFullTableModel.mLogFile?.parent
+                    fileDialog.directory = mFullLogPanel.mTableModel.mLogFile?.parent
                     fileDialog.isVisible = true
                     if (fileDialog.file != null) {
                         val file = File(fileDialog.directory + fileDialog.file)
@@ -1937,7 +2009,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                 mItemFileFollow -> {
                     val fileDialog = FileDialog(this@MainUI, Strings.FILE + " " + Strings.FOLLOW, FileDialog.LOAD)
                     fileDialog.isMultipleMode = false
-                    fileDialog.directory = mFullTableModel.mLogFile?.parent
+                    fileDialog.directory = mFullLogPanel.mTableModel.mLogFile?.parent
                     fileDialog.isVisible = true
                     if (fileDialog.file != null) {
                         val file = File(fileDialog.directory + fileDialog.file)
@@ -1949,7 +2021,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                 mItemFileOpenFiles -> {
                     val fileDialog = FileDialog(this@MainUI, Strings.FILE + " " + Strings.OPEN_FILES, FileDialog.LOAD)
                     fileDialog.isMultipleMode = true
-                    fileDialog.directory = mFullTableModel.mLogFile?.parent
+                    fileDialog.directory = mFullLogPanel.mTableModel.mLogFile?.parent
                     fileDialog.isVisible = true
                     val fileList = fileDialog.files
                     if (fileList != null) {
@@ -1969,7 +2041,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                 mItemFileAppendFiles -> {
                     val fileDialog = FileDialog(this@MainUI, Strings.FILE + " " + Strings.APPEND_FILES, FileDialog.LOAD)
                     fileDialog.isMultipleMode = true
-                    fileDialog.directory = mFullTableModel.mLogFile?.parent
+                    fileDialog.directory = mFullLogPanel.mTableModel.mLogFile?.parent
                     fileDialog.isVisible = true
                     val fileList = fileDialog.files
                     if (fileList != null) {
@@ -1985,10 +2057,10 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                     val tableModel: LogTableModel
                     if (p0.source == mItemFileSaveFull) {
                         title = Strings.SAVE_FULL
-                        tableModel = mFullTableModel
+                        tableModel = mFullLogPanel.mTableModel
                     } else {
                         title = Strings.SAVE_FILTERED
-                        tableModel = mFilteredTableModel
+                        tableModel = mFilteredLogPanel.mTableModel
                     }
 
                     val fileDialog = FileDialog(this@MainUI, Strings.FILE + " " + title, FileDialog.SAVE)
@@ -2026,6 +2098,11 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                     }
 
                     mConfigManager.saveItem(ConfigManager.ITEM_VIEW_FULL, mItemFull.state.toString())
+                }
+
+                mItemColumnMode -> {
+                    mConfigManager.saveItem(ConfigManager.ITEM_VIEW_COLUMN_MODE, mItemColumnMode.state.toString())
+                    resetLogPanel()
                 }
 
                 mItemSearch -> {
@@ -2095,12 +2172,12 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                 }
                 mScrollbackApplyBtn -> {
                     try {
-                        mFilteredTableModel.mScrollback = mScrollbackTF.text.toString().trim().toInt()
+                        mFilteredLogPanel.mTableModel.mScrollback = mScrollbackTF.text.toString().trim().toInt()
                     } catch (e: java.lang.NumberFormatException) {
-                        mFilteredTableModel.mScrollback = 100000
+                        mFilteredLogPanel.mTableModel.mScrollback = 100000
                         mScrollbackTF.text = "100000"
                     }
-                    mFilteredTableModel.mScrollbackSplitFile = mScrollbackSplitFileToggle.isSelected
+                    mFilteredLogPanel.mTableModel.mScrollbackSplitFile = mScrollbackSplitFileToggle.isSelected
 
                     mConfigManager.saveItem(ConfigManager.ITEM_SCROLLBACK, mScrollbackTF.text)
                     mConfigManager.saveItem(ConfigManager.ITEM_SCROLLBACK_SPLIT_FILE, mScrollbackSplitFileToggle.isSelected.toString())
@@ -2114,12 +2191,12 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     //            } else if (p0?.source == mPauseBtn) {
                 }
                 mClearViewsBtn -> {
-                    mFilteredTableModel.clearItems()
+                    mFilteredLogPanel.mTableModel.clearItems()
                     repaint()
                 }
                 mSaveBtn -> {
-    //                mFilteredTableModel.clearItems()
-                    if (mFilteredTableModel.isScanning()) {
+    //                mFilteredLogPanel.mTableModel.clearItems()
+                    if (mFilteredLogPanel.mTableModel.isScanning()) {
                         setSaveLogFile()
                     }
                     else {
@@ -2135,35 +2212,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                     }
 
                     mConfigManager.saveItem(ConfigManager.ITEM_ROTATION, mRotationStatus.toString())
-
-                    mLogSplitPane.remove(mFilteredLogPanel)
-                    mLogSplitPane.remove(mFullLogPanel)
-                    when (mRotationStatus) {
-                        Companion.ROTATION_LEFT_RIGHT -> {
-                            mLogSplitPane.orientation = JSplitPane.HORIZONTAL_SPLIT
-                            mLogSplitPane.add(mFilteredLogPanel)
-                            mLogSplitPane.add(mFullLogPanel)
-                            mLogSplitPane.resizeWeight = SPLIT_WEIGHT
-                        }
-                        ROTATION_RIGHT_LEFT -> {
-                            mLogSplitPane.orientation = JSplitPane.HORIZONTAL_SPLIT
-                            mLogSplitPane.add(mFullLogPanel)
-                            mLogSplitPane.add(mFilteredLogPanel)
-                            mLogSplitPane.resizeWeight = 1 - SPLIT_WEIGHT
-                        }
-                        ROTATION_TOP_BOTTOM -> {
-                            mLogSplitPane.orientation = JSplitPane.VERTICAL_SPLIT
-                            mLogSplitPane.add(mFilteredLogPanel)
-                            mLogSplitPane.add(mFullLogPanel)
-                            mLogSplitPane.resizeWeight = SPLIT_WEIGHT
-                        }
-                        ROTATION_BOTTOM_TOP -> {
-                            mLogSplitPane.orientation = JSplitPane.VERTICAL_SPLIT
-                            mLogSplitPane.add(mFullLogPanel)
-                            mLogSplitPane.add(mFilteredLogPanel)
-                            mLogSplitPane.resizeWeight = 1 - SPLIT_WEIGHT
-                        }
-                    }
+                    rotateLogSplitPane(true)
                 }
 //                mFiltersBtn -> {
 //                    mFiltersManager.showDialog()
@@ -2413,7 +2462,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
             if (SwingUtilities.isRightMouseButton(p0)) {
                 var isNeedCheck = true
-                for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+                for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
                     if (p0.source == mTokenCombo[idx].editor.editorComponent) {
                         popupMenu = PopUpFilterCombobox(mTokenCombo[idx])
                         popupMenu?.show(p0.component, p0.x, p0.y)
@@ -2544,7 +2593,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
     fun setTextSearchCombo(text : String) {
         mSearchPanel.mSearchCombo.selectedItem = text
-        mFilteredTableModel.mFilterSearchLog = mSearchPanel.mSearchCombo.selectedItem!!.toString()
+        mFilteredLogPanel.mTableModel.mFilterSearchLog = mSearchPanel.mSearchCombo.selectedItem!!.toString()
         mSearchPanel.isVisible = true
         mItemSearch.state = mSearchPanel.isVisible
     }
@@ -2644,7 +2693,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     internal inner class ItemHandler : ItemListener {
         override fun itemStateChanged(p0: ItemEvent?) {
             var isNeedCheck = true
-            for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+            for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
                 if (p0?.source == mTokenToggle[idx]) {
                     mTokenCombo[idx].setEnabledFilter(mTokenToggle[idx].isSelected)
                     isNeedCheck = false
@@ -2670,13 +2719,13 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
             isNeedCheck = true
             val formatName = mFormatManager.mCurrFormat.mName
-            val tokens = mFormatManager.mCurrFormat.mTokens
-            for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+            val tokens = mFormatManager.mCurrFormat.mTokenFilters
+            for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
                 if (p0?.source == mTokenToggle[idx]) {
                     if (mTokenToggle[idx].isSelected && mTokenCombo[idx].selectedItem != null) {
-                        mFilteredTableModel.mFilterTokenMgr.set(idx, mTokenCombo[idx].selectedItem!!.toString())
+                        mFilteredLogPanel.mTableModel.mFilterTokenMgr.set(idx, mTokenCombo[idx].selectedItem!!.toString())
                     } else {
-                        mFilteredTableModel.mFilterTokenMgr.set(idx, "")
+                        mFilteredLogPanel.mTableModel.mFilterTokenMgr.set(idx, "")
                     }
                     mConfigManager.saveItem("${ConfigManager.ITEM_TOKEN_CHECK}${formatName}_${tokens[idx].mToken}", mTokenToggle[idx].isSelected.toString())
                     isNeedCheck = false
@@ -2687,18 +2736,18 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                 when (p0?.source) {
                     mShowLogToggle -> {
                         if (mShowLogToggle.isSelected && mShowLogCombo.selectedItem != null) {
-                            mFilteredTableModel.mFilterLog = mShowLogCombo.selectedItem!!.toString()
+                            mFilteredLogPanel.mTableModel.mFilterLog = mShowLogCombo.selectedItem!!.toString()
                         } else {
-                            mFilteredTableModel.mFilterLog = ""
+                            mFilteredLogPanel.mTableModel.mFilterLog = ""
                         }
                         mConfigManager.saveItem(ConfigManager.ITEM_SHOW_LOG_CHECK, mShowLogToggle.isSelected.toString())
                     }
 
                     mBoldLogToggle -> {
                         if (mBoldLogToggle.isSelected && mBoldLogCombo.selectedItem != null) {
-                            mFilteredTableModel.mFilterHighlightLog = mBoldLogCombo.selectedItem!!.toString()
+                            mFilteredLogPanel.mTableModel.mFilterHighlightLog = mBoldLogCombo.selectedItem!!.toString()
                         } else {
-                            mFilteredTableModel.mFilterHighlightLog = ""
+                            mFilteredLogPanel.mTableModel.mFilterHighlightLog = ""
                         }
                         mConfigManager.saveItem(
                             ConfigManager.ITEM_HIGHLIGHT_LOG_CHECK,
@@ -2707,12 +2756,12 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                     }
 
                     mMatchCaseToggle -> {
-                        mFilteredTableModel.mMatchCase = mMatchCaseToggle.isSelected
+                        mFilteredLogPanel.mTableModel.mMatchCase = mMatchCaseToggle.isSelected
                         mConfigManager.saveItem(ConfigManager.ITEM_MATCH_CASE, mMatchCaseToggle.isSelected.toString())
                     }
 
                     mScrollbackKeepToggle -> {
-                        mFilteredTableModel.mScrollbackKeep = mScrollbackKeepToggle.isSelected
+                        mFilteredLogPanel.mTableModel.mScrollbackKeep = mScrollbackKeepToggle.isSelected
                     }
 
                     mRetryAdbToggle -> {
@@ -2788,7 +2837,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                 return
             }
             var isNeedCheck = true
-            for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+            for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
                 if (p0?.source == mTokenCombo[idx]) {
                     if (mTokenCombo[idx].selectedIndex < 0) {
                         return
@@ -2796,7 +2845,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                     val combo = mTokenCombo[idx]
                     val item = combo.selectedItem!!.toString()
                     combo.resetComboItem(item)
-                    mFilteredTableModel.mFilterTokenMgr.set(idx, item)
+                    mFilteredLogPanel.mTableModel.mFilterTokenMgr.set(idx, item)
                     combo.updateTooltip()
                     isNeedCheck = false
                     break
@@ -2814,7 +2863,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                             return
                         }
                         combo.resetComboItem(item)
-                        mFilteredTableModel.mFilterLog = item
+                        mFilteredLogPanel.mTableModel.mFilterLog = item
                         combo.updateTooltip()
                     }
 
@@ -2825,7 +2874,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                         val combo = mBoldLogCombo
                         val item = combo.selectedItem!!.toString()
                         combo.resetComboItem(item)
-                        mFilteredTableModel.mFilterHighlightLog = item
+                        mFilteredLogPanel.mTableModel.mFilterHighlightLog = item
                         combo.updateTooltip()
                     }
 
@@ -2843,7 +2892,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                         if (mLogLevelCombo.selectedIndex < 0) {
                             return
                         }
-                        mFilteredTableModel.mFilterLevel = mLogLevelCombo.selectedIndex
+                        mFilteredLogPanel.mTableModel.mFilterLevel = mLogLevelCombo.selectedIndex
                         mConfigManager.saveItem(ConfigManager.ITEM_LOG_LEVEL, mLogLevelCombo.selectedIndex.toString())
                     }
 
@@ -2902,8 +2951,8 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             return
         }
         var num = 0
-        for (idx in 0 until mFilteredTableModel.rowCount) {
-            num = mFilteredTableModel.getValueAt(idx, 0).toString().trim().toInt()
+        for (idx in 0 until mFilteredLogPanel.mTableModel.rowCount) {
+            num = mFilteredLogPanel.mTableModel.getValueAt(idx, 0).toString().trim().toInt()
             if (line <= num) {
                 mFilteredLogPanel.goToRow(idx, 0)
                 break
@@ -2911,8 +2960,8 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         }
 
         if (line != num) {
-            for (idx in 0 until mFullTableModel.rowCount) {
-                num = mFullTableModel.getValueAt(idx, 0).toString().trim().toInt()
+            for (idx in 0 until mFullLogPanel.mTableModel.rowCount) {
+                num = mFullLogPanel.mTableModel.getValueAt(idx, 0).toString().trim().toInt()
                 if (line <= num) {
                     mFullLogPanel.goToRow(idx, 0)
                     break
@@ -2948,8 +2997,8 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mShowLogCombo.parent.repaint()
         }
         
-        for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
-            if (mFormatManager.mCurrFormat.mTokens[idx].mIsSaveFilter
+        for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+            if (mFormatManager.mCurrFormat.mTokenFilters[idx].mIsSaveFilter
                 && mTokenCombo[idx].selectedIndex >= 0
                 && (mTokenComboStyle[idx] == FilterComboBox.Mode.MULTI_LINE || mTokenComboStyle[idx] == FilterComboBox.Mode.MULTI_LINE_HIGHLIGHT)) {
                 val selectedItem = mTokenCombo[idx].selectedItem
@@ -2969,7 +3018,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mColorManager.applyFilterStyle()
 
         mShowLogCombo.mEnabledTfTooltip = true
-        for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+        for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
             mTokenCombo[idx].mEnabledTfTooltip = true
         }
 
@@ -3109,13 +3158,13 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                     mSearchCombo.requestFocus()
                     mSearchCombo.editor.selectAll()
                     if (mSearchCombo.selectedItem != null) {
-                        mFilteredTableModel.mFilterSearchLog = mSearchCombo.selectedItem!!.toString()
+                        mFilteredLogPanel.mTableModel.mFilterSearchLog = mSearchCombo.selectedItem!!.toString()
                     }
                     else {
-                        mFilteredTableModel.mFilterSearchLog = ""
+                        mFilteredLogPanel.mTableModel.mFilterSearchLog = ""
                     }
                 } else {
-                    mFilteredTableModel.mFilterSearchLog = ""
+                    mFilteredLogPanel.mTableModel.mFilterSearchLog = ""
                 }
             }
         }
@@ -3131,19 +3180,19 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
         fun moveToNext() {
             if (mTargetView) {
-                mFilteredTableModel.moveToNextSearch()
+                mFilteredLogPanel.mTableModel.moveToNextSearch()
             }
             else {
-                mFullTableModel.moveToNextSearch()
+                mFullLogPanel.mTableModel.moveToNextSearch()
             }
         }
 
         fun moveToPrev() {
             if (mTargetView) {
-                mFilteredTableModel.moveToPrevSearch()
+                mFilteredLogPanel.mTableModel.moveToPrevSearch()
             }
             else {
-                mFullTableModel.moveToPrevSearch()
+                mFullLogPanel.mTableModel.moveToPrevSearch()
             }
         }
 
@@ -3171,7 +3220,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                         mSearchCombo.editor.editorComponent -> {
                             val item = mSearchCombo.selectedItem!!.toString()
                             mSearchCombo.resetComboItem(item)
-                            mFilteredTableModel.mFilterSearchLog = item
+                            mFilteredLogPanel.mTableModel.mFilterSearchLog = item
                             if (KeyEvent.SHIFT_MASK == p0.modifiers) {
                                 moveToPrev()
                             }
@@ -3198,7 +3247,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                         }
                         val item = mSearchCombo.selectedItem!!.toString()
                         mSearchCombo.resetComboItem(item)
-                        mFilteredTableModel.mFilterSearchLog = item
+                        mFilteredLogPanel.mTableModel.mFilterSearchLog = item
                         mSearchCombo.updateTooltip()
                     }
                 }
@@ -3225,7 +3274,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                 }
                 when (p0?.source) {
                     mSearchMatchCaseToggle -> {
-                        mFilteredTableModel.mSearchMatchCase = mSearchMatchCaseToggle.isSelected
+                        mFilteredLogPanel.mTableModel.mSearchMatchCase = mSearchMatchCaseToggle.isSelected
                         mConfigManager.saveItem(ConfigManager.ITEM_SEARCH_MATCH_CASE, mSearchMatchCaseToggle.isSelected.toString())
                     }
                 }
@@ -3369,7 +3418,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         actionMapKey = javaClass.name + ":CLEAR_VIEWS"
         action = object : AbstractAction() {
             override fun actionPerformed(event: ActionEvent) {
-                mFilteredTableModel.clearItems()
+                mFilteredLogPanel.mTableModel.clearItems()
                 repaint()
             }
         }
@@ -3415,10 +3464,10 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
     override fun formatChanged(format: FormatManager.FormatItem) {
         val formatName = mFormatManager.mCurrFormat.mName
-        val tokens = mFormatManager.mCurrFormat.mTokens
+        val tokens = mFormatManager.mCurrFormat.mTokenFilters
         var item: String?
         var check: String?
-        for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+        for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
             if (tokens[idx].mIsSaveFilter) {
                 for (i in 0 until ConfigManager.COUNT_TOKEN_FILTER) {
                     item = mConfigManager.getItem("${ConfigManager.ITEM_TOKEN_FILTER}${formatName}_${tokens[idx].mToken}_$i")
@@ -3445,6 +3494,8 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mTokenToggle[idx].text = tokens[idx].mToken
             mTokenPanel[idx].isVisible = (tokens[idx].mToken.isNotEmpty() && tokens[idx].mUiWidth > 0)
         }
+
+        resetLogPanel()
     }
 
     override fun formatListChanged() {

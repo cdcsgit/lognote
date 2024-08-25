@@ -159,6 +159,9 @@ class StringsKo private constructor() {
                 , "전체 라인 보기"
                 , "북마크"
                 , "다시 연결"
+                , ""
+                , "토큰 갯수"
+                , "열별로 나누어서 표시"
 //            , ""
             )
 

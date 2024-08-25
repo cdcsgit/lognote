@@ -7,15 +7,8 @@ import javax.swing.border.AbstractBorder
 import javax.swing.table.DefaultTableCellRenderer
 
 
-class LogTable(tableModel:LogTableModel) : JTable(tableModel){
-    var mTableModel = tableModel
-    private val mTableColor: ColorManager.TableColor
-    private val mBookmarkManager = BookmarkManager.getInstance()
-
+open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
     companion object {
-        const val VIEW_LINE_ONE = 0
-        const val VIEW_LINE_WRAP = 1
-
         const val COLUMN_0_WIDTH = 80
 
         const val MIN_LOG_WIDTH = 720
@@ -24,20 +17,21 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         var LogWidth = DEFAULT_LOG_WIDTH
     }
 
+    var mTableModel = tableModel
+    private val mTableColor: ColorManager.TableColor
+    private val mBookmarkManager = BookmarkManager.getInstance()
+
     init {
         setShowGrid(false)
-        tableHeader = null
         autoResizeMode = AUTO_RESIZE_OFF
         autoscrolls = false
         dragEnabled = true
         dropMode = DropMode.INSERT
 
         val columnNum = columnModel.getColumn(0)
-//        columnNum.preferredWidth = COLUMN_0_WIDTH
         columnNum.cellRenderer = NumCellRenderer()
 
         val columnLog = columnModel.getColumn(1)
-//        columnLog.preferredWidth = gd.displayMode.width - COLUMN_0_WIDTH - 25
         columnLog.cellRenderer = LogCellRenderer()
         intercellSpacing = Dimension(0, 0)
 
@@ -57,7 +51,7 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         }
     }
 
-    fun updateColumnWidth(width: Int, scrollVBarWidth: Int) {
+    open fun updateColumnWidth(width: Int, scrollVBarWidth: Int) {
         if (rowCount <= 0) {
             return
         }
@@ -88,29 +82,7 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         set(value) {
             field = value
             val columnLog = columnModel.getColumn(1)
-//            if (value == true) {
                 columnLog.cellRenderer = LogCellRenderer()
-//            }
-//            else {
-//                if (mViewMode == VIEW_LINE_ONE) {
-//                    columnLog.cellRenderer = LogCellRenderer()
-//                }
-//                else if (mViewMode == VIEW_LINE_WRAP) {
-//                    columnLog.cellRenderer = LogWrapCellRenderer()
-//                }
-//            }
-        }
-
-    var mViewMode = VIEW_LINE_ONE
-        set(value) {
-            field = value
-            val columnLog = columnModel.getColumn(1)
-//            if (value == VIEW_LINE_ONE) {
-                columnLog.cellRenderer = LogCellRenderer()
-//            }
-//            else if (value == VIEW_LINE_WRAP) {
-//                columnLog.cellRenderer = LogWrapCellRenderer()
-//            }
         }
 
     internal class LineNumBorder(color: Color, thickness: Int) : AbstractBorder() {
@@ -193,10 +165,8 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
             row: Int,
             col: Int
         ): Component {
-//            println("LogCellRenderer getTableCellRendererComponent $isSelected, $hasFocus, $row, $col, ${isRowSelected(row)}")
-
             val newValue:String = if (value != null) {
-                mTableModel.getPrintValue(value.toString(), row, isSelected)
+                mTableModel.getPrintValue(value.toString(), row, col, isSelected)
             } else {
                 ""
             }
@@ -311,7 +281,7 @@ class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         return
     }
 
-    private fun showSelected(targetRow:Int) {
+    protected open fun showSelected(targetRow:Int) {
         val log = StringBuilder("")
         var caretPos = 0
         var value:String

@@ -159,6 +159,9 @@ class StringsEn private constructor() {
                 , "Show entire line"
                 , "Bookmark"
                 , "Reconnect"
+                , "Column"
+                , "Token count"
+                , "Show divided by column"
 //            , ""
             )
 

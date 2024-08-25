@@ -58,6 +58,7 @@ class ConfigManager private constructor() {
         const val ITEM_FONT_NAME = "FONT_NAME"
         const val ITEM_FONT_SIZE = "FONT_SIZE"
         const val ITEM_VIEW_FULL = "VIEW_FULL"
+        const val ITEM_VIEW_COLUMN_MODE = "VIEW_COLUMN_MODE"
         const val ITEM_FILTER_INCREMENTAL = "FILTER_INCREMENTAL"
         const val ITEM_FILTER_BY_FILE = "FILTER_BY_FILE"
         const val ITEM_COLOR_TAG_REGEX = "COLOR_TAG_REGEX"
@@ -111,7 +112,7 @@ class ConfigManager private constructor() {
     private fun setDefaultConfig() {
         mProperties[ITEM_LOG_LEVEL] = FormatManager.LEVEL_VERBOSE.toString()
         mProperties[ITEM_SHOW_LOG_CHECK] = "true"
-        for (idx in 0 until FormatManager.MAX_TOKEN_COUNT) {
+        for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
             mProperties["$ITEM_TOKEN_CHECK$idx"] = "false"
         }
         mProperties[ITEM_HIGHLIGHT_LOG_CHECK] = "true"
