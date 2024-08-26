@@ -6,10 +6,11 @@ data class LogColumnItem(val mName: String, val mNth: Int, val mWidth: Int )
 class LogColumnTableModel(mainUI: MainUI, baseModel: LogTableModel?) : LogTableModel(mainUI, baseModel) {
 
     private val mCurrFormat = FormatManager.getInstance().mCurrFormat
+    private val mLogNth = FormatManager.getInstance().mCurrFormat.mLogNth
     companion object {
     }
 
-    val mColumnItems = arrayOfNulls<LogColumnItem>(mCurrFormat.mTokenCount + 1)
+    val mColumnItems = arrayOfNulls<LogColumnItem>(mTokenCount + 1)
     init {
         var idx = 0
         mColumnItems[idx] = LogColumnItem("Line", -1, 0)
@@ -41,14 +42,14 @@ class LogColumnTableModel(mainUI: MainUI, baseModel: LogTableModel?) : LogTableM
                 if (columnIndex == COLUMN_NUM) {
                     return logItem.mNum + " "
                 } else {
-                    logItem.mTokens?.let {
+                    logItem.mTokenLogs?.let {
                         val tokenIdx = mColumnItems[columnIndex]?.mNth ?: 0
                         if (tokenIdx < (it.size)) {
                             return it[tokenIdx]
                         }
                     }
 
-                    if (logItem.mTokens == null && ((mColumnItems[columnIndex]?.mNth ?: -1) == mCurrFormat.mLogNth)) {
+                    if (logItem.mTokenLogs == null && ((mColumnItems[columnIndex]?.mNth ?: -1) == mLogNth)) {
                         return logItem.mLogLine
                     }
                 }
@@ -66,39 +67,39 @@ class LogColumnTableModel(mainUI: MainUI, baseModel: LogTableModel?) : LogTableM
 
     override fun makeLogItem(num: Int, logLine: String): LogItem {
         val level: Int
-        val tokenFilters: Array<String>
-        val tokens: List<String>?
+        val tokenFilterLogs: Array<String>
+        val tokenLogs: List<String>?
         val log: String
 
-        val textSplited = logLine.trim().split(Regex(mSeparator), mCurrFormat.mTokenCount)
-        if (textSplited.size == mCurrFormat.mTokenCount) {
+        val textSplited = logLine.trim().split(Regex(mSeparator), mTokenCount)
+        if (textSplited.size == mTokenCount) {
             level = if (mFilterLevel == LEVEL_NONE) {
                 LEVEL_NONE
             } else {
                 mLevelMap[textSplited[mLevelIdx]] ?: LEVEL_NONE
             }
-            tokenFilters = Array(mSortedTokenFilters.size) {
-                if (mSortedTokenFilters[it].mToken.isNotBlank() && mSortedTokenFilters[it].mNth >= 0) {
+            tokenFilterLogs = Array(mSortedTokenFilters.size) {
+                if (mSortedTokenFilters[it].mNth >= 0) {
                     textSplited[mSortedTokenFilters[it].mNth]
                 } else {
                     ""
                 }
             }
-            log = textSplited[mCurrFormat.mTokenCount - 1]
-            tokens = textSplited
+            log = textSplited[mLogNth]
+            tokenLogs = textSplited
         } else {
             level = LEVEL_NONE
-            tokenFilters = mEmptyTokenFilters
+            tokenFilterLogs = mEmptyTokenFilters
             log = logLine
-            tokens = null
+            tokenLogs = null
         }
 
-        return LogItem(num.toString(), log, level, tokenFilters, tokens)
+        return LogItem(num.toString(), log, level, tokenFilterLogs, tokenLogs)
     }
 
     override fun getPatternPrintFilter(col: Int): Pattern? {
         var pattern: Pattern? = null
-        if ((mColumnItems[col]?.mNth ?: -1) == mCurrFormat.mLogNth) {
+        if ((mColumnItems[col]?.mNth ?: -1) == mLogNth) {
             pattern = mPatternPrintFilter
         }
         else {

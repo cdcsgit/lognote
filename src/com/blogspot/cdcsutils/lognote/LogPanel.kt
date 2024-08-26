@@ -91,8 +91,11 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
         if (mColumnMode) {
             mTableModel = LogColumnTableModel(mMainUI, mBasePanel?.mTableModel)
             mTableModel.addLogTableModelListener(mTableModelHandler)
-            mTable = LogColumnTable(mTableModel as LogColumnTableModel)
+            mTable = LogColumnTable(mTableModel)
             mTable.addFocusListener(mFocusHandler)
+            for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+                mTokenBtns[idx].isVisible = false
+            }
         }
         else {
             mTableModel = LogTableModel(mMainUI, mBasePanel?.mTableModel)
@@ -496,7 +499,7 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
             for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
                 if (p0?.source == mTokenBtns[idx]) {
                     for (sortIdx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
-                        if (mTokenBtns[idx].text == mFormatManager.mCurrFormat.mSortedTokens[sortIdx].mToken) {
+                        if (mTokenBtns[idx].text == mFormatManager.mCurrFormat.mSortedTokenFilters[sortIdx].mToken) {
                             mTable.mTableModel.mBoldTokens[sortIdx] = mTokenBtns[idx].model.isSelected
                             break
                         }

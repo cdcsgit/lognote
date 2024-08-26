@@ -396,10 +396,10 @@ class ConfigManager private constructor() {
         println("updateConfigFromV2ToV3 : change log level properties ++")
 
         val formatName = "logcat"
-        val tokens: Array<FormatManager.FormatItem.Token> = arrayOf(
-            FormatManager.FormatItem.Token("Tag", 5, true, 250),
-            FormatManager.FormatItem.Token("PID", 2, false, 120),
-            FormatManager.FormatItem.Token("TID", 3, false, 120),
+        val tokenFilters: Array<FormatManager.FormatItem.TokenFilterItem> = arrayOf(
+            FormatManager.FormatItem.TokenFilterItem("Tag", 5, true, 250),
+            FormatManager.FormatItem.TokenFilterItem("PID", 2, false, 120),
+            FormatManager.FormatItem.TokenFilterItem("TID", 3, false, 120),
         )
 
         val itemShowTag = "SHOW_TAG_"
@@ -419,14 +419,14 @@ class ConfigManager private constructor() {
 
         for (i in 0 until COUNT_TOKEN_FILTER) {
             mProperties[itemShowTag + i]?.let {
-                mProperties["${ITEM_TOKEN_FILTER}${formatName}_${tokens[0].mToken}_$i"] = it
+                mProperties["${ITEM_TOKEN_FILTER}${formatName}_${tokenFilters[0].mToken}_$i"] = it
             }
             mProperties.remove(itemShowTag + i)
         }
 
-        mProperties[itemShowTagCheck]?.let { mProperties["${ITEM_TOKEN_CHECK}${formatName}_${tokens[0].mToken}"] = it }
-        mProperties[itemShowTagCheck]?.let { mProperties["${ITEM_TOKEN_CHECK}${formatName}_${tokens[1].mToken}"] = it }
-        mProperties[itemShowTagCheck]?.let { mProperties["${ITEM_TOKEN_CHECK}${formatName}_${tokens[2].mToken}"] = it }
+        mProperties[itemShowTagCheck]?.let { mProperties["${ITEM_TOKEN_CHECK}${formatName}_${tokenFilters[0].mToken}"] = it }
+        mProperties[itemShowTagCheck]?.let { mProperties["${ITEM_TOKEN_CHECK}${formatName}_${tokenFilters[1].mToken}"] = it }
+        mProperties[itemShowTagCheck]?.let { mProperties["${ITEM_TOKEN_CHECK}${formatName}_${tokenFilters[2].mToken}"] = it }
         mProperties.remove(itemShowTagCheck)
         mProperties.remove(itemShowPidCheck)
         mProperties.remove(itemShowTidCheck)

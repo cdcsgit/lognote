@@ -234,7 +234,7 @@ class Strings private constructor() {
             get() { return currStrings[field]!! }
         val TOKENS: String = idx++.toString()
             get() { return currStrings[field]!! }
-        val PID_TOKEN: String = idx++.toString()
+        val PID_TOKEN_FILTER: String = idx++.toString()
             get() { return currStrings[field]!! }
         val NTH: String = idx++.toString()
             get() { return currStrings[field]!! }
@@ -242,7 +242,7 @@ class Strings private constructor() {
             get() { return currStrings[field]!! }
         val WIDTH: String = idx++.toString()
             get() { return currStrings[field]!! }
-        val OPTIONAL: String = idx++.toString()
+        val PID_TOKEN_FILTER_OPTIONAL: String = idx++.toString()
             get() { return currStrings[field]!! }
         val IN_USE: String = idx++.toString()
             get() { return currStrings[field]!! }
@@ -333,6 +333,8 @@ class Strings private constructor() {
         val TOKEN_COUNT: String = idx++.toString()
             get() { return currStrings[field]!! }
         val DIVIDED_BY_COLUMN: String = idx++.toString()
+            get() { return currStrings[field]!! }
+        val USED_COLUMN_VIEW_MODE: String = idx++.toString()
             get() { return currStrings[field]!! }
     }
 }

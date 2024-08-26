@@ -13,7 +13,7 @@ import javax.swing.table.TableCellRenderer
 import kotlin.math.max
 
 
-class FormatManager private constructor(fileName: String) : PropertiesBase(fileName){
+class FormatManager private constructor(fileName: String) : PropertiesBase(fileName) {
     interface FormatEventListener {
         fun formatChanged(format: FormatItem)
         fun formatListChanged()
@@ -41,22 +41,33 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
         }
     }
 
-    data class FormatItem(val mName: String, val mSeparator: String, val mTokenCount: Int, val mLogNth: Int, val mColumnNames: String, val mLevelNth: Int, val mLevels: Map<String, Int>, val mTokenFilters: Array<Token>, val mPidTokIdx: Int) {
-        data class Token(val mToken: String, val mNth: Int, val mIsSaveFilter: Boolean, var mUiWidth: Int)
-        val mSortedTokens: Array<out Token> = mTokenFilters.sortedArrayWith { t1: Token, t2: Token -> t1.mNth - t2.mNth }
+    data class FormatItem(
+        val mName: String,
+        val mSeparator: String,
+        val mTokenCount: Int,
+        val mLogNth: Int,
+        val mColumnNames: String,
+        val mLevelNth: Int,
+        val mLevels: Map<String, Int>,
+        val mTokenFilters: Array<TokenFilterItem>,
+        val mPidTokIdx: Int
+    ) {
+        data class TokenFilterItem(val mToken: String, val mNth: Int, val mIsSaveFilter: Boolean, var mUiWidth: Int)
+
+        val mSortedTokenFilters: Array<out TokenFilterItem> =
+            mTokenFilters.sortedArrayWith { t1: TokenFilterItem, t2: TokenFilterItem -> t1.mNth - t2.mNth }
         val mSortedTokensIdxs = Array(MAX_TOKEN_FILTER_COUNT) { -1 }
         val mSortedPidTokIdx: Int
 
         init {
             if (mPidTokIdx == -1) {
                 mSortedPidTokIdx = -1
-            }
-            else {
-                val token = mTokenFilters[mPidTokIdx].mToken
+            } else {
+                val tokenFilterNth = mTokenFilters[mPidTokIdx].mNth
                 var tokIdx = -1
-                if (token.isNotEmpty()) {
+                if (tokenFilterNth >= 0) {
                     for (idx in 0 until MAX_TOKEN_FILTER_COUNT) {
-                        if (token == mSortedTokens[idx].mToken) {
+                        if (tokenFilterNth == mSortedTokenFilters[idx].mNth) {
                             tokIdx = idx
                             break
                         }
@@ -67,7 +78,7 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
 
             for (idx in 0 until MAX_TOKEN_FILTER_COUNT) {
                 for (idxSorted in 0 until MAX_TOKEN_FILTER_COUNT) {
-                    if (mTokenFilters[idx].mToken == mSortedTokens[idxSorted].mToken) {
+                    if (mTokenFilters[idx].mToken == mSortedTokenFilters[idxSorted].mToken) {
                         mSortedTokensIdxs[idx] = idxSorted
                         break
                     }
@@ -137,13 +148,83 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
             addDefaultFormats(mFormatList)
         }
 
+        verifyRepairFormats()
+
         mCurrFormat = mFormatList[0]
         val logFormat = mConfigManager.getItem(ConfigManager.ITEM_LOG_FORMAT)
         if (logFormat != null) {
             setCurrFormat(logFormat.toString().trim())
-        }
-        else {
+        } else {
             setCurrFormat("")
+        }
+    }
+
+    private fun verifyRepairFormats() {
+        val formatList = mutableListOf<FormatItem>()
+        var maxColumnNth = 0
+        var tokenCount = 0
+        var logNth = 0
+        var levelNth = -1
+        var isUpdated = false
+        for (format in mFormatList) {
+            maxColumnNth = 0
+            tokenCount = 0
+            logNth = 0
+            levelNth = -1
+            isUpdated = false
+
+            if (format.mColumnNames.isNotEmpty()) {
+                tokenCount = format.mTokenCount
+                logNth = format.mLogNth
+                levelNth = format.mLevelNth
+                val nameArr = format.mColumnNames.split("|")
+                if (nameArr.isNotEmpty()) {
+                    nameArr.forEach {
+                        val nameSplit = it.split(",")
+                        if (nameSplit.size == 3) {
+                            val nth = nameSplit[1].toInt()
+                            if (maxColumnNth < nth) {
+                                maxColumnNth = nth
+                            }
+                        }
+                    }
+                }
+
+                for (tokenFilter in format.mTokenFilters) {
+                    if (maxColumnNth < tokenFilter.mNth) {
+                        maxColumnNth = tokenFilter.mNth
+                    }
+                }
+
+                if (tokenCount <= maxColumnNth) {
+                    tokenCount = maxColumnNth + 1
+                    isUpdated = true
+                }
+                if (tokenCount <= logNth) {
+                    logNth = maxColumnNth
+                    isUpdated = true
+                }
+                if (tokenCount <= levelNth) {
+                    levelNth = -1
+                    isUpdated = true
+                }
+            }
+            if (isUpdated) {
+                formatList.add(format.copy(mTokenCount = tokenCount, mLogNth = logNth, mLevelNth = levelNth))
+            }
+        }
+
+        if (formatList.isNotEmpty()) {
+            for (newFormat in formatList) {
+                for (idx in 0 until mFormatList.size) {
+                    if (newFormat.mName == mFormatList[idx].mName) {
+                        mFormatList.removeAt(idx)
+                        mFormatList.add(idx, newFormat)
+                    }
+                }
+            }
+            formatList.clear()
+            saveList()
         }
     }
 
@@ -151,7 +232,7 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
         var separator = "\\s+:\\s+|:?\\s+"
         var tokenCount = 7
         var logNth = 6
-        var columnNames = "Date,0,3|Time,1,5|PID,2,3|TID,3,3|Level,4,1|Tag,5,7|Log,6,78"
+        var columnNames = "Date,0,50|Time,1,100|PID,2,50|TID,3,50|Level,4,15|Tag,5,150|Log,6,-1"
         var levels = mapOf(
             "V" to LEVEL_VERBOSE,
             "D" to LEVEL_DEBUG,
@@ -162,35 +243,35 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
         )
         var levelNth = 4
 
-        var tokens: Array<FormatItem.Token> = arrayOf(
-            FormatItem.Token("Tag", 5, true, 250),
-            FormatItem.Token("PID", 2, false, 120),
-            FormatItem.Token("TID", 3, false, 120),
+        var tokenFilters: Array<FormatItem.TokenFilterItem> = arrayOf(
+            FormatItem.TokenFilterItem("Tag", 5, true, 250),
+            FormatItem.TokenFilterItem("PID", 2, false, 120),
+            FormatItem.TokenFilterItem("TID", 3, false, 120),
         )
         var pidTokIdx = 1
-        formatList.add(0, FormatItem("logcat", separator, tokenCount, logNth, columnNames, levelNth, levels, tokens, pidTokIdx))
+        formatList.add(0, FormatItem("logcat", separator, tokenCount, logNth, columnNames, levelNth, levels, tokenFilters, pidTokIdx))
 
         // case plain text
         separator = ""
         tokenCount = 1
         logNth = 0
-        columnNames = "Log,0,100"
+        columnNames = "Log,0,-1"
         levels = mapOf()
         levelNth = -1
 
-        tokens = arrayOf(
-            FormatItem.Token("", 0, false, 0),
-            FormatItem.Token("", 0, false, 0),
-            FormatItem.Token("", 0, false, 0),
+        tokenFilters = arrayOf(
+            FormatItem.TokenFilterItem("", 0, false, 0),
+            FormatItem.TokenFilterItem("", 0, false, 0),
+            FormatItem.TokenFilterItem("", 0, false, 0),
         )
         pidTokIdx = -1
-        formatList.add(FormatItem("plain text", separator, tokenCount, logNth, columnNames, levelNth, levels, tokens, pidTokIdx))
+        formatList.add(FormatItem("plain text", separator, tokenCount, logNth, columnNames, levelNth, levels, tokenFilters, pidTokIdx))
 
         // case logcat -v time
         separator = "/|\\s+\\(\\s+|\\s+\\(|\\(\\s+|\\(|\\s+|\\):?\\s+"
         tokenCount = 6
         logNth = 5
-        columnNames = "Date,0,2|Time,1,5|Level,2,1|Tag,3,7|PID,4,3|Log,5,82"
+        columnNames = "Date,0,50|Time,1,100|Level,2,15|Tag,3,150|PID,4,50|Log,5,-1"
         levels = mapOf(
             "V" to LEVEL_VERBOSE,
             "D" to LEVEL_DEBUG,
@@ -201,13 +282,13 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
         )
         levelNth = 2
 
-        tokens = arrayOf(
-            FormatItem.Token("", 0, false, 120),
-            FormatItem.Token("", 0, false, 120),
-            FormatItem.Token("", 0, false, 120),
+        tokenFilters = arrayOf(
+            FormatItem.TokenFilterItem("", 0, false, 120),
+            FormatItem.TokenFilterItem("", 0, false, 120),
+            FormatItem.TokenFilterItem("", 0, false, 120),
         )
         pidTokIdx = -1
-        formatList.add(FormatItem("logcat -v time", separator, tokenCount, logNth, columnNames, levelNth, levels, tokens, pidTokIdx))
+        formatList.add(FormatItem("logcat -v time", separator, tokenCount, logNth, columnNames, levelNth, levels, tokenFilters, pidTokIdx))
     }
 
     private fun loadList() {
@@ -245,9 +326,9 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                 -1
             }
 
-            var tokens: Array<FormatItem.Token>
+            var tokenFilters: Array<FormatItem.TokenFilterItem>
             try {
-                tokens = Array(MAX_TOKEN_FILTER_COUNT) {
+                tokenFilters = Array(MAX_TOKEN_FILTER_COUNT) {
                     val tokenName = ((mProperties["$i$ITEM_TOKEN_FILTER_NAME$it"] ?: "") as String).trim()
                     val nth = try {
                         ((mProperties["$i$ITEM_TOKEN_FILTER_NTH$it"] ?: "") as String).toInt()
@@ -266,15 +347,15 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                         0
                     }
 
-                    FormatItem.Token(tokenName, nth, isSaveFilter, uiWidth)
+                    FormatItem.TokenFilterItem(tokenName, nth, isSaveFilter, uiWidth)
                 }
             } catch (ex: Exception) {
                 println("Failed load format($name) tokens")
                 ex.printStackTrace()
-                tokens = arrayOf(
-                    FormatItem.Token("", 0, false, 120),
-                    FormatItem.Token("", 0, false, 120),
-                    FormatItem.Token("", 0, false, 120),
+                tokenFilters = arrayOf(
+                    FormatItem.TokenFilterItem("", 0, false, 120),
+                    FormatItem.TokenFilterItem("", 0, false, 120),
+                    FormatItem.TokenFilterItem("", 0, false, 120),
                 )
             }
 
@@ -284,7 +365,7 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                 -1
             }
 
-            mFormatList.add(FormatItem(name, separator, tokenCount, logNth, columnNames, levelNth, levels, tokens, pidTokIdx))
+            mFormatList.add(FormatItem(name, separator, tokenCount, logNth, columnNames, levelNth, levels, tokenFilters, pidTokIdx))
         }
     }
 
@@ -407,7 +488,7 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
         }
 
         inner class FormatTableModel() : DefaultTableModel() {
-            private val colNames = arrayOf(Strings.NAME, Strings.SEPARATOR, "${Strings.COLUMN} ${Strings.NAME}", Strings.LEVEL_NTH, Strings.LEVELS, Strings.TOKENS, Strings.PID_TOKEN)
+            private val colNames = arrayOf(Strings.NAME, Strings.SEPARATOR, "${Strings.COLUMN} ${Strings.NAME}", Strings.LEVEL_NTH, Strings.LEVELS, Strings.TOKENS, Strings.PID_TOKEN_FILTER)
             init {
                 setColumnIdentifiers(colNames)
             }
@@ -442,9 +523,9 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                                 nameArr.forEach {
                                     val nameSplit = it.split(",")
                                     names += if (nameSplit.size == 3) {
-                                        "${nameSplit[0]}, nth:${nameSplit[1]}, width:${nameSplit[2]}%<br>"
+                                        "${nameSplit[0]}, nth:${nameSplit[1]}, width:${nameSplit[2]}<br>"
                                     } else {
-                                        "$it, nth:-1, width:0%<br>"
+                                        "$it, nth:-1, width:0<br>"
                                     }
                                 }
                             }
@@ -532,14 +613,14 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                 add(mUiWidthTF)
             }
             
-            fun setToken(token: FormatItem.Token) {
-                mTokenTF.text = token.mToken
-                mNthTF.text = token.mNth.toString()
-                mIsSaveFilterCheck.isSelected = token.mIsSaveFilter
-                mUiWidthTF.text = token.mUiWidth.toString()
+            fun setToken(tokenFilterItem: FormatItem.TokenFilterItem) {
+                mTokenTF.text = tokenFilterItem.mToken
+                mNthTF.text = tokenFilterItem.mNth.toString()
+                mIsSaveFilterCheck.isSelected = tokenFilterItem.mIsSaveFilter
+                mUiWidthTF.text = tokenFilterItem.mUiWidth.toString()
             }
             
-            fun getToken(): FormatItem.Token {
+            fun getToken(): FormatItem.TokenFilterItem {
                 var isValid = true
                 val name = mTokenTF.text.trim()
 
@@ -571,7 +652,7 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                     throw NumberFormatException()
                 }
 
-                return FormatItem.Token(name, nth, isSaveFilter, uiWidth)
+                return FormatItem.TokenFilterItem(name, nth, isSaveFilter, uiWidth)
             }
         }
 
@@ -609,9 +690,11 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                 mSeparatorLabel.text = Strings.SEPARATOR
                 mSeparatorTF.text = ""
                 mSeparatorTF.preferredSize = Dimension(100, mSeparatorTF.preferredSize.height)
+                mTokenCountLabel.text = Strings.TOKEN_COUNT
+                mTokenCountTF.preferredSize = Dimension(70, mTokenCountTF.preferredSize.height)
                 mLevelNthLabel.text = Strings.LEVEL_NTH
                 mLevelNthTF.text = "-1"
-                mPidTokIdxLabel.text = "${Strings.PID_TOKEN}(${Strings.OPTIONAL})"
+                mPidTokIdxLabel.text = "${Strings.PID_TOKEN_FILTER}(${Strings.PID_TOKEN_FILTER_OPTIONAL})"
                 for (idx in -1 until MAX_TOKEN_FILTER_COUNT) {
                     mPidTokIdxCombo.addItem("$idx")
                 }
@@ -623,11 +706,11 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                 mNamePanel.add(mSeparatorLabel)
                 mNamePanel.add(mSeparatorTF)
                 mNamePanel.add(JLabel("   "))
+                mNamePanel.add(mTokenCountLabel)
+                mNamePanel.add(mTokenCountTF)
+                mNamePanel.add(JLabel("   "))
                 mNamePanel.add(mLevelNthLabel)
                 mNamePanel.add(mLevelNthTF)
-                mNamePanel.add(JLabel("   "))
-                mNamePanel.add(mPidTokIdxLabel)
-                mNamePanel.add(mPidTokIdxCombo)
 
                 mLevelsPanel.layout = FlowLayout(FlowLayout.LEFT)
                 mLevelsPanel.add(JLabel("   "))
@@ -642,12 +725,15 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                     mTokenFiltersPanel.add(mTokenFilterArr[idx])
                 }
 
+                val pidTokPanel = JPanel()
+                pidTokPanel.layout = FlowLayout(FlowLayout.LEFT)
+                pidTokPanel.add(JLabel("   "))
+                pidTokPanel.add(mPidTokIdxLabel)
+                pidTokPanel.add(mPidTokIdxCombo)
+                mTokenFiltersPanel.add(pidTokPanel)
+
                 mColumnNamesPanel.layout = FlowLayout(FlowLayout.LEFT)
                 mColumnNamesPanel.add(JLabel("   "))
-                mTokenCountLabel.text = Strings.TOKEN_COUNT
-                mTokenCountTF.preferredSize = Dimension(70, mTokenCountTF.preferredSize.height)
-                mColumnNamesPanel.add(mTokenCountLabel)
-                mColumnNamesPanel.add(mTokenCountTF)
                 mLogNthLabel.text = "${Strings.LOG} ${Strings.NTH}"
                 mLogNthTF.preferredSize = Dimension(40, mLogNthTF.preferredSize.height)
                 mColumnNamesPanel.add(mLogNthLabel)
@@ -681,7 +767,7 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                 Utils.addHSeparator(this, " ${Strings.LEVELS} ")
                 add(mLevelsPanel)
                 Utils.addHEmptySeparator(this, 20)
-                Utils.addHSeparator(this, " ${Strings.COLUMN} ${Strings.NAME} (Used in column view mode)")
+                Utils.addHSeparator(this, " ${Strings.COLUMN} ${Strings.NAME} (${Strings.USED_COLUMN_VIEW_MODE})")
                 add(mColumnNamesPanel)
                 Utils.addHEmptySeparator(this, 20)
                 Utils.addHSeparator(this, " ${Strings.TOKENS} ${Strings.FILTERS}")

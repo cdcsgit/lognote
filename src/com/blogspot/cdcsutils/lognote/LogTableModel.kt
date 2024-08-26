@@ -77,7 +77,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
     private val mBookmarkManager = BookmarkManager.getInstance()
     private val mFormatManager = FormatManager.getInstance()
     protected var mTokenFilters = mFormatManager.mCurrFormat.mTokenFilters
-    protected var mSortedTokenFilters = mFormatManager.mCurrFormat.mSortedTokens
+    protected var mSortedTokenFilters = mFormatManager.mCurrFormat.mSortedTokenFilters
         set(value) {
             if (!field.contentEquals(value)) {
                 field = value
@@ -99,6 +99,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
     protected var mEmptyTokenFilters = arrayOf("")
     protected var mLevelIdx = mFormatManager.mCurrFormat.mLevelNth
     protected var mSeparator = mFormatManager.mCurrFormat.mSeparator
+    protected var mTokenCount = mFormatManager.mCurrFormat.mTokenCount
 
     private val mEventListeners = ArrayList<LogTableModelListener>()
     protected val mFilteredFGMap = mutableMapOf<String, FilteredColor>()
@@ -726,11 +727,11 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
             var currPos = 0
             val item = mLogItems[row]
             for (idx in 0 .. mBoldTokenEndIdx) {
-                if (item.mTokenFilters[idx].isNotEmpty()) {
-                    currPos = newValue.indexOf(item.mTokenFilters[idx], currPos)
+                if (item.mTokenFilterLogs[idx].isNotEmpty()) {
+                    currPos = newValue.indexOf(item.mTokenFilterLogs[idx], currPos)
                     if (mBoldTokens[idx]) {
                         boldStartTokens[idx] = currPos
-                        boldEndTokens[idx] = boldStartTokens[idx] + item.mTokenFilters[idx].length
+                        boldEndTokens[idx] = boldStartTokens[idx] + item.mTokenFilterLogs[idx].length
                         boldStarts.add(boldStartTokens[idx])
                         boldEnds.add(boldEndTokens[idx])
                     }
@@ -1084,23 +1085,23 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
         return stringBuilder.toString()
     }
 
-    inner class LogItem(val mNum: String, val mLogLine: String, var mLevel: Int, var mTokenFilters: Array<String>, var mTokens: List<String>?) {
+    inner class LogItem(val mNum: String, val mLogLine: String, var mLevel: Int, var mTokenFilterLogs: Array<String>, var mTokenLogs: List<String>?) {
     }
 
     open fun makeLogItem(num: Int, logLine: String): LogItem {
         val level: Int
-        val tokenFilters: Array<String>
+        val tokenFilterLogs: Array<String>
 
         if (mFilterLevel == LEVEL_NONE) {
             level = LEVEL_NONE
-            tokenFilters = mEmptyTokenFilters
+            tokenFilterLogs = mEmptyTokenFilters
         }
         else {
-            val textSplited = logLine.trim().split(Regex(mSeparator))
+            val textSplited = logLine.trim().split(Regex(mSeparator), mTokenCount)
             if (textSplited.size > mTokenNthMax) {
                 level = mLevelMap[textSplited[mLevelIdx]] ?: LEVEL_NONE
-                tokenFilters = Array(mSortedTokenFilters.size) {
-                    if (mSortedTokenFilters[it].mToken.isNotBlank() && mSortedTokenFilters[it].mNth >= 0) {
+                tokenFilterLogs = Array(mSortedTokenFilters.size) {
+                    if (mSortedTokenFilters[it].mNth >= 0) {
                         textSplited[mSortedTokenFilters[it].mNth]
                     }
                     else {
@@ -1109,11 +1110,11 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                 }
             } else {
                 level = LEVEL_NONE
-                tokenFilters = mEmptyTokenFilters
+                tokenFilterLogs = mEmptyTokenFilters
             }
         }
 
-        return LogItem(num.toString(), logLine, level, tokenFilters, null)
+        return LogItem(num.toString(), logLine, level, tokenFilterLogs, null)
     }
 
     private fun makePattenPrintValue() {
@@ -1198,7 +1199,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
     private fun isMatchHideToken(item: LogItem): Boolean {
         var isMatch = false
         for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
-            if (mFilterHideTokens[idx].isNotEmpty() && mPatternHideTokens[idx].matcher(item.mTokenFilters[idx]).find()) {
+            if (mFilterHideTokens[idx].isNotEmpty() && mPatternHideTokens[idx].matcher(item.mTokenFilterLogs[mSortedTokensIdxs[idx]]).find()) {
                 isMatch = true
                 break
             }
@@ -1209,7 +1210,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
     private fun isNotMatchShowToken(item: LogItem): Boolean {
         var isNotMatch = false
         for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
-            if (mFilterShowTokens[idx].isNotEmpty() && mSortedTokensIdxs[idx] >= 0 && !mPatternShowTokens[idx].matcher(item.mTokenFilters[mSortedTokensIdxs[idx]]).find()) {
+            if (mFilterShowTokens[idx].isNotEmpty() && mSortedTokensIdxs[idx] >= 0 && !mPatternShowTokens[idx].matcher(item.mTokenFilterLogs[mSortedTokensIdxs[idx]]).find()) {
                 isNotMatch = true
                 break
             }
@@ -1888,7 +1889,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
     fun getValueProcess(row: Int): String {
         return if (row >= 0 && row < mLogItems.size) {
             if (mSortedPidTokIdx >= 0) {
-                mLogItems[row].mTokenFilters[mSortedPidTokIdx]
+                mLogItems[row].mTokenFilterLogs[mSortedPidTokIdx]
             }
             else {
                 ""

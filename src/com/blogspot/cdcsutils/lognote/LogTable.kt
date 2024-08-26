@@ -1,6 +1,7 @@
 package com.blogspot.cdcsutils.lognote
 
 import java.awt.*
+import java.awt.datatransfer.StringSelection
 import java.awt.event.*
 import javax.swing.*
 import javax.swing.border.AbstractBorder
@@ -439,7 +440,7 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
     private fun getProcessInfo(point: Point): String {
         var processInfo = ""
         val column: Int = columnAtPoint(point)
-        if (MainUI.CurrentMethod == MainUI.METHOD_ADB && column == 1) { // column == 1, not line number
+        if (MainUI.CurrentMethod == MainUI.METHOD_ADB && column >= 1) { // column >= 1, not line number
             val row: Int = rowAtPoint(point)
             val pid = mTableModel.getValueProcess(row)
             if (pid.isNotEmpty()) {
@@ -512,7 +513,30 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         }
     }
 
+    private fun copyToClipboard() {
+        val numCols = columnCount
+        val numRows = selectedRows.size
+        val copyStr = StringBuilder()
+
+        if (numRows >= 1 && numCols > 1) {
+            for (row in 0 until numRows) {
+                for (col in 1 until numCols) {
+                    copyStr.append(getValueAt(selectedRows[row], col))
+                    if (col < numCols - 1) {
+                        copyStr.append(" ")
+                    }
+                }
+                copyStr.append(System.lineSeparator())
+            }
+
+            val sel = StringSelection(copyStr.toString())
+            Toolkit.getDefaultToolkit().systemClipboard.setContents(sel, null)
+        }
+    }
+
     internal inner class TableKeyHandler : KeyAdapter() {
+        private var mPrevKeyEvent: KeyEvent? = null
+
         override fun keyReleased(p0: KeyEvent?) {
             when (p0?.keyCode) {
                 KeyEvent.VK_DOWN, KeyEvent.VK_UP, KeyEvent.VK_PAGE_DOWN, KeyEvent.VK_PAGE_UP -> {
@@ -520,29 +544,42 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
                     ToolTipManager.sharedInstance().mouseMoved(MouseEvent(this@LogTable, 0, 0, 0, rect.x, rect.y, 0, false))
                 }
             }
-//            if (p0?.keyCode == KeyEvent.VK_DOWN || p0?.keyCode == KeyEvent.VK_UP || p0?.keyCode == KeyEvent.VK_PAGE_DOWN || p0?.keyCode == KeyEvent.VK_PAGE_UP) {
-//                val rect = getCellRect(selectedRow, selectedColumn, false)
-//                ToolTipManager.sharedInstance().mouseMoved(MouseEvent(this@LogTable, 0, 0, 0, rect.x, rect.y, 0, false))
-//            }
+
+            if (p0?.keyCode == KeyEvent.VK_C && mPrevKeyEvent?.isControlDown == true && mPrevKeyEvent?.keyCode == KeyEvent.VK_C) {
+                copyToClipboard()
+            }
 
             super.keyReleased(p0)
         }
 
         override fun keyPressed(p0: KeyEvent?) {
             ToolTipManager.sharedInstance().mouseMoved(MouseEvent(this@LogTable, 0, 0, 0, 0, 0, 0, false))
-            if (p0?.keyCode == KeyEvent.VK_B && (p0.modifiers and KeyEvent.CTRL_MASK) != 0) {
-                updateBookmark(selectedRow)
-            } else if (p0?.keyCode == KeyEvent.VK_PAGE_DOWN) {
-                downPage()
-            } else if (p0?.keyCode == KeyEvent.VK_PAGE_UP) {
-                upPage()
-            } else if (p0?.keyCode == KeyEvent.VK_DOWN) {
-                downLine()
-            } else if (p0?.keyCode == KeyEvent.VK_UP) {
-                upLine()
-            } else if (p0?.keyCode == KeyEvent.VK_ENTER) {
-                showSelected(selectedRow)
+            if (p0?.isControlDown == true) {
+                if (p0.keyCode == KeyEvent.VK_B) {
+                    updateBookmark(selectedRow)
+                }
             }
+            else {
+                when (p0?.keyCode) {
+                    KeyEvent.VK_PAGE_DOWN -> {
+                        downPage()
+                    }
+                    KeyEvent.VK_PAGE_UP -> {
+                        upPage()
+                    }
+                    KeyEvent.VK_DOWN -> {
+                        downLine()
+                    }
+                    KeyEvent.VK_UP -> {
+                        upLine()
+                    }
+                    KeyEvent.VK_ENTER -> {
+                        showSelected(selectedRow)
+                    }
+                }
+            }
+            mPrevKeyEvent = p0
+
             super.keyPressed(p0)
         }
     }

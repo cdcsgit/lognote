@@ -112,11 +112,11 @@ class StringsEn private constructor() {
                 , "Level Position(Nth)"
                 , "Levels"
                 , "Tokens"
-                , "PID Token"
+                , "PID Token filter"
                 , "Position(Nth)"
                 , "Save Filter"
                 , "Width"
-                , "Optional"
+                , "Optional - Used when show process name tooltips in logs"
                 , "In use"
                 , "The values changed. Save it?"
                 , "Invalid Value"
@@ -162,6 +162,7 @@ class StringsEn private constructor() {
                 , "Column"
                 , "Token count"
                 , "Show divided by column"
+                , "Used in column view mode"
 //            , ""
             )
 

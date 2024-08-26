@@ -8,6 +8,7 @@ class LogColumnTable(tableModel:LogColumnTableModel) : LogTable(tableModel) {
 
     private var mPreferredLogWidth = 0
     private val mColumnItems = tableModel.mColumnItems
+    private var mIsNeedUpdateColumnWidth = true
 
     init {
         var column: TableColumn?
@@ -19,10 +20,6 @@ class LogColumnTable(tableModel:LogColumnTableModel) : LogTable(tableModel) {
     }
 
     override fun updateColumnWidth(width: Int, scrollVBarWidth: Int) {
-        if (rowCount <= 0) {
-            return
-        }
-
         val fontMetrics = getFontMetrics(font)
         val value = mTableModel.getValueAt(rowCount - 1, 0)
         val column0Width = fontMetrics.stringWidth(value.toString()) + 20
@@ -36,9 +33,24 @@ class LogColumnTable(tableModel:LogColumnTableModel) : LogTable(tableModel) {
         var column: TableColumn?
         if (columnNum.preferredWidth != column0Width || mPreferredLogWidth != preferredLogWidth) {
             columnNum.preferredWidth = column0Width
-            for (idx in 1 until columnCount) {
-                column = columnModel.getColumn(idx)
-                column.preferredWidth = preferredLogWidth * (mColumnItems[idx]?.mWidth ?: 10) / 100
+            if (mIsNeedUpdateColumnWidth) {
+                var remainWidth = preferredLogWidth
+                var remainWidthIdx = -1
+                for (idx in 1 until columnCount) {
+                    if (mColumnItems[idx]!!.mWidth == -1) {
+                        remainWidthIdx = idx
+                    }
+                    else {
+                        column = columnModel.getColumn(idx)
+                        column.preferredWidth = mColumnItems[idx]!!.mWidth
+                        remainWidth -= mColumnItems[idx]!!.mWidth
+                    }
+                }
+                if (remainWidthIdx >= 0 && remainWidth > 0) {
+                    column = columnModel.getColumn(remainWidthIdx)
+                    column.preferredWidth = remainWidth
+                }
+                mIsNeedUpdateColumnWidth = false
             }
             mPreferredLogWidth = preferredLogWidth
         }
