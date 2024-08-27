@@ -15,16 +15,22 @@ Kotlin + swing
 ![lognote_light](https://user-images.githubusercontent.com/75207513/202910342-0a94a05f-9942-41f5-a35f-7fb1a90f8b3e.png)
 <br/>
 
+# Config path
+Save to the path set in the environment variable "LOGNOTE_HOME"\
+Default current path
+
+EX) After creating the directory\
+Windows : set LOGNOTE_HOME=D:\lognote\
+Linux : export LOGNOTE_HOME=\~/lognote\
+Mac : export LOGNOTE_HOME=\~/lognote
+
+
+<br/>
+
 # Run
 Windows : start javaw -Dfile.encoding=utf8 -Xmx1024m -jar LogNote.jar\
 Linux : java -Dfile.encoding=utf8 -Xmx2048m -jar LogNote.jar\
 Mac : java -Dfile.encoding=utf8 -Xmx2048m -jar LogNote.jar
-
-<br/>
-
-# Config path
-Save to the path set in the environment variable "LOGNOTE_HOME"\
-Default current path
 
 <br/>
 
