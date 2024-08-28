@@ -336,5 +336,7 @@ class Strings private constructor() {
             get() { return currStrings[field]!! }
         val USED_COLUMN_VIEW_MODE: String = idx++.toString()
             get() { return currStrings[field]!! }
+        val SHOW_PROCESS_NAME: String = idx++.toString()
+            get() { return currStrings[field]!! }
     }
 }

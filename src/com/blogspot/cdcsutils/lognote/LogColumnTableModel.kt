@@ -10,10 +10,12 @@ class LogColumnTableModel(mainUI: MainUI, baseModel: LogTableModel?) : LogTableM
     companion object {
     }
 
-    val mColumnItems = arrayOfNulls<LogColumnItem>(mTokenCount + 1)
+    val mColumnItems = arrayOfNulls<LogColumnItem>(mTokenCount + COLUMN_LOG_START)
     init {
         var idx = 0
         mColumnItems[idx] = LogColumnItem("Line", -1, 0)
+        idx++
+        mColumnItems[idx] = LogColumnItem("Process", -1, 0)
         idx++
         val nameArr = mCurrFormat.mColumnNames.split("|")
         if (nameArr.isNotEmpty()) {
@@ -41,6 +43,24 @@ class LogColumnTableModel(mainUI: MainUI, baseModel: LogTableModel?) : LogTableM
                 val logItem = mLogItems[rowIndex]
                 if (columnIndex == COLUMN_NUM) {
                     return logItem.mNum + " "
+                } else if (columnIndex == COLUMN_PROCESS_NAME) {
+                    if (IsShowProcessName) {
+                        if (logItem.mProcessName == null) {
+                            if (mSortedPidTokIdx >= 0 && logItem.mTokenFilterLogs.size > mSortedPidTokIdx) {
+                                return if (logItem.mTokenFilterLogs[mSortedPidTokIdx] == "0") {
+                                    "0"
+                                } else {
+                                    ProcessList.getInstance().getProcessName(logItem.mTokenFilterLogs[mSortedPidTokIdx])
+                                        ?: ""
+                                }
+                            }
+                        } else {
+                            return logItem.mProcessName
+                        }
+                    }
+                    else {
+                        return ""
+                    }
                 } else {
                     logItem.mTokenLogs?.let {
                         val tokenIdx = mColumnItems[columnIndex]?.mNth ?: 0
@@ -94,7 +114,13 @@ class LogColumnTableModel(mainUI: MainUI, baseModel: LogTableModel?) : LogTableM
             tokenLogs = null
         }
 
-        return LogItem(num.toString(), log, level, tokenFilterLogs, tokenLogs)
+        val processName = if (IsShowProcessName && mSortedPidTokIdx >= 0 && tokenFilterLogs.size > mSortedPidTokIdx) {
+            ProcessList.getInstance().getProcessName(tokenFilterLogs[mSortedPidTokIdx])
+        } else {
+            null
+        }
+
+        return LogItem(num.toString(), log, level, tokenFilterLogs, tokenLogs, processName)
     }
 
     override fun getPatternPrintFilter(col: Int): Pattern? {

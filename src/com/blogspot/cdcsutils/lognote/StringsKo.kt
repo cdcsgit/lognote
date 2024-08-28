@@ -163,6 +163,7 @@ class StringsKo private constructor() {
                 , "토큰 갯수"
                 , "열별로 나누어서 표시"
                 , "열별 표시 모드에서 사용됨"
+                , "프로세스명 보이기(adb 모드)"
 //            , ""
             )
 

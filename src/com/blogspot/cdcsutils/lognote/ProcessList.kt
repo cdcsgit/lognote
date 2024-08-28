@@ -13,7 +13,7 @@ import javax.swing.plaf.basic.BasicScrollBarUI
 import javax.swing.table.DefaultTableCellRenderer
 
 
-data class ProcessItem(val mPid: String, val mCmd: String, val mUser: String)
+data class ProcessItem(val mPid: String, val mProcessName: String, val mUser: String)
 
 class ProcessList private constructor() {
     private val mProcessMap: MutableMap<String, ProcessItem> = mutableMapOf()
@@ -44,6 +44,25 @@ class ProcessList private constructor() {
         return mProcessMap[pid]
     }
 
+    fun getProcessName(pid: String): String? {
+        if (MainUI.CurrentMethod != MainUI.METHOD_ADB) {
+            return null
+        }
+        var item = mProcessMap[pid]
+        if (item != null) {
+            return item.mProcessName
+        }
+
+        if (updateProcesses()) {
+            item = mProcessMap[pid]
+            if (item != null) {
+                return item.mProcessName
+            }
+        }
+
+        return null
+    }
+
     fun clear() {
         mProcessMap.clear()
     }
@@ -52,16 +71,15 @@ class ProcessList private constructor() {
         mProcessMap[processItem.mPid] = processItem
     }
 
-    private fun updateProcesses() {
-        if (MainUI.CurrentMethod != MainUI.METHOD_ADB) {
-            return
-        }
-
+    private fun updateProcesses(): Boolean {
         val time = System.currentTimeMillis()
         if (time > mUpdatedTime + UpdateTime){
             LogCmdManager.getInstance().getProcesses()
             mUpdatedTime = System.currentTimeMillis()
-            println("Process list updated")
+            println("Process list update end")
+            return true
+        } else {
+            return false
         }
     }
 
@@ -79,7 +97,7 @@ class ProcessList private constructor() {
         private val mCellRenderer = ProcessCellRenderer()
 
         init {
-            val columnNames = arrayOf("Num", "PID", "UID", "CMD")
+            val columnNames = arrayOf("Num", "PID", "UID", "NAME")
             val data = Array(mProcessMap.size) {
                 arrayOfNulls<Any>(
                     4
@@ -91,7 +109,7 @@ class ProcessList private constructor() {
                 data[idx][0] = (idx + 1).toString()
                 data[idx][1] = entry.value.mPid
                 data[idx][2] = entry.value.mUser
-                data[idx][3] = entry.value.mCmd
+                data[idx][3] = entry.value.mProcessName
                 idx++
             }
 
@@ -106,7 +124,7 @@ class ProcessList private constructor() {
             mTable.columnModel.getColumn(3).preferredWidth = 500
             mTable.columnModel.getColumn(3).cellRenderer = mCellRenderer
 
-            mTable.columnSelectionAllowed = true
+            mTable.columnSelectionAllowed = false
             mScrollPane = JScrollPane(mTable)
             mScrollPane.preferredSize = Dimension(740, 600)
 

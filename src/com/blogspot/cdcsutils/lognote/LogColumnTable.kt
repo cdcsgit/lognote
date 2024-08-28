@@ -1,5 +1,6 @@
 package com.blogspot.cdcsutils.lognote
 
+import com.blogspot.cdcsutils.lognote.LogTableModel.Companion.IsShowProcessName
 import javax.swing.table.TableColumn
 
 class LogColumnTable(tableModel:LogColumnTableModel) : LogTable(tableModel) {
@@ -13,10 +14,15 @@ class LogColumnTable(tableModel:LogColumnTableModel) : LogTable(tableModel) {
     init {
         var column: TableColumn?
         val cellRenderer = LogCellRenderer()
-        for (idx in 1 until columnCount) {
+        for (idx in LogTableModel.COLUMN_PROCESS_NAME until columnCount) {
             column = columnModel.getColumn(idx)
             column.cellRenderer = cellRenderer
         }
+    }
+
+    override fun updateProcessNameColumnWidth(isShow: Boolean) {
+        super.updateProcessNameColumnWidth(isShow)
+        mIsNeedUpdateColumnWidth = true
     }
 
     override fun updateColumnWidth(width: Int, scrollVBarWidth: Int) {
@@ -27,16 +33,17 @@ class LogColumnTable(tableModel:LogColumnTableModel) : LogTable(tableModel) {
         if (width < LogWidth) {
             newWidth = LogWidth
         }
-        val preferredLogWidth = newWidth - column0Width - VStatusPanel.VIEW_RECT_WIDTH - scrollVBarWidth - 2
+        val columnPackageName = columnModel.getColumn(LogTableModel.COLUMN_PROCESS_NAME)
+        val preferredLogWidth = newWidth - column0Width - VStatusPanel.VIEW_RECT_WIDTH - scrollVBarWidth - 2 - columnPackageName.width
 
-        val columnNum = columnModel.getColumn(0)
+        val columnNum = columnModel.getColumn(LogTableModel.COLUMN_NUM)
         var column: TableColumn?
         if (columnNum.preferredWidth != column0Width || mPreferredLogWidth != preferredLogWidth) {
             columnNum.preferredWidth = column0Width
             if (mIsNeedUpdateColumnWidth) {
                 var remainWidth = preferredLogWidth
                 var remainWidthIdx = -1
-                for (idx in 1 until columnCount) {
+                for (idx in LogTableModel.COLUMN_LOG_START until columnCount) {
                     if (mColumnItems[idx]!!.mWidth == -1) {
                         remainWidthIdx = idx
                     }
@@ -63,7 +70,7 @@ class LogColumnTable(tableModel:LogColumnTableModel) : LogTable(tableModel) {
 
         if (selectedRowCount > 1) {
             for (row in selectedRows) {
-                value = mTableModel.getValueAt(row, FormatManager.getInstance().mCurrFormat.mLogNth + 1).toString() + "\n"
+                value = mTableModel.getValueAt(row, FormatManager.getInstance().mCurrFormat.mLogNth + LogTableModel.COLUMN_LOG_START).toString() + "\n"
                 log.append(value)
             }
         }
@@ -81,7 +88,7 @@ class LogColumnTable(tableModel:LogColumnTableModel) : LogTable(tableModel) {
                 if (idx == targetRow) {
                     caretPos = log.length
                 }
-                value = mTableModel.getValueAt(idx, FormatManager.getInstance().mCurrFormat.mLogNth + 1).toString() + "\n"
+                value = mTableModel.getValueAt(idx, FormatManager.getInstance().mCurrFormat.mLogNth + LogTableModel.COLUMN_LOG_START).toString() + "\n"
                 log.append(value)
             }
         }

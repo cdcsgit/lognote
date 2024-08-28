@@ -59,6 +59,7 @@ class ConfigManager private constructor() {
         const val ITEM_FONT_SIZE = "FONT_SIZE"
         const val ITEM_VIEW_FULL = "VIEW_FULL"
         const val ITEM_VIEW_COLUMN_MODE = "VIEW_COLUMN_MODE"
+        const val ITEM_VIEW_PROCESS_NAME = "VIEW_PROCESS_NAME"
         const val ITEM_FILTER_INCREMENTAL = "FILTER_INCREMENTAL"
         const val ITEM_FILTER_BY_FILE = "FILTER_BY_FILE"
         const val ITEM_COLOR_TAG_REGEX = "COLOR_TAG_REGEX"

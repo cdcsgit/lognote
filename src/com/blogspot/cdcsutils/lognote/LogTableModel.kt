@@ -1,5 +1,7 @@
 package com.blogspot.cdcsutils.lognote
 
+import com.blogspot.cdcsutils.lognote.MainUI.Companion.CurrentMethod
+import com.blogspot.cdcsutils.lognote.MainUI.Companion.METHOD_ADB
 import java.awt.Color
 import java.io.*
 import java.util.*
@@ -33,8 +35,11 @@ interface LogTableModelListener {
 open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableModel() {
     companion object {
         var IsColorTagRegex = false
+        var IsShowProcessName = true
         internal const val COLUMN_NUM = 0
-        private const val COLUMN_LOGLINE = 1
+        internal const val COLUMN_PROCESS_NAME = 1
+        internal const val COLUMN_LOG_START = 2
+        private const val COLUMN_COUNT = 3
         const val LEVEL_NONE = FormatManager.LEVEL_NONE
         const val LEVEL_VERBOSE = FormatManager.LEVEL_VERBOSE
         const val LEVEL_DEBUG = FormatManager.LEVEL_DEBUG
@@ -69,7 +74,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
     private var mNormalSearchLogSplit: List<String>? = null
 
     private var mTableColor: ColorManager.TableColor
-    private val mColumnNames = arrayOf("line", "log")
+    private val mColumnNames = arrayOf("Line", "Process", "Log")
     protected var mLogItems:MutableList<LogItem> = mutableListOf()
     private var mBaseModel:LogTableModel? = baseModel
     var mLogFile:File? = null
@@ -234,7 +239,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                 }
             }
         }
-    private var mSortedPidTokIdx = mFormatManager.mCurrFormat.mSortedPidTokIdx
+    internal var mSortedPidTokIdx = mFormatManager.mCurrFormat.mSortedPidTokIdx
     val mFilterTokenMgr = FilterTokenManager()
 
     private var mPatternCase = Pattern.CASE_INSENSITIVE
@@ -540,7 +545,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                 val item = mLogItems.last()
                 num = item.mNum.toInt()
                 num++
-                mLogItems.add(LogItem(num.toString(), "LogNote - APPEND LOG : $mLogFile", LEVEL_ERROR, mEmptyTokenFilters, null))
+                mLogItems.add(LogItem(num.toString(), "LogNote - APPEND LOG : $mLogFile", LEVEL_ERROR, mEmptyTokenFilters, null, null))
                 num++
             }
         } else {
@@ -595,17 +600,40 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
     }
 
     override fun getColumnCount(): Int {
-        return 2 // line + log
+        return COLUMN_COUNT
     }
 
     override fun getValueAt(rowIndex: Int, columnIndex: Int): Any {
         try {
             if (rowIndex >= 0 && mLogItems.size > rowIndex) {
                 val logItem = mLogItems[rowIndex]
-                if (columnIndex == COLUMN_NUM) {
-                    return logItem.mNum + " "
-                } else if (columnIndex == COLUMN_LOGLINE) {
-                    return logItem.mLogLine
+                when (columnIndex) {
+                    COLUMN_NUM -> {
+                        return logItem.mNum + " "
+                    }
+                    COLUMN_PROCESS_NAME -> {
+                        if (IsShowProcessName) {
+                            if (logItem.mProcessName == null) {
+                                if ((mSortedPidTokIdx >= 0) && (logItem.mTokenFilterLogs.size > mSortedPidTokIdx)) {
+                                    return if (logItem.mTokenFilterLogs[mSortedPidTokIdx] == "0") {
+                                        "0"
+                                    } else {
+                                        ProcessList.getInstance()
+                                            .getProcessName(logItem.mTokenFilterLogs[mSortedPidTokIdx]) ?: ""
+                                    }
+                                }
+                            } else {
+                                return logItem.mProcessName
+                            }
+                        }
+                        else {
+                            return ""
+                        }
+
+                    }
+                    COLUMN_LOG_START -> {
+                        return logItem.mLogLine
+                    }
                 }
             }
         } catch (e:ArrayIndexOutOfBoundsException) {
@@ -674,8 +702,12 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
     protected var mPatternPrintFilter:Pattern? = null
 
     open fun getPatternPrintFilter(col: Int): Pattern? {
-        return mPatternPrintFilter
+        if (col >= COLUMN_LOG_START) {
+            return mPatternPrintFilter
+        }
+        return null
     }
+
     open fun getPrintValue(value: String, row: Int, col: Int, isSelected: Boolean) : String {
         var newValue = value
         if (newValue.indexOf("<") >= 0) {
@@ -1085,7 +1117,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
         return stringBuilder.toString()
     }
 
-    inner class LogItem(val mNum: String, val mLogLine: String, var mLevel: Int, var mTokenFilterLogs: Array<String>, var mTokenLogs: List<String>?) {
+    inner class LogItem(val mNum: String, val mLogLine: String, val mLevel: Int, val mTokenFilterLogs: Array<String>, val mTokenLogs: List<String>?, val mProcessName: String?) {
     }
 
     open fun makeLogItem(num: Int, logLine: String): LogItem {
@@ -1114,7 +1146,13 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
             }
         }
 
-        return LogItem(num.toString(), logLine, level, tokenFilterLogs, null)
+        val processName = if (IsShowProcessName && mSortedPidTokIdx >= 0 && tokenFilterLogs.size > mSortedPidTokIdx) {
+            ProcessList.getInstance().getProcessName(tokenFilterLogs[mSortedPidTokIdx])
+        } else {
+            null
+        }
+
+        return LogItem(num.toString(), logLine, level, tokenFilterLogs, null, processName)
     }
 
     private fun makePattenPrintValue() {
@@ -1386,6 +1424,9 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                 mBaseModel!!.fireLogTableDataChanged()
                 makePattenPrintValue()
 
+                if (CurrentMethod == METHOD_ADB && IsShowProcessName) {
+                    ProcessList.getInstance().getProcess("0")
+                }
                 var currLogFile: File? = mLogFile
                 var bufferedReader = BufferedReader(InputStreamReader(mLogCmdManager.mProcessLogcat!!.inputStream))
                 var line: String?

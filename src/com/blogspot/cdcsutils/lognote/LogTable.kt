@@ -6,6 +6,7 @@ import java.awt.event.*
 import javax.swing.*
 import javax.swing.border.AbstractBorder
 import javax.swing.table.DefaultTableCellRenderer
+import javax.swing.table.JTableHeader
 
 
 open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
@@ -23,32 +24,59 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
     private val mBookmarkManager = BookmarkManager.getInstance()
 
     init {
-        setShowGrid(false)
+        this.setShowGrid(false)
         autoResizeMode = AUTO_RESIZE_OFF
         autoscrolls = false
         dragEnabled = true
         dropMode = DropMode.INSERT
 
-        val columnNum = columnModel.getColumn(0)
+        val columnNum = columnModel.getColumn(LogTableModel.COLUMN_NUM)
         columnNum.cellRenderer = NumCellRenderer()
 
-        val columnLog = columnModel.getColumn(1)
-        columnLog.cellRenderer = LogCellRenderer()
+        val cellRenderer = LogCellRenderer()
+        val columnPackageName = columnModel.getColumn(LogTableModel.COLUMN_PROCESS_NAME)
+        columnPackageName.cellRenderer = cellRenderer
+
+        val columnLog = columnModel.getColumn(LogTableModel.COLUMN_LOG_START)
+        columnLog.cellRenderer = cellRenderer
         intercellSpacing = Dimension(0, 0)
+
+        val header: JTableHeader = this.getTableHeader()
+        val renderer = header.defaultRenderer as DefaultTableCellRenderer
+        renderer.horizontalAlignment = SwingConstants.LEFT
+
+        this.updateProcessNameColumnWidth(false)
 
         getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "none")
         getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, KeyEvent.CTRL_MASK), "none")
         getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, KeyEvent.CTRL_MASK), "none")
 
-        addMouseListener(MouseHandler())
-        addMouseMotionListener(MouseHandler())
-        addKeyListener(TableKeyHandler())
+        this.addMouseListener(MouseHandler())
+        this.addMouseMotionListener(MouseHandler())
+        this.addKeyListener(TableKeyHandler())
 
         mTableColor = if (mTableModel.isFullDataModel()) {
             ColorManager.getInstance().mFullTableColor
         }
         else {
             ColorManager.getInstance().mFilterTableColor
+        }
+    }
+
+
+    open fun updateProcessNameColumnWidth(isShow: Boolean) {
+        val columnPackageName = columnModel.getColumn(LogTableModel.COLUMN_PROCESS_NAME)
+
+        if (isShow) {
+            val columnLog = columnModel.getColumn(LogTableModel.COLUMN_LOG_START)
+            columnPackageName.minWidth = columnLog.minWidth
+            columnPackageName.maxWidth = columnLog.maxWidth
+            columnPackageName.preferredWidth = 150
+        }
+        else {
+            columnPackageName.minWidth = 0
+            columnPackageName.preferredWidth = 0
+            columnPackageName.maxWidth = 0
         }
     }
 
@@ -64,10 +92,12 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         if (width < LogWidth) {
             newWidth = LogWidth
         }
-        val preferredLogWidth = newWidth - column0Width - VStatusPanel.VIEW_RECT_WIDTH - scrollVBarWidth - 2
 
-        val columnNum = columnModel.getColumn(0)
-        val columnLog = columnModel.getColumn(1)
+        val columnPackageName = columnModel.getColumn(LogTableModel.COLUMN_PROCESS_NAME)
+        val preferredLogWidth = newWidth - column0Width - VStatusPanel.VIEW_RECT_WIDTH - scrollVBarWidth - 2 - columnPackageName.width
+
+        val columnNum = columnModel.getColumn(LogTableModel.COLUMN_NUM)
+        val columnLog = columnModel.getColumn(LogTableModel.COLUMN_LOG_START)
         if (columnNum.preferredWidth != column0Width) {
             columnNum.preferredWidth = column0Width
             columnLog.preferredWidth = preferredLogWidth
@@ -78,13 +108,6 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
             }
         }
     }
-
-    var mScanMode = false
-        set(value) {
-            field = value
-            val columnLog = columnModel.getColumn(1)
-                columnLog.cellRenderer = LogCellRenderer()
-        }
 
     internal class LineNumBorder(color: Color, thickness: Int) : AbstractBorder() {
         private val mColor = color
@@ -289,7 +312,7 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
 
         if (selectedRowCount > 1) {
             for (row in selectedRows) {
-                value = mTableModel.getValueAt(row, 1).toString() + "\n"
+                value = mTableModel.getValueAt(row, LogTableModel.COLUMN_LOG_START).toString() + "\n"
                 log.append(value)
             }
         }
@@ -307,7 +330,7 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
                 if (idx == targetRow) {
                     caretPos = log.length
                 }
-                value = mTableModel.getValueAt(idx, 1).toString() + "\n"
+                value = mTableModel.getValueAt(idx, LogTableModel.COLUMN_LOG_START).toString() + "\n"
                 log.append(value)
             }
         }
@@ -367,13 +390,13 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
 
         init {
             val column: Int = columnAtPoint(point)
-            if (ProcessList.UpdateTime > 0 && MainUI.CurrentMethod == MainUI.METHOD_ADB && column == 1) { // column == 1, not line number
+            if (ProcessList.UpdateTime > 0 && MainUI.CurrentMethod == MainUI.METHOD_ADB && column >= 1) { // column >= 1) { // column >= 1, not line number
                 val row: Int = rowAtPoint(point)
                 val pid = mTableModel.getValueProcess(row)
                 if (pid.isNotEmpty()) {
                     val processItem = ProcessList.getInstance().getProcess(pid)
                     if (processItem != null) {
-                        mProcessItem.text = "${processItem.mPid} : ${processItem.mCmd} (${processItem.mUser})"
+                        mProcessItem.text = "${processItem.mPid} : ${processItem.mProcessName} (${processItem.mUser})"
                     }
                     else {
                         mProcessItem.text = "$pid :"
@@ -438,6 +461,10 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
     }
 
     private fun getProcessInfo(point: Point): String {
+        if (LogTableModel.IsShowProcessName) {
+            return ""
+        }
+
         var processInfo = ""
         val column: Int = columnAtPoint(point)
         if (MainUI.CurrentMethod == MainUI.METHOD_ADB && column >= 1) { // column >= 1, not line number
@@ -446,7 +473,7 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
             if (pid.isNotEmpty()) {
                 val processItem = ProcessList.getInstance().getProcess(pid)
                 if (processItem != null) {
-                    processInfo = "${processItem.mPid} : ${processItem.mCmd} (${processItem.mUser})"
+                    processInfo = "${processItem.mPid} : ${processItem.mProcessName} (${processItem.mUser})"
                 }
             }
         }
@@ -518,9 +545,30 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         val numRows = selectedRows.size
         val copyStr = StringBuilder()
 
-        if (numRows >= 1 && numCols > 1) {
+        if (numRows >= 1 && numCols > LogTableModel.COLUMN_LOG_START) {
             for (row in 0 until numRows) {
-                for (col in 1 until numCols) {
+                for (col in LogTableModel.COLUMN_LOG_START until numCols) {
+                    copyStr.append(getValueAt(selectedRows[row], col))
+                    if (col < numCols - 1) {
+                        copyStr.append(" ")
+                    }
+                }
+                copyStr.append(System.lineSeparator())
+            }
+
+            val sel = StringSelection(copyStr.toString())
+            Toolkit.getDefaultToolkit().systemClipboard.setContents(sel, null)
+        }
+    }
+
+    private fun copyToClipboardEx() {
+        val numCols = columnCount
+        val numRows = selectedRows.size
+        val copyStr = StringBuilder()
+
+        if (numRows >= 1 && numCols > LogTableModel.COLUMN_PROCESS_NAME) {
+            for (row in 0 until numRows) {
+                for (col in LogTableModel.COLUMN_PROCESS_NAME until numCols) {
                     copyStr.append(getValueAt(selectedRows[row], col))
                     if (col < numCols - 1) {
                         copyStr.append(" ")
@@ -545,9 +593,14 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
                 }
             }
 
-            if (p0?.keyCode == KeyEvent.VK_C && mPrevKeyEvent?.isControlDown == true && mPrevKeyEvent?.keyCode == KeyEvent.VK_C) {
+            if (p0?.keyCode == KeyEvent.VK_C && mPrevKeyEvent?.isControlDown == true && mPrevKeyEvent?.isShiftDown == true && mPrevKeyEvent?.keyCode == KeyEvent.VK_C) {
+                copyToClipboardEx()
+            }
+            else if (p0?.keyCode == KeyEvent.VK_C && mPrevKeyEvent?.isControlDown == true && mPrevKeyEvent?.keyCode == KeyEvent.VK_C) {
                 copyToClipboard()
             }
+
+            mPrevKeyEvent = null
 
             super.keyReleased(p0)
         }

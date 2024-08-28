@@ -27,7 +27,6 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
     private val mVStatusPanel: VStatusPanel
     private val mTable: LogTable
     val mTableModel: LogTableModel
-    private var mSelectedRow = -1
     private val mBookmarkManager = BookmarkManager.getInstance()
     private val mFormatManager = FormatManager.getInstance()
     private val mAdjustmentHandler = AdjustmentHandler()
@@ -101,7 +100,7 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
             mTableModel = LogTableModel(mMainUI, mBasePanel?.mTableModel)
             mTableModel.addLogTableModelListener(mTableModelHandler)
             mTable = LogTable(mTableModel)
-            mTable.tableHeader = null
+//            mTable.tableHeader = null
             mTable.addFocusListener(mFocusHandler)
         }
 
@@ -367,6 +366,11 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
 
     fun updateTableWidth() {
         mTable.updateColumnWidth(width, mScrollPane.verticalScrollBar.width)
+    }
+
+    fun updateTablePNameColumn(isShow: Boolean) {
+        mTable.updateProcessNameColumnWidth(isShow)
+        updateTableWidth()
     }
 
     internal inner class AdjustmentHandler : AdjustmentListener {

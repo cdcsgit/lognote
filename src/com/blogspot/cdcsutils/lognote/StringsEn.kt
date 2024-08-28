@@ -163,6 +163,7 @@ class StringsEn private constructor() {
                 , "Token count"
                 , "Show divided by column"
                 , "Used in column view mode"
+                , "Show process name(adb mode)"
 //            , ""
             )
 

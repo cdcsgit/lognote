@@ -79,6 +79,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     private lateinit var mMenuView: JMenu
     private lateinit var mItemFull: JCheckBoxMenuItem
     private lateinit var mItemColumnMode: JCheckBoxMenuItem
+    private lateinit var mItemProcessName: JCheckBoxMenuItem
     private lateinit var mItemSearch: JCheckBoxMenuItem
     private lateinit var mItemTrigger: JCheckBoxMenuItem
     private lateinit var mItemRotation: JMenuItem
@@ -324,6 +325,13 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mColumnMode = prop.toBoolean()
         } else {
             mColumnMode = false
+        }
+
+        prop = mConfigManager.getItem(ConfigManager.ITEM_VIEW_PROCESS_NAME)
+        if (!prop.isNullOrEmpty()) {
+            LogTableModel.IsShowProcessName = prop.toBoolean()
+        } else {
+            LogTableModel.IsShowProcessName = false
         }
 
         createUI()
@@ -590,6 +598,11 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mItemColumnMode.state = mColumnMode
         mItemColumnMode.addActionListener(mActionHandler)
         mMenuView.add(mItemColumnMode)
+
+        mItemProcessName = JCheckBoxMenuItem(Strings.SHOW_PROCESS_NAME)
+        mItemProcessName.state = LogTableModel.IsShowProcessName
+        mItemProcessName.addActionListener(mActionHandler)
+        mMenuView.add(mItemProcessName)
 
         mMenuView.addSeparator()
 
@@ -1429,6 +1442,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
         mStatusTF.text = Strings.NONE
         mStatusMethod.text = ""
+        updateTablePNameColumn(false)
         title = Main.NAME
     }
 
@@ -1720,6 +1734,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         CurrentMethod = METHOD_OPEN
         mFilteredLogPanel.mTableModel.stopScan()
         mFilteredLogPanel.mTableModel.stopFollow()
+        updateTablePNameColumn(false)
         if (isAppend) {
             mStatusTF.text += "| $path"
         } else {
@@ -1865,10 +1880,12 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         if (mLogCmdManager.getType() == LogCmdManager.TYPE_CMD) {
             mStatusMethod.text = " ${Strings.CMD} "
             CurrentMethod = METHOD_CMD
+            updateTablePNameColumn(false)
         }
         else {
             mStatusMethod.text = " ${Strings.ADB} "
             CurrentMethod = METHOD_ADB
+            updateTablePNameColumn(LogTableModel.IsShowProcessName)
         }
 
         mFilteredLogPanel.mTableModel.stopScan()
@@ -1939,6 +1956,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mFullLogPanel.mTableModel.setLogFile(filePath)
             mFilteredLogPanel.mTableModel.setLogFile(filePath)
             CurrentMethod = METHOD_FOLLOW
+            updateTablePNameColumn(false)
             mStatusTF.text = filePath
         }
 
@@ -2103,6 +2121,12 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                 mItemColumnMode -> {
                     mConfigManager.saveItem(ConfigManager.ITEM_VIEW_COLUMN_MODE, mItemColumnMode.state.toString())
                     resetLogPanel()
+                }
+
+                mItemProcessName -> {
+                    mConfigManager.saveItem(ConfigManager.ITEM_VIEW_PROCESS_NAME, mItemProcessName.state.toString())
+                    LogTableModel.IsShowProcessName = mItemProcessName.state
+                    updateTablePNameColumn(CurrentMethod == METHOD_ADB && LogTableModel.IsShowProcessName)
                 }
 
                 mItemSearch -> {
@@ -3506,6 +3530,11 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         }
 
         mLogFormatCombo.selectedItem = mFormatManager.mCurrFormat.mName
+    }
+
+    private fun updateTablePNameColumn(isShow: Boolean) {
+        mFullLogPanel.updateTablePNameColumn(isShow)
+        mFilteredLogPanel.updateTablePNameColumn(isShow)
     }
 }
 
