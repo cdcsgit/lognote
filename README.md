@@ -12,7 +12,7 @@ Aging Test : Save split file by lines
 
 Kotlin + swing
 
-![lognote_light](https://user-images.githubusercontent.com/75207513/202910342-0a94a05f-9942-41f5-a35f-7fb1a90f8b3e.png)
+![lognote_main](https://github.com/user-attachments/assets/6001a66e-efc9-418b-ab05-dda822e99574)
 <br/>
 
 # Config path
