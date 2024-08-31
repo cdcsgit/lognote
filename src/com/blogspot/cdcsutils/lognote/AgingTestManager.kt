@@ -169,11 +169,11 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
 
         var s: String? = null
         while (stdInput.readLine().also { s = it } != null) {
-            println("${Strings.CMD_RESULT} : $s")
+            Utils.printlnLog("${Strings.CMD_RESULT} : $s")
         }
 
         while (stdError.readLine().also { s = it } != null) {
-            println("${Strings.CMD_RESULT_ERROR} : $s")
+            Utils.printlnLog("${Strings.CMD_RESULT_ERROR} : $s")
         }
     }
 

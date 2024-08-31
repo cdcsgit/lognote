@@ -106,7 +106,7 @@ class ConfigManager private constructor() {
         if (LOGNOTE_HOME.isNotEmpty()) {
             mConfigPath = "$LOGNOTE_HOME${File.separator}$CONFIG_FILE"
         }
-        println("Config Path : $mConfigPath")
+        Utils.printlnLog("Config Path : $mConfigPath")
         manageVersion()
     }
 
@@ -186,7 +186,7 @@ class ConfigManager private constructor() {
 
     private fun setItems(keys: Array<String>, values: Array<String>) {
         if (keys.size != values.size) {
-            println("saveItem : size not match ${keys.size}, ${values.size}")
+            Utils.printlnLog("saveItem : size not match ${keys.size}, ${values.size}")
             return
         }
         for (idx in keys.indices) {
@@ -330,19 +330,19 @@ class ConfigManager private constructor() {
             if (confVer.isEmpty()) {
                 updateConfigFromV0ToV1()
                 confVer = (mProperties[ITEM_CONFIG_VERSION] ?: "") as String
-                println("manageVersion : $confVer applied")
+                Utils.printlnLog("manageVersion : $confVer applied")
             }
 
             if (confVer == "1") {
                 updateConfigFromV1ToV2()
                 confVer = (mProperties[ITEM_CONFIG_VERSION] ?: "") as String
-                println("manageVersion : $confVer applied")
+                Utils.printlnLog("manageVersion : $confVer applied")
             }
 
             if (confVer == "2") {
                 updateConfigFromV2ToV3()
                 confVer = (mProperties[ITEM_CONFIG_VERSION] ?: "") as String
-                println("manageVersion : $confVer applied")
+                Utils.printlnLog("manageVersion : $confVer applied")
             }
         }
         else {
@@ -353,7 +353,7 @@ class ConfigManager private constructor() {
     }
 
     private fun updateConfigFromV0ToV1() {
-        println("updateConfigFromV0ToV1 : change color manager properties ++")
+        Utils.printlnLog("updateConfigFromV0ToV1 : change color manager properties ++")
         for (idx: Int in 0..22) {
             val item = mProperties["${ITEM_COLOR_MANAGER}$idx"] as String?
             if (item != null) {
@@ -374,11 +374,11 @@ class ConfigManager private constructor() {
             }
         }
         mProperties[ITEM_CONFIG_VERSION] = "1"
-        println("updateConfigFromV0ToV1 : --")
+        Utils.printlnLog("updateConfigFromV0ToV1 : --")
     }
 
     private fun updateConfigFromV1ToV2() {
-        println("updateConfigFromV1ToV2 : change log level properties ++")
+        Utils.printlnLog("updateConfigFromV1ToV2 : change log level properties ++")
         val logLevel = mProperties[ITEM_LOG_LEVEL] as String?
         if (logLevel != null) {
             for (idx in FormatManager.TEXT_LEVEL.indices) {
@@ -390,11 +390,11 @@ class ConfigManager private constructor() {
         }
 
         mProperties[ITEM_CONFIG_VERSION] = "2"
-        println("updateConfigFromV1ToV2 : --")
+        Utils.printlnLog("updateConfigFromV1ToV2 : --")
     }
 
     private fun updateConfigFromV2ToV3() {
-        println("updateConfigFromV2ToV3 : change log level properties ++")
+        Utils.printlnLog("updateConfigFromV2ToV3 : change log level properties ++")
 
         val formatName = "logcat"
         val tokenFilters: Array<FormatManager.FormatItem.TokenFilterItem> = arrayOf(
@@ -433,7 +433,7 @@ class ConfigManager private constructor() {
         mProperties.remove(itemShowTidCheck)
 
         mProperties[ITEM_CONFIG_VERSION] = "3"
-        println("updateConfigFromV2ToV3 : --")
+        Utils.printlnLog("updateConfigFromV2ToV3 : --")
     }
 }
 

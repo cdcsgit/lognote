@@ -58,7 +58,7 @@ class LogCmdManager private constructor(){
 
     fun connect() {
         if (mTargetDevice.isEmpty()) {
-            println("Target device is not selected")
+            Utils.printlnLog("Target device is not selected")
             return
         }
 
@@ -74,12 +74,12 @@ class LogCmdManager private constructor(){
     }
 
     fun stop() {
-        println("Stop all processes ++")
+        Utils.printlnLog("Stop all processes ++")
         mProcessLogcat?.destroy()
         mProcessLogcat = null
         mCurrentExecuter?.interrupt()
         mCurrentExecuter = null
-        println("Stop all processes --")
+        Utils.printlnLog("Stop all processes --")
     }
 
     fun addEventListener(eventListener:AdbEventListener) {
@@ -109,7 +109,7 @@ class LogCmdManager private constructor(){
                         val process = runtime.exec(cmd)
                         Scanner(process.inputStream)
                     } catch (e:IOException) {
-                        println("Failed run $cmd")
+                        Utils.printlnLog("Failed run $cmd")
                         e.printStackTrace()
                         val mainUI = MainUI.getInstance()
                         JOptionPane.showMessageDialog(mainUI, e.message, "Error", JOptionPane.ERROR_MESSAGE)
@@ -123,7 +123,7 @@ class LogCmdManager private constructor(){
                     while (scanner.hasNextLine()) {
                         line = scanner.nextLine()
                         if (line.contains("connected to")) {
-                            println("Success connect to $mTargetDevice")
+                            Utils.printlnLog("Success connect to $mTargetDevice")
                             val adbEvent = AdbEvent(CMD_CONNECT, EVENT_SUCCESS)
                             sendEvent(adbEvent)
                             isSuccess = true
@@ -132,7 +132,7 @@ class LogCmdManager private constructor(){
                     }
 
                     if (!isSuccess) {
-                        println("Failed connect to $mTargetDevice")
+                        Utils.printlnLog("Failed connect to $mTargetDevice")
                         val adbEvent = AdbEvent(CMD_CONNECT, EVENT_FAIL)
                         sendEvent(adbEvent)
                     }
@@ -149,7 +149,7 @@ class LogCmdManager private constructor(){
                         val process = runtime.exec(cmd)
                         Scanner(process.inputStream)
                     } catch (e:IOException) {
-                        println("Failed run $cmd")
+                        Utils.printlnLog("Failed run $cmd")
                         e.printStackTrace()
                         val adbEvent = AdbEvent(CMD_GET_DEVICES, EVENT_FAIL)
                         sendEvent(adbEvent)
@@ -164,7 +164,7 @@ class LogCmdManager private constructor(){
                         }
                         val textSplited = line.trim().split(Regex("\\s+"))
                         if (textSplited.size >= 2) {
-                            println("device : ${textSplited[0]}")
+                            Utils.printlnLog("device : ${textSplited[0]}")
                             mDevices.add(textSplited[0])
                         }
                     }
@@ -193,26 +193,26 @@ class LogCmdManager private constructor(){
                             "$mAdbCmd $mLogCmd"
                         }
                     }
-                    println("Start : $cmd")
+                    Utils.printlnLog("Start : $cmd")
                     val runtime = Runtime.getRuntime()
                     try {
                         mProcessLogcat = runtime.exec(cmd)
                         val processExitDetector = ProcessExitDetector(mProcessLogcat!!)
                         processExitDetector.addProcessListener(object : ProcessListener {
                             override fun processFinished(process: Process?) {
-                                println("The subprocess has finished")
+                                Utils.printlnLog("The subprocess has finished")
                             }
                         })
                         processExitDetector.start()
                     } catch (e:IOException) {
-                        println("Failed run $cmd")
+                        Utils.printlnLog("Failed run $cmd")
                         e.printStackTrace()
                         val mainUI = MainUI.getInstance()
                         JOptionPane.showMessageDialog(mainUI, e.message, "Error", JOptionPane.ERROR_MESSAGE)
                         mProcessLogcat = null
                         return@run
                     }
-                    println("End : $cmd")
+                    Utils.printlnLog("End : $cmd")
                 }
             }
 
@@ -223,7 +223,7 @@ class LogCmdManager private constructor(){
                     try {
                         runtime.exec(cmd)
                     } catch (e: IOException) {
-                        println("Failed run $cmd")
+                        Utils.printlnLog("Failed run $cmd")
                         e.printStackTrace()
                         val mainUI = MainUI.getInstance()
                         JOptionPane.showMessageDialog(mainUI, e.message, "Error", JOptionPane.ERROR_MESSAGE)
@@ -253,7 +253,7 @@ class LogCmdManager private constructor(){
                         val process = runtime.exec(cmd)
                         Scanner(process.inputStream)
                     } catch (e:IOException) {
-                        println("Failed run $cmd")
+                        Utils.printlnLog("Failed run $cmd")
                         e.printStackTrace()
                         val adbEvent = AdbEvent(CMD_GET_PROCESSES, EVENT_FAIL)
                         sendEvent(adbEvent)
@@ -274,7 +274,7 @@ class LogCmdManager private constructor(){
                                 }
                             }
                         } catch (e: InterruptedException) {
-                            println("Failed get process list")
+                            Utils.printlnLog("Failed get process list")
                             mProcessList.clear()
                         }
                     }

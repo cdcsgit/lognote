@@ -431,7 +431,7 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
         }
 
         override fun windowClosing(e: WindowEvent?) {
-            println("exit Filter Style, restore $mIsNeedRestore")
+            Utils.printlnLog("exit Filter Style, restore $mIsNeedRestore")
 
             if (mIsNeedRestore) {
                 for (idx in mColorLabelArray.indices) {
@@ -722,7 +722,7 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
                 } else if (radioDark.isSelected) {
                     ColorManager.getInstance().mColorSchemeDark
                 } else {
-                    println("Scheme is not selected")
+                    Utils.printlnLog("Scheme is not selected")
                     return@ActionListener
                 }
 
@@ -736,7 +736,7 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
                     applyColorScheme(ColorManager.TableColorType.FILTER_LOG_TABLE, scheme, true)
                 }
                 else {
-                    println("Target log(full/filter) is not selected")
+                    Utils.printlnLog("Target log(full/filter) is not selected")
                 }
             })
 
@@ -781,7 +781,7 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
         }
 
         override fun windowClosing(e: WindowEvent?) {
-            println("exit Font Color, restore $mIsNeedRestore")
+            Utils.printlnLog("exit Font Color, restore $mIsNeedRestore")
 
             if (mIsNeedRestore) {
                 for (idx in mFullColorLabelArray.indices) {

@@ -4,8 +4,11 @@ import java.awt.*
 import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
 import java.awt.event.WindowEvent
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import javax.swing.*
 import javax.swing.border.AbstractBorder
+
 
 class Utils {
     companion object {
@@ -24,7 +27,7 @@ class Utils {
 
         fun installKeyStrokeEscClosing(container: RootPaneContainer) {
             if (container !is Window) {
-                println("container is not java.awt.Window")
+                printlnLog("container is not java.awt.Window")
                 return
             }
 
@@ -72,6 +75,14 @@ class Utils {
             val panel = JPanel()
             panel.preferredSize = Dimension(1, height)
             target.add(panel)
+        }
+
+        fun printlnLog(log: String) {
+            val now = LocalDateTime.now()
+            val formatter = DateTimeFormatter.ofPattern("MM-dd HH:mm:ss.SSS")
+            val formattedNow = now.format(formatter)
+
+            println("$formattedNow ${Thread.currentThread().id} $log")
         }
     }
 

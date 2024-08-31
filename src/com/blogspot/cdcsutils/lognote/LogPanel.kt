@@ -303,7 +303,7 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
 
     fun goToRow(idx: Int, column: Int) {
         if (idx < 0 || idx >= mTable.rowCount) {
-            println("goToRow : invalid idx")
+            Utils.printlnLog("goToRow : invalid idx")
             return
         }
         mTable.setRowSelectionInterval(idx, idx)
@@ -453,10 +453,10 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
                         for (idx in 0 until mTable.rowCount) {
                             num = mTable.getValueAt(idx, 0).toString().trim().toInt()
                             if (selectedLine <= num) {
-                                println("tableChanged Tid = ${Thread.currentThread().id}, num = $num, selectedLine = $selectedLine")
+                                Utils.printlnLog("tableChanged Tid = ${Thread.currentThread().id}, num = $num, selectedLine = $selectedLine")
                                 mTable.setRowSelectionInterval(idx, idx)
                                 val viewRect: Rectangle = mTable.getCellRect(idx, 0, true)
-                                println("tableChanged Tid = ${Thread.currentThread().id}, viewRect = $viewRect, rowCount = ${ mTable.rowCount }, idx = $idx")
+                                Utils.printlnLog("tableChanged Tid = ${Thread.currentThread().id}, viewRect = $viewRect, rowCount = ${ mTable.rowCount }, idx = $idx")
                                 mTable.scrollRectToVisible(viewRect)
                                 mTable.scrollRectToVisible(viewRect) // sometimes not work
                                 break
@@ -574,7 +574,7 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
         }
 
         override fun importData(info: TransferSupport): Boolean {
-            println("importData")
+            Utils.printlnLog("importData")
             if (!info.isDrop) {
                 return false
             }
@@ -589,11 +589,11 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
 
                     for (item in splitData) {
                         if (item.isNotEmpty()) {
-                            println("importData item = $item")
+                            Utils.printlnLog("importData item = $item")
                             try {
                                 fileList.add(File(URI("file://${item.trim()}")))
                             } catch (ex: Exception) {
-                                println("failed fileList.add")
+                                Utils.printlnLog("failed fileList.add")
                                 fileList.add(File(item.trim()))
                             }
                         }
@@ -622,7 +622,7 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
 
             if (fileList.size > 0) {
                 val os = System.getProperty("os.name").lowercase(Locale.getDefault())
-                println("os = $os, drop = ${info.dropAction}, source drop = ${info.sourceDropActions}, user drop = ${info.userDropAction}")
+                Utils.printlnLog("os = $os, drop = ${info.dropAction}, source drop = ${info.sourceDropActions}, user drop = ${info.userDropAction}")
                 val action = if (os.contains("windows")) {
                     info.dropAction
                 } else {
@@ -665,7 +665,7 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
                         }
                     }
                     else -> {
-                        println("select cancel")
+                        Utils.printlnLog("select cancel")
                     }
                 }
             }
@@ -749,7 +749,7 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
         }
 
         override fun mouseDragged(e: MouseEvent?) {
-            println("mouseDragged")
+            Utils.printlnLog("mouseDragged")
             super.mouseDragged(e)
         }
     }

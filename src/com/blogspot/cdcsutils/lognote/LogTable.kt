@@ -157,7 +157,6 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
                 num = value.toString().trim().toInt()
             }
 
-//            println("NumCellRenderer getTableCellRendererComponent $isSelected, $hasFocus, $row, $col, ${isRowSelected(row)}")
             val label = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col) as JLabel
 
             label.border = LineNumBorder(mTableColor.mNumLogSeperatorBG, 1)

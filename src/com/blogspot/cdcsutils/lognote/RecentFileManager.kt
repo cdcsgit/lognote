@@ -177,13 +177,13 @@ class RecentFileManager private constructor(fileName: String) : PropertiesBase(f
             if (confVer.isEmpty()) {
                 updateRecentFileFromV0ToV1()
                 confVer = (mProperties[ITEM_VERSION] ?: "") as String
-                println("RecentFileManager : manageVersion : $confVer applied")
+                Utils.printlnLog("RecentFileManager : manageVersion : $confVer applied")
             }
 
 //            if (confVer == "1") {
 //                updateConfigFromV1ToV2()
 //                confVer = (mProperties[ITEM_VERSION] ?: "") as String
-//                println("RecentFileManager : manageVersion : $confVer applied")
+//                Utils.printlnLog("RecentFileManager : manageVersion : $confVer applied")
 //            }
         }
         else {
@@ -194,7 +194,7 @@ class RecentFileManager private constructor(fileName: String) : PropertiesBase(f
     }
 
     private fun updateRecentFileFromV0ToV1() {
-        println("updateRecentFileFromV0ToV1 : tag,pid,tid to token properties ++")
+        Utils.printlnLog("updateRecentFileFromV0ToV1 : tag,pid,tid to token properties ++")
         val formatName = mFormatManager.mCurrFormat.mName
         val tokens = mFormatManager.mCurrFormat.mTokenFilters
 
@@ -229,7 +229,7 @@ class RecentFileManager private constructor(fileName: String) : PropertiesBase(f
         }
 
         mProperties[ITEM_VERSION] = "1"
-        println("updateRecentFileFromV0ToV1 : --")
+        Utils.printlnLog("updateRecentFileFromV0ToV1 : --")
     }
 }
 

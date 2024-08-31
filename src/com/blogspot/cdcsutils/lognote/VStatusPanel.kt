@@ -74,7 +74,7 @@ class VStatusPanel(logTable: LogTable) : JPanel() {
                 // mLogTable.setRowSelectionInterval(row, row)
                 mLogTable.scrollRectToVisible(Rectangle(mLogTable.getCellRect(row, 0, true)))
             } catch (e: IllegalArgumentException) {
-                println("e : $e")
+                Utils.printlnLog("e : $e")
             }
             super.mouseClicked(p0)
         }

@@ -235,7 +235,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mLogCmdManager.mAdbCmd = cmd
         } else {
             val os = System.getProperty("os.name")
-            println("OS : $os")
+            Utils.printlnLog("OS : $os")
             if (os.lowercase().contains("windows")) {
                 mLogCmdManager.mAdbCmd = "adb.exe"
             } else {
@@ -1591,7 +1591,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                 val files = statusText.split("|")
                 val lastFile = files.last().trim()
                 val path: Path = Paths.get(lastFile)
-                println("Paths.get $lastFile, ${path.fileName}")
+                Utils.printlnLog("Paths.get $lastFile, ${path.fileName}")
                 "${path.fileName} - $statusMethod"
             }
             Strings.ADB, Strings.CMD, "${Strings.ADB} ${Strings.STOP}", "${Strings.CMD} ${Strings.STOP}" -> {
@@ -1609,35 +1609,35 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                 try {
                     UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName())
                 } catch (ex: Exception) {
-                    println("Failed to initialize CrossPlatformLaf")
+                    Utils.printlnLog("Failed to initialize CrossPlatformLaf")
                 }
             }
             SYSTEM_LAF->{
                 try {
                     UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
                 } catch (ex: Exception) {
-                    println("Failed to initialize SystemLaf")
+                    Utils.printlnLog("Failed to initialize SystemLaf")
                 }
             }
             FLAT_LIGHT_LAF->{
                 try {
                     UIManager.setLookAndFeel(FlatLightLaf())
                 } catch (ex: Exception) {
-                    println("Failed to initialize FlatLightLaf")
+                    Utils.printlnLog("Failed to initialize FlatLightLaf")
                 }
             }
             FLAT_DARK_LAF->{
                 try {
                     UIManager.setLookAndFeel(FlatDarkLaf())
                 } catch (ex: Exception) {
-                    println("Failed to initialize FlatDarkLaf")
+                    Utils.printlnLog("Failed to initialize FlatDarkLaf")
                 }
             }
             else->{
                 try {
                     UIManager.setLookAndFeel(FlatLightLaf())
                 } catch (ex: Exception) {
-                    println("Failed to initialize FlatLightLaf")
+                    Utils.printlnLog("Failed to initialize FlatLightLaf")
                 }
             }
         }
@@ -1728,7 +1728,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     }
 
     fun openFile(path: String, isAppend: Boolean) {
-        println("Opening: $path, $isAppend")
+        Utils.printlnLog("Opening: $path, $isAppend")
         saveRecentFile()
         mStatusMethod.text = " ${Strings.OPEN} "
         CurrentMethod = METHOD_OPEN
@@ -1916,7 +1916,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
          mStatusTF.text = mStatusTF.text
 
         if (!mFilteredLogPanel.mTableModel.isScanning()) {
-            println("stopAdbScan : not adb scanning mode")
+            Utils.printlnLog("stopAdbScan : not adb scanning mode")
             return
         }
         mFilteredLogPanel.mTableModel.stopScan()
@@ -1935,7 +1935,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     }
 
     fun restartAdbLogcat() {
-        println("Restart Adb Logcat")
+        Utils.printlnLog("Restart Adb Logcat")
         mLogCmdManager.stop()
         mLogCmdManager.mTargetDevice = mDeviceCombo.selectedItem!!.toString()
         mLogCmdManager.startLogcat()
@@ -1943,7 +1943,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
     fun pauseAdbScan(pause: Boolean) {
         if (!mFilteredLogPanel.mTableModel.isScanning()) {
-            println("pauseAdbScan : not adb scanning mode")
+            Utils.printlnLog("pauseAdbScan : not adb scanning mode")
             return
         }
         mFilteredLogPanel.mTableModel.pauseScan(pause)
@@ -1980,7 +1980,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
     fun stopFileFollow() {
         if (!mFilteredLogPanel.mTableModel.isFollowing()) {
-            println("stopAdbScan : not file follow mode")
+            Utils.printlnLog("stopAdbScan : not file follow mode")
             return
         }
         mStatusMethod.text = " ${Strings.FOLLOW} ${Strings.STOP} "
@@ -1996,7 +1996,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
     fun pauseFileFollow(pause: Boolean) {
         if (!mFilteredLogPanel.mTableModel.isFollowing()) {
-            println("pauseFileFollow : not file follow mode")
+            Utils.printlnLog("pauseFileFollow : not file follow mode")
             return
         }
         mFilteredLogPanel.mTableModel.pauseFollow(pause)
@@ -2021,7 +2021,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                         val file = File(fileDialog.directory + fileDialog.file)
                         openFile(file.absolutePath, false)
                     } else {
-                        println("Cancel Open")
+                        Utils.printlnLog("Cancel Open")
                     }
                 }
                 mItemFileFollow -> {
@@ -2033,7 +2033,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                         val file = File(fileDialog.directory + fileDialog.file)
                         startFileFollow(file.absolutePath)
                     } else {
-                        println("Cancel Open")
+                        Utils.printlnLog("Cancel Open")
                     }
                 }
                 mItemFileOpenFiles -> {
@@ -2053,7 +2053,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                             }
                         }
                     } else {
-                        println("Cancel Open")
+                        Utils.printlnLog("Cancel Open")
                     }
                 }
                 mItemFileAppendFiles -> {
@@ -2067,7 +2067,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                             openFile(file.absolutePath, true)
                         }
                     } else {
-                        println("Cancel Open")
+                        Utils.printlnLog("Cancel Open")
                     }
                 }
                 mItemFileSaveFull, mItemFileSaveFiltered-> {
@@ -2089,12 +2089,12 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                     fileDialog.directory = mFileSaveDir
                     fileDialog.isVisible = true
                     if (fileDialog.files.isNotEmpty() && fileDialog.files[0] != null) {
-                        println("$title ${fileDialog.files[0].absoluteFile}")
+                        Utils.printlnLog("$title ${fileDialog.files[0].absoluteFile}")
                         mFileSaveDir = fileDialog.files[0].parent
                         tableModel.saveFile(fileDialog.files[0].absolutePath)
                         saveRecentFileNew(fileDialog.files[0].absolutePath)
                     } else {
-                        println("Cancel $title")
+                        Utils.printlnLog("Cancel $title")
                     }
                 }
                 mItemFileExit -> {
@@ -2224,7 +2224,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                         setSaveLogFile()
                     }
                     else {
-                        println("SaveBtn : not adb scanning mode")
+                        Utils.printlnLog("SaveBtn : not adb scanning mode")
                     }
     //                repaint()
                 }
@@ -2542,7 +2542,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     }
 
     fun reconnectAdb() {
-        println("Reconnect ADB")
+        Utils.printlnLog("Reconnect ADB")
         mStopBtn.doClick()
         Thread.sleep(200)
 
@@ -2970,7 +2970,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     }
 
     fun goToLine(line: Int) {
-        println("Line : $line")
+        Utils.printlnLog("Line : $line")
         if (line < 0) {
             return
         }
@@ -3421,7 +3421,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                 if (goToDialog.mLine != -1) {
                     goToLine(goToDialog.mLine)
                 } else {
-                    println("Cancel Goto Line")
+                    Utils.printlnLog("Cancel Goto Line")
                 }
             }
         }

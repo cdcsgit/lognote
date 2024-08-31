@@ -350,7 +350,7 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                     FormatItem.TokenFilterItem(tokenName, nth, isSaveFilter, uiWidth)
                 }
             } catch (ex: Exception) {
-                println("Failed load format($name) tokens")
+                Utils.printlnLog("Failed load format($name) tokens")
                 ex.printStackTrace()
                 tokenFilters = arrayOf(
                     FormatItem.TokenFilterItem("", 0, false, 120),
@@ -431,7 +431,7 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
 
     fun setCurrFormat(selectedItem: String) {
         if (mCurrFormat.mName == selectedItem) {
-            println("current format not changed(${mCurrFormat.mName})")
+            Utils.printlnLog("current format not changed(${mCurrFormat.mName})")
             return
         }
         var isUpdated = false

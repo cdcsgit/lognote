@@ -295,7 +295,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
 //        set(value) {
 //            field = value
 //            Exception().printStackTrace()
-//            println("tid = " + Thread.currentThread().id)
+//            Utils.printlnLog("tid = " + Thread.currentThread().id)
 //        }
     var mBookmarkMode = false
         set(value) {
@@ -511,7 +511,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
     }
 
     fun clearItems() {
-        println("isEventDispatchThread = ${SwingUtilities.isEventDispatchThread()}")
+        Utils.printlnLog("isEventDispatchThread = ${SwingUtilities.isEventDispatchThread()}")
 
         if (mBaseModel != null) {
             mBaseModel!!.mGoToLast = true
@@ -1258,7 +1258,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
 
     private fun makeFilteredItems(isRedraw: Boolean) {
         if (mBaseModel == null || !mIsFilterUpdated) {
-            println("skip makeFilteredItems $mBaseModel, $mIsFilterUpdated")
+            Utils.printlnLog("skip makeFilteredItems $mBaseModel, $mIsFilterUpdated")
             return
         }
         else {
@@ -1312,7 +1312,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                 val matcherShowLog = patternShowLog.matcher("")
                 val normalShowLogSplit = normalShowLog.split("|")
 
-                println("Show Log $normalShowLog, $regexShowLog")
+                Utils.printlnLog("Show Log $normalShowLog, $regexShowLog")
                 for (item in mBaseModel!!.mLogItems) {
                     if (mIsFilterUpdated) {
                         break
@@ -1411,6 +1411,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
 
         mScanThread = Thread {
             run {
+                Utils.printlnLog("startScan thread started")
                 SwingUtilities.invokeAndWait {
                     mLogItems.clear()
                     mLogItems = mutableListOf()
@@ -1444,14 +1445,14 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                 val logFilterItems: MutableList<LogFilterItem> = mutableListOf()
 
                 line = bufferedReader.readLine()
-                while (line != null || mMainUI.isRestartAdbLogcat() == true) {
+                while (line != null || mMainUI.isRestartAdbLogcat()) {
                     try {
                         nextUpdateTime = System.currentTimeMillis() + 100
                         logLines.clear()
                         logFilterItems.clear()
 
                         if (line == null && mMainUI.isRestartAdbLogcat()) {
-                            println("line is Null : $line")
+                            Utils.printlnLog("line is Null : $line")
                             if (mLogCmdManager.mProcessLogcat == null || !mLogCmdManager.mProcessLogcat!!.isAlive) {
                                 if (mMainUI.isRestartAdbLogcat()) {
                                     Thread.sleep(5000)
@@ -1460,7 +1461,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                                         bufferedReader =
                                             BufferedReader(InputStreamReader(mLogCmdManager.mProcessLogcat?.inputStream!!))
                                     } else {
-                                        println("startScan : inputStream is Null")
+                                        Utils.printlnLog("startScan : inputStream is Null")
                                     }
                                     line = "LogNote - RESTART LOGCAT"
                                 }
@@ -1489,7 +1490,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
 
                                 if (mScrollbackSplitFile && mScrollback > 0 && saveNum >= mScrollback) {
                                     mMainUI.setSaveLogFile()
-                                    println("Change save file : ${mLogFile?.absolutePath}")
+                                    Utils.printlnLog("Change save file : ${mLogFile?.absolutePath}")
                                 }
 
                                 logLines.add(line)
@@ -1570,7 +1571,9 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                         mBaseModel!!.fireLogTableDataChanged(baseRemovedCount)
                         baseRemovedCount = 0
                     } catch (e: Exception) {
-                        println("Start scan : ${e.stackTraceToString()}")
+                        Utils.printlnLog("startScan thread stop")
+                        Utils.printlnLog("stack trace : ${e.stackTraceToString()}")
+
                         if (e !is InterruptedException) {
                             JOptionPane.showMessageDialog(mMainUI, e.message, "Error", JOptionPane.ERROR_MESSAGE)
                         }
@@ -1617,7 +1620,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
     }
 
     fun pauseScan(pause:Boolean) {
-        println("Pause adb scan $pause")
+        Utils.printlnLog("Pause adb scan $pause")
         mIsPause = pause
     }
 
@@ -1805,7 +1808,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                         mBaseModel!!.fireLogTableDataChanged(baseRemovedCount)
                         baseRemovedCount = 0
                     } catch (e: Exception) {
-                        println("Start follow : ${e.stackTraceToString()}")
+                        Utils.printlnLog("Start follow : ${e.stackTraceToString()}")
                         if (e !is InterruptedException) {
                             JOptionPane.showMessageDialog(mMainUI, e.message, "Error", JOptionPane.ERROR_MESSAGE)
                         }
@@ -1813,7 +1816,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                         return@run
                     }
                 }
-                println("Exit follow")
+                Utils.printlnLog("Exit follow")
             }
         }
 
@@ -1838,7 +1841,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
     }
 
     fun pauseFollow(pause:Boolean) {
-        println("Pause file follow $pause")
+        Utils.printlnLog("Pause file follow $pause")
         mIsFollowPause = pause
     }
 

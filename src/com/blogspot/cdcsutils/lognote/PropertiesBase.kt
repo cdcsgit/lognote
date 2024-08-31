@@ -18,7 +18,7 @@ abstract class PropertiesBase(fileName: String) {
         if (LOGNOTE_HOME.isNotEmpty()) {
             mXmlPath = "$LOGNOTE_HOME${File.separator}$mXmlPath"
         }
-        println("Xml File Path : $mXmlPath")
+        Utils.printlnLog("Xml File Path : $mXmlPath")
     }
 
     protected fun loadXml(): Boolean {
@@ -75,7 +75,7 @@ abstract class PropertiesBase(fileName: String) {
 
     fun setItems(keys: Array<String>, values: Array<String>) {
         if (keys.size != values.size) {
-            println("saveItem : size not match ${keys.size}, ${values.size}")
+            Utils.printlnLog("saveItem : size not match ${keys.size}, ${values.size}")
             return
         }
         for (idx in keys.indices) {

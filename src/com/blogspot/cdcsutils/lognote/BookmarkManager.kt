@@ -42,7 +42,7 @@ class BookmarkManager private constructor(){
 
     fun addBookmark(bookmark:Int) {
         if (mBookmarks.contains(bookmark)) {
-            println("addBookmark : already added - $bookmark")
+            Utils.printlnLog("addBookmark : already added - $bookmark")
             return
         }
         mBookmarks.add(bookmark)
@@ -55,7 +55,7 @@ class BookmarkManager private constructor(){
 
     fun removeBookmark(bookmark:Int) {
         if (!mBookmarks.contains(bookmark)) {
-            println("addBookmark : already removed - $bookmark")
+            Utils.printlnLog("addBookmark : already removed - $bookmark")
             return
         }
         mBookmarks.remove(bookmark)

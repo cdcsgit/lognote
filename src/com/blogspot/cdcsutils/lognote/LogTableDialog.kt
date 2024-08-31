@@ -28,7 +28,7 @@ class LogTableDialog (mainUI: MainUI, logPanel: LogPanel) : JFrame("FullLog") {
         contentPane.add(panel)
         addWindowListener(object : WindowAdapter() {
             override fun windowClosing(e: WindowEvent?) {
-                println("exit table dialog")
+                Utils.printlnLog("exit table dialog")
                 mMainUI.attachLogPanel(mLogPanel)
             }
         })

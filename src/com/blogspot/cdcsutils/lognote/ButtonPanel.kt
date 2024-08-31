@@ -30,7 +30,7 @@ class ButtonPanel : JPanel() {
                             }
 
                             if (mPrevPoint.y != mLastComponent.location.y) {
-                                println("lastComponent moved to ${mLastComponent.location}")
+                                Utils.printlnLog("lastComponent moved to ${mLastComponent.location}")
                                 preferredSize = Dimension(preferredSize.width, mLastComponent.location.y + mLastComponent.height)
                                 updateUI()
                             }

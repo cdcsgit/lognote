@@ -99,7 +99,7 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
         isVisible = !(!enabled && editor.item.toString().isEmpty())
     }
 
-    var mApplyFilter: (String) -> Unit = { println("ApplyCallback is not set") }
+    var mApplyFilter: (String) -> Unit = { Utils.printlnLog("ApplyCallback is not set") }
     fun setApplyFilter(callback: (String) -> Unit) {
         mApplyFilter = callback
     }
@@ -131,7 +131,7 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
                 mApplyFilter(item)
             }
             else {
-                println("applyFilterText : Show log toggle is not selected")
+                Utils.printlnLog("applyFilterText : Show log toggle is not selected")
             }
         }
         else {

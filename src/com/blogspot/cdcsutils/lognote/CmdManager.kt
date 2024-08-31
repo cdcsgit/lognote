@@ -70,7 +70,7 @@ class CmdManager(mainUI: MainUI, logPanel: LogPanel): CustomListManager (mainUI,
 
     internal inner class ListSelectionHandler : ListSelectionListener {
         override fun valueChanged(e: ListSelectionEvent?) {
-            println("Not implemented")
+            Utils.printlnLog("Not implemented")
         }
     }
 

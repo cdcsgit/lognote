@@ -224,10 +224,10 @@ class LogCmdSettingsDialog(mainUI: MainUI) :JDialog(mainUI, "${Strings.LOG_CMD} 
             fileDialog.isVisible = true
             if (fileDialog.file != null) {
                 val file = File(fileDialog.directory + fileDialog.file)
-                println("adb command : ${file.absolutePath}")
+                Utils.printlnLog("adb command : ${file.absolutePath}")
                 mAdbCmdTF.text = file.absolutePath
             } else {
-                println("Cancel Open")
+                Utils.printlnLog("Cancel Open")
             }
         } else if (e?.source == mAdbSaveBtn) {
             val chooser = JFileChooser()
@@ -237,10 +237,10 @@ class LogCmdSettingsDialog(mainUI: MainUI) :JDialog(mainUI, "${Strings.LOG_CMD} 
             chooser.isAcceptAllFileFilterUsed = false
 
             if (chooser.showOpenDialog(this@LogCmdSettingsDialog) == JFileChooser.APPROVE_OPTION) {
-                println("getSelectedFile() : ${chooser.selectedFile}")
+                Utils.printlnLog("getSelectedFile() : ${chooser.selectedFile}")
                 mAdbSaveTF.text = chooser.selectedFile.absolutePath
             } else {
-                println("No Selection ")
+                Utils.printlnLog("No Selection ")
             }
         } else if (e?.source == mOkBtn) {
             mLogCmdManager.mAdbCmd = mAdbCmdTF.text
@@ -393,10 +393,10 @@ class LogCmdSettingsDialog(mainUI: MainUI) :JDialog(mainUI, "${Strings.LOG_CMD} 
                 fileDialog.isVisible = true
                 if (fileDialog.file != null) {
                     val file = File(fileDialog.directory + fileDialog.file)
-                    println("command : ${file.absolutePath}")
+                    Utils.printlnLog("command : ${file.absolutePath}")
                     mCmdTF.text = file.absolutePath
                 } else {
-                    println("Cancel Open")
+                    Utils.printlnLog("Cancel Open")
                 }
             } else if (e?.source == mOkBtn) {
                 val text = if (mCmdRadio.isSelected) {
