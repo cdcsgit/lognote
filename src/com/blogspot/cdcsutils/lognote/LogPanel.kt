@@ -436,10 +436,10 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
                             selectIdx = 0
                         }
 
-                        val viewLine = mTable.getValueAt(viewIdx, 0).toString().trim().toInt()
+                        val viewLine = mTable.getValueAt(viewIdx, LogTableModel.COLUMN_NUM).toString().trim().toInt()
                         if (viewLine >= 0) {
                             mTable.setRowSelectionInterval(selectIdx, selectIdx)
-                            val viewRect: Rectangle = mTable.getCellRect(viewIdx, 0, true)
+                            val viewRect: Rectangle = mTable.getCellRect(viewIdx, LogTableModel.COLUMN_NUM, true)
                             mTable.scrollRectToVisible(viewRect)
                             mTable.scrollRectToVisible(viewRect) // sometimes not work
                         }

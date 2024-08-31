@@ -22,6 +22,7 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
     var mTableModel = tableModel
     private val mTableColor: ColorManager.TableColor
     private val mBookmarkManager = BookmarkManager.getInstance()
+    val mMultiClickInterval = Toolkit.getDefaultToolkit().getDesktopProperty("awt.multiClickInterval").toString().toInt() + 500
 
     init {
         this.setShowGrid(false)
@@ -494,6 +495,7 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         private var secondClickRow = 0
 
         override fun mousePressed(p0: MouseEvent?) {
+            LogTableModel.WaitTimeForDoubleClick  = System.currentTimeMillis() + mMultiClickInterval
             super.mousePressed(p0)
         }
 

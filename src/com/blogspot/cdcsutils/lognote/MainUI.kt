@@ -331,7 +331,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         if (!prop.isNullOrEmpty()) {
             LogTableModel.IsShowProcessName = prop.toBoolean()
         } else {
-            LogTableModel.IsShowProcessName = false
+            LogTableModel.IsShowProcessName = true
         }
 
         createUI()

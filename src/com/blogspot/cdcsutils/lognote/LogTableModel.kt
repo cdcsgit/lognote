@@ -36,6 +36,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
     companion object {
         var IsColorTagRegex = false
         var IsShowProcessName = true
+        var WaitTimeForDoubleClick = System.currentTimeMillis()
         internal const val COLUMN_NUM = 0
         internal const val COLUMN_PROCESS_NAME = 1
         internal const val COLUMN_LOG_START = 2
@@ -1392,6 +1393,87 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
         return mScanThread != null
     }
 
+    private fun updateLogItems(logLines: MutableList<String>, startNum: Int): Int {
+        var removedCount = 0
+        var baseRemovedCount = 0
+        var num = startNum
+        var isShow: Boolean
+        var item: LogItem
+        val logFilterItems: MutableList<LogFilterItem> = mutableListOf()
+
+        synchronized(this) {
+            for (tempLine in logLines) {
+                item = makeLogItem(num, tempLine)
+                isShow = true
+
+                if (mBookmarkMode) {
+                    isShow = false
+                }
+
+                if (!mFullMode) {
+                    if (isShow && item.mLevel != LEVEL_NONE && item.mLevel < mFilterLevel) {
+                        isShow = false
+                    }
+                    if (isShow
+                        && ((mFilterHideLog.isNotEmpty() && mPatternHideLog.matcher(item.mLogLine)
+                            .find())
+                                || (mFilterShowLog.isNotEmpty() && !mPatternShowLog.matcher(item.mLogLine)
+                            .find()))
+                    ) {
+                        isShow = false
+                    }
+                    if (isShow
+                        && (isMatchHideToken(item) || isNotMatchShowToken(item))
+                    ) {
+                        isShow = false
+                    }
+                }
+                logFilterItems.add(LogFilterItem(item, isShow))
+                num++
+            }
+        }
+
+        SwingUtilities.invokeAndWait {
+            if (mScanThread == null) {
+                return@invokeAndWait
+            }
+            val isRemoveItem = !mScrollbackKeep && mScrollback > 0 && WaitTimeForDoubleClick < System.currentTimeMillis()
+
+            for (filterItem in logFilterItems) {
+                if (mSelectionChanged) {
+                    baseRemovedCount = 0
+                    removedCount = 0
+                    mSelectionChanged = false
+                }
+
+                if (mFilterTriggerLog.isNotEmpty() && mPatternTriggerLog.matcher(filterItem.mItem.mLogLine).find()) {
+                    mAgingTestManager.pullTheTrigger(filterItem.mItem.mLogLine)
+                }
+                mBaseModel!!.mLogItems.add(filterItem.mItem)
+                if (filterItem.mIsShow || mBookmarkManager.mBookmarks.contains(filterItem.mItem.mNum.toInt())) {
+                    mLogItems.add(filterItem.mItem)
+                }
+            }
+            if (isRemoveItem) {
+                while (mBaseModel!!.mLogItems.count() > mScrollback) {
+                    mBaseModel!!.mLogItems.removeAt(0)
+                    baseRemovedCount++
+                }
+
+                while (mLogItems.count() > mScrollback) {
+                    mLogItems.removeAt(0)
+                    removedCount++
+                }
+                fireLogTableDataChanged(removedCount)
+                removedCount = 0
+
+                mBaseModel!!.fireLogTableDataChanged(baseRemovedCount)
+                baseRemovedCount = 0
+            }
+        }
+
+        return num
+    }
     fun startScan() {
         if (mLogFile == null) {
             return
@@ -1431,25 +1513,18 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                 var currLogFile: File? = mLogFile
                 var bufferedReader = BufferedReader(InputStreamReader(mLogCmdManager.mProcessLogcat!!.inputStream))
                 var line: String?
-                var num = 0
                 var saveNum = 0
+                var startNum = 0
 
-                var isShow: Boolean
                 var nextUpdateTime: Long = 0
 
-                var removedCount = 0
-                var baseRemovedCount = 0
-
-                var item: LogItem
                 val logLines: MutableList<String> = mutableListOf()
-                val logFilterItems: MutableList<LogFilterItem> = mutableListOf()
 
                 line = bufferedReader.readLine()
                 while (line != null || mMainUI.isRestartAdbLogcat()) {
                     try {
                         nextUpdateTime = System.currentTimeMillis() + 100
                         logLines.clear()
-                        logFilterItems.clear()
 
                         if (line == null && mMainUI.isRestartAdbLogcat()) {
                             Utils.printlnLog("line is Null : $line")
@@ -1503,73 +1578,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                             Thread.sleep(1000)
                         }
 
-                        synchronized(this) {
-                            for (tempLine in logLines) {
-                                item = makeLogItem(num, tempLine)
-                                isShow = true
-
-                                if (mBookmarkMode) {
-                                    isShow = false
-                                }
-
-                                if (!mFullMode) {
-                                    if (isShow && item.mLevel != LEVEL_NONE && item.mLevel < mFilterLevel) {
-                                        isShow = false
-                                    }
-                                    if (isShow
-                                        && ((mFilterHideLog.isNotEmpty() && mPatternHideLog.matcher(item.mLogLine)
-                                            .find())
-                                                || (mFilterShowLog.isNotEmpty() && !mPatternShowLog.matcher(item.mLogLine)
-                                            .find()))
-                                    ) {
-                                        isShow = false
-                                    }
-                                    if (isShow
-                                        && (isMatchHideToken(item) || isNotMatchShowToken(item))
-                                    ) {
-                                        isShow = false
-                                    }
-                                }
-                                logFilterItems.add(LogFilterItem(item, isShow))
-                                num++
-                            }
-                        }
-
-                        SwingUtilities.invokeAndWait {
-                            if (mScanThread == null) {
-                                return@invokeAndWait
-                            }
-
-                            for (filterItem in logFilterItems) {
-                                if (mSelectionChanged) {
-                                    baseRemovedCount = 0
-                                    removedCount = 0
-                                    mSelectionChanged = false
-                                }
-
-                                if (mFilterTriggerLog.isNotEmpty() && mPatternTriggerLog.matcher(filterItem.mItem.mLogLine).find()) {
-                                    mAgingTestManager.pullTheTrigger(filterItem.mItem.mLogLine)
-                                }
-                                mBaseModel!!.mLogItems.add(filterItem.mItem)
-                                while (!mScrollbackKeep && mScrollback > 0 && mBaseModel!!.mLogItems.count() > mScrollback) {
-                                    mBaseModel!!.mLogItems.removeAt(0)
-                                    baseRemovedCount++
-                                }
-                                if (filterItem.mIsShow || mBookmarkManager.mBookmarks.contains(filterItem.mItem.mNum.toInt())) {
-                                    mLogItems.add(filterItem.mItem)
-                                    while (!mScrollbackKeep && mScrollback > 0 && mLogItems.count() > mScrollback) {
-                                        mLogItems.removeAt(0)
-                                        removedCount++
-                                    }
-                                }
-                            }
-                        }
-
-                        fireLogTableDataChanged(removedCount)
-                        removedCount = 0
-
-                        mBaseModel!!.fireLogTableDataChanged(baseRemovedCount)
-                        baseRemovedCount = 0
+                        startNum = updateLogItems(logLines, startNum)
                     } catch (e: Exception) {
                         Utils.printlnLog("startScan thread stop")
                         Utils.printlnLog("stack trace : ${e.stackTraceToString()}")
@@ -1677,26 +1686,18 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                 makePattenPrintValue()
 
                 val currLogFile: File? = mLogFile
-//            var bufferedReader = BufferedReader(InputStreamReader(FileInputStream(currLogFile)))
                 val scanner = Scanner(MyFileInputStream(currLogFile))
                 var line: String? = null
-                var num = 0
+                var startNum = 0
 
-                var isShow: Boolean
                 var nextUpdateTime: Long = 0
 
-                var removedCount = 0
-                var baseRemovedCount = 0
-
-                var item: LogItem
                 val logLines: MutableList<String> = mutableListOf()
-                val logFilterItems: MutableList<LogFilterItem> = mutableListOf()
 
                 while (mIsKeepReading) {
                     try {
                         nextUpdateTime = System.currentTimeMillis() + 100
                         logLines.clear()
-                        logFilterItems.clear()
                         if (!mIsPause) {
                             while (mIsKeepReading) {
                                 if (scanner.hasNextLine()) {
@@ -1738,77 +1739,11 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                             Thread.sleep(1000)
                         }
 
-                        synchronized(this) {
-                            for (tempLine in logLines) {
-                                item = makeLogItem(num, tempLine)
-
-                                isShow = true
-
-                                if (mBookmarkMode) {
-                                    isShow = false
-                                }
-
-                                if (!mFullMode) {
-                                    if (isShow && item.mLevel != LEVEL_NONE && item.mLevel < mFilterLevel) {
-                                        isShow = false
-                                    }
-                                    if (isShow
-                                        && ((mFilterHideLog.isNotEmpty() && mPatternHideLog.matcher(item.mLogLine)
-                                            .find())
-                                                || (mFilterShowLog.isNotEmpty() && !mPatternShowLog.matcher(item.mLogLine)
-                                            .find()))
-                                    ) {
-                                        isShow = false
-                                    }
-                                    if (isShow
-                                        && (isMatchHideToken(item) || isNotMatchShowToken(item))
-                                    ) {
-                                        isShow = false
-                                    }
-                                }
-                                logFilterItems.add(LogFilterItem(item, isShow))
-                                num++
-                            }
-                        }
-
-                        SwingUtilities.invokeAndWait {
-                            if (mFollowThread == null) {
-                                return@invokeAndWait
-                            }
-
-                            for (filterItem in logFilterItems) {
-                                if (mSelectionChanged) {
-                                    baseRemovedCount = 0
-                                    removedCount = 0
-                                    mSelectionChanged = false
-                                }
-
-                                if (mFilterTriggerLog.isNotEmpty() && mPatternTriggerLog.matcher(filterItem.mItem.mLogLine).find()) {
-                                    mAgingTestManager.pullTheTrigger(filterItem.mItem.mLogLine)
-                                }
-
-                                mBaseModel!!.mLogItems.add(filterItem.mItem)
-                                while (!mScrollbackKeep && mScrollback > 0 && mBaseModel!!.mLogItems.count() > mScrollback) {
-                                    mBaseModel!!.mLogItems.removeAt(0)
-                                    baseRemovedCount++
-                                }
-                                if (filterItem.mIsShow || mBookmarkManager.mBookmarks.contains(filterItem.mItem.mNum.toInt())) {
-                                    mLogItems.add(filterItem.mItem)
-                                    while (!mScrollbackKeep && mScrollback > 0 && mLogItems.count() > mScrollback) {
-                                        mLogItems.removeAt(0)
-                                        removedCount++
-                                    }
-                                }
-                            }
-                        }
-
-                        fireLogTableDataChanged(removedCount)
-                        removedCount = 0
-
-                        mBaseModel!!.fireLogTableDataChanged(baseRemovedCount)
-                        baseRemovedCount = 0
+                        startNum = updateLogItems(logLines, startNum)
                     } catch (e: Exception) {
-                        Utils.printlnLog("Start follow : ${e.stackTraceToString()}")
+                        Utils.printlnLog("startFollow thread stop")
+                        Utils.printlnLog("stack trace : ${e.stackTraceToString()}")
+
                         if (e !is InterruptedException) {
                             JOptionPane.showMessageDialog(mMainUI, e.message, "Error", JOptionPane.ERROR_MESSAGE)
                         }
