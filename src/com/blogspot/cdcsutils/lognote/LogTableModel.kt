@@ -1266,117 +1266,119 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
             mIsFilterUpdated = false
         }
 
-        SwingUtilities.invokeAndWait {
-            mLogItems.clear()
-            mLogItems = mutableListOf()
+        synchronized(this) {
+            SwingUtilities.invokeAndWait {
+                mLogItems.clear()
+                mLogItems = mutableListOf()
 
-            val logItems:MutableList<LogItem> = mutableListOf()
-            if (mBookmarkMode) {
-                for (item in mBaseModel!!.mLogItems) {
-                    if (mBookmarkManager.mBookmarks.contains(item.mNum.toInt())) {
-                        logItems.add(item)
-                    }
-                }
-            } else {
-                makePattenPrintValue()
-                var isShow: Boolean
-
-                var regexShowLog = ""
-                var normalShowLog = ""
-                val showLogSplit = mFilterShowLog.split("|")
-
-                for (logUnit in showLogSplit) {
-                    val hasIt: Boolean = logUnit.chars().anyMatch { c -> "\\.[]{}()*+?^$|".indexOf(c.toChar()) >= 0 }
-                    if (hasIt) {
-                        if (regexShowLog.isEmpty()) {
-                            regexShowLog = logUnit
-                        }
-                        else {
-                            regexShowLog += "|$logUnit"
+                val logItems: MutableList<LogItem> = mutableListOf()
+                if (mBookmarkMode) {
+                    for (item in mBaseModel!!.mLogItems) {
+                        if (mBookmarkManager.mBookmarks.contains(item.mNum.toInt())) {
+                            logItems.add(item)
                         }
                     }
-                    else {
-                        if (normalShowLog.isEmpty()) {
-                            normalShowLog = logUnit
-                        }
-                        else {
-                            normalShowLog += "|$logUnit"
-                        }
+                } else {
+                    makePattenPrintValue()
+                    var isShow: Boolean
 
-                        if (mPatternCase == Pattern.CASE_INSENSITIVE) {
-                            normalShowLog = normalShowLog.uppercase()
-                        }
-                    }
-                }
+                    var regexShowLog = ""
+                    var normalShowLog = ""
+                    val showLogSplit = mFilterShowLog.split("|")
 
-                val patternShowLog = Pattern.compile(regexShowLog, mPatternCase)
-                val matcherShowLog = patternShowLog.matcher("")
-                val normalShowLogSplit = normalShowLog.split("|")
-
-                Utils.printlnLog("Show Log $normalShowLog, $regexShowLog")
-                for (item in mBaseModel!!.mLogItems) {
-                    if (mIsFilterUpdated) {
-                        break
-                    }
-
-                    isShow = true
-
-                    if (!mFullMode) {
-                        if (item.mLevel != LEVEL_NONE && item.mLevel < mFilterLevel) {
-                            isShow = false
-                        }
-                        else if ((mFilterHideLog.isNotEmpty() && mPatternHideLog.matcher(item.mLogLine).find())
-                            || isMatchHideToken(item)) {
-                            isShow = false
-                        }
-                        else if (mFilterShowLog.isNotEmpty()) {
-                            var isFound = false
-                            if (normalShowLog.isNotEmpty()) {
-                                val logLine = if (mPatternCase == Pattern.CASE_INSENSITIVE) {
-                                    item.mLogLine.uppercase()
-                                } else {
-                                    item.mLogLine
-                                }
-                                for (sp in normalShowLogSplit) {
-                                    if (logLine.contains(sp)) {
-                                        isFound = true
-                                        break
-                                    }
-                                }
+                    for (logUnit in showLogSplit) {
+                        val hasIt: Boolean = logUnit.chars().anyMatch { c -> "\\.[]{}()*+?^$|".indexOf(c.toChar()) >= 0 }
+                        if (hasIt) {
+                            if (regexShowLog.isEmpty()) {
+                                regexShowLog = logUnit
                             }
-
-                            if (!isFound) {
-                                if (regexShowLog.isEmpty()) {
-                                    isShow = false
-                                }
-                                else {
-                                    matcherShowLog.reset(item.mLogLine)
-                                    if (!matcherShowLog.find()) {
-                                        isShow = false
-                                    }
-                                }
+                            else {
+                                regexShowLog += "|$logUnit"
                             }
                         }
+                        else {
+                            if (normalShowLog.isEmpty()) {
+                                normalShowLog = logUnit
+                            }
+                            else {
+                                normalShowLog += "|$logUnit"
+                            }
 
-                        if (isShow) {
-                            if (isNotMatchShowToken(item)) {
+                            if (mPatternCase == Pattern.CASE_INSENSITIVE) {
+                                normalShowLog = normalShowLog.uppercase()
+                            }
+                        }
+                    }
+
+                    val patternShowLog = Pattern.compile(regexShowLog, mPatternCase)
+                    val matcherShowLog = patternShowLog.matcher("")
+                    val normalShowLogSplit = normalShowLog.split("|")
+
+                    Utils.printlnLog("Show Log $normalShowLog, $regexShowLog")
+                    for (item in mBaseModel!!.mLogItems) {
+                        if (mIsFilterUpdated) {
+                            break
+                        }
+
+                        isShow = true
+
+                        if (!mFullMode) {
+                            if (item.mLevel != LEVEL_NONE && item.mLevel < mFilterLevel) {
                                 isShow = false
                             }
+                            else if ((mFilterHideLog.isNotEmpty() && mPatternHideLog.matcher(item.mLogLine).find())
+                                || isMatchHideToken(item)) {
+                                isShow = false
+                            }
+                            else if (mFilterShowLog.isNotEmpty()) {
+                                var isFound = false
+                                if (normalShowLog.isNotEmpty()) {
+                                    val logLine = if (mPatternCase == Pattern.CASE_INSENSITIVE) {
+                                        item.mLogLine.uppercase()
+                                    } else {
+                                        item.mLogLine
+                                    }
+                                    for (sp in normalShowLogSplit) {
+                                        if (logLine.contains(sp)) {
+                                            isFound = true
+                                            break
+                                        }
+                                    }
+                                }
+
+                                if (!isFound) {
+                                    if (regexShowLog.isEmpty()) {
+                                        isShow = false
+                                    }
+                                    else {
+                                        matcherShowLog.reset(item.mLogLine)
+                                        if (!matcherShowLog.find()) {
+                                            isShow = false
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (isShow) {
+                                if (isNotMatchShowToken(item)) {
+                                    isShow = false
+                                }
+                            }
+                        }
+
+                        if (isShow || mBookmarkManager.mBookmarks.contains(item.mNum.toInt())) {
+                            logItems.add(item)
                         }
                     }
-
-                    if (isShow || mBookmarkManager.mBookmarks.contains(item.mNum.toInt())) {
-                        logItems.add(item)
-                    }
                 }
+
+                mLogItems = logItems
             }
 
-            mLogItems = logItems
-        }
-
-        if (!mIsFilterUpdated && isRedraw) {
-            fireLogTableDataFiltered()
-            mBaseModel?.fireLogTableDataFiltered()
+            if (!mIsFilterUpdated && isRedraw) {
+                fireLogTableDataFiltered()
+                mBaseModel?.fireLogTableDataFiltered()
+            }
         }
     }
 
@@ -1431,44 +1433,44 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                 logFilterItems.add(LogFilterItem(item, isShow))
                 num++
             }
-        }
 
-        SwingUtilities.invokeAndWait {
-            if (mScanThread == null) {
-                return@invokeAndWait
-            }
-            val isRemoveItem = !mScrollbackKeep && mScrollback > 0 && WaitTimeForDoubleClick < System.currentTimeMillis()
+            SwingUtilities.invokeAndWait {
+                if (mScanThread == null) {
+                    return@invokeAndWait
+                }
+                val isRemoveItem = !mScrollbackKeep && mScrollback > 0 && WaitTimeForDoubleClick < System.currentTimeMillis()
 
-            for (filterItem in logFilterItems) {
-                if (mSelectionChanged) {
-                    baseRemovedCount = 0
+                for (filterItem in logFilterItems) {
+                    if (mSelectionChanged) {
+                        baseRemovedCount = 0
+                        removedCount = 0
+                        mSelectionChanged = false
+                    }
+
+                    if (mFilterTriggerLog.isNotEmpty() && mPatternTriggerLog.matcher(filterItem.mItem.mLogLine).find()) {
+                        mAgingTestManager.pullTheTrigger(filterItem.mItem.mLogLine)
+                    }
+                    mBaseModel!!.mLogItems.add(filterItem.mItem)
+                    if (filterItem.mIsShow || mBookmarkManager.mBookmarks.contains(filterItem.mItem.mNum.toInt())) {
+                        mLogItems.add(filterItem.mItem)
+                    }
+                }
+                if (isRemoveItem) {
+                    while (mBaseModel!!.mLogItems.count() > mScrollback) {
+                        mBaseModel!!.mLogItems.removeAt(0)
+                        baseRemovedCount++
+                    }
+
+                    while (mLogItems.count() > mScrollback) {
+                        mLogItems.removeAt(0)
+                        removedCount++
+                    }
+                    fireLogTableDataChanged(removedCount)
                     removedCount = 0
-                    mSelectionChanged = false
-                }
 
-                if (mFilterTriggerLog.isNotEmpty() && mPatternTriggerLog.matcher(filterItem.mItem.mLogLine).find()) {
-                    mAgingTestManager.pullTheTrigger(filterItem.mItem.mLogLine)
+                    mBaseModel!!.fireLogTableDataChanged(baseRemovedCount)
+                    baseRemovedCount = 0
                 }
-                mBaseModel!!.mLogItems.add(filterItem.mItem)
-                if (filterItem.mIsShow || mBookmarkManager.mBookmarks.contains(filterItem.mItem.mNum.toInt())) {
-                    mLogItems.add(filterItem.mItem)
-                }
-            }
-            if (isRemoveItem) {
-                while (mBaseModel!!.mLogItems.count() > mScrollback) {
-                    mBaseModel!!.mLogItems.removeAt(0)
-                    baseRemovedCount++
-                }
-
-                while (mLogItems.count() > mScrollback) {
-                    mLogItems.removeAt(0)
-                    removedCount++
-                }
-                fireLogTableDataChanged(removedCount)
-                removedCount = 0
-
-                mBaseModel!!.fireLogTableDataChanged(baseRemovedCount)
-                baseRemovedCount = 0
             }
         }
 
@@ -1507,9 +1509,18 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                 mBaseModel!!.fireLogTableDataChanged()
                 makePattenPrintValue()
 
-                if (CurrentMethod == METHOD_ADB && IsShowProcessName) {
-                    ProcessList.getInstance().getProcess("0")
+                try {
+                    if (CurrentMethod == METHOD_ADB && IsShowProcessName) {
+                        ProcessList.getInstance().getProcessName("0")
+                    }
+                } catch (e: Exception) {
+                    Utils.printlnLog("startScan thread stop - getProcessName : ${e.stackTraceToString()}")
+
+                    mFileWriter?.close()
+                    mFileWriter = null
+                    return@run
                 }
+
                 var currLogFile: File? = mLogFile
                 var bufferedReader = BufferedReader(InputStreamReader(mLogCmdManager.mProcessLogcat!!.inputStream))
                 var line: String?
@@ -1527,7 +1538,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                         logLines.clear()
 
                         if (line == null && mMainUI.isRestartAdbLogcat()) {
-                            Utils.printlnLog("line is Null : $line")
+                            Utils.printlnLog("line is Null")
                             if (mLogCmdManager.mProcessLogcat == null || !mLogCmdManager.mProcessLogcat!!.isAlive) {
                                 if (mMainUI.isRestartAdbLogcat()) {
                                     Thread.sleep(5000)

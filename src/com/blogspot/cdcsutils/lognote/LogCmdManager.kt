@@ -284,8 +284,9 @@ class LogCmdManager private constructor(){
                         if (thread.isAlive) {
                             thread.interrupt()
                         }
-                    } catch (e: InterruptedException) {
-                        e.printStackTrace()
+                    } catch (ex: InterruptedException) {
+                        Utils.printlnLog("get process join : InterruptedException, throw exception")
+                        throw ex
                     }
 
                     for (i in 0 until 10) {

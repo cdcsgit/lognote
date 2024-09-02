@@ -1980,7 +1980,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
     fun stopFileFollow() {
         if (!mFilteredLogPanel.mTableModel.isFollowing()) {
-            Utils.printlnLog("stopAdbScan : not file follow mode")
+            Utils.printlnLog("stopFileFollow : not file follow mode")
             return
         }
         mStatusMethod.text = " ${Strings.FOLLOW} ${Strings.STOP} "

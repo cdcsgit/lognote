@@ -39,7 +39,12 @@ class ProcessList private constructor() {
         if (item != null) {
             return item
         }
-        updateProcesses()
+        try {
+            updateProcesses()
+        } catch (ex: InterruptedException) {
+            Utils.printlnLog("ProcessList.getProcess failed ")
+            ex.printStackTrace()
+        }
 
         return mProcessMap[pid]
     }
