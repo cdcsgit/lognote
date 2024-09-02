@@ -437,7 +437,7 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
                         }
 
                         val viewLine = mTable.getValueAt(viewIdx, LogTableModel.COLUMN_NUM).toString().trim().toInt()
-                        if (viewLine >= 0) {
+                        if (viewLine >= 0 && selectIdx < mTable.rowCount) {
                             mTable.setRowSelectionInterval(selectIdx, selectIdx)
                             val viewRect: Rectangle = mTable.getCellRect(viewIdx, LogTableModel.COLUMN_NUM, true)
                             mTable.scrollRectToVisible(viewRect)
@@ -452,7 +452,7 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
                         var num = 0
                         for (idx in 0 until mTable.rowCount) {
                             num = mTable.getValueAt(idx, 0).toString().trim().toInt()
-                            if (selectedLine <= num) {
+                            if (selectedLine <= num && idx < mTable.rowCount) {
                                 Utils.printlnLog("tableChanged Tid = ${Thread.currentThread().id}, num = $num, selectedLine = $selectedLine")
                                 mTable.setRowSelectionInterval(idx, idx)
                                 val viewRect: Rectangle = mTable.getCellRect(idx, 0, true)
