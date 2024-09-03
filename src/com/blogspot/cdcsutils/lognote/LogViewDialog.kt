@@ -20,7 +20,7 @@ class LogViewDialog (mainUI: MainUI, log:String, caretPos: Int) : JDialog(mainUI
         mTextArea.isEditable = false
         mTextArea.caret.isVisible = true
         mTextArea.lineWrap = true
-        if (ConfigManager.LaF != MainUI.FLAT_DARK_LAF) {
+        if (!MainUI.IsFlatLaf || MainUI.IsFlatLightLaf) {
             mTextArea.background = Color(0xFF, 0xFA, 0xE3)
         }
         mTextArea.font = mMainUI.mFont

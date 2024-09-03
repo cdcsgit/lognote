@@ -20,7 +20,7 @@ class VStatusPanel(logTable: LogTable) : JPanel() {
     }
     init {
         preferredSize = Dimension(VIEW_RECT_WIDTH, VIEW_RECT_HEIGHT)
-        background = if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+        background = if (MainUI.IsFlatLaf && !MainUI.IsFlatLightLaf) {
             Color(0x46494B)
         }
         else {
@@ -30,9 +30,19 @@ class VStatusPanel(logTable: LogTable) : JPanel() {
         addMouseListener(MouseHandler())
     }
 
+    override fun updateUI() {
+        background = if (MainUI.IsFlatLaf && !MainUI.IsFlatLightLaf) {
+            Color(0x46494B)
+        }
+        else {
+            Color.WHITE
+        }
+        super.updateUI()
+    }
+
     override fun paintComponent(g: Graphics?) {
         super.paintComponent(g)
-        if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+        if (MainUI.IsFlatLaf && !MainUI.IsFlatLightLaf) {
             g?.color = Color(0xFFFFFF)
         }
         else {
@@ -48,7 +58,7 @@ class VStatusPanel(logTable: LogTable) : JPanel() {
         val visibleY:Long = (mLogTable.visibleRect.y).toLong()
         val totalHeight:Long = (mLogTable.rowHeight * mLogTable.rowCount).toLong()
         if (mLogTable.rowCount != 0 && height != 0) {
-            if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+            if (MainUI.IsFlatLaf && !MainUI.IsFlatLightLaf) {
                 g?.color = Color(0xC0, 0xC0, 0xC0, 0x50)
             }
             else {

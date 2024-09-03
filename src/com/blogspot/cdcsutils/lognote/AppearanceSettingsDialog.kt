@@ -10,7 +10,7 @@ import javax.swing.event.ListSelectionListener
 import javax.swing.plaf.basic.BasicScrollBarUI
 
 
-class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARANCE, true), ActionListener {
+class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARANCE, true), ActionListener, ItemListener {
     private val mMainUI = mainUI
     private val mConfigManager = ConfigManager.getInstance()
     private val mFormatManager = FormatManager.getInstance()
@@ -23,6 +23,7 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
 
     private val mOkBtn = ColorButton(Strings.OK)
     private val mCancelBtn = ColorButton(Strings.CANCEL)
+    private val mPrevLaf = ConfigManager.LaF
 
     init {
         addWindowListener(mFilterComboPanel)
@@ -95,10 +96,34 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
         init {
             layout = FlowLayout(FlowLayout.LEFT)
 
-            val lafPanel = JPanel(FlowLayout(FlowLayout.LEFT))
+            val lafPanel = JPanel()
+            lafPanel.layout = GridLayout(4, 3)
+
             mLaFGroup = ButtonGroup()
 
-            var lafItem = JRadioButton(MainUI.CROSS_PLATFORM_LAF)
+            var lafItem = JRadioButton(MainUI.FLAT_LIGHT_LAF)
+            mLaFGroup.add(lafItem)
+            lafPanel.add(lafItem)
+//            lafPanel.add(ImagePanel("/images/appearance_flatlight.png"))
+
+            lafItem = JRadioButton(MainUI.FLAT_INTELLIJ_LAF)
+            mLaFGroup.add(lafItem)
+            lafPanel.add(lafItem)
+
+            lafItem = JRadioButton(MainUI.FLAT_MACOS_LIGHT_LAF)
+            mLaFGroup.add(lafItem)
+            lafPanel.add(lafItem)
+
+            lafItem = JRadioButton(MainUI.FLAT_DARK_LAF)
+            mLaFGroup.add(lafItem)
+            lafPanel.add(lafItem)
+//            lafPanel.add(ImagePanel("/images/appearance_flatdark.png"))
+
+            lafItem = JRadioButton(MainUI.FLAT_DARCULA_LAF)
+            mLaFGroup.add(lafItem)
+            lafPanel.add(lafItem)
+
+            lafItem = JRadioButton(MainUI.FLAT_MACOS_DARK_LAF)
             mLaFGroup.add(lafItem)
             lafPanel.add(lafItem)
 
@@ -106,23 +131,17 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
             mLaFGroup.add(lafItem)
             lafPanel.add(lafItem)
 
-            lafItem = JRadioButton(MainUI.FLAT_LIGHT_LAF)
-            mLaFGroup.add(lafItem)
-            lafPanel.add(lafItem)
-            lafPanel.add(ImagePanel("/images/appearance_flatlight.png"))
-
-            lafItem = JRadioButton(MainUI.FLAT_DARK_LAF)
-            mLaFGroup.add(lafItem)
-            lafPanel.add(lafItem)
-            lafPanel.add(ImagePanel("/images/appearance_flatdark.png"))
-
-            lafPanel.add(JLabel("   (Restart)"))
+            lafPanel.add(JLabel())
+            lafPanel.add(JLabel())
+            lafPanel.add(JLabel())
+            lafPanel.add(JLabel())
+            lafPanel.add(JLabel())
 
             for (item in mLaFGroup.elements) {
                 if (ConfigManager.LaF == item.text) {
                     item.isSelected = true
-                    break
                 }
+                item.addItemListener(this@AppearanceSettingsDialog)
             }
 
             val examplePanel = JPanel(FlowLayout(FlowLayout.LEFT))
@@ -230,6 +249,9 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
                 mMainUI.updateLogViewWidth()
             } else {
                 mMainUI.mLogSplitPane.dividerSize = mPrevDividerSize
+                ConfigManager.LaF = mPrevLaf
+                mMainUI.setLaF()
+                mMainUI.updateUI()
             }
         }
     }
@@ -1095,5 +1117,13 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
                 updateLabelColor(colorLabel.mType)
             }
         }
+    }
+
+    override fun itemStateChanged(p0: ItemEvent?) {
+        if (p0 != null) {
+            ConfigManager.LaF = (p0.source as JRadioButton).text
+        }
+        mMainUI.setLaF()
+        mMainUI.updateUI()
     }
 }

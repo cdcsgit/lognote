@@ -152,7 +152,7 @@ abstract class CustomListManager(mainUI: MainUI, logPanel: LogPanel) {
                 val element = value as CustomElement
                 titleLabel.text = element.mTitle
                 if (mFirstElement != null && mFirstElement!!.mTitle == element.mTitle) {
-                    if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+                    if (MainUI.IsFlatLaf && !MainUI.IsFlatLightLaf) {
                         titleLabel.foreground = Color(0xC05050)
                     }
                     else {
@@ -160,7 +160,7 @@ abstract class CustomListManager(mainUI: MainUI, logPanel: LogPanel) {
                     }
                 } else if (element.mTableBar) {
                     titleLabel.text += " - TableBar"
-                    if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+                    if (MainUI.IsFlatLaf && !MainUI.IsFlatLightLaf) {
                         titleLabel.foreground = Color(0x50C050)
                     }
                     else {
@@ -168,7 +168,7 @@ abstract class CustomListManager(mainUI: MainUI, logPanel: LogPanel) {
                     }
                 }
                 else {
-                    if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+                    if (MainUI.IsFlatLaf && !MainUI.IsFlatLightLaf) {
                         titleLabel.foreground = Color(0x7070E0)
                     }
                     else {
@@ -180,7 +180,7 @@ abstract class CustomListManager(mainUI: MainUI, logPanel: LogPanel) {
                 valueTA.updateUI()
 
                 if (isSelected) {
-                    if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+                    if (MainUI.IsFlatLaf && !MainUI.IsFlatLightLaf) {
                         titlePanel.background = Color(0x56595B)
                         valueTA.background = Color(0x56595B)
                     }
@@ -190,7 +190,7 @@ abstract class CustomListManager(mainUI: MainUI, logPanel: LogPanel) {
                     }
                 }
                 else {
-                    if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+                    if (MainUI.IsFlatLaf && !MainUI.IsFlatLightLaf) {
                         titlePanel.background = Color(0x46494B)
                         valueTA.background = Color(0x46494B)
                     }
@@ -457,14 +457,14 @@ abstract class CustomListManager(mainUI: MainUI, logPanel: LogPanel) {
                 }
 
                 if (isValid) {
-                    if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+                    if (MainUI.IsFlatLaf && !MainUI.IsFlatLightLaf) {
                         mTitleStatusLabel.foreground = Color(0x7070C0)
                     } else {
                         mTitleStatusLabel.foreground = Color.BLUE
                     }
                 }
                 else {
-                    if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+                    if (MainUI.IsFlatLaf && !MainUI.IsFlatLightLaf) {
                         mTitleStatusLabel.foreground = Color(0xC07070)
                     }
                     else {
@@ -473,7 +473,7 @@ abstract class CustomListManager(mainUI: MainUI, logPanel: LogPanel) {
                 }
 
                 if (mValueTF.text.trim().isEmpty()) {
-                    if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+                    if (MainUI.IsFlatLaf && !MainUI.IsFlatLightLaf) {
                         mValueStatusLabel.foreground = Color(0xC07070)
                     }
                     else {
@@ -483,7 +483,7 @@ abstract class CustomListManager(mainUI: MainUI, logPanel: LogPanel) {
                     isValid = false
                 }
                 else {
-                    if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+                    if (MainUI.IsFlatLaf && !MainUI.IsFlatLightLaf) {
                         mValueStatusLabel.foreground = Color(0x7070C0)
                     } else {
                         mValueStatusLabel.foreground = Color.BLUE
@@ -540,7 +540,7 @@ abstract class CustomListManager(mainUI: MainUI, logPanel: LogPanel) {
                     }
 
                     if (isValid) {
-                        if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+                        if (MainUI.IsFlatLaf && !MainUI.IsFlatLightLaf) {
                             mTitleStatusLabel.foreground = Color(0x7070C0)
                         }
                         else {
@@ -549,7 +549,7 @@ abstract class CustomListManager(mainUI: MainUI, logPanel: LogPanel) {
                         mTitleStatusLabel.text = "Good"
                     }
                     else {
-                        if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+                        if (MainUI.IsFlatLaf && !MainUI.IsFlatLightLaf) {
                             mTitleStatusLabel.foreground = Color(0xC07070)
                         }
                         else {
@@ -583,7 +583,7 @@ abstract class CustomListManager(mainUI: MainUI, logPanel: LogPanel) {
                     }
 
                     if (isValid) {
-                        if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+                        if (MainUI.IsFlatLaf && !MainUI.IsFlatLightLaf) {
                             mValueStatusLabel.foreground = Color(0x7070C0)
                         }
                         else {
@@ -592,7 +592,7 @@ abstract class CustomListManager(mainUI: MainUI, logPanel: LogPanel) {
                         mValueStatusLabel.text = "Good"
                     }
                     else {
-                        if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+                        if (MainUI.IsFlatLaf && !MainUI.IsFlatLightLaf) {
                             mValueStatusLabel.foreground = Color(0xC07070)
                         }
                         else {

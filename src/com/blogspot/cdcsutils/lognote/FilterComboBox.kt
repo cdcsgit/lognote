@@ -25,7 +25,7 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
         MULTI_LINE_HIGHLIGHT(3);
 
         companion object {
-            fun fromInt(value: Int) = values().first { it.value == value }
+            fun fromInt(value: Int) = entries.first { it.value == value }
         }
     }
 
@@ -53,10 +53,6 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
     private var mDialog: ColorTagDialog? = null
 
     init {
-        if (ConfigManager.LaF == MainUI.CROSS_PLATFORM_LAF) {
-            ui = BasicComboBoxUI()
-            ui.installUI(this)
-        }
         when (mMode) {
             Mode.SINGLE_LINE -> {
                 editor = HighlighterSingleLineEditor()
@@ -84,9 +80,6 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
                 editorComponent.setEnableHighlighter(true)
                 mEditorComponent = editorComponent
             }
-        }
-        if (ConfigManager.LaF == MainUI.CROSS_PLATFORM_LAF) {
-            mEditorComponent.border = BorderFactory.createLineBorder(Color.black)
         }
         mEditorComponent.toolTipText = toolTipText
         mEditorComponent.addKeyListener(KeyHandler())
@@ -344,7 +337,7 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
 
         if (mErrorMsg.isNotEmpty()) {
             var tooltip = "<html><b>"
-            tooltip += if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+            tooltip += if (MainUI.IsFlatLaf && !MainUI.IsFlatLightLaf) {
                 "<font size=5 color=#C07070>$mErrorMsg</font>"
             } else {
                 "<font size=5 color=#FF0000>$mErrorMsg</font>"
@@ -374,7 +367,7 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
             }
 
             var tooltip = "<html><b>$toolTipText</b><br>"
-            if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+            if (MainUI.IsFlatLaf && !MainUI.IsFlatLightLaf) {
                 tooltip += "<font>INCLUDE : </font>\"<font size=5 color=#7070C0>$includeStr</font>\"<br>"
                 tooltip += "<font>EXCLUDE : </font>\"<font size=5 color=#C07070>$excludeStr</font>\"<br>"
             } else {
@@ -551,7 +544,7 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
         }
 
         internal inner class HighlighterTextField : JTextField() {
-            private val mFgColor: Color = foreground
+            private var mFgColor: Color = foreground
             init {
                 (highlighter as DefaultHighlighter).drawsLayeredHighlights = false
 
@@ -593,7 +586,7 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
             private var mUpdateHighlighter = false
             override fun paint(g: Graphics?) {
                 if (mErrorMsg.isNotEmpty()) {
-                    foreground = if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+                    foreground = if (MainUI.IsFlatLaf && !MainUI.IsFlatLightLaf) {
                         Color(0xC0, 0x70, 0x70)
                     } else {
                         Color(0xFF, 0x00, 0x00)
@@ -617,6 +610,12 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
             override fun getToolTipLocation(event: MouseEvent?): Point {
                 return Point(0, height)
             }
+
+            override fun updateUI() {
+                foreground?.let { mFgColor = it }
+                super.updateUI()
+            }
+
         }
     }
 
@@ -657,7 +656,7 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
             private var mPrevCaret = 0
             private val mActionListeners = ArrayList<ActionListener>()
 
-            private val mFgColor = foreground
+            private var mFgColor = foreground
 
             init {
                 lineWrap = true
@@ -726,12 +725,7 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
                             }
                         }
 
-                        if (ConfigManager.LaF == MainUI.CROSS_PLATFORM_LAF) {
-                            mCombo.preferredSize = Dimension(mCombo.preferredSize.width, preferredSize.height + 6)
-                        }
-                        else {
-                            mCombo.preferredSize = Dimension(mCombo.preferredSize.width, preferredSize.height)
-                        }
+                        mCombo.preferredSize = Dimension(mCombo.preferredSize.width, preferredSize.height)
                         mCombo.parent.revalidate()
                         mCombo.parent.repaint()
                     }
@@ -771,7 +765,7 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
 
             override fun paint(g: Graphics?) {
                 if (mErrorMsg.isNotEmpty()) {
-                    foreground = if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+                    foreground = if (MainUI.IsFlatLaf && !MainUI.IsFlatLightLaf) {
                         Color(0xC0, 0x70, 0x70)
                     } else {
                         Color(0xFF, 0x00, 0x00)
@@ -787,6 +781,12 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
                 }
                 super.paint(g)
             }
+
+            override fun updateUI() {
+                mFgColor = foreground
+                super.updateUI()
+            }
+
             fun addActionListener(l: ActionListener) {
                 mActionListeners.add(l)
             }
@@ -801,12 +801,7 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
             override fun setText(t: String?) {
                 super.setText(t)
                 if (t != null) {
-                    if (ConfigManager.LaF == MainUI.CROSS_PLATFORM_LAF) {
-                        mCombo.preferredSize = Dimension(mCombo.preferredSize.width, preferredSize.height + 6)
-                    }
-                    else {
-                        mCombo.preferredSize = Dimension(mCombo.preferredSize.width, preferredSize.height)
-                    }
+                    mCombo.preferredSize = Dimension(mCombo.preferredSize.width, preferredSize.height)
                 }
             }
 

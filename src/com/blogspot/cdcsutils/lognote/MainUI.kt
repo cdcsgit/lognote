@@ -1,7 +1,8 @@
 package com.blogspot.cdcsutils.lognote
 
-import com.formdev.flatlaf.FlatDarkLaf
-import com.formdev.flatlaf.FlatLightLaf
+import com.formdev.flatlaf.*
+import com.formdev.flatlaf.themes.FlatMacDarkLaf
+import com.formdev.flatlaf.themes.FlatMacLightLaf
 import java.awt.*
 import java.awt.datatransfer.Clipboard
 import java.awt.datatransfer.StringSelection
@@ -35,10 +36,15 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
         const val DEFAULT_FONT_NAME = "DialogInput"
 
-        const val CROSS_PLATFORM_LAF = "Cross Platform"
         const val SYSTEM_LAF = "System"
-        const val FLAT_LIGHT_LAF = "Flat Light"
-        const val FLAT_DARK_LAF = "Flat Dark"
+        const val FLAT_LIGHT_LAF = "FlatLaf Light"
+        const val FLAT_DARK_LAF = "FlatLaf Dark"
+        const val FLAT_INTELLIJ_LAF = "FlatLaf Intellij"
+        const val FLAT_DARCULA_LAF = "FlatLaf Darcula"
+        const val FLAT_MACOS_LIGHT_LAF = "FlatLaf macOS Light"
+        const val FLAT_MACOS_DARK_LAF = "FlatLaf macOS Dark"
+        var IsFlatLaf = true
+        var IsFlatLightLaf = true
 
         const val METHOD_NONE = 0
         const val METHOD_OPEN = 1
@@ -216,19 +222,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             ConfigManager.LaF = laf
         }
 
-        val uiFontSize = mConfigManager.getItem(ConfigManager.ITEM_UI_FONT_SIZE)
-        if (!uiFontSize.isNullOrEmpty()) {
-            mUIFontPercent = uiFontSize.toInt()
-        }
-
-        if (ConfigManager.LaF == FLAT_LIGHT_LAF || ConfigManager.LaF == FLAT_DARK_LAF) {
-            System.setProperty("flatlaf.uiScale", "$mUIFontPercent%")
-        }
-        else {
-            initFontSize(mUIFontPercent)
-        }
-
-        setLaF(ConfigManager.LaF)
+        setLaF()
 
         val cmd = mConfigManager.getItem(ConfigManager.ITEM_ADB_CMD)
         if (!cmd.isNullOrEmpty()) {
@@ -677,13 +671,6 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
         jMenuBar = mMenuBar
 
-        if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
-            UIManager.put("ScrollBar.thumb", ColorUIResource(Color(0xE0, 0xE0, 0xE0)))
-            UIManager.put("ScrollBar.thumbHighlight", ColorUIResource(Color(0xE5, 0xE5, 0xE5)))
-            UIManager.put("ScrollBar.thumbShadow", ColorUIResource(Color(0xE5, 0xE5, 0xE5)))
-            UIManager.put("ComboBox.buttonDarkShadow", ColorUIResource(Color.black))
-        }
-
         addMouseListener(mFrameMouseListener)
         addMouseMotionListener(mFrameMouseListener)
         contentPane.addMouseListener(mFrameMouseListener)
@@ -840,16 +827,10 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
         mShowLogPanel.layout = BorderLayout()
         mShowLogPanel.add(mShowLogTogglePanel, BorderLayout.WEST)
-        if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
-            mShowLogCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 3)
-        }
         mShowLogPanel.add(mShowLogCombo, BorderLayout.CENTER)
 
         mBoldLogPanel.layout = BorderLayout()
         mBoldLogPanel.add(mBoldLogTogglePanel, BorderLayout.WEST)
-        if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
-            mBoldLogCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 3)
-        }
         mBoldLogCombo.preferredSize = Dimension(170, mBoldLogCombo.preferredSize.height)
         mBoldLogPanel.add(mBoldLogCombo, BorderLayout.CENTER)
 
@@ -857,22 +838,13 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
             mTokenPanel[idx].layout = BorderLayout()
             mTokenPanel[idx].add(mTokenTogglePanel[idx], BorderLayout.WEST)
-            if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
-                mTokenCombo[idx].border = BorderFactory.createEmptyBorder(3, 0, 3, 3)
-            }
             mTokenCombo[idx].preferredSize = Dimension(mFormatManager.mCurrFormat.mTokenFilters[idx].mUiWidth, mTokenCombo[idx].preferredSize.height)
             mTokenPanel[idx].add(mTokenCombo[idx], BorderLayout.CENTER)
         }
 
         mLogCmdCombo.preferredSize = Dimension(200 * mUIFontPercent / 100, mLogCmdCombo.preferredSize.height)
-        if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
-            mLogCmdCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 5)
-        }
 
         mDeviceCombo.preferredSize = Dimension(200 * mUIFontPercent / 100, mDeviceCombo.preferredSize.height)
-        if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
-            mDeviceCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 5)
-        }
         mDeviceStatus.preferredSize = Dimension(100, 30)
         mDeviceStatus.border = BorderFactory.createEmptyBorder(3, 0, 3, 0)
         mDeviceStatus.horizontalAlignment = JLabel.CENTER
@@ -885,10 +857,8 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mScrollbackKeepToggle.toolTipText = TooltipStrings.SCROLLBACK_KEEP_TOGGLE
         mScrollbackKeepToggle.mSelectedBg = Color.RED
         mScrollbackKeepToggle.mSelectedFg = Color.BLACK
-        if (ConfigManager.LaF != CROSS_PLATFORM_LAF) {
-            val imgIcon = ImageIcon(this.javaClass.getResource("/images/toggle_on_warn.png"))
-            mScrollbackKeepToggle.selectedIcon = imgIcon
-        }
+        val imgIcon = ImageIcon(this.javaClass.getResource("/images/toggle_on_warn.png"))
+        mScrollbackKeepToggle.selectedIcon = imgIcon
 
         mScrollbackKeepToggle.margin = btnMargin
         mScrollbackKeepToggle.addItemListener(mItemHandler)
@@ -1077,18 +1047,12 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mLogFormatCombo.renderer = ColorComboBox.ComboBoxRenderer()
         mLogFormatCombo.addPopupMenuListener(mPopupMenuHandler)
         mLogFormatCombo.preferredSize = Dimension(150 * mUIFontPercent / 100, mLogFormatCombo.preferredSize.height)
-        if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
-            mLogFormatCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 5)
-        }
         mLogLevelCombo = ColorComboBox()
         mLogLevelCombo.toolTipText = TooltipStrings.LOG_LEVEL_COMBO
         mLogLevelCombo.isEditable = false
         mLogLevelCombo.renderer = ColorComboBox.ComboBoxRenderer()
         mLogLevelCombo.addPopupMenuListener(mPopupMenuHandler)
         mLogLevelCombo.preferredSize = Dimension(100 * mUIFontPercent / 100, mLogLevelCombo.preferredSize.height)
-        if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
-            mLogLevelCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 5)
-        }
 
         logFormatPanel.add(mLogFormatCombo)
         logFormatPanel.add(mLogLevelCombo)
@@ -1494,7 +1458,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mScrollbackKeepToggle.icon = ImageIcon(this.javaClass.getResource("/images/keeplog_off.png"))
             mScrollbackSplitFileToggle.icon = ImageIcon(this.javaClass.getResource("/images/splitfile_off.png"))
 
-            if (ConfigManager.LaF == FLAT_DARK_LAF) {
+            if (IsFlatLaf && !IsFlatLightLaf) {
                 mRetryAdbToggle.selectedIcon = ImageIcon(this.javaClass.getResource("/images/retry_on_dark.png"))
                 mPauseToggle.selectedIcon = ImageIcon(this.javaClass.getResource("/images/pause_on_dark.png"))
                 mScrollbackKeepToggle.selectedIcon = ImageIcon(this.javaClass.getResource("/images/keeplog_on_dark.png"))
@@ -1602,16 +1566,41 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             }
         }
     }
-    private fun setLaF(laf:String) {
-        ConfigManager.LaF = laf
-        when (laf) {
-            CROSS_PLATFORM_LAF->{
-                try {
-                    UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName())
-                } catch (ex: Exception) {
-                    Utils.printlnLog("Failed to initialize CrossPlatformLaf")
-                }
+
+    fun setLaF() {
+        when (ConfigManager.LaF) {
+            SYSTEM_LAF->{
+                IsFlatLaf = false
+                IsFlatLightLaf = true
             }
+            FLAT_LIGHT_LAF, FLAT_INTELLIJ_LAF, FLAT_MACOS_LIGHT_LAF->{
+                IsFlatLaf = true
+                IsFlatLightLaf = true
+            }
+            FLAT_DARK_LAF, FLAT_DARCULA_LAF, FLAT_MACOS_DARK_LAF->{
+                IsFlatLaf = true
+                IsFlatLightLaf = false
+            }
+            else-> {
+                ConfigManager.LaF = FLAT_LIGHT_LAF
+                IsFlatLaf = true
+                IsFlatLightLaf = true
+            }
+        }
+
+        val uiFontSize = mConfigManager.getItem(ConfigManager.ITEM_UI_FONT_SIZE)
+        if (!uiFontSize.isNullOrEmpty()) {
+            mUIFontPercent = uiFontSize.toInt()
+        }
+
+        if (IsFlatLaf) {
+            System.setProperty("flatlaf.uiScale", "$mUIFontPercent%")
+        }
+        else {
+            initFontSize(mUIFontPercent)
+        }
+
+        when (ConfigManager.LaF) {
             SYSTEM_LAF->{
                 try {
                     UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
@@ -1633,21 +1622,43 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                     Utils.printlnLog("Failed to initialize FlatDarkLaf")
                 }
             }
-            else->{
+            FLAT_INTELLIJ_LAF->{
                 try {
-                    UIManager.setLookAndFeel(FlatLightLaf())
+                    UIManager.setLookAndFeel(FlatIntelliJLaf())
                 } catch (ex: Exception) {
-                    Utils.printlnLog("Failed to initialize FlatLightLaf")
+                    Utils.printlnLog("Failed to initialize FlatDarkLaf")
+                }
+            }
+            FLAT_DARCULA_LAF->{
+                try {
+                    UIManager.setLookAndFeel(FlatDarculaLaf())
+                } catch (ex: Exception) {
+                    Utils.printlnLog("Failed to initialize FlatDarkLaf")
+                }
+            }
+            FLAT_MACOS_LIGHT_LAF->{
+                try {
+                    UIManager.setLookAndFeel(FlatMacLightLaf())
+                } catch (ex: Exception) {
+                    Utils.printlnLog("Failed to initialize FlatDarkLaf")
+                }
+            }
+            FLAT_MACOS_DARK_LAF->{
+                try {
+                    UIManager.setLookAndFeel(FlatMacDarkLaf())
+                } catch (ex: Exception) {
+                    Utils.printlnLog("Failed to initialize FlatDarkLaf")
                 }
             }
         }
+        FlatLaf.updateUI()
         SwingUtilities.updateComponentTreeUI(this)
     }
 
     private fun addVSeparator(panel:JPanel) {
         val separator1 = JSeparator(SwingConstants.VERTICAL)
         separator1.preferredSize = Dimension(separator1.preferredSize.width, 20)
-        if (ConfigManager.LaF == FLAT_DARK_LAF) {
+        if (IsFlatLaf && !IsFlatLightLaf) {
             separator1.foreground = Color.GRAY
             separator1.background = Color.GRAY
         }
@@ -1657,7 +1668,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         }
         val separator2 = JSeparator(SwingConstants.VERTICAL)
         separator2.preferredSize = Dimension(separator2.preferredSize.width, 20)
-        if (ConfigManager.LaF == FLAT_DARK_LAF) {
+        if (IsFlatLaf && !IsFlatLightLaf) {
             separator2.foreground = Color.GRAY
             separator2.background = Color.GRAY
         }
@@ -1667,16 +1678,13 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         }
         panel.add(Box.createHorizontalStrut(5))
         panel.add(separator1)
-        if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
-            panel.add(separator2)
-        }
         panel.add(Box.createHorizontalStrut(5))
     }
 
     private fun addVSeparator2(panel:JPanel) {
         val separator1 = JSeparator(SwingConstants.VERTICAL)
         separator1.preferredSize = Dimension(separator1.preferredSize.width / 2, 20)
-        if (ConfigManager.LaF == FLAT_DARK_LAF) {
+        if (IsFlatLaf && !IsFlatLightLaf) {
             separator1.foreground = Color.GRAY
             separator1.background = Color.GRAY
         }
@@ -1752,7 +1760,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mRecentFileManager.addOpenFile(openItem)
         mFilteredLogPanel.mTableModel.loadItems(isAppend)
 
-        if (ConfigManager.LaF == FLAT_DARK_LAF) {
+        if (IsFlatLaf && !IsFlatLightLaf) {
             mStatusMethod.background = Color(0x50, 0x50, 0x00)
         }
         else {
@@ -1896,7 +1904,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mLogCmdManager.startLogcat()
         }
         mFilteredLogPanel.mTableModel.startScan()
-        if (ConfigManager.LaF == FLAT_DARK_LAF) {
+        if (IsFlatLaf && !IsFlatLightLaf) {
             mStatusMethod.background = Color(0x00, 0x50, 0x00)
         }
         else {
@@ -1920,7 +1928,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             return
         }
         mFilteredLogPanel.mTableModel.stopScan()
-        if (ConfigManager.LaF == FLAT_DARK_LAF) {
+        if (IsFlatLaf && !IsFlatLightLaf) {
             mStatusMethod.background = Color(0x50, 0x50, 0x50)
         }
         else {
@@ -1967,7 +1975,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mPauseFollowToggle.isSelected = false
         mFilteredLogPanel.mTableModel.startFollow()
 
-        if (ConfigManager.LaF == FLAT_DARK_LAF) {
+        if (IsFlatLaf && !IsFlatLightLaf) {
             mStatusMethod.background = Color(0x00, 0x00, 0x50)
         }
         else {
@@ -1985,7 +1993,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         }
         mStatusMethod.text = " ${Strings.FOLLOW} ${Strings.STOP} "
         mFilteredLogPanel.mTableModel.stopFollow()
-        if (ConfigManager.LaF == FLAT_DARK_LAF) {
+        if (IsFlatLaf && !IsFlatLightLaf) {
             mStatusMethod.background = Color(0x50, 0x50, 0x50)
         }
         else {
@@ -2624,14 +2632,14 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
     fun setDeviceComboColor(isConnected: Boolean) {
         if (isConnected) {
-            if (ConfigManager.LaF == FLAT_DARK_LAF) {
+            if (IsFlatLaf && !IsFlatLightLaf) {
                 mDeviceCombo.editor.editorComponent.foreground = Color(0x7070C0)
             }
             else {
                 mDeviceCombo.editor.editorComponent.foreground = Color.BLUE
             }
         } else {
-            if (ConfigManager.LaF == FLAT_DARK_LAF) {
+            if (IsFlatLaf && !IsFlatLightLaf) {
                 mDeviceCombo.editor.editorComponent.foreground = Color(0xC07070)
             }
             else {
@@ -2660,19 +2668,20 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             else {
                 mLogCmdCombo.editor.item = currLogCmd
             }
+            mLogCmdCombo.selectedItem = mLogCmdCombo.editor.item
         }
 
         mLogCmdCombo.toolTipText = "\"${mLogCmdManager.mLogCmd}\"\n\n${TooltipStrings.LOG_CMD_COMBO}"
 
         if (mLogCmdManager.mLogCmd == mLogCmdCombo.editor.item.toString()) {
-            if (ConfigManager.LaF == FLAT_DARK_LAF) {
+            if (IsFlatLaf && !IsFlatLightLaf) {
                 mLogCmdCombo.editor.editorComponent.foreground = Color(0x7070C0)
             }
             else {
                 mLogCmdCombo.editor.editorComponent.foreground = Color.BLUE
             }
         } else {
-            if (ConfigManager.LaF == FLAT_DARK_LAF) {
+            if (IsFlatLaf && !IsFlatLightLaf) {
                 mLogCmdCombo.editor.editorComponent.foreground = Color(0xC07070)
             }
             else {
@@ -3109,9 +3118,6 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mSearchLabel = JLabel("${Strings.SEARCH} ")
             mSearchCombo = FilterComboBox(FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT, false)
             mSearchCombo.preferredSize = Dimension(700, mSearchCombo.preferredSize.height)
-            if (ConfigManager.LaF == CROSS_PLATFORM_LAF) {
-                mSearchCombo.border = BorderFactory.createEmptyBorder(3, 0, 3, 5)
-            }
 
             mSearchCombo.toolTipText = TooltipStrings.SEARCH_COMBO
             mSearchCombo.mEnabledTfTooltip = false
@@ -3535,6 +3541,37 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     private fun updateTablePNameColumn(isShow: Boolean) {
         mFullLogPanel.updateTablePNameColumn(isShow)
         mFilteredLogPanel.updateTablePNameColumn(isShow)
+    }
+
+    fun updateUI() {
+        mLogCmdCombo.toolTipText = ""
+        mLogCmdCombo.toolTipText = TooltipStrings.LOG_CMD_COMBO
+        mLogCmdCombo.renderer = ColorComboBox.ComboBoxRenderer()
+
+        mLogCmdCombo.editor.editorComponent.removeKeyListener(mKeyHandler)
+        mLogCmdCombo.removeItemListener(mItemHandler)
+        mLogCmdCombo.editor.editorComponent.removeMouseListener(mMouseHandler)
+        mLogCmdCombo.removePopupMenuListener(mPopupMenuHandler)
+
+        mLogCmdCombo.editor.editorComponent.addKeyListener(mKeyHandler)
+        mLogCmdCombo.addItemListener(mItemHandler)
+        mLogCmdCombo.editor.editorComponent.addMouseListener(mMouseHandler)
+        mLogCmdCombo.addPopupMenuListener(mPopupMenuHandler)
+        updateLogCmdCombo(false)
+
+        mDeviceCombo.toolTipText = ""
+        mDeviceCombo.toolTipText = TooltipStrings.DEVICES_COMBO
+        mDeviceCombo.renderer = ColorComboBox.ComboBoxRenderer()
+
+        mDeviceCombo.editor.editorComponent.removeKeyListener(mKeyHandler)
+        mDeviceCombo.removeItemListener(mItemHandler)
+        mDeviceCombo.editor.editorComponent.removeMouseListener(mMouseHandler)
+
+        mDeviceCombo.editor.editorComponent.addKeyListener(mKeyHandler)
+        mDeviceCombo.addItemListener(mItemHandler)
+        mDeviceCombo.editor.editorComponent.addMouseListener(mMouseHandler)
+
+        setDeviceComboColor(mLogCmdManager.mDevices.contains(mDeviceCombo.selectedItem?.toString() ?: ""))
     }
 }
 

@@ -344,9 +344,15 @@ class ConfigManager private constructor() {
                 confVer = (mProperties[ITEM_CONFIG_VERSION] ?: "") as String
                 Utils.printlnLog("manageVersion : $confVer applied")
             }
+
+            if (confVer == "3") {
+                updateConfigFromV3ToV4()
+                confVer = (mProperties[ITEM_CONFIG_VERSION] ?: "") as String
+                Utils.printlnLog("manageVersion : $confVer applied")
+            }
         }
         else {
-            mProperties[ITEM_CONFIG_VERSION] = "3"
+            mProperties[ITEM_CONFIG_VERSION] = "4"
         }
 
         saveConfig()
@@ -434,6 +440,22 @@ class ConfigManager private constructor() {
 
         mProperties[ITEM_CONFIG_VERSION] = "3"
         Utils.printlnLog("updateConfigFromV2ToV3 : --")
+    }
+
+    private fun updateConfigFromV3ToV4() {
+        Utils.printlnLog("updateConfigFromV1ToV2 : change log level properties ++")
+        val laf = mProperties[ITEM_LOOK_AND_FEEL] as String?
+        if (laf != null) {
+            if (laf == "Flat Light") {
+                mProperties[ITEM_LOOK_AND_FEEL] = MainUI.FLAT_LIGHT_LAF
+            }
+            else if (laf == "Flat Dark") {
+                mProperties[ITEM_LOOK_AND_FEEL] = MainUI.FLAT_DARK_LAF
+            }
+        }
+
+        mProperties[ITEM_CONFIG_VERSION] = "4"
+        Utils.printlnLog("updateConfigFromV3ToV4 : --")
     }
 }
 

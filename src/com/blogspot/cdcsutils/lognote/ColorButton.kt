@@ -4,11 +4,6 @@ import java.awt.Color
 import javax.swing.JButton
 
 open class ColorButton(title:String) : JButton(title) {
-    init {
-        if (ConfigManager.LaF == MainUI.CROSS_PLATFORM_LAF) {
-            background = Color(0xE5, 0xE5, 0xE5)
-        }
-    }
 }
 
 class TableBarButton(title:String) : ColorButton(title) {

@@ -47,7 +47,7 @@ class Utils {
         fun addVSeparator(panel:JPanel, height: Int) {
             val separator1 = JSeparator(SwingConstants.VERTICAL)
             separator1.preferredSize = Dimension(separator1.preferredSize.width, height)
-            if (ConfigManager.LaF == MainUI.FLAT_DARK_LAF) {
+            if (MainUI.IsFlatLaf && !MainUI.IsFlatLightLaf) {
                 separator1.foreground = Color.GRAY
                 separator1.background = Color.GRAY
             }
