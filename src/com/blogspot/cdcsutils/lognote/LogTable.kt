@@ -23,6 +23,7 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
     private val mTableColor: ColorManager.TableColor
     private val mBookmarkManager = BookmarkManager.getInstance()
     val mMultiClickInterval = Toolkit.getDefaultToolkit().getDesktopProperty("awt.multiClickInterval").toString().toInt() + 500
+    var mIsMousePressedTableHeader = false
 
     init {
         this.setShowGrid(false)
@@ -35,8 +36,9 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         columnNum.cellRenderer = NumCellRenderer()
 
         val cellRenderer = LogCellRenderer()
-        val columnPackageName = columnModel.getColumn(LogTableModel.COLUMN_PROCESS_NAME)
-        columnPackageName.cellRenderer = cellRenderer
+        val columnProcessName = columnModel.getColumn(LogTableModel.COLUMN_PROCESS_NAME)
+//        columnProcessName.cellRenderer = ProcessNameRenderer()
+        columnProcessName.cellRenderer = cellRenderer
 
         val columnLog = columnModel.getColumn(LogTableModel.COLUMN_LOG_START)
         columnLog.cellRenderer = cellRenderer
@@ -55,6 +57,8 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         this.addMouseListener(MouseHandler())
         this.addMouseMotionListener(MouseHandler())
         this.addKeyListener(TableKeyHandler())
+
+        tableHeader.addMouseListener(TableHeaderMouseHandler())
 
         mTableColor = if (mTableModel.isFullDataModel()) {
             ColorManager.getInstance().mFullTableColor
@@ -82,7 +86,7 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
     }
 
     open fun updateColumnWidth(width: Int, scrollVBarWidth: Int) {
-        if (rowCount <= 0) {
+        if (rowCount <= 0 || mIsMousePressedTableHeader) {
             return
         }
 
@@ -174,6 +178,34 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
                 mTableColor.mNumSelectedBG
             } else {
                 mTableColor.mLineNumBG
+            }
+
+            return label
+        }
+    }
+
+    internal inner class ProcessNameRenderer : DefaultTableCellRenderer() {
+        override fun getTableCellRendererComponent(
+            table: JTable?,
+            value: Any?,
+            isSelected: Boolean,
+            hasFocus: Boolean,
+            row: Int,
+            col: Int
+        ): Component {
+            val label:JLabel = super.getTableCellRendererComponent(table, mTableModel.getValueAt(row, col).toString(), isSelected, hasFocus, row, col) as JLabel
+            label.border = BorderFactory.createEmptyBorder(0, 5, 0, 0)
+
+            val pidTmp = mTableModel.getValuePid(row)
+            val pid = pidTmp.toInt()
+
+//            foreground = mTableModel.getFgColor(row)
+
+            if (MainUI.IsFlatLightLaf) {
+                label.background = Color(pid % 0x60 + 0xA0, (pid * 3) % 0x60 + 0xA0, (pid * 6) % 0x60 + 0xA0)
+            }
+            else {
+                label.background = Color(pid % 0x30, (pid * 2) % 0x30, (pid * 3) % 0x30)
             }
 
             return label
@@ -392,7 +424,7 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
             val column: Int = columnAtPoint(point)
             if (ProcessList.UpdateTime > 0 && MainUI.CurrentMethod == MainUI.METHOD_ADB && column >= 1) { // column >= 1) { // column >= 1, not line number
                 val row: Int = rowAtPoint(point)
-                val pid = mTableModel.getValueProcess(row)
+                val pid = mTableModel.getValuePid(row)
                 if (pid.isNotEmpty()) {
                     val processItem = ProcessList.getInstance().getProcess(pid)
                     if (processItem != null) {
@@ -469,7 +501,7 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         val column: Int = columnAtPoint(point)
         if (MainUI.CurrentMethod == MainUI.METHOD_ADB && column >= 1) { // column >= 1, not line number
             val row: Int = rowAtPoint(point)
-            val pid = mTableModel.getValueProcess(row)
+            val pid = mTableModel.getValuePid(row)
             if (pid.isNotEmpty()) {
                 val processItem = ProcessList.getInstance().getProcess(pid)
                 if (processItem != null) {
@@ -538,6 +570,19 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
             }
 
             super.mouseClicked(p0)
+        }
+    }
+
+    internal inner class TableHeaderMouseHandler : MouseAdapter() {
+        override fun mousePressed(p0: MouseEvent?) {
+            mIsMousePressedTableHeader = true
+            super.mousePressed(p0)
+        }
+
+        override fun mouseReleased(p0: MouseEvent?) {
+            mIsMousePressedTableHeader = false
+
+            super.mouseReleased(p0)
         }
     }
 

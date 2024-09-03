@@ -26,6 +26,10 @@ class LogColumnTable(tableModel:LogColumnTableModel) : LogTable(tableModel) {
     }
 
     override fun updateColumnWidth(width: Int, scrollVBarWidth: Int) {
+        if (mIsMousePressedTableHeader) {
+            return
+        }
+
         val fontMetrics = getFontMetrics(font)
         val value = mTableModel.getValueAt(rowCount - 1, 0)
         val column0Width = fontMetrics.stringWidth(value.toString()) + 20

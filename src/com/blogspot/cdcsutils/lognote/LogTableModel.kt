@@ -1876,7 +1876,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
         }
     }
 
-    fun getValueProcess(row: Int): String {
+    fun getValuePid(row: Int): String {
         return if (row >= 0 && row < mLogItems.size) {
             if (mSortedPidTokIdx >= 0) {
                 mLogItems[row].mTokenFilterLogs[mSortedPidTokIdx]
