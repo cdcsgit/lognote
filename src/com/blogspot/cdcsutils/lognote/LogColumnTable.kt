@@ -1,6 +1,5 @@
 package com.blogspot.cdcsutils.lognote
 
-import com.blogspot.cdcsutils.lognote.LogTableModel.Companion.IsShowProcessName
 import javax.swing.table.TableColumn
 
 class LogColumnTable(tableModel:LogColumnTableModel) : LogTable(tableModel) {
@@ -14,7 +13,7 @@ class LogColumnTable(tableModel:LogColumnTableModel) : LogTable(tableModel) {
     init {
         var column: TableColumn?
         val cellRenderer = LogCellRenderer()
-        for (idx in LogTableModel.COLUMN_PROCESS_NAME until columnCount) {
+        for (idx in LogTableModel.COLUMN_LOG_START until columnCount) {
             column = columnModel.getColumn(idx)
             column.cellRenderer = cellRenderer
         }

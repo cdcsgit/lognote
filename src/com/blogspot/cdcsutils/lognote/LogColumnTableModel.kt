@@ -44,7 +44,7 @@ class LogColumnTableModel(mainUI: MainUI, baseModel: LogTableModel?) : LogTableM
                 if (columnIndex == COLUMN_NUM) {
                     return logItem.mNum + " "
                 } else if (columnIndex == COLUMN_PROCESS_NAME) {
-                    if (IsShowProcessName) {
+                    if (TypeShowProcessName != SHOW_PROCESS_NONE) {
                         if (logItem.mProcessName == null) {
                             if (mSortedPidTokIdx >= 0 && logItem.mTokenFilterLogs.size > mSortedPidTokIdx) {
                                 return if (logItem.mTokenFilterLogs[mSortedPidTokIdx] == "0") {
@@ -114,7 +114,7 @@ class LogColumnTableModel(mainUI: MainUI, baseModel: LogTableModel?) : LogTableM
             tokenLogs = null
         }
 
-        val processName = if (IsShowProcessName && mSortedPidTokIdx >= 0 && tokenFilterLogs.size > mSortedPidTokIdx) {
+        val processName = if (TypeShowProcessName != SHOW_PROCESS_NONE && mSortedPidTokIdx >= 0 && tokenFilterLogs.size > mSortedPidTokIdx) {
             ProcessList.getInstance().getProcessName(tokenFilterLogs[mSortedPidTokIdx])
         } else {
             null

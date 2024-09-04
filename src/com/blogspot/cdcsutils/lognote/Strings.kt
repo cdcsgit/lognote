@@ -338,5 +338,9 @@ class Strings private constructor() {
             get() { return currStrings[field]!! }
         val SHOW_PROCESS_NAME: String = idx++.toString()
             get() { return currStrings[field]!! }
+        val SHOW: String = idx++.toString()
+            get() { return currStrings[field]!! }
+        val SHOW_WITH_COLORBG: String = idx++.toString()
+            get() { return currStrings[field]!! }
     }
 }

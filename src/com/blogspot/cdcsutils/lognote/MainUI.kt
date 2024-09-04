@@ -1,5 +1,6 @@
 package com.blogspot.cdcsutils.lognote
 
+import com.blogspot.cdcsutils.lognote.FormatManager.Companion.ITEM_TOKEN_FILTER_NTH
 import com.formdev.flatlaf.*
 import com.formdev.flatlaf.themes.FlatMacDarkLaf
 import com.formdev.flatlaf.themes.FlatMacLightLaf
@@ -85,7 +86,10 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     private lateinit var mMenuView: JMenu
     private lateinit var mItemFull: JCheckBoxMenuItem
     private lateinit var mItemColumnMode: JCheckBoxMenuItem
-    private lateinit var mItemProcessName: JCheckBoxMenuItem
+    private lateinit var mItemProcessName: JMenu
+    private lateinit var mItemProcessNameNone: JRadioButtonMenuItem
+    private lateinit var mItemProcessNameShow: JRadioButtonMenuItem
+    private lateinit var mItemProcessNameColor: JRadioButtonMenuItem
     private lateinit var mItemSearch: JCheckBoxMenuItem
     private lateinit var mItemTrigger: JCheckBoxMenuItem
     private lateinit var mItemRotation: JMenuItem
@@ -323,9 +327,13 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
         prop = mConfigManager.getItem(ConfigManager.ITEM_VIEW_PROCESS_NAME)
         if (!prop.isNullOrEmpty()) {
-            LogTableModel.IsShowProcessName = prop.toBoolean()
+            LogTableModel.TypeShowProcessName = try {
+                    prop.toInt()
+                } catch (ex: NumberFormatException) {
+                    LogTableModel.SHOW_PROCESS_SHOW_WITH_BGCOLOR
+                }
         } else {
-            LogTableModel.IsShowProcessName = true
+            LogTableModel.TypeShowProcessName = LogTableModel.SHOW_PROCESS_SHOW_WITH_BGCOLOR
         }
 
         createUI()
@@ -593,10 +601,35 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mItemColumnMode.addActionListener(mActionHandler)
         mMenuView.add(mItemColumnMode)
 
-        mItemProcessName = JCheckBoxMenuItem(Strings.SHOW_PROCESS_NAME)
-        mItemProcessName.state = LogTableModel.IsShowProcessName
+        mItemProcessName = JMenu(Strings.SHOW_PROCESS_NAME)
         mItemProcessName.addActionListener(mActionHandler)
         mMenuView.add(mItemProcessName)
+
+        val buttonGroup = ButtonGroup()
+        mItemProcessNameNone = JRadioButtonMenuItem(Strings.NONE)
+        mItemProcessName.add(mItemProcessNameNone)
+        buttonGroup.add(mItemProcessNameNone)
+        if (LogTableModel.TypeShowProcessName == LogTableModel.SHOW_PROCESS_NONE) {
+            mItemProcessNameNone.isSelected = true
+        }
+
+        mItemProcessNameShow = JRadioButtonMenuItem(Strings.SHOW)
+        mItemProcessName.add(mItemProcessNameShow)
+        buttonGroup.add(mItemProcessNameShow)
+        if (LogTableModel.TypeShowProcessName == LogTableModel.SHOW_PROCESS_SHOW) {
+            mItemProcessNameShow.isSelected = true
+        }
+
+        mItemProcessNameColor = JRadioButtonMenuItem(Strings.SHOW_WITH_COLORBG)
+        mItemProcessName.add(mItemProcessNameColor)
+        buttonGroup.add(mItemProcessNameColor)
+        if (LogTableModel.TypeShowProcessName == LogTableModel.SHOW_PROCESS_SHOW_WITH_BGCOLOR) {
+            mItemProcessNameColor.isSelected = true
+        }
+
+        mItemProcessNameNone.addItemListener(mItemHandler)
+        mItemProcessNameShow.addItemListener(mItemHandler)
+        mItemProcessNameColor.addItemListener(mItemHandler)
 
         mMenuView.addSeparator()
 
@@ -1893,7 +1926,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         else {
             mStatusMethod.text = " ${Strings.ADB} "
             CurrentMethod = METHOD_ADB
-            updateTablePNameColumn(LogTableModel.IsShowProcessName)
+            updateTablePNameColumn(LogTableModel.TypeShowProcessName != LogTableModel.SHOW_PROCESS_NONE)
         }
 
         mFilteredLogPanel.mTableModel.stopScan()
@@ -2129,12 +2162,6 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                 mItemColumnMode -> {
                     mConfigManager.saveItem(ConfigManager.ITEM_VIEW_COLUMN_MODE, mItemColumnMode.state.toString())
                     resetLogPanel()
-                }
-
-                mItemProcessName -> {
-                    mConfigManager.saveItem(ConfigManager.ITEM_VIEW_PROCESS_NAME, mItemProcessName.state.toString())
-                    LogTableModel.IsShowProcessName = mItemProcessName.state
-                    updateTablePNameColumn(CurrentMethod == METHOD_ADB && LogTableModel.IsShowProcessName)
                 }
 
                 mItemSearch -> {
@@ -2807,6 +2834,29 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
                     mPauseFollowToggle -> {
                         pauseFileFollow(mPauseFollowToggle.isSelected)
+                    }
+                    mItemProcessNameNone -> {
+                        if (mItemProcessNameNone.isSelected) {
+                            mConfigManager.saveItem(ConfigManager.ITEM_VIEW_PROCESS_NAME, LogTableModel.SHOW_PROCESS_NONE.toString())
+                            LogTableModel.TypeShowProcessName = LogTableModel.SHOW_PROCESS_NONE
+                            updateTablePNameColumn(false)
+                        }
+                    }
+                    mItemProcessNameShow -> {
+                        if (mItemProcessNameShow.isSelected) {
+                            mConfigManager.saveItem(ConfigManager.ITEM_VIEW_PROCESS_NAME, LogTableModel.SHOW_PROCESS_SHOW.toString())
+                            LogTableModel.TypeShowProcessName = LogTableModel.SHOW_PROCESS_SHOW
+                            updateTablePNameColumn(false)
+                            updateTablePNameColumn(CurrentMethod == METHOD_ADB)
+                        }
+                    }
+                    mItemProcessNameColor -> {
+                        if (mItemProcessNameColor.isSelected) {
+                            mConfigManager.saveItem(ConfigManager.ITEM_VIEW_PROCESS_NAME, LogTableModel.SHOW_PROCESS_SHOW_WITH_BGCOLOR.toString())
+                            LogTableModel.TypeShowProcessName = LogTableModel.SHOW_PROCESS_SHOW_WITH_BGCOLOR
+                            updateTablePNameColumn(false)
+                            updateTablePNameColumn(CurrentMethod == METHOD_ADB)
+                        }
                     }
                 }
             }

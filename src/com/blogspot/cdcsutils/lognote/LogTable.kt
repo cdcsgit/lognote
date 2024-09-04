@@ -5,6 +5,8 @@ import java.awt.datatransfer.StringSelection
 import java.awt.event.*
 import javax.swing.*
 import javax.swing.border.AbstractBorder
+import javax.swing.border.CompoundBorder
+import javax.swing.border.MatteBorder
 import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.JTableHeader
 
@@ -37,8 +39,7 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
 
         val cellRenderer = LogCellRenderer()
         val columnProcessName = columnModel.getColumn(LogTableModel.COLUMN_PROCESS_NAME)
-//        columnProcessName.cellRenderer = ProcessNameRenderer()
-        columnProcessName.cellRenderer = cellRenderer
+        columnProcessName.cellRenderer = ProcessCellRenderer()
 
         val columnLog = columnModel.getColumn(LogTableModel.COLUMN_LOG_START)
         columnLog.cellRenderer = cellRenderer
@@ -184,7 +185,29 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         }
     }
 
-    internal inner class ProcessNameRenderer : DefaultTableCellRenderer() {
+    internal inner class ProcessCellRenderer : DefaultTableCellRenderer() {
+        private val mColorRenderer = ProcessCellColorRenderer()
+        private val mLogRenderer = ProcessCellLogRenderer()
+
+        override fun getTableCellRendererComponent(
+            table: JTable?,
+            value: Any?,
+            isSelected: Boolean,
+            hasFocus: Boolean,
+            row: Int,
+            col: Int
+        ): Component {
+            return if (LogTableModel.TypeShowProcessName == LogTableModel.SHOW_PROCESS_SHOW_WITH_BGCOLOR) {
+                mColorRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col) as JLabel
+            } else if  (LogTableModel.TypeShowProcessName == LogTableModel.SHOW_PROCESS_SHOW) {
+                mLogRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col) as JLabel
+            } else {
+                super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col) as JLabel
+            }
+        }
+    }
+
+    internal inner class ProcessCellColorRenderer : DefaultTableCellRenderer() {
         override fun getTableCellRendererComponent(
             table: JTable?,
             value: Any?,
@@ -196,23 +219,65 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
             val label:JLabel = super.getTableCellRendererComponent(table, mTableModel.getValueAt(row, col).toString(), isSelected, hasFocus, row, col) as JLabel
             label.border = BorderFactory.createEmptyBorder(0, 5, 0, 0)
 
-            val pidTmp = mTableModel.getValuePid(row)
-            val pid = pidTmp.toInt()
+            val prevPid = mTableModel.getValuePid(row - 1)
+            val pid = mTableModel.getValuePid(row)
 
-//            foreground = mTableModel.getFgColor(row)
-
-            if (MainUI.IsFlatLightLaf) {
-                label.background = Color(pid % 0x60 + 0xA0, (pid * 3) % 0x60 + 0xA0, (pid * 6) % 0x60 + 0xA0)
+            val pidInt = try {
+                pid.toInt()
+            } catch (ex: NumberFormatException) {
+                0
             }
-            else {
-                label.background = Color(pid % 0x30, (pid * 2) % 0x30, (pid * 3) % 0x30)
+
+            foreground = mTableModel.getFgColor(row)
+
+            val numValue = mTableModel.getValueAt(row, 0)
+            val num = numValue.toString().trim().toInt()
+            if (mBookmarkManager.mBookmarks.contains(num)) {
+                if (isRowSelected(row)) {
+                    background = mTableColor.mBookmarkSelectedBG
+                }
+                else {
+                    background = mTableColor.mBookmarkBG
+                }
+            } else if (isRowSelected(row)) {
+                background = mTableColor.mSelectedBG
+            } else {
+                if (MainUI.IsFlatLightLaf) {
+                    background = Color(pidInt % 0x40 + 0xC0, (pidInt + (pidInt / 2)) % 0x40 + 0xC0, (pidInt  + (pidInt / 3)) % 0x40 + 0xC0)
+                }
+                else {
+                    background = Color(pidInt % 0x30, (pidInt + (pidInt / 2)) % 0x30, (pidInt  + (pidInt / 3)) % 0x30)
+                }
+            }
+
+            if (prevPid != pid) {
+                label.border = CompoundBorder(MatteBorder(1, 0, 0, 0, Color.GRAY), label.border)
             }
 
             return label
         }
     }
 
-    internal inner class LogCellRenderer : DefaultTableCellRenderer() {
+    internal inner class ProcessCellLogRenderer : LogCellRenderer() {
+        override fun getTableCellRendererComponent(
+            table: JTable?,
+            value: Any?,
+            isSelected: Boolean,
+            hasFocus: Boolean,
+            row: Int,
+            col: Int
+        ): Component {
+            val label = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col) as JLabel
+            val prevPid = mTableModel.getValuePid(row - 1)
+            val pid = mTableModel.getValuePid(row)
+            if (prevPid != pid) {
+                label.border = CompoundBorder(MatteBorder(1, 0, 0, 0, Color.GRAY), label.border)
+            }
+            return label
+        }
+    }
+
+    internal open inner class LogCellRenderer : DefaultTableCellRenderer() {
         override fun getTableCellRendererComponent(
             table: JTable?,
             value: Any?,
@@ -493,7 +558,7 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
     }
 
     private fun getProcessInfo(point: Point): String {
-        if (LogTableModel.IsShowProcessName) {
+        if (LogTableModel.TypeShowProcessName != LogTableModel.SHOW_PROCESS_NONE) {
             return ""
         }
 

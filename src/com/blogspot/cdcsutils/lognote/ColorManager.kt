@@ -156,7 +156,7 @@ class ColorManager private constructor(){
             "#000000",
             "#000000",
             "#000000",
-            "#000000",
+            "#FFFFFF",
             "#000000",   // 30
             "#000000",
             "#000000",
@@ -165,12 +165,12 @@ class ColorManager private constructor(){
             "#A0A000",
             "#F070A0",
             "#E0E0E0",
-            "#00C060",
+            "#C00000",
             "#20B0A0",
             "#9050E0",   // 40
             "#C0C060",
-            "#000000",
-            "#B0B0B0",
+            "#FFFFFF",
+            "#3030B0",
     )
 
     // Must be declared after mColorSchemeLight (internally mColorSchemeLight is used)

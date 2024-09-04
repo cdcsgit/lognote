@@ -164,6 +164,8 @@ class StringsEn private constructor() {
                 , "Show divided by column"
                 , "Used in column view mode"
                 , "Show process name(adb mode)"
+                , "Show"
+                , "Show with color bg"
 //            , ""
             )
 

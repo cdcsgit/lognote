@@ -35,7 +35,6 @@ interface LogTableModelListener {
 open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTableModel() {
     companion object {
         var IsColorTagRegex = false
-        var IsShowProcessName = true
         var WaitTimeForDoubleClick = System.currentTimeMillis()
         internal const val COLUMN_NUM = 0
         internal const val COLUMN_PROCESS_NAME = 1
@@ -48,6 +47,12 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
         const val LEVEL_WARNING = FormatManager.LEVEL_WARNING
         const val LEVEL_ERROR = FormatManager.LEVEL_ERROR
         const val LEVEL_FATAL = FormatManager.LEVEL_FATAL
+
+        const val SHOW_PROCESS_NONE = 0
+        const val SHOW_PROCESS_SHOW = 1
+        const val SHOW_PROCESS_SHOW_WITH_BGCOLOR = 2
+
+        var TypeShowProcessName = SHOW_PROCESS_SHOW_WITH_BGCOLOR
     }
 
     private val mAgingTestManager = AgingTestManager.getInstance()
@@ -613,7 +618,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                         return logItem.mNum + " "
                     }
                     COLUMN_PROCESS_NAME -> {
-                        if (IsShowProcessName) {
+                        if (TypeShowProcessName != SHOW_PROCESS_NONE) {
                             if (logItem.mProcessName == null) {
                                 if ((mSortedPidTokIdx >= 0) && (logItem.mTokenFilterLogs.size > mSortedPidTokIdx)) {
                                     return if (logItem.mTokenFilterLogs[mSortedPidTokIdx] == "0") {
@@ -1147,7 +1152,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
             }
         }
 
-        val processName = if (IsShowProcessName && mSortedPidTokIdx >= 0 && tokenFilterLogs.size > mSortedPidTokIdx) {
+        val processName = if (TypeShowProcessName != SHOW_PROCESS_NONE && mSortedPidTokIdx >= 0 && tokenFilterLogs.size > mSortedPidTokIdx) {
             ProcessList.getInstance().getProcessName(tokenFilterLogs[mSortedPidTokIdx])
         } else {
             null
@@ -1510,7 +1515,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                 makePattenPrintValue()
 
                 try {
-                    if (CurrentMethod == METHOD_ADB && IsShowProcessName) {
+                    if (CurrentMethod == METHOD_ADB && TypeShowProcessName != SHOW_PROCESS_NONE) {
                         ProcessList.getInstance().getProcessName("0")
                     }
                 } catch (e: Exception) {
