@@ -12,7 +12,9 @@ Aging Test : Save split file by lines
 
 Kotlin + swing
 
-![lognote_main](https://github.com/user-attachments/assets/6001a66e-efc9-418b-ab05-dda822e99574)
+![lognote_main_2](https://github.com/user-attachments/assets/adc7f2b5-52dd-4d82-82c6-6622dbc506ea)
+Process column included in version 0.3.7 (not yet released)
+
 <br/>
 
 # Config path
@@ -46,6 +48,18 @@ Mac : java -Dfile.encoding=utf8 -Xmx2048m -jar LogNote.jar
    - Open recent files: set to saved view config
 1. Follow File: Continue reading logs added to the file (ex: adb logcat > a.log, File > Follow - a.log)
    - Used when you want to read the log of processing results of commands other than adb
+
+<br/>
+
+# Log view mode(version 0.3.7 (not yet released))
+1. "Not adb mode(file open...)" or "View > Show process name > None"
+![lognote_columnX_processX](https://github.com/user-attachments/assets/9c650931-3c19-4a79-a051-0e7a86d44824)
+1. "Not adb mode(file open...)" or "View > Show process name > None" + "View > Show divided by column"
+![lognote_columnO_processX](https://github.com/user-attachments/assets/651ef0ea-cc05-46db-b8fe-ced1c525894e)
+1. "Adb mode" and "View > Show process name > Show with color bg"
+![lognote_columnX_processO](https://github.com/user-attachments/assets/692f8585-0136-41af-a3fe-df3a5df4362a)
+1. "Adb mode" and "View > Show process name > Show with color bg" + "View > Show divided by column"
+![lognote_columnO_processO](https://github.com/user-attachments/assets/9055ea48-6e7c-4b47-a026-696711b02940)
 
 <br/>
 
