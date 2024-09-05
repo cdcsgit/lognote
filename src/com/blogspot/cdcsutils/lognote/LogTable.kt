@@ -26,6 +26,7 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
     private val mBookmarkManager = BookmarkManager.getInstance()
     val mMultiClickInterval = Toolkit.getDefaultToolkit().getDesktopProperty("awt.multiClickInterval").toString().toInt() + 500
     var mIsMousePressedTableHeader = false
+    var mSkipUpdateColumnWidth = false
 
     init {
         this.setShowGrid(false)
@@ -87,7 +88,7 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
     }
 
     open fun updateColumnWidth(width: Int, scrollVBarWidth: Int) {
-        if (rowCount <= 0 || mIsMousePressedTableHeader) {
+        if (rowCount <= 0 || mIsMousePressedTableHeader || mSkipUpdateColumnWidth) {
             return
         }
 

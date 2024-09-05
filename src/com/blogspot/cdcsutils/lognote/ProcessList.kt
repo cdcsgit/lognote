@@ -81,7 +81,6 @@ class ProcessList private constructor() {
         if (time > mUpdatedTime + UpdateTime){
             LogCmdManager.getInstance().getProcesses()
             mUpdatedTime = System.currentTimeMillis()
-            Utils.printlnLog("Process list update end")
             return true
         } else {
             return false

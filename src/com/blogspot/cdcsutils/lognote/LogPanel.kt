@@ -338,7 +338,6 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
     fun goToFirst() {
         setGoToLast(false)
         goToRow(0, -1)
-        updateTableUI()
         return
     }
 
@@ -346,14 +345,8 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
         if (mTable.rowCount > 0) {
             goToRow(mTable.rowCount - 1, -1)
             setGoToLast(true)
-            updateTableUI()
         }
-
         return
-    }
-
-    fun updateTableUI() {
-        mTable.updateUI()
     }
 
     fun getSelectedLine() : Int {
@@ -393,8 +386,14 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
                 if (hPos != mOldLogHPos) {
                     mOldLogHPos = hPos
                 }
-            }
 
+                if (p0?.valueIsAdjusting == true) {
+                    mTable.mSkipUpdateColumnWidth = true
+                }
+                else {
+                    mTable.mSkipUpdateColumnWidth = mScrollPane.horizontalScrollBar.value != 0
+                }
+            }
         }
     }
 
@@ -415,7 +414,9 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
         }
 
         private fun tableChangedInternal(event: LogTableModelEvent?) {
-            updateTableUI()
+            mTable.revalidate()
+            mTable.repaint()
+
             mTable.updateColumnWidth(this@LogPanel.width, mScrollPane.verticalScrollBar.width)
             if (event?.mDataChange == LogTableModelEvent.EVENT_CHANGED) {
                 if (getGoToLast() && mTable.rowCount > 0) {
