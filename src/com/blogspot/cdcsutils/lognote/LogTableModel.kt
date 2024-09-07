@@ -1,7 +1,5 @@
 package com.blogspot.cdcsutils.lognote
 
-import com.blogspot.cdcsutils.lognote.MainUI.Companion.CurrentMethod
-import com.blogspot.cdcsutils.lognote.MainUI.Companion.METHOD_ADB
 import java.awt.Color
 import java.io.*
 import java.util.*
@@ -1135,7 +1133,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
             tokenFilterLogs = mEmptyTokenFilters
         }
         else {
-            val textSplited = logLine.trim().split(Regex(mSeparator), mTokenCount)
+            val textSplited = logLine.split(Regex(mSeparator), mTokenCount)
             if (textSplited.size > mTokenNthMax) {
                 level = mLevelMap[textSplited[mLevelIdx]] ?: LEVEL_NONE
                 tokenFilterLogs = Array(mSortedTokenFilters.size) {
@@ -1393,6 +1391,9 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
     }
 
     private var mScanThread:Thread? = null
+    private var mFollowThread:Thread? = null
+    private var mRecvThread:Thread? = null
+
     private var mFileWriter:FileWriter? = null
     private var mIsPause = false
 
@@ -1407,7 +1408,6 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
         var isShow: Boolean
         var item: LogItem
         val logFilterItems: MutableList<LogFilterItem> = mutableListOf()
-
         synchronized(this) {
             for (tempLine in logLines) {
                 item = makeLogItem(num, tempLine)
@@ -1440,7 +1440,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
             }
 
             SwingUtilities.invokeAndWait {
-                if (mScanThread == null) {
+                if (mRecvThread == null) {
                     return@invokeAndWait
                 }
                 val isRemoveItem = !mScrollbackKeep && mScrollback > 0 && WaitTimeForDoubleClick < System.currentTimeMillis()
@@ -1455,6 +1455,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                     if (mFilterTriggerLog.isNotEmpty() && mPatternTriggerLog.matcher(filterItem.mItem.mLogLine).find()) {
                         mAgingTestManager.pullTheTrigger(filterItem.mItem.mLogLine)
                     }
+
                     mBaseModel!!.mLogItems.add(filterItem.mItem)
                     if (filterItem.mIsShow || mBookmarkManager.mBookmarks.contains(filterItem.mItem.mNum.toInt())) {
                         mLogItems.add(filterItem.mItem)
@@ -1515,7 +1516,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                 makePattenPrintValue()
 
                 try {
-                    if (CurrentMethod == METHOD_ADB && TypeShowProcessName != SHOW_PROCESS_NONE) {
+                    if (MainUI.CurrentMethod == MainUI.METHOD_ADB && TypeShowProcessName != SHOW_PROCESS_NONE) {
                         ProcessList.getInstance().getProcessName("0")
                     }
                 } catch (e: Exception) {
@@ -1615,7 +1616,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                 }
             }
         }
-
+        mRecvThread = mScanThread
         mScanThread?.start()
 
         return
@@ -1630,6 +1631,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                 mScanThread?.interrupt()
             }
         }
+        mRecvThread = null
         mScanThread = null
         if (mFileWriter != null) {
             try {
@@ -1649,7 +1651,6 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
         mIsPause = pause
     }
 
-    private var mFollowThread:Thread? = null
     private var mIsFollowPause = false
     private var mIsKeepReading = true
 
@@ -1687,6 +1688,8 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
 
         mFollowThread = Thread {
             run {
+                Utils.printlnLog("startFollow thread started")
+
                 SwingUtilities.invokeAndWait {
                     mIsKeepReading = true
                     mLogItems.clear()
@@ -1770,7 +1773,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                 Utils.printlnLog("Exit follow")
             }
         }
-
+        mRecvThread = mFollowThread
         mFollowThread?.start()
 
         return
@@ -1787,6 +1790,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                 mFollowThread?.interrupt()
             }
         }
+        mRecvThread = null
         mFollowThread = null
         return
     }

@@ -91,7 +91,7 @@ class LogColumnTableModel(mainUI: MainUI, baseModel: LogTableModel?) : LogTableM
         val tokenLogs: List<String>?
         val log: String
 
-        val textSplited = logLine.trim().split(Regex(mSeparator), mTokenCount)
+        val textSplited = logLine.split(Regex(mSeparator), mTokenCount)
         if (textSplited.size == mTokenCount) {
             level = if (mFilterLevel == LEVEL_NONE) {
                 LEVEL_NONE
