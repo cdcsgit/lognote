@@ -1,6 +1,5 @@
 package com.blogspot.cdcsutils.lognote
 
-import com.blogspot.cdcsutils.lognote.FormatManager.Companion.ITEM_TOKEN_FILTER_NTH
 import com.formdev.flatlaf.*
 import com.formdev.flatlaf.themes.FlatMacDarkLaf
 import com.formdev.flatlaf.themes.FlatMacLightLaf
@@ -18,7 +17,6 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 import javax.swing.*
 import javax.swing.event.*
-import javax.swing.plaf.ColorUIResource
 import javax.swing.plaf.FontUIResource
 import javax.swing.plaf.basic.BasicScrollBarUI
 import javax.swing.text.JTextComponent
@@ -366,6 +364,39 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mConfigManager.saveConfig()
     }
 
+    private fun saveFilterCombo(combo: FilterComboBox, keyPrefix: String, saveCount: Int, maxCount: Int) {
+        val filterList = mutableListOf<String>()
+        for (i in 0 until combo.itemCount) {
+            if (filterList.size == saveCount) {
+                break
+            }
+            val item = combo.getItemAt(i).toString()
+            if (!filterList.contains(item)) {
+                filterList.add(item)
+            }
+        }
+
+        var item: String?
+        for (i in 0 until maxCount) {
+            item = mConfigManager.getItem(keyPrefix + i)
+            if (item == null || filterList.size == maxCount) {
+                break
+            }
+
+            if (!filterList.contains(item)) {
+                filterList.add(item)
+            }
+        }
+
+        for (i in 0 until filterList.size) {
+            mConfigManager.setItem(keyPrefix + i, filterList[i])
+        }
+
+        for (i in filterList.size until maxCount) {
+            mConfigManager.removeConfigItem(keyPrefix + i)
+        }
+    }
+
     private fun saveConfigOnDestroy() {
         mConfigManager.loadConfig()
 
@@ -396,58 +427,20 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mConfigManager.setItem(ConfigManager.ITEM_FRAME_EXTENDED_STATE, extendedState.toString())
 
         mShowLogCombo.resetComboItem(mShowLogCombo.editor.item.toString())
-        var nCount = mShowLogCombo.itemCount
-        if (nCount > ConfigManager.COUNT_SHOW_LOG) {
-            nCount = ConfigManager.COUNT_SHOW_LOG
-        }
 
-        for (i in 0 until nCount) {
-            mConfigManager.setItem(ConfigManager.ITEM_SHOW_LOG + i, mShowLogCombo.getItemAt(i).toString())
-        }
-
-        for (i in nCount until ConfigManager.COUNT_SHOW_LOG) {
-            mConfigManager.removeConfigItem(ConfigManager.ITEM_SHOW_LOG + i)
-        }
+        saveFilterCombo(mShowLogCombo, ConfigManager.ITEM_SHOW_LOG, ConfigManager.SAVE_FILTER_COUNT, ConfigManager.COUNT_SHOW_LOG)
 
         val formatName = mFormatManager.mCurrFormat.mName
         val tokenFilters = mFormatManager.mCurrFormat.mTokenFilters
 
         for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
             if (mFormatManager.mCurrFormat.mTokenFilters[idx].mIsSaveFilter) {
-                nCount = mTokenCombo[idx].itemCount
-                if (nCount > ConfigManager.COUNT_TOKEN_FILTER) {
-                    nCount = ConfigManager.COUNT_TOKEN_FILTER
-                }
-                for (i in 0 until nCount) {
-                    mConfigManager.setItem("${ConfigManager.ITEM_TOKEN_FILTER}${formatName}_${tokenFilters[idx].mToken}_$i", mTokenCombo[idx].getItemAt(i).toString())
-                }
-                for (i in nCount until ConfigManager.COUNT_TOKEN_FILTER) {
-                    mConfigManager.removeConfigItem("${ConfigManager.ITEM_TOKEN_FILTER}${formatName}_${tokenFilters[idx].mToken}_$i")
-                }
+                saveFilterCombo(mTokenCombo[idx], "${ConfigManager.ITEM_TOKEN_FILTER}${formatName}_${tokenFilters[idx].mToken}_", ConfigManager.SAVE_FILTER_COUNT, ConfigManager.COUNT_TOKEN_FILTER)
             }
         }
 
-        nCount = mBoldLogCombo.itemCount
-        if (nCount > ConfigManager.COUNT_HIGHLIGHT_LOG) {
-            nCount = ConfigManager.COUNT_HIGHLIGHT_LOG
-        }
-        for (i in 0 until nCount) {
-            mConfigManager.setItem(ConfigManager.ITEM_HIGHLIGHT_LOG + i, mBoldLogCombo.getItemAt(i).toString())
-        }
-        for (i in nCount until ConfigManager.COUNT_HIGHLIGHT_LOG) {
-            mConfigManager.removeConfigItem(ConfigManager.ITEM_HIGHLIGHT_LOG + i)
-        }
-
-        nCount = mSearchPanel.mSearchCombo.itemCount
-        if (nCount > ConfigManager.COUNT_SEARCH_LOG) {
-            nCount = ConfigManager.COUNT_SEARCH_LOG
-        }
-        for (i in 0 until nCount) {
-            mConfigManager.setItem(ConfigManager.ITEM_SEARCH_LOG + i, mSearchPanel.mSearchCombo.getItemAt(i).toString())
-        }
-        for (i in nCount until ConfigManager.COUNT_SEARCH_LOG) {
-            mConfigManager.removeConfigItem(ConfigManager.ITEM_SEARCH_LOG + i)
-        }
+        saveFilterCombo(mBoldLogCombo, ConfigManager.ITEM_HIGHLIGHT_LOG, ConfigManager.SAVE_FILTER_COUNT, ConfigManager.COUNT_HIGHLIGHT_LOG)
+        saveFilterCombo(mSearchPanel.mSearchCombo, ConfigManager.ITEM_SEARCH_LOG, ConfigManager.SAVE_FILTER_COUNT, ConfigManager.COUNT_SEARCH_LOG)
 
         try {
             mConfigManager.setItem(ConfigManager.ITEM_ADB_DEVICE, mLogCmdManager.mTargetDevice)
