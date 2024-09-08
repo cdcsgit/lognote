@@ -13,7 +13,6 @@ Aging Test : Save split file by lines
 Kotlin + swing
 
 ![lognote_main_2](https://github.com/user-attachments/assets/adc7f2b5-52dd-4d82-82c6-6622dbc506ea)
-Process column included in version 0.3.7 (not yet released)
 
 <br/>
 
@@ -51,7 +50,7 @@ Mac : java -Dfile.encoding=utf8 -Xmx2048m -jar LogNote.jar
 
 <br/>
 
-# Log view mode(version 0.3.7 (not yet released))
+# Log view mode
 1. "Not adb mode(file open...)" or "View > Show process name > None"
 ![lognote_columnX_processX](https://github.com/user-attachments/assets/9c650931-3c19-4a79-a051-0e7a86d44824)
 1. "Not adb mode(file open...)" or "View > Show process name > None" + "View > Show divided by column"
