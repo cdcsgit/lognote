@@ -79,6 +79,11 @@ Mac : java -Dfile.encoding=utf8 -Xmx2048m -jar LogNote.jar
 
 <br/>
 
+# How to use(tips)
+1. [Show only specific package logs](https://cdcsutils.blogspot.com/2024/09/lognote-show-only-specific-package-logs.html)
+
+<br/>
+
 # Filter combobox color tag
 ![Lognote_ColorTag](https://user-images.githubusercontent.com/75207513/191993351-396498bc-d5f7-4b92-9a4b-e1b85cb87305.gif)
 
