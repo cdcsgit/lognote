@@ -24,7 +24,12 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
     var mTableModel = tableModel
     private val mTableColor: ColorManager.TableColor
     private val mBookmarkManager = BookmarkManager.getInstance()
-    val mMultiClickInterval = Toolkit.getDefaultToolkit().getDesktopProperty("awt.multiClickInterval").toString().toInt() + 500
+    val mMultiClickInterval = try {
+        Toolkit.getDefaultToolkit().getDesktopProperty("awt.multiClickInterval").toString().toInt() + 500
+    } catch(ex: Exception) {
+        Utils.printlnLog("failed get awt.multiClickInterval : ${ex.stackTraceToString()}")
+        1000
+    }
     var mIsMousePressedTableHeader = false
     var mSkipUpdateColumnWidth = false
 
