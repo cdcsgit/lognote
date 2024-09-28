@@ -560,8 +560,6 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
 
         val bufferedReader = BufferedReader(FileReader(mLogFile!!))
         var line: String?
-        var level:Int
-        var tokens: Array<String>
 
         line = bufferedReader.readLine()
         while (line != null) {
