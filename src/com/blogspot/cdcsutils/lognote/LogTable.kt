@@ -19,6 +19,8 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         const val DEFAULT_LOG_WIDTH = 1920
 //        const val DEFAULT_LOG_WIDTH = 3840
         var LogWidth = DEFAULT_LOG_WIDTH
+        
+        const val PROCESS_COLOR_RANGE = 0x40
     }
 
     var mTableModel = tableModel
@@ -32,6 +34,10 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
     }
     var mIsMousePressedTableHeader = false
     var mSkipUpdateColumnWidth = false
+
+    private val mBaseRed: Int
+    private val mBaseGreen: Int
+    private val mBaseBlue: Int
 
     init {
         this.setShowGrid(false)
@@ -73,8 +79,35 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         else {
             ColorManager.getInstance().mFilterTableColor
         }
-    }
 
+        val tmpRed = mTableColor.mLogBG.red - (PROCESS_COLOR_RANGE / 2)
+        mBaseRed = if (tmpRed < 0) {
+            0
+        } else if (tmpRed + PROCESS_COLOR_RANGE > 0xFF) {
+            0xFF - PROCESS_COLOR_RANGE
+        }
+        else {
+            tmpRed
+        }
+        val tmpGreen = mTableColor.mLogBG.green - (PROCESS_COLOR_RANGE / 2)
+        mBaseGreen = if (tmpGreen < 0) {
+            0
+        } else if (tmpGreen + PROCESS_COLOR_RANGE > 0xFF) {
+            0xFF - PROCESS_COLOR_RANGE
+        }
+        else {
+            tmpGreen
+        }
+        val tmpBlue = mTableColor.mLogBG.blue - (PROCESS_COLOR_RANGE / 2)
+        mBaseBlue = if (tmpBlue < 0) {
+            0
+        } else if (tmpBlue + PROCESS_COLOR_RANGE > 0xFF) {
+            0xFF - PROCESS_COLOR_RANGE
+        }
+        else {
+            tmpBlue
+        }
+    }
 
     open fun updateProcessNameColumnWidth(isShow: Boolean) {
         val columnPackageName = columnModel.getColumn(LogTableModel.COLUMN_PROCESS_NAME)
@@ -248,12 +281,7 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
             } else if (isRowSelected(row)) {
                 background = mTableColor.mSelectedBG
             } else {
-                if (MainUI.IsFlatLightLaf) {
-                    background = Color(pidInt % 0x40 + 0xC0, (pidInt + (pidInt / 2)) % 0x40 + 0xC0, (pidInt  + (pidInt / 3)) % 0x40 + 0xC0)
-                }
-                else {
-                    background = Color(pidInt % 0x30, (pidInt + (pidInt / 2)) % 0x30, (pidInt  + (pidInt / 3)) % 0x30)
-                }
+                background = Color(pidInt % PROCESS_COLOR_RANGE + mBaseRed, (pidInt + (pidInt / 2)) % PROCESS_COLOR_RANGE + mBaseGreen, (pidInt  + (pidInt / 3)) % PROCESS_COLOR_RANGE + mBaseBlue)
             }
 
             if (prevPid != pid) {
