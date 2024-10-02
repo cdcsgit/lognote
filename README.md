@@ -35,6 +35,11 @@ Mac : java -Dfile.encoding=utf8 -Xmx2048m -jar LogNote.jar
 
 <br/>
 
+# How to use(tips)
+1. [Show only specific package logs](https://cdcsutils.blogspot.com/2024/09/lognote-show-only-specific-package-logs.html)
+
+<br/>
+
 # Mode
 1. Read Cmd: Read the result after executing the command (ex: adb logcat)
    - <code><b>You must set the Scrollback value.</b></code>
@@ -76,11 +81,6 @@ Mac : java -Dfile.encoding=utf8 -Xmx2048m -jar LogNote.jar
 1. Ctrl + Del : Clear log view
 1. Ctrl + T : Show trigger list panel(aging test util)
 
-
-<br/>
-
-# How to use(tips)
-1. [Show only specific package logs](https://cdcsutils.blogspot.com/2024/09/lognote-show-only-specific-package-logs.html)
 
 <br/>
 
