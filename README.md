@@ -37,6 +37,7 @@ Mac : java -Dfile.encoding=utf8 -Xmx2048m -jar LogNote.jar
 
 # How to use(tips)
 1. [Show only specific package logs](https://cdcsutils.blogspot.com/2024/09/lognote-show-only-specific-package-logs.html)
+2. [Add desktop shortcut in ubuntu](https://cdcsutils.blogspot.com/2024/10/lognote-setting-up-shortcut-to-re-run.html)
 
 <br/>
 
