@@ -204,8 +204,6 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
 
             val label = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col) as JLabel
 
-            label.border = LineNumBorder(mTableColor.mNumLogSeperatorBG, 1)
-
             foreground = mTableColor.mLineNumFG
             background = if (mBookmarkManager.mBookmarks.contains(num)) {
                 if (isRowSelected(row)) {
@@ -218,6 +216,26 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
                 mTableColor.mNumSelectedBG
             } else {
                 mTableColor.mLineNumBG
+            }
+            
+            val thickness = 1
+            if (isSelected) {
+                val top = if (isCellSelected(row - thickness, col)) 0 else thickness
+                val left = if (isCellSelected(row, col - thickness)) 0 else thickness
+                val bottom = if (isCellSelected(row + thickness, col)) 0 else thickness
+                val right = if (isCellSelected(row, col + thickness)) 0 else thickness
+
+                if (top + left + bottom + right > 0) {
+                    val lineBorder = MatteBorder(top, left, bottom, right, Color.GRAY)
+                    val emptyBorder = MatteBorder(thickness - top, thickness - left, thickness - bottom, thickness - right, background)
+                    label.border = CompoundBorder(lineBorder, emptyBorder)
+                }
+                else {
+                    label.border = MatteBorder(thickness, thickness, thickness, thickness, background)
+                }
+            }
+            else {
+                label.border = MatteBorder(thickness, thickness, thickness, thickness, background)
             }
 
             return label
@@ -256,7 +274,6 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
             col: Int
         ): Component {
             val label:JLabel = super.getTableCellRendererComponent(table, mTableModel.getValueAt(row, col).toString(), isSelected, hasFocus, row, col) as JLabel
-            label.border = BorderFactory.createEmptyBorder(0, 5, 0, 0)
 
             val prevPid = mTableModel.getValuePid(row - 1)
             val pid = mTableModel.getValuePid(row)
@@ -284,8 +301,30 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
                 background = Color(pidInt % PROCESS_COLOR_RANGE + mBaseRed, (pidInt + (pidInt / 2)) % PROCESS_COLOR_RANGE + mBaseGreen, (pidInt  + (pidInt / 3)) % PROCESS_COLOR_RANGE + mBaseBlue)
             }
 
-            if (prevPid != pid) {
-                label.border = CompoundBorder(MatteBorder(1, 0, 0, 0, Color.GRAY), label.border)
+            val thickness = 1
+            val thicknessLeft = 5
+            if (isSelected) {
+                val top = if (isCellSelected(row - thickness, col)) 0 else thickness
+                val left = if (isCellSelected(row, col - thickness)) 0 else thickness
+                val bottom = if (isCellSelected(row + thickness, col)) 0 else thickness
+                val right = if (isCellSelected(row, col + thickness)) 0 else thickness
+
+                label.border = BorderFactory.createEmptyBorder(thickness - top, thicknessLeft - left, thickness - bottom, thickness - right)
+                if (top + left + bottom + right > 0) {
+                    label.border = CompoundBorder(MatteBorder(top, left, bottom, right, Color.GRAY), label.border)
+                }
+                if (prevPid != pid && top == 0) {
+                    label.border = CompoundBorder(MatteBorder(thickness, 0, 0, 0, Color.GRAY), label.border)
+                }
+            }
+            else {
+                if (prevPid != pid) {
+                    label.border = BorderFactory.createEmptyBorder(0, thicknessLeft, thickness, thickness)
+                    label.border = CompoundBorder(MatteBorder(thickness, 0, 0, 0, Color.GRAY), label.border)
+                }
+                else {
+                    label.border = BorderFactory.createEmptyBorder(thickness, thicknessLeft, thickness, thickness)
+                }
             }
 
             return label
@@ -334,7 +373,6 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
                 label = super.getTableCellRendererComponent(table, newValue, isSelected, hasFocus, row, col) as JLabel
             }
 
-            label.border = BorderFactory.createEmptyBorder(0, 5, 0, 0)
             val numValue = mTableModel.getValueAt(row, 0)
             val num = numValue.toString().trim().toInt()
             if (mBookmarkManager.mBookmarks.contains(num)) {
@@ -348,6 +386,23 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
                 background = mTableColor.mSelectedBG
             } else {
                 background = mTableColor.mLogBG
+            }
+
+            val thickness = 1
+            val thicknessLeft = 5
+            if (isSelected) {
+                val top = if (isCellSelected(row - thickness, col)) 0 else thickness
+                val left = if (isCellSelected(row, col - thickness)) 0 else thickness
+                val bottom = if (isCellSelected(row + thickness, col)) 0 else thickness
+                val right = if (isCellSelected(row, col + thickness)) 0 else thickness
+
+                label.border = BorderFactory.createEmptyBorder(thickness - top, thicknessLeft - left, thickness - bottom, thickness - right)
+                if (top + left + bottom + right > 0) {
+                    label.border = CompoundBorder(MatteBorder(top, left, bottom, right, Color.GRAY), label.border)
+                }
+            }
+            else {
+                label.border = BorderFactory.createEmptyBorder(thickness, thicknessLeft, thickness, thickness)
             }
 
             return label
@@ -668,6 +723,7 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
                 }
             }
 
+            repaint()
             super.mouseClicked(p0)
         }
     }
@@ -738,12 +794,12 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
                 }
             }
 
-            if (p0?.keyCode == KeyEvent.VK_C && mPrevKeyEvent?.isControlDown == true && mPrevKeyEvent?.isShiftDown == true && mPrevKeyEvent?.keyCode == KeyEvent.VK_C) {
-                copyToClipboardEx()
-            }
-            else if (p0?.keyCode == KeyEvent.VK_C && mPrevKeyEvent?.isControlDown == true && mPrevKeyEvent?.keyCode == KeyEvent.VK_C) {
-                copyToClipboard()
-            }
+//            if (p0?.keyCode == KeyEvent.VK_C && mPrevKeyEvent?.isControlDown == true && mPrevKeyEvent?.isShiftDown == true && mPrevKeyEvent?.keyCode == KeyEvent.VK_C) {
+//                copyToClipboardEx()
+//            }
+//            else if (p0?.keyCode == KeyEvent.VK_C && mPrevKeyEvent?.isControlDown == true && mPrevKeyEvent?.keyCode == KeyEvent.VK_C) {
+//                copyToClipboard()
+//            }
 
             mPrevKeyEvent = null
 
