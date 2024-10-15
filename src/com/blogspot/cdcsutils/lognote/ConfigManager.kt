@@ -45,6 +45,7 @@ class ConfigManager private constructor() {
         const val ITEM_LOG_FORMAT = "LOG_FORMAT"
 
         const val ITEM_LOOK_AND_FEEL = "LOOK_AND_FEEL"
+        const val ITEM_LAF_ACCENT_COLOR = "LAF_ACCENT_COLOR"
         const val ITEM_UI_FONT_SIZE = "UI_FONT_SIZE"
         const val ITEM_APPEARANCE_DIVIDER_SIZE = "APPEARANCE_DIVIDER_SIZE"
         const val ITEM_LOG_VIEW_WIDTH = "LOG_VIEW_WIDTH"
@@ -92,6 +93,7 @@ class ConfigManager private constructor() {
         const val VALUE_ICON_TEXT_T = "Text"
 
         var LaF = ""
+        var LaFAccentColor = ""
 
         private val mInstance: ConfigManager = ConfigManager()
 

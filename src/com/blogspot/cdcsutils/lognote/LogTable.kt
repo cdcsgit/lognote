@@ -72,6 +72,9 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         this.addKeyListener(TableKeyHandler())
 
         tableHeader.addMouseListener(TableHeaderMouseHandler())
+        val tmpFont = tableHeader.font
+        tableHeader.font = Font(tmpFont.fontName, tmpFont.style, tmpFont.size * 90 / 100)
+        tableHeader.preferredSize = Dimension(tableHeader.preferredSize.width, tableHeader.font.size + 2)
 
         mTableColor = if (mTableModel.isFullDataModel()) {
             ColorManager.getInstance().mFullTableColor

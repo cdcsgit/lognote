@@ -45,6 +45,15 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         var IsFlatLaf = true
         var IsFlatLightLaf = true
 
+        private const val LAF_ACCENT_DEFAULT = "#4B6EAF"
+        private const val LAF_ACCENT_BLUE = "#0A84FF"
+        private const val LAF_ACCENT_PURPLE = "#BF5AF2"
+        private const val LAF_ACCENT_RED = "#FF453A"
+        private const val LAF_ACCENT_ORANGE = "#FF9F0A"
+        private const val LAF_ACCENT_YELLOW = "#FFCC00"
+        private const val LAF_ACCENT_GREEN = "#32D74B"
+        val LAF_ACCENT_COLORS = arrayOf(LAF_ACCENT_DEFAULT, LAF_ACCENT_BLUE, LAF_ACCENT_PURPLE, LAF_ACCENT_RED, LAF_ACCENT_ORANGE, LAF_ACCENT_YELLOW, LAF_ACCENT_GREEN)
+
         const val METHOD_NONE = 0
         const val METHOD_OPEN = 1
         const val METHOD_ADB = 2
@@ -121,23 +130,23 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
     private lateinit var mLogPanel: JPanel
     private lateinit var mShowLogPanel: JPanel
-    private lateinit var mMatchCaseToggle: ColorToggleButton
+    private lateinit var mMatchCaseToggle: FilterToggleButton
     private lateinit var mMatchCaseTogglePanel: JPanel
     lateinit var mShowLogCombo: FilterComboBox
     var mShowLogComboStyle: FilterComboBox.Mode
-    private lateinit var mShowLogToggle: ColorToggleButton
+    private lateinit var mShowLogToggle: FilterToggleButton
     private lateinit var mShowLogTogglePanel: JPanel
 
     private lateinit var mBoldLogPanel: JPanel
     private lateinit var mBoldLogCombo: FilterComboBox
     var mBoldLogComboStyle: FilterComboBox.Mode
-    private lateinit var mBoldLogToggle: ColorToggleButton
+    private lateinit var mBoldLogToggle: FilterToggleButton
     private lateinit var mBoldLogTogglePanel: JPanel
 
     private lateinit var mTokenPanel: Array<JPanel>
     lateinit var mTokenCombo: Array<FilterComboBox>
     var mTokenComboStyle: Array<FilterComboBox.Mode>
-    private lateinit var mTokenToggle: Array<ColorToggleButton>
+    private lateinit var mTokenToggle: Array<FilterToggleButton>
     private lateinit var mTokenTogglePanel: Array<JPanel>
 
     private lateinit var mLogCmdCombo: ColorComboBox<String>
@@ -217,12 +226,22 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
         val laf = mConfigManager.getItem(ConfigManager.ITEM_LOOK_AND_FEEL)
 
-        if (laf == null) {
+        if (laf == null || laf == SYSTEM_LAF) {
             ConfigManager.LaF = FLAT_LIGHT_LAF
         }
         else {
             ConfigManager.LaF = laf
         }
+
+        val lafAccentColor = mConfigManager.getItem(ConfigManager.ITEM_LAF_ACCENT_COLOR)
+
+        if (lafAccentColor == null) {
+            ConfigManager.LaFAccentColor = LAF_ACCENT_COLORS[0]
+        }
+        else {
+            ConfigManager.LaFAccentColor = lafAccentColor
+        }
+        FlatLaf.setSystemColorGetter { name: String -> if (name == "accent") Color.decode(ConfigManager.LaFAccentColor) else null }
 
         setLaF()
 
@@ -766,7 +785,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mShowLogCombo.addItemListener(mItemHandler)
         mShowLogCombo.addPopupMenuListener(mPopupMenuHandler)
         mShowLogCombo.editor.editorComponent.addMouseListener(mMouseHandler)
-        mShowLogToggle = ColorToggleButton(Strings.LOG)
+        mShowLogToggle = FilterToggleButton(Strings.LOG)
         mShowLogToggle.toolTipText = TooltipStrings.LOG_TOGGLE
         mShowLogToggle.margin = Insets(0, 0, 0, 0)
         mShowLogTogglePanel = JPanel(GridLayout(1, 1))
@@ -782,7 +801,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mBoldLogCombo.renderer = FilterComboBox.ComboBoxRenderer()
         mBoldLogCombo.addItemListener(mItemHandler)
         mBoldLogCombo.editor.editorComponent.addMouseListener(mMouseHandler)
-        mBoldLogToggle = ColorToggleButton(Strings.BOLD)
+        mBoldLogToggle = FilterToggleButton(Strings.BOLD)
         mBoldLogToggle.toolTipText = TooltipStrings.BOLD_TOGGLE
         mBoldLogToggle.margin = Insets(0, 0, 0, 0)
         mBoldLogTogglePanel = JPanel(GridLayout(1, 1))
@@ -793,7 +812,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
         mTokenPanel = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { JPanel() }
         mTokenCombo = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { FilterComboBox(mTokenComboStyle[it], false) }
-        mTokenToggle = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { ColorToggleButton(mFormatManager.mCurrFormat.mTokenFilters[it].mToken) }
+        mTokenToggle = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { FilterToggleButton(mFormatManager.mCurrFormat.mTokenFilters[it].mToken) }
         mTokenTogglePanel = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { JPanel(GridLayout(1, 1)) }
 
         for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
@@ -843,7 +862,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mAdbDisconnectBtn.addActionListener(mActionHandler)
         mAdbDisconnectBtn.toolTipText = TooltipStrings.DISCONNECT_BTN
 
-        mMatchCaseToggle = ColorToggleButton("Aa")
+        mMatchCaseToggle = FilterToggleButton("Aa")
         mMatchCaseToggle.toolTipText = TooltipStrings.CASE_TOGGLE
         mMatchCaseToggle.margin = Insets(0, 0, 0, 0)
         mMatchCaseToggle.addItemListener(mItemHandler)
@@ -911,6 +930,14 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         itemFilterPanel.add(mBoldLogPanel)
         itemFilterPanel.add(mMatchCaseTogglePanel)
 
+        mShowLogToggle.background = mLogPanel.background
+        mBoldLogToggle.background = mLogPanel.background
+        mMatchCaseToggle.background = mLogPanel.background
+
+        for (item in mTokenToggle) {
+            item.background = mLogPanel.background
+        }
+
         mLogPanel.layout = BorderLayout()
         mLogPanel.add(mShowLogPanel, BorderLayout.CENTER)
         mLogPanel.add(itemFilterPanel, BorderLayout.EAST)
@@ -922,6 +949,18 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mFilterPanel.layout = BoxLayout(mFilterPanel, BoxLayout.Y_AXIS)
         mFilterPanel.addMouseListener(mMouseHandler)
 
+        mStartBtn.background = mLogToolBar.background
+        mRetryAdbToggle.background = mLogToolBar.background
+        mPauseToggle.background = mLogToolBar.background
+        mStopBtn.background = mLogToolBar.background
+        mSaveBtn.background = mLogToolBar.background
+        mAdbConnectBtn.background = mLogToolBar.background
+        mAdbDisconnectBtn.background = mLogToolBar.background
+        mAdbRefreshBtn.background = mLogToolBar.background
+        mClearViewsBtn.background = mLogToolBar.background
+        mScrollbackSplitFileToggle.background = mLogToolBar.background
+        mScrollbackApplyBtn.background = mLogToolBar.background
+        mScrollbackKeepToggle.background = mLogToolBar.background
         mLogToolBar.add(mStartBtn)
         mLogToolBar.add(mRetryAdbToggle)
         addVSeparator2(mLogToolBar)
@@ -3144,7 +3183,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
     inner class SearchPanel : JPanel() {
         var mSearchCombo: FilterComboBox
-        var mSearchMatchCaseToggle: ColorToggleButton
+        var mSearchMatchCaseToggle: FilterToggleButton
         private var mSearchLabel: JLabel
         private var mTargetLabel: JLabel
         private var mUpBtn: ColorButton
@@ -3176,7 +3215,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mSearchCombo.editor.editorComponent.addKeyListener(mSearchKeyHandler)
             mSearchCombo.addPopupMenuListener(mSearchPopupMenuHandler)
 
-            mSearchMatchCaseToggle = ColorToggleButton("Aa")
+            mSearchMatchCaseToggle = FilterToggleButton("Aa")
             mSearchMatchCaseToggle.toolTipText = TooltipStrings.SEARCH_CASE_TOGGLE
             mSearchMatchCaseToggle.margin = Insets(0, 0, 0, 0)
             mSearchMatchCaseToggle.addItemListener(SearchItemHandler())
@@ -3615,6 +3654,30 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mDeviceCombo.editor.editorComponent.addMouseListener(mMouseHandler)
 
         setDeviceComboColor(mLogCmdManager.mDevices.contains(mDeviceCombo.selectedItem?.toString() ?: ""))
+
+        mStartBtn.background = mLogToolBar.background
+        mRetryAdbToggle.background = mLogToolBar.background
+        mPauseToggle.background = mLogToolBar.background
+        mStopBtn.background = mLogToolBar.background
+        mSaveBtn.background = mLogToolBar.background
+        mAdbConnectBtn.background = mLogToolBar.background
+        mAdbDisconnectBtn.background = mLogToolBar.background
+        mAdbRefreshBtn.background = mLogToolBar.background
+        mClearViewsBtn.background = mLogToolBar.background
+        mScrollbackSplitFileToggle.background = mLogToolBar.background
+        mScrollbackApplyBtn.background = mLogToolBar.background
+        mScrollbackKeepToggle.background = mLogToolBar.background
+
+        mShowLogToggle.background = mLogPanel.background
+        mBoldLogToggle.background = mLogPanel.background
+        mMatchCaseToggle.background = mLogPanel.background
+
+        for (item in mTokenToggle) {
+            item.background = mLogPanel.background
+        }
+
+        mFullLogPanel.updateTableBar(mConfigManager.loadCmds())
+        mFilteredLogPanel.updateTableBar(mConfigManager.loadFilters())
     }
 }
 

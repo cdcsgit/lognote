@@ -18,10 +18,10 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
     private val mCtrlMainPanel: ButtonPanel
     private var mFirstBtn: ColorButton
     private var mLastBtn: ColorButton
-    private var mTokenBtns: Array<ColorToggleButton>
+    private var mTokenBtns: Array<FilterToggleButton>
     private var mWindowedModeBtn: ColorButton
-    private var mBookmarksBtn: ColorToggleButton
-    private var mFullBtn: ColorToggleButton
+    private var mBookmarksBtn: FilterToggleButton
+    private var mFullBtn: FilterToggleButton
 
     private val mScrollPane: JScrollPane
     private val mVStatusPanel: VStatusPanel
@@ -53,17 +53,19 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
         layout = BorderLayout()
         mCtrlMainPanel = ButtonPanel()
         mFirstBtn = ColorButton("")
-        mFirstBtn.icon = ImageIcon(this.javaClass.getResource("/images/top.png"))
+        mFirstBtn.border = BorderFactory.createEmptyBorder()
+        mFirstBtn.icon = Icons.TopIcon(ConfigManager.LaFAccentColor)
         mFirstBtn.toolTipText = TooltipStrings.VIEW_FIRST_BTN
         mFirstBtn.margin = Insets(2, 3, 1, 3)
-
         mFirstBtn.addActionListener(mActionHandler)
+
         mLastBtn = ColorButton("")
-        mLastBtn.icon = ImageIcon(this.javaClass.getResource("/images/bottom.png"))
+        mLastBtn.border = BorderFactory.createEmptyBorder()
+        mLastBtn.icon = Icons.BottomIcon(ConfigManager.LaFAccentColor)
         mLastBtn.toolTipText = TooltipStrings.VIEW_LAST_BTN
         mLastBtn.margin = Insets(2, 3, 1, 3)
         mLastBtn.addActionListener(mActionHandler)
-        mTokenBtns = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { ColorToggleButton(mFormatManager.mCurrFormat.mTokenFilters[it].mToken) }
+        mTokenBtns = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { FilterToggleButton(mFormatManager.mCurrFormat.mTokenFilters[it].mToken) }
         for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
             mTokenBtns[idx].toolTipText = TooltipStrings.TOKEN_VIEW_TOGGLE
             mTokenBtns[idx].margin = Insets(0, 3, 0, 3)
@@ -76,11 +78,11 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
         mWindowedModeBtn.toolTipText = TooltipStrings.VIEW__WINDOWED_MODE_BTN
         mWindowedModeBtn.margin = Insets(0, 3, 0, 3)
         mWindowedModeBtn.addActionListener(mActionHandler)
-        mBookmarksBtn = ColorToggleButton(Strings.BOOKMARKS)
+        mBookmarksBtn = FilterToggleButton(Strings.BOOKMARKS)
         mBookmarksBtn.toolTipText = TooltipStrings.VIEW_BOOKMARKS_TOGGLE
         mBookmarksBtn.margin = Insets(0, 3, 0, 3)
         mBookmarksBtn.addActionListener(mActionHandler)
-        mFullBtn = ColorToggleButton(Strings.FULL)
+        mFullBtn = FilterToggleButton(Strings.FULL)
         mFullBtn.toolTipText = TooltipStrings.VIEW_FULL_TOGGLE
         mFullBtn.margin = Insets(0, 3, 0, 3)
         mFullBtn.addActionListener(mActionHandler)
@@ -162,7 +164,8 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
 
     private fun updateTableBarFilters(customArray: ArrayList<CustomListManager.CustomElement>?) {
         val filtersBtn = TableBarButton(Strings.FILTERS)
-        filtersBtn.icon = ImageIcon(this.javaClass.getResource("/images/filterscmds.png"))
+        filtersBtn.background = mCtrlMainPanel.background
+        filtersBtn.icon = Icons.FiltersCmdsIcon(ConfigManager.LaFAccentColor)
         filtersBtn.toolTipText = TooltipStrings.ADD_FILTER_BTN
         filtersBtn.margin = Insets(0, 3, 0, 3)
         filtersBtn.addActionListener {
@@ -170,13 +173,14 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
         }
         mCtrlMainPanel.add(filtersBtn)
 
-        val icon = ImageIcon(this.javaClass.getResource("/images/filterscmdsitem.png"))
+        val icon = Icons.FiltersCmdsItemIcon(ConfigManager.LaFAccentColor)
         if (customArray != null) {
             for (item in customArray) {
                 if (!item.mTableBar) {
                     continue
                 }
                 val button = TableBarButton(item.mTitle)
+                button.background = mCtrlMainPanel.background
                 button.icon = icon
                 button.mValue = item.mValue
                 button.toolTipText = "<html>${item.mTitle} : <b>\"${item.mValue}\"</b><br><br>* Append : Ctrl + Click</html>"
@@ -205,7 +209,8 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
 
     private fun updateTableBarCmds(customArray: ArrayList<CustomListManager.CustomElement>?) {
         val cmdsBtn = TableBarButton(Strings.CMDS)
-        cmdsBtn.icon = ImageIcon(this.javaClass.getResource("/images/filterscmds.png"))
+        cmdsBtn.background = mCtrlMainPanel.background
+        cmdsBtn.icon = Icons.FiltersCmdsIcon(ConfigManager.LaFAccentColor)
         cmdsBtn.toolTipText = TooltipStrings.ADD_CMD_BTN
         cmdsBtn.margin = Insets(0, 3, 0, 3)
         cmdsBtn.addActionListener {
@@ -213,13 +218,14 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
         }
         mCtrlMainPanel.add(cmdsBtn)
 
-        val icon = ImageIcon(this.javaClass.getResource("/images/filterscmdsitem.png"))
+        val icon = Icons.FiltersCmdsItemIcon(ConfigManager.LaFAccentColor)
         if (customArray != null) {
             for (item in customArray) {
                 if (!item.mTableBar) {
                     continue
                 }
                 val button = TableBarButton(item.mTitle)
+                button.background = mCtrlMainPanel.background
                 button.icon = icon
                 button.mValue = item.mValue
                 button.toolTipText = "${item.mTitle} : ${item.mValue}"
@@ -250,9 +256,14 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
 
     fun updateTableBar(customArray: ArrayList<CustomListManager.CustomElement>?) {
         mCtrlMainPanel.removeAll()
+        mFirstBtn.background = mCtrlMainPanel.background
+        mFirstBtn.icon = Icons.TopIcon(ConfigManager.LaFAccentColor)
+        mLastBtn.background = mCtrlMainPanel.background
+        mLastBtn.icon = Icons.BottomIcon(ConfigManager.LaFAccentColor)
         mCtrlMainPanel.add(mFirstBtn)
         mCtrlMainPanel.add(mLastBtn)
         for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+            mTokenBtns[idx].background = mCtrlMainPanel.background
             mCtrlMainPanel.add(mTokenBtns[idx])
             if (mTokenBtns[idx].text.isNullOrEmpty()) {
                 mTokenBtns[idx].isVisible = false
@@ -260,10 +271,13 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
         }
 
         if (mBasePanel != null) {
+            mFullBtn.background = mCtrlMainPanel.background
+            mBookmarksBtn.background = mCtrlMainPanel.background
             mCtrlMainPanel.add(mFullBtn)
             mCtrlMainPanel.add(mBookmarksBtn)
         }
         if (mBasePanel == null) {
+            mWindowedModeBtn.background = mCtrlMainPanel.background
             mCtrlMainPanel.add(mWindowedModeBtn)
         }
 

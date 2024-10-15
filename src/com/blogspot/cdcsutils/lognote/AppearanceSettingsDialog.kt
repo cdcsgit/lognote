@@ -24,8 +24,10 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
     private val mOkBtn = ColorButton(Strings.OK)
     private val mCancelBtn = ColorButton(Strings.CANCEL)
     private val mPrevLaf = ConfigManager.LaF
+    private val mPrevLafAccentColor = ConfigManager.LaFAccentColor
 
     init {
+        addWindowListener(mLnFPanel)
         addWindowListener(mFilterComboPanel)
         addWindowListener(mFontColorPanel)
         mScrollPane.verticalScrollBar.unitIncrement = 10
@@ -76,10 +78,14 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
         }
     }
 
-    inner class LnFPanel : JPanel() {
+    inner class LnFPanel : JPanel(), ActionListener, WindowListener {
+        private var mIsNeedRestore = true
         private var mFontSlider: JSlider
         private var mDividerSlider: JSlider
         private var mLaFGroup: ButtonGroup
+        private var mLaFAccentColorGroup: ButtonGroup
+        private var mLaFAccentColorBtns = arrayOfNulls<JToggleButton>(MainUI.LAF_ACCENT_COLORS.size)
+        private val mLaFAccentColorCustomBtn: JToggleButton
         private var mExampleLabel: JLabel
         private var mBaseFontSize = 0
 
@@ -93,11 +99,47 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
 
         private val mLogWidthTF: JTextField
 
+        override fun actionPerformed(e: ActionEvent?) {
+            if (e?.source == mLaFAccentColorCustomBtn) {
+                val colorChooser = JColorChooser()
+                val panels = colorChooser.chooserPanels
+                var rgbPanel: JPanel? = null
+                for (panel in panels) {
+                    if (panel.displayName.contains("RGB", true)) {
+                        rgbPanel = panel
+                    }
+                }
+
+                if (rgbPanel != null) {
+                    colorChooser.color = Color.decode(ConfigManager.LaFAccentColor)
+
+                    val ret = JOptionPane.showConfirmDialog(this@AppearanceSettingsDialog, rgbPanel, "Color Chooser", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
+                    if (ret == JOptionPane.OK_OPTION) {
+                        val hex = "#" + Integer.toHexString(colorChooser.color.rgb).substring(2).uppercase()
+                        ConfigManager.LaFAccentColor = hex
+                        mLaFAccentColorCustomBtn.icon = Icons.AccentColorIcon(ConfigManager.LaFAccentColor)
+                        mMainUI.setLaF()
+                        mMainUI.updateUI()
+                    }
+                }
+            }
+            else {
+                for (idx in 0 until MainUI.LAF_ACCENT_COLORS.size) {
+                    if (e?.source == mLaFAccentColorBtns[idx]) {
+                        ConfigManager.LaFAccentColor = MainUI.LAF_ACCENT_COLORS[idx]
+                        mMainUI.setLaF()
+                        mMainUI.updateUI()
+                        break
+                    }
+                }
+            }
+        }
+
         init {
             layout = FlowLayout(FlowLayout.LEFT)
 
             val lafPanel = JPanel()
-            lafPanel.layout = GridLayout(4, 3)
+            lafPanel.layout = GridLayout(2, 3)
 
             mLaFGroup = ButtonGroup()
 
@@ -127,21 +169,35 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
             mLaFGroup.add(lafItem)
             lafPanel.add(lafItem)
 
-            lafItem = JRadioButton(MainUI.SYSTEM_LAF)
-            mLaFGroup.add(lafItem)
-            lafPanel.add(lafItem)
-
-            lafPanel.add(JLabel())
-            lafPanel.add(JLabel())
-            lafPanel.add(JLabel())
-            lafPanel.add(JLabel())
-            lafPanel.add(JLabel())
-
             for (item in mLaFGroup.elements) {
                 if (ConfigManager.LaF == item.text) {
                     item.isSelected = true
                 }
                 item.addItemListener(this@AppearanceSettingsDialog)
+            }
+
+            val lafAccentColorPanel = JPanel(FlowLayout(FlowLayout.LEFT))
+            mLaFAccentColorGroup = ButtonGroup()
+
+            lafAccentColorPanel.add(JLabel("Accent Color : "))
+            var isSelectedAccentColor = false
+            for (idx in 0 until MainUI.LAF_ACCENT_COLORS.size) {
+                mLaFAccentColorBtns[idx] = JToggleButton(Icons.AccentColorIcon(MainUI.LAF_ACCENT_COLORS[idx]))
+                mLaFAccentColorBtns[idx]!!.addActionListener(this)
+                lafAccentColorPanel.add(mLaFAccentColorBtns[idx])
+                mLaFAccentColorGroup.add(mLaFAccentColorBtns[idx])
+                if (ConfigManager.LaFAccentColor == MainUI.LAF_ACCENT_COLORS[idx]) {
+                    mLaFAccentColorBtns[idx]!!.isSelected = true
+                    isSelectedAccentColor = true
+                }
+            }
+            mLaFAccentColorCustomBtn = JToggleButton("Custom", Icons.AccentColorIcon(ConfigManager.LaFAccentColor))
+            mLaFAccentColorCustomBtn.margin = mLaFAccentColorBtns[0]!!.insets
+            mLaFAccentColorCustomBtn.addActionListener(this)
+            lafAccentColorPanel.add(mLaFAccentColorCustomBtn)
+            mLaFAccentColorGroup.add(mLaFAccentColorCustomBtn)
+            if (!isSelectedAccentColor) {
+                mLaFAccentColorCustomBtn.isSelected = true
             }
 
             val examplePanel = JPanel(FlowLayout(FlowLayout.LEFT))
@@ -173,7 +229,8 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
 
             val lafSizePanel = JPanel(BorderLayout())
             lafSizePanel.add(lafPanel, BorderLayout.NORTH)
-            lafSizePanel.add(sizePanel, BorderLayout.CENTER)
+            lafSizePanel.add(lafAccentColorPanel, BorderLayout.CENTER)
+            lafSizePanel.add(sizePanel, BorderLayout.SOUTH)
 
             val dividerPanel = JPanel(FlowLayout(FlowLayout.LEFT))
             val dividerLabel = JLabel("Divider ${Strings.SIZE}(1 ~ 20) [${mMainUI.mLogSplitPane.dividerSize}]")
@@ -227,12 +284,32 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
 
         fun actionBtn(isOK: Boolean) {
             if (isOK) {
+                mIsNeedRestore = false
+            }
+        }
+
+        override fun windowOpened(p0: WindowEvent?) {
+            // nothing
+        }
+
+        override fun windowClosing(p0: WindowEvent?) {
+            Utils.printlnLog("exit Look and feel, restore $mIsNeedRestore")
+
+            if (mIsNeedRestore) {
+                mMainUI.mLogSplitPane.dividerSize = mPrevDividerSize
+                ConfigManager.LaF = mPrevLaf
+                ConfigManager.LaFAccentColor = mPrevLafAccentColor
+                mMainUI.setLaF()
+                mMainUI.updateUI()
+            } else {
                 for (item in mLaFGroup.elements) {
                     if (item.isSelected) {
                         ConfigManager.getInstance().saveItem(ConfigManager.ITEM_LOOK_AND_FEEL, item.text)
                         break
                     }
                 }
+                ConfigManager.getInstance().saveItem(ConfigManager.ITEM_LAF_ACCENT_COLOR, ConfigManager.LaFAccentColor)
+
                 ConfigManager.getInstance().saveItem(ConfigManager.ITEM_UI_FONT_SIZE, mFontSlider.value.toString())
                 ConfigManager.getInstance().saveItem(ConfigManager.ITEM_APPEARANCE_DIVIDER_SIZE, mMainUI.mLogSplitPane.dividerSize.toString())
 
@@ -247,12 +324,27 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
                 }
                 ConfigManager.getInstance().saveItem(ConfigManager.ITEM_LOG_VIEW_WIDTH, LogTable.LogWidth.toString())
                 mMainUI.updateLogViewWidth()
-            } else {
-                mMainUI.mLogSplitPane.dividerSize = mPrevDividerSize
-                ConfigManager.LaF = mPrevLaf
-                mMainUI.setLaF()
-                mMainUI.updateUI()
             }
+        }
+
+        override fun windowClosed(p0: WindowEvent?) {
+            // nothing
+        }
+
+        override fun windowIconified(p0: WindowEvent?) {
+            // nothing
+        }
+
+        override fun windowDeiconified(p0: WindowEvent?) {
+            // nothing
+        }
+
+        override fun windowActivated(p0: WindowEvent?) {
+            // nothing
+        }
+
+        override fun windowDeactivated(p0: WindowEvent?) {
+            // nothing
         }
     }
 

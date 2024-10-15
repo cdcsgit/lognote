@@ -1,9 +1,12 @@
 package com.blogspot.cdcsutils.lognote
 
-import java.awt.Color
+import javax.swing.BorderFactory
 import javax.swing.JButton
 
 open class ColorButton(title:String) : JButton(title) {
+    init {
+        putClientProperty("JButton.buttonType", "square")
+    }
 }
 
 class TableBarButton(title:String) : ColorButton(title) {
@@ -14,6 +17,9 @@ class TableBarButton(title:String) : ColorButton(title) {
     }
 
     init {
+        border = BorderFactory.createEmptyBorder()
+
+//        putClientProperty("JButton.buttonType", "roundRect")
         if (title.length > MAX_TITLE) {
             text = title.substring(0, MAX_TITLE) + ".."
         }
