@@ -62,6 +62,7 @@ class TooltipStringsKo private constructor() {
                 , "토큰 강조"
                 , "잘못된 포멧(숫자)"
                 , "잘못된 이름(공백 허용 안됨)"
+                , "로그를 가져올 패키지를 설정 합니다"
 //            , ""
             )
 

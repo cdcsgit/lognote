@@ -14,6 +14,7 @@ class LogCmdManager private constructor(){
     var mDevices = ArrayList<String>()
     private val mEventListeners = ArrayList<AdbEventListener>()
     private val mProcessList: ProcessList = ProcessList.getInstance()
+    private val mPackageManager = PackageManager.getInstance()
 
     companion object {
         const val DEFAULT_PREFIX = Main.NAME
@@ -27,6 +28,7 @@ class LogCmdManager private constructor(){
         const val CMD_LOGCAT = 3
         const val CMD_DISCONNECT = 4
         const val CMD_GET_PROCESSES = 5
+        const val CMD_GET_PACKAGES = 6
 
         const val DEFAULT_LOGCAT = "logcat -v threadtime"
         const val LOG_CMD_MAX = 10
@@ -182,7 +184,7 @@ class LogCmdManager private constructor(){
                             "${mLogCmd.substring(TYPE_CMD_PREFIX_LEN)} $mTargetDevice"
                         }
                         else {
-                            "$mAdbCmd -s $mTargetDevice $mLogCmd"
+                            "$mAdbCmd -s $mTargetDevice $mLogCmd ${PackageManager.getInstance().getUids()}"
                         }
                     }
                     else {
@@ -190,7 +192,7 @@ class LogCmdManager private constructor(){
                             mLogCmd.substring(TYPE_CMD_PREFIX_LEN)
                         }
                         else {
-                            "$mAdbCmd $mLogCmd"
+                            "$mAdbCmd $mLogCmd ${PackageManager.getInstance().getUids()}"
                         }
                     }
                     Utils.printlnLog("Start : $cmd")
@@ -300,6 +302,68 @@ class LogCmdManager private constructor(){
                     sendEvent(adbEvent)
                 }
             }
+
+            CMD_GET_PACKAGES -> executer = Runnable {
+                run {
+                    mPackageManager.clear()
+
+                    val cmd = if (mTargetDevice.isNotBlank()) {
+                        "$mAdbCmd -s $mTargetDevice shell cmd package list packages -U"
+                    }
+                    else {
+                        "$mAdbCmd shell cmd package list packages -U"
+                    }
+
+                    val runtime = Runtime.getRuntime()
+                    val scanner = try {
+                        val process = runtime.exec(cmd)
+                        Scanner(process.inputStream)
+                    } catch (e:IOException) {
+                        Utils.printlnLog("Failed run $cmd")
+                        e.printStackTrace()
+                        val adbEvent = AdbEvent(CMD_GET_PROCESSES, EVENT_FAIL)
+                        sendEvent(adbEvent)
+                        return@run
+                    }
+
+                    val thread = Thread {
+                        try {
+                            var line:String
+                            while (scanner.hasNextLine()) {
+                                line = scanner.nextLine()
+                                val textSplit = line.trim().split(Regex("\\s+|:"))
+                                if (textSplit.size == 4) {
+                                    mPackageManager.add(PackageItem(textSplit[1], textSplit[3], false))
+                                }
+                            }
+                        } catch (e: InterruptedException) {
+                            Utils.printlnLog("Failed get package list")
+                            mPackageManager.clear()
+                        }
+                    }
+                    thread.start()
+
+                    try {
+                        thread.join(1000)
+                        if (thread.isAlive) {
+                            thread.interrupt()
+                        }
+                    } catch (ex: InterruptedException) {
+                        Utils.printlnLog("get packages join : InterruptedException, throw exception")
+                        throw ex
+                    }
+
+                    for (i in 0 until 10) {
+                        if (!thread.isAlive) {
+                            break
+                        }
+                        Thread.sleep(100)
+                    }
+
+                    val adbEvent = AdbEvent(CMD_GET_PACKAGES, EVENT_SUCCESS)
+                    sendEvent(adbEvent)
+                }
+            }
         }
 
         return executer
@@ -307,6 +371,10 @@ class LogCmdManager private constructor(){
 
     fun getProcesses() {
         execute(makeExecuter(CMD_GET_PROCESSES))
+    }
+
+    fun getPackages() {
+        execute(makeExecuter(CMD_GET_PACKAGES))
     }
 
     interface AdbEventListener {

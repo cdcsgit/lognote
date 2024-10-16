@@ -14,8 +14,12 @@ class FilterToggleButton(title:String) : JToggleButton(title){
         selectedIcon = Icons.ToggleOnIcon(ConfigManager.LaFAccentColor)
         super.updateUI()
     }
+}
 
-    override fun paintComponent(g: Graphics) {
-        super.paintComponent(g)
+class PackageToggleButton(title:String) : JToggleButton(title){
+    override fun updateUI() {
+        icon = Icons.PackageToggleOffIcon(ConfigManager.LaFAccentColor)
+        selectedIcon = Icons.PackageToggleOnIcon(ConfigManager.LaFAccentColor)
+        super.updateUI()
     }
 }

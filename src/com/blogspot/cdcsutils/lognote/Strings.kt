@@ -344,5 +344,9 @@ class Strings private constructor() {
             get() { return currStrings[field]!! }
         val MOVE_FULL_LOG_TO_NEW_WINDOW: String = idx++.toString()
             get() { return currStrings[field]!! }
+        val SELECT_PACKAGE: String = idx++.toString()
+            get() { return currStrings[field]!! }
+        val PACKAGES: String = idx++.toString()
+            get() { return currStrings[field]!! }
     }
 }

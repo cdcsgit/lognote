@@ -19,6 +19,7 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
     private var mFirstBtn: ColorButton
     private var mLastBtn: ColorButton
     private var mTokenBtns: Array<FilterToggleButton>
+    var mPackageBtns: Array<PackageToggleButton> = emptyArray()
     private var mBookmarksBtn: FilterToggleButton
     private var mFullBtn: FilterToggleButton
 
@@ -233,6 +234,34 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
         }
     }
 
+    private fun updateTableBarPackages() {
+        val packagesBtn = TableBarButton(Strings.PACKAGES)
+        packagesBtn.background = mCtrlMainPanel.background
+        packagesBtn.icon = Icons.FiltersCmdsIcon(ConfigManager.LaFAccentColor)
+        packagesBtn.toolTipText = TooltipStrings.ADD_PACKAGE_BTN
+        packagesBtn.margin = Insets(0, 3, 0, 3)
+        packagesBtn.addActionListener {
+            PackageManager.getInstance().showPackageDialog()
+            updateTableBar(ConfigManager.getInstance().loadCmds())
+        }
+        mCtrlMainPanel.add(packagesBtn)
+        updateTableBarPackageItems()
+    }
+
+    private fun updateTableBarPackageItems() {
+        if (PackageManager.getInstance().mSelectedPackageList.isNotEmpty()) {
+            mPackageBtns = Array(PackageManager.getInstance().mSelectedPackageList.size) { PackageToggleButton(PackageManager.getInstance().mSelectedPackageList[it].mPackageName) }
+            for (idx in mPackageBtns.indices) {
+                mPackageBtns[idx].border = BorderFactory.createEmptyBorder()
+//                mPackageBtns[idx].toolTipText = TooltipStrings.TOKEN_VIEW_TOGGLE
+                mPackageBtns[idx].margin = Insets(0, 3, 0, 3)
+                mPackageBtns[idx].addActionListener(mActionHandler)
+                mPackageBtns[idx].background = mCtrlMainPanel.background
+                mCtrlMainPanel.add(mPackageBtns[idx])
+            }
+        }
+    }
+
     fun updateTableBar(customArray: ArrayList<CustomListManager.CustomElement>?) {
         mCtrlMainPanel.removeAll()
         mFirstBtn.background = mCtrlMainPanel.background
@@ -261,6 +290,8 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
             updateTableBarFilters(customArray)
         }
         else {
+            updateTableBarPackages()
+            addVSeparator(mCtrlMainPanel)
             updateTableBarCmds(customArray)
         }
         mCtrlMainPanel.updateUI()

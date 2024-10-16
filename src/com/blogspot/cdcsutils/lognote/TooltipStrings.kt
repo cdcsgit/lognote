@@ -130,5 +130,7 @@ class TooltipStrings private constructor() {
             get() { return currStrings[field]!! }
         val INVALID_NAME = idx++.toString()
             get() { return currStrings[field]!! }
+        val ADD_PACKAGE_BTN = idx++.toString()
+            get() { return currStrings[field]!! }
     }
 }

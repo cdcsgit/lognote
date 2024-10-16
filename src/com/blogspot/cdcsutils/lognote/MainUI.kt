@@ -1977,6 +1977,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mPauseToggle.isSelected = false
         setSaveLogFile()
         if (reconnect) {
+            PackageManager.getInstance().updateUid(mFullLogPanel.mPackageBtns)
             mLogCmdManager.startLogcat()
         }
         mFilteredLogPanel.mTableModel.startScan()

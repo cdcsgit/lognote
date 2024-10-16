@@ -50,7 +50,7 @@ class StringsKo private constructor() {
                 , "스크롤백(라인수)"
                 , "분할 저장"
                 , "색"
-                , "필터s"
+                , "필터"
                 , "로그 유지"
                 , "확인"
                 , "취소"
@@ -73,7 +73,7 @@ class StringsKo private constructor() {
                 , "없음"
                 , "필터 추가"
                 , "명령 추가"
-                , "명령s"
+                , "명령"
                 , "재시도"
                 , "필터 스타일"
                 , "Look and Feel"
@@ -167,6 +167,8 @@ class StringsKo private constructor() {
                 , "보이기"
                 , "컬러 배경과 함께 보이기"
                 , "전체 로그 새창으로 이동"
+                , "패키지 선택"
+                , "패키지"
 //            , ""
             )
 

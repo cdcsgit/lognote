@@ -167,6 +167,8 @@ class StringsEn private constructor() {
                 , "Show"
                 , "Show with color bg"
                 , "Move Full log to new window"
+                , "Select package"
+                , "Packages"
 //            , ""
             )
 

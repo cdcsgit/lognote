@@ -62,6 +62,7 @@ class TooltipStringsEn private constructor() {
                 , "Token highlight"
                 , "Invalid Format(Only number)"
                 , "Invalid Name(Blank is not allowed)"
+                , "Set the package to get the logs from"
 //                , ""
             )
 
