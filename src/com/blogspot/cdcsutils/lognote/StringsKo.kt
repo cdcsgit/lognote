@@ -166,6 +166,7 @@ class StringsKo private constructor() {
                 , "프로세스명 보이기(adb 모드)"
                 , "보이기"
                 , "컬러 배경과 함께 보이기"
+                , "전체 로그 새창으로 이동"
 //            , ""
             )
 

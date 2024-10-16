@@ -47,11 +47,7 @@ class CmdManager(mainUI: MainUI, logPanel: LogPanel): CustomListManager (mainUI,
     private fun runCmd(list: JList<CustomElement>) {
         val selection = list.selectedValue
         var cmd = selection.mValue
-        if (cmd.startsWith("adb ")) {
-            cmd = cmd.replaceFirst("adb ", "${LogCmdManager.getInstance().mAdbCmd} -s ${LogCmdManager.getInstance().mTargetDevice} ")
-        } else if (cmd.startsWith("adb.exe ")) {
-            cmd = cmd.replaceFirst("adb.exe ", "${LogCmdManager.getInstance().mAdbCmd} -s ${LogCmdManager.getInstance().mTargetDevice} ")
-        }
+        cmd = Utils.replaceCmd(cmd)
 
         if (cmd.isNotEmpty()) {
             val ret = JOptionPane.showConfirmDialog(

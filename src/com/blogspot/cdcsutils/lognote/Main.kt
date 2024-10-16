@@ -18,11 +18,11 @@ class Main {
             if (SystemInfo.isMacOS) {
                 // enable screen menu bar
                 // (moves menu bar from JFrame window to top of screen)
-                System.setProperty( "apple.laf.useScreenMenuBar", "true" );
+                System.setProperty( "apple.laf.useScreenMenuBar", "true" )
 
                 // application name used in screen menu bar
                 // (in first menu after the "apple" menu)
-                System.setProperty( "apple.awt.application.name", "Lognote" );
+                System.setProperty( "apple.awt.application.name", "Lognote" )
 
                 // appearance of window title bars
                 // possible values:
@@ -31,12 +31,12 @@ class Main {
                 //   - "NSAppearanceNameDarkAqua": use dark appearance
                 // (must be set on main thread and before AWT/Swing is initialized;
                 //  setting it on AWT thread does not work)
-                System.setProperty( "apple.awt.application.appearance", "system" );
+                System.setProperty( "apple.awt.application.appearance", "system" )
             }
 
             if (SystemInfo.isLinux) {
-                 JFrame.setDefaultLookAndFeelDecorated(true);
-                 JDialog.setDefaultLookAndFeelDecorated(true);
+                 JFrame.setDefaultLookAndFeelDecorated(true)
+                 JDialog.setDefaultLookAndFeelDecorated(true)
              }
 
             SwingUtilities.invokeLater {

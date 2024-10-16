@@ -166,6 +166,7 @@ class StringsEn private constructor() {
                 , "Show process name(adb mode)"
                 , "Show"
                 , "Show with color bg"
+                , "Move Full log to new window"
 //            , ""
             )
 

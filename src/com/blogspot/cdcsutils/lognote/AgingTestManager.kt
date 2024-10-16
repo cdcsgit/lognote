@@ -161,8 +161,11 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
     }
 
     private fun runCmd(item: TriggerItem) {
+        var cmd = item.mActionParam
+        cmd = Utils.replaceCmd(cmd)
+
         val runtime = Runtime.getRuntime()
-        val proc = runtime.exec(item.mActionParam)
+        val proc = runtime.exec(cmd)
 
         val stdInput = BufferedReader(InputStreamReader(proc.inputStream))
         val stdError = BufferedReader(InputStreamReader(proc.errorStream))

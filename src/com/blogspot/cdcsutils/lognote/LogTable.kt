@@ -35,9 +35,9 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
     var mIsMousePressedTableHeader = false
     var mSkipUpdateColumnWidth = false
 
-    private val mBaseRed: Int
-    private val mBaseGreen: Int
-    private val mBaseBlue: Int
+    private var mBaseRed: Int = 0
+    private var mBaseGreen: Int = 0
+    private var mBaseBlue: Int = 0
 
     init {
         this.setShowGrid(false)
@@ -83,6 +83,18 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
             ColorManager.getInstance().mFilterTableColor
         }
 
+        updateProcessBgColor()
+
+        val colorEventListener = object: ColorManager.ColorEventListener{
+            override fun colorChanged(event: ColorManager.ColorEvent?) {
+                updateProcessBgColor()
+            }
+        }
+
+        ColorManager.getInstance().addColorEventListener(colorEventListener)
+    }
+
+    private fun updateProcessBgColor() {
         val tmpRed = mTableColor.mLogBG.red - (PROCESS_COLOR_RANGE / 2)
         mBaseRed = if (tmpRed < 0) {
             0

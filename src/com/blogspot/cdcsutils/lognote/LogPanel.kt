@@ -19,7 +19,6 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
     private var mFirstBtn: ColorButton
     private var mLastBtn: ColorButton
     private var mTokenBtns: Array<FilterToggleButton>
-    private var mWindowedModeBtn: ColorButton
     private var mBookmarksBtn: FilterToggleButton
     private var mFullBtn: FilterToggleButton
 
@@ -40,12 +39,6 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
     private var mOldLogVPos = -1
     private var mOldLogHPos = -1
     private var mIsCreatingUI = true
-
-    var mIsWindowedMode = false
-        set(value) {
-            field = value
-            mWindowedModeBtn.isEnabled = !value
-        }
 
     private var mColumnMode = columnMode
 
@@ -74,10 +67,6 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
                 mTokenBtns[idx].isVisible = false
             }
         }
-        mWindowedModeBtn = ColorButton(Strings.WINDOWED_MODE)
-        mWindowedModeBtn.toolTipText = TooltipStrings.VIEW__WINDOWED_MODE_BTN
-        mWindowedModeBtn.margin = Insets(0, 3, 0, 3)
-        mWindowedModeBtn.addActionListener(mActionHandler)
         mBookmarksBtn = FilterToggleButton(Strings.BOOKMARKS)
         mBookmarksBtn.toolTipText = TooltipStrings.VIEW_BOOKMARKS_TOGGLE
         mBookmarksBtn.margin = Insets(0, 3, 0, 3)
@@ -232,17 +221,7 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
                 button.margin = Insets(0, 3, 0, 3)
                 button.addActionListener { e: ActionEvent? ->
                     var cmd = (e?.source as TableBarButton).mValue
-                    if (cmd.startsWith("adb ")) {
-                        cmd = cmd.replaceFirst(
-                            "adb ",
-                            "${LogCmdManager.getInstance().mAdbCmd} -s ${LogCmdManager.getInstance().mTargetDevice} "
-                        )
-                    } else if (cmd.startsWith("adb.exe ")) {
-                        cmd = cmd.replaceFirst(
-                            "adb.exe ",
-                            "${LogCmdManager.getInstance().mAdbCmd} -s ${LogCmdManager.getInstance().mTargetDevice} "
-                        )
-                    }
+                    cmd = Utils.replaceCmd(cmd)
 
                     if (cmd.isNotEmpty()) {
                         val runtime = Runtime.getRuntime()
@@ -275,10 +254,6 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
             mBookmarksBtn.background = mCtrlMainPanel.background
             mCtrlMainPanel.add(mFullBtn)
             mCtrlMainPanel.add(mBookmarksBtn)
-        }
-        if (mBasePanel == null) {
-            mWindowedModeBtn.background = mCtrlMainPanel.background
-            mCtrlMainPanel.add(mWindowedModeBtn)
         }
 
         addVSeparator(mCtrlMainPanel)
@@ -545,10 +520,6 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
 
                     mLastBtn -> {
                         goToLast()
-                    }
-
-                    mWindowedModeBtn -> {
-                        mMainUI.windowedModeLogPanel(this@LogPanel)
                     }
 
                     mBookmarksBtn -> {

@@ -30,6 +30,7 @@ class LogTableDialog (mainUI: MainUI, logPanel: LogPanel) : JFrame("FullLog") {
             override fun windowClosing(e: WindowEvent?) {
                 Utils.printlnLog("exit table dialog")
                 mMainUI.attachLogPanel(mLogPanel)
+                mMainUI.mItemFullLogToNewWindow.state = false
             }
         })
 

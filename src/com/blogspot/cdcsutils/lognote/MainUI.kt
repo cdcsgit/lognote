@@ -92,6 +92,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     private lateinit var mItemFileExit: JMenuItem
     private lateinit var mMenuView: JMenu
     private lateinit var mItemFull: JCheckBoxMenuItem
+    lateinit var mItemFullLogToNewWindow: JCheckBoxMenuItem
     private lateinit var mItemColumnMode: JCheckBoxMenuItem
     private lateinit var mItemProcessName: JMenu
     private lateinit var mItemProcessNameNone: JRadioButtonMenuItem
@@ -207,6 +208,8 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     private var mFrameExtendedState = Frame.MAXIMIZED_BOTH
 
     private var mRotationStatus = ROTATION_LEFT_RIGHT
+
+    private var mLogTableDialog: LogTableDialog? = null
 
     var mFont: Font = Font(DEFAULT_FONT_NAME, Font.PLAIN, 12)
         set(value) {
@@ -607,6 +610,12 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mItemFull = JCheckBoxMenuItem(Strings.VIEW_FULL)
         mItemFull.addActionListener(mActionHandler)
         mMenuView.add(mItemFull)
+
+        mItemFullLogToNewWindow = JCheckBoxMenuItem(Strings.MOVE_FULL_LOG_TO_NEW_WINDOW)
+        mItemFullLogToNewWindow.addActionListener(mActionHandler)
+        mMenuView.add(mItemFullLogToNewWindow)
+
+        mMenuView.addSeparator()
 
         mItemColumnMode = JCheckBoxMenuItem(Strings.DIVIDED_BY_COLUMN)
         mItemColumnMode.state = mColumnMode
@@ -1309,6 +1318,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         }
         if (!mItemFull.state) {
             windowedModeLogPanel(mFullLogPanel)
+            mItemFullLogToNewWindow.state = true
         }
 
         check = mConfigManager.getItem(ConfigManager.ITEM_FILTER_INCREMENTAL)
@@ -1460,6 +1470,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
         if (!mItemFull.state) {
             windowedModeLogPanel(mFullLogPanel)
+            mItemFullLogToNewWindow.state = true
         }
 
         mFilteredLogPanel.mTableModel.mScrollback = mScrollbackTF.text.toInt()
@@ -1782,19 +1793,19 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
     fun windowedModeLogPanel(logPanel: LogPanel) {
         if (logPanel.parent == mLogSplitPane) {
-            logPanel.mIsWindowedMode = true
             mItemRotation.isEnabled = false
             mLogSplitPane.remove(logPanel)
             if (mItemFull.state) {
-                val logTableDialog = LogTableDialog(this@MainUI, logPanel)
-                logTableDialog.isVisible = true
+                mLogTableDialog = LogTableDialog(this@MainUI, logPanel)
+                mLogTableDialog?.isVisible = true
             }
         }
     }
 
     fun attachLogPanel(logPanel: LogPanel) {
         if (logPanel.parent != mLogSplitPane) {
-            logPanel.mIsWindowedMode = false
+            mLogTableDialog?.isVisible = false
+            mItemFullLogToNewWindow.state = false
             mItemRotation.isEnabled = true
             rotateLogSplitPane(true)
         }
@@ -2187,8 +2198,20 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                     } else {
                         windowedModeLogPanel(mFullLogPanel)
                     }
+                    mItemFullLogToNewWindow.state = !mItemFull.state
+                    mItemFullLogToNewWindow.isEnabled = mItemFull.state
 
                     mConfigManager.saveItem(ConfigManager.ITEM_VIEW_FULL, mItemFull.state.toString())
+                }
+
+                mItemFullLogToNewWindow -> {
+                    if (mItemFull.state) {
+                        if (mItemFullLogToNewWindow.state) {
+                            windowedModeLogPanel(mFullLogPanel)
+                        } else {
+                            attachLogPanel(mFullLogPanel)
+                        }
+                    }
                 }
 
                 mItemColumnMode -> {

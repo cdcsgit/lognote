@@ -342,5 +342,7 @@ class Strings private constructor() {
             get() { return currStrings[field]!! }
         val SHOW_WITH_COLORBG: String = idx++.toString()
             get() { return currStrings[field]!! }
+        val MOVE_FULL_LOG_TO_NEW_WINDOW: String = idx++.toString()
+            get() { return currStrings[field]!! }
     }
 }

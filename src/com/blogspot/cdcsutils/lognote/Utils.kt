@@ -84,6 +84,18 @@ class Utils {
 
             println("$formattedNow ${Thread.currentThread().id} $log")
         }
+
+        fun replaceCmd(cmd: String): String {
+            val newCmd = if (cmd.startsWith("adb ")) {
+                cmd.replaceFirst("adb ", "${LogCmdManager.getInstance().mAdbCmd} -s ${LogCmdManager.getInstance().mTargetDevice} ")
+            } else if (cmd.startsWith("adb.exe ")) {
+                cmd.replaceFirst("adb.exe ", "${LogCmdManager.getInstance().mAdbCmd} -s ${LogCmdManager.getInstance().mTargetDevice} ")
+            } else {
+                "$cmd ${LogCmdManager.getInstance().mTargetDevice}"
+            }
+
+            return newCmd
+        }
     }
 
     class CustomLineBorder(private val mColor: Color, private val mThickness: Int, private val mTarget: Int) :
