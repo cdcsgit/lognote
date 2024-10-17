@@ -484,6 +484,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 //            mProperties.put(ITEM_LANG, Strings.lang.toString())
 
         mConfigManager.saveConfig()
+        PackageManager.getInstance().saveConfigPackages()
     }
 
     private fun updateRecentFiles() {
@@ -1977,7 +1978,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mPauseToggle.isSelected = false
         setSaveLogFile()
         if (reconnect) {
-            PackageManager.getInstance().updateUid(mFullLogPanel.mPackageBtns)
+            PackageManager.getInstance().updateUids(mFullLogPanel.mPackageBtns)
             mLogCmdManager.startLogcat()
         }
         mFilteredLogPanel.mTableModel.startScan()

@@ -169,6 +169,7 @@ class StringsEn private constructor() {
                 , "Move Full log to new window"
                 , "Select package"
                 , "Packages"
+                , "Select / Unselect package : ENTER key or Double click"
 //            , ""
             )
 

@@ -63,6 +63,8 @@ class TooltipStringsEn private constructor() {
                 , "Invalid Format(Only number)"
                 , "Invalid Name(Blank is not allowed)"
                 , "Set the package to get the logs from"
+                , "This package is not installed, so it not be applied"
+                , "The selected packages will be applied when starting logcat"
 //                , ""
             )
 

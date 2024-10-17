@@ -348,5 +348,7 @@ class Strings private constructor() {
             get() { return currStrings[field]!! }
         val PACKAGES: String = idx++.toString()
             get() { return currStrings[field]!! }
+        val SELECT_UNSELECT_PACKAGE: String = idx++.toString()
+            get() { return currStrings[field]!! }
     }
 }

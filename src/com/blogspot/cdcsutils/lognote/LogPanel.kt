@@ -15,6 +15,7 @@ import javax.swing.plaf.basic.BasicScrollBarUI
 class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusHandler, columnMode: Boolean) :JPanel() {
     private val mMainUI = mainUI
     private val mBasePanel = basePanel
+    private val mCtrlPanel: JPanel
     private val mCtrlMainPanel: ButtonPanel
     private var mFirstBtn: ColorButton
     private var mLastBtn: ColorButton
@@ -45,6 +46,7 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
 
     init {
         layout = BorderLayout()
+        mCtrlPanel = JPanel()
         mCtrlMainPanel = ButtonPanel()
         mFirstBtn = ColorButton("")
         mFirstBtn.border = BorderFactory.createEmptyBorder()
@@ -121,11 +123,10 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
         mScrollPane.getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, KeyEvent.CTRL_MASK), "none")
         mScrollPane.getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, KeyEvent.CTRL_MASK), "none")
 
-        val ctrlPanel = JPanel()
-        ctrlPanel.layout = BoxLayout(ctrlPanel, BoxLayout.Y_AXIS)
-        ctrlPanel.add(mCtrlMainPanel)
+        mCtrlPanel.layout = BoxLayout(mCtrlPanel, BoxLayout.Y_AXIS)
+        mCtrlPanel.add(mCtrlMainPanel)
 
-        add(ctrlPanel, BorderLayout.NORTH)
+        add(mCtrlPanel, BorderLayout.NORTH)
         add(mVStatusPanel, BorderLayout.WEST)
         add(mScrollPane, BorderLayout.CENTER)
 
@@ -243,17 +244,24 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
         packagesBtn.addActionListener {
             PackageManager.getInstance().showPackageDialog()
             updateTableBar(ConfigManager.getInstance().loadCmds())
+
+            // to resize mCtrlMainPanel
+            mMainUI.mLogSplitPane.dividerLocation -= 1
+            mMainUI.revalidate()
+            mMainUI.mLogSplitPane.dividerLocation += 1
+            mMainUI.revalidate()
         }
         mCtrlMainPanel.add(packagesBtn)
         updateTableBarPackageItems()
     }
 
     private fun updateTableBarPackageItems() {
-        if (PackageManager.getInstance().mSelectedPackageList.isNotEmpty()) {
-            mPackageBtns = Array(PackageManager.getInstance().mSelectedPackageList.size) { PackageToggleButton(PackageManager.getInstance().mSelectedPackageList[it].mPackageName) }
+        if (PackageManager.getInstance().mShowPackageList.isNotEmpty()) {
+            mPackageBtns = Array(PackageManager.getInstance().mShowPackageList.size) { PackageToggleButton(PackageManager.getInstance().mShowPackageList[it].mPackageName) }
             for (idx in mPackageBtns.indices) {
+                mPackageBtns[idx].mIsValid = true
+                mPackageBtns[idx].isSelected = true
                 mPackageBtns[idx].border = BorderFactory.createEmptyBorder()
-//                mPackageBtns[idx].toolTipText = TooltipStrings.TOKEN_VIEW_TOGGLE
                 mPackageBtns[idx].margin = Insets(0, 3, 0, 3)
                 mPackageBtns[idx].addActionListener(mActionHandler)
                 mPackageBtns[idx].background = mCtrlMainPanel.background
@@ -294,7 +302,7 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
             addVSeparator(mCtrlMainPanel)
             updateTableBarCmds(customArray)
         }
-        mCtrlMainPanel.updateUI()
+        mCtrlMainPanel.updateHeight()
     }
 
     var mFont: Font = Font(MainUI.DEFAULT_FONT_NAME, Font.PLAIN, 12)

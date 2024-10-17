@@ -333,7 +333,7 @@ class LogCmdManager private constructor(){
                                 line = scanner.nextLine()
                                 val textSplit = line.trim().split(Regex("\\s+|:"))
                                 if (textSplit.size == 4) {
-                                    mPackageManager.add(PackageItem(textSplit[1], textSplit[3], false))
+                                    mPackageManager.add(PackageItem(textSplit[1], textSplit[3], mIsShow = false, mIsSelected = true))
                                 }
                             }
                         } catch (e: InterruptedException) {

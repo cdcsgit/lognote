@@ -11,17 +11,14 @@ import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.DefaultTableModel
 
 
-data class PackageItem(val mPackageName: String, val mUid: String, var mIsShow: Boolean)
+data class PackageItem(val mPackageName: String, val mUid: String, var mIsShow: Boolean, var mIsSelected: Boolean)
 
 class PackageManager private constructor() {
-    private val mPackageMap: MutableMap<String, PackageItem> = mutableMapOf()
-    var mPackageArray = Array(0) {
-        arrayOfNulls<Any>(
-            4
-        )
-    }
+    private val mConfigManager = ConfigManager.getInstance()
 
-    val mSelectedPackageList = mutableListOf<PackageItem>()
+    private val mPackageMap: MutableMap<String, PackageItem> = mutableMapOf()
+    var mPackageArray = Array(0) { arrayOfNulls<Any>(4) }
+    val mShowPackageList = mutableListOf<PackageItem>()
     private var mSelectedUids = ""
 
     private var mUpdatedTime: Long = 0
@@ -33,27 +30,13 @@ class PackageManager private constructor() {
             return mInstance
         }
 
-        const val MAX_UPDATE_TIME_SEC = 600 // sec
-        const val DEFAULT_UPDATE_TIME = 10000 // msec
+        const val DEFAULT_UPDATE_TIME = 0 // msec
         var UpdateTime = DEFAULT_UPDATE_TIME
+        const val MAX_PACKAGE_COUNT = 20
     }
 
-    fun getPackageItem(packageName: String): PackageItem? {
-        if (MainUI.CurrentMethod != MainUI.METHOD_ADB) {
-            return null
-        }
-        val item = mPackageMap[packageName]
-        if (item != null) {
-            return item
-        }
-        try {
-            updatePackages()
-        } catch (ex: InterruptedException) {
-            Utils.printlnLog("PackageList.getPackage failed ")
-            ex.printStackTrace()
-        }
-
-        return mPackageMap[packageName]
+    init {
+        loadConfigPackages()
     }
 
     fun clear() {
@@ -61,6 +44,16 @@ class PackageManager private constructor() {
     }
 
     fun add(item: PackageItem) {
+        for (showItem in mShowPackageList) {
+            if (item.mPackageName == showItem.mPackageName) {
+                item.mIsShow = true
+                item.mIsSelected = showItem.mIsSelected
+                mShowPackageList.remove(showItem)
+                mShowPackageList.add(item)
+                return
+            }
+        }
+
         mPackageMap[item.mPackageName] = item
     }
 
@@ -78,20 +71,32 @@ class PackageManager private constructor() {
     fun showPackageDialog() {
         updatePackages()
 
-        val keySet: List<String> = ArrayList(mPackageMap.keys)
-        sort(keySet)
-
-        mPackageArray = Array(mPackageMap.size) {
+        mPackageArray = Array(mShowPackageList.size + mPackageMap.size) {
             arrayOfNulls<Any>(
-                4
+                5
             )
         }
 
-        for ((idx, key) in keySet.withIndex()) {
+        var idx = 0
+        for (item in mShowPackageList) {
+            mPackageArray[idx][0] = (idx + 1).toString()
+            mPackageArray[idx][1] = item.mPackageName
+            mPackageArray[idx][2] = item.mUid
+            mPackageArray[idx][3] = item.mIsShow
+            mPackageArray[idx][4] = item.mIsSelected
+            idx++
+        }
+
+        val keySet: List<String> = ArrayList(mPackageMap.keys)
+        sort(keySet)
+
+        for (key in keySet) {
             mPackageArray[idx][0] = (idx + 1).toString()
             mPackageArray[idx][1] = mPackageMap[key]?.mPackageName ?: ""
             mPackageArray[idx][2] = mPackageMap[key]?.mUid ?: ""
-            mPackageArray[idx][3] = mPackageMap[key]?.mIsShow ?: false
+            mPackageArray[idx][3] = false
+            mPackageArray[idx][4] = true
+            idx++
         }
 
         val mainUI = MainUI.getInstance()
@@ -100,12 +105,19 @@ class PackageManager private constructor() {
         packageSelectDialog.isVisible = true
     }
 
-    fun updateUid(mPackageBtns: Array<PackageToggleButton>) {
+    fun updateUids(packageBtns: Array<PackageToggleButton>) {
         updatePackages()
         mSelectedUids = ""
-        for (item in mPackageBtns) {
+        for (item in packageBtns) {
             if (item.isSelected) {
-                val tmpItem = mPackageMap[item.text]
+                var tmpItem: PackageItem? = null
+                for (showItem in mShowPackageList) {
+                    if (showItem.mPackageName == item.text) {
+                        showItem.mIsSelected = true
+                        tmpItem = showItem
+                        break
+                    }
+                }
                 if (tmpItem != null) {
                     if (mSelectedUids.isEmpty()) {
                         mSelectedUids = tmpItem.mUid
@@ -113,6 +125,10 @@ class PackageManager private constructor() {
                     else {
                         mSelectedUids += ",${tmpItem.mUid}"
                     }
+                    item.mIsValid = true
+                }
+                else {
+                    item.mIsValid = false
                 }
             }
         }
@@ -125,6 +141,35 @@ class PackageManager private constructor() {
         } else {
             ""
         }
+    }
+
+    fun loadConfigPackages() {
+        val packages = mConfigManager.loadPackages()
+        mShowPackageList.clear()
+        for (item in packages) {
+            val textSplited = item.split("|")
+            if (textSplited.size != 2) {
+                continue
+            }
+
+            mShowPackageList.add(PackageItem(textSplited[0], "", true, textSplited[1].toBoolean()))
+        }
+    }
+
+    fun saveConfigPackages() {
+        val packages = ArrayList<String>()
+
+        var packageItem: String
+        var count = 0
+        for (item in mShowPackageList) {
+            if (count >= MAX_PACKAGE_COUNT) {
+                break
+            }
+            packageItem = "${item.mPackageName}|${item.mIsSelected}"
+            packages.add(packageItem)
+            count++
+        }
+        mConfigManager.savePackages(packages)
     }
 
     inner class PackageSelectDialog(mainUI: MainUI) : JDialog(mainUI, Strings.SELECT_PACKAGE, true), ActionListener {
@@ -160,6 +205,7 @@ class PackageManager private constructor() {
 
             mTable = JTable(model)
             mTable.addMouseListener(MouseHandler())
+            mTable.addKeyListener(KeyHandler())
             mTable.setShowGrid(true)
             mTable.columnModel.getColumn(0).preferredWidth = 70
             mTable.columnModel.getColumn(0).cellRenderer = mCellRenderer
@@ -171,6 +217,9 @@ class PackageManager private constructor() {
             mTable.columnModel.getColumn(3).cellRenderer = mCellRenderer
 
             mTable.columnSelectionAllowed = false
+
+            mTable.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "none")
+
             mScrollPane = JScrollPane(mTable)
             mScrollPane.preferredSize = Dimension(740, 600)
 
@@ -192,6 +241,11 @@ class PackageManager private constructor() {
 
             val panel = JPanel()
             panel.layout = BorderLayout()
+
+            val label = JLabel(" * ${Strings.SELECT_UNSELECT_PACKAGE}")
+            label.preferredSize = Dimension(label.preferredSize.width, 40)
+            panel.add(label, BorderLayout.NORTH)
+
             panel.add(mScrollPane, BorderLayout.CENTER)
 
             val btnPanel = JPanel()
@@ -219,17 +273,40 @@ class PackageManager private constructor() {
             }
         }
 
+        internal inner class KeyHandler : KeyAdapter() {
+            override fun keyPressed(e: KeyEvent?) {
+
+                super.keyPressed(e)
+            }
+
+            override fun keyReleased(e: KeyEvent?) {
+                when (e?.keyCode) {
+                    KeyEvent.VK_ENTER -> {
+                        val isShow = mTable.getValueAt(mTable.selectedRow, 3) as Boolean
+                        mTable.setValueAt(!isShow, mTable.selectedRow, 3)
+                    }
+                }
+
+                super.keyReleased(e)
+            }
+        }
+
         override fun actionPerformed(e: ActionEvent?) {
             if (e?.source == mCloseBtn) {
                 dispose()
             }
             else if (e?.source == mOkBtn) {
-                mSelectedPackageList.clear()
+                mShowPackageList.clear()
                 for (item in mPackageArray) {
                     if (item[3] == true) {
-                        mSelectedPackageList.add(mPackageMap[item[1].toString()]!!.copy(mIsShow = true))
+                        mShowPackageList.add(
+                            PackageItem(item[1].toString(), item[2].toString(), item[3] as Boolean, item[4] as Boolean)
+                        )
                     }
                 }
+
+                saveConfigPackages()
+
                 mPackageMap.clear()
                 mPackageArray = emptyArray()
                 dispose()

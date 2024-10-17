@@ -169,6 +169,7 @@ class StringsKo private constructor() {
                 , "전체 로그 새창으로 이동"
                 , "패키지 선택"
                 , "패키지"
+                , "패키지 선택 / 해제 : Enter 키 또는 더블 클릭"
 //            , ""
             )
 

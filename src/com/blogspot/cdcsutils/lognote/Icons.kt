@@ -73,6 +73,16 @@ class Icons {
         }
     }
 
+    class PackageToggleInvalidIcon(private val mColor: String) : FlatAbstractIcon(11, 11, null) {
+        override fun paintIcon(c: Component, g: Graphics2D) {
+            g.color = Color.decode(mColor)
+            g.stroke = BasicStroke(3.0f)
+            g.drawLine(3, 3, 10, 9)
+            g.stroke = BasicStroke(2.0f)
+            g.drawLine(3, 9, 10, 3)
+        }
+    }
+
     class PackageToggleOffIcon(private val mColor: String) : FlatAbstractIcon(11, 11, null) {
         override fun paintIcon(c: Component, g: Graphics2D) {
             g.color = Color.LIGHT_GRAY

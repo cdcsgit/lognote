@@ -132,5 +132,9 @@ class TooltipStrings private constructor() {
             get() { return currStrings[field]!! }
         val ADD_PACKAGE_BTN = idx++.toString()
             get() { return currStrings[field]!! }
+        val PACKAGE_NOT_INSTALLED = idx++.toString()
+            get() { return currStrings[field]!! }
+        val PACKAGE_APPLY_START = idx++.toString()
+            get() { return currStrings[field]!! }
     }
 }

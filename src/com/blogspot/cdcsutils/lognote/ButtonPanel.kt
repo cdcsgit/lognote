@@ -12,31 +12,37 @@ class ButtonPanel : JPanel() {
         }
     }
 
+    private lateinit var mLastComponent: Component
+    private var mPrevPoint: Point = Point(0, 0)
+
     init {
         layout = ButtonFlowLayout(FlowLayout.LEFT, 2, 0)
         addComponentListener(
                 object : ComponentAdapter() {
-                    lateinit var mLastComponent: Component
-                    var mPrevPoint: Point = Point(0, 0)
                     override fun componentResized(e: ComponentEvent) {
                         super.componentResized(e)
 
-                        if (components.isNotEmpty()) {
-                            mLastComponent = components[0]
-                            for (item in components) {
-                                if ((item.location.y + item.height) > (mLastComponent.location.y + mLastComponent.height)) {
-                                    mLastComponent = item
-                                }
-                            }
-
-                            if (mPrevPoint.y != mLastComponent.location.y) {
-                                Utils.printlnLog("lastComponent moved to ${mLastComponent.location}")
-                                preferredSize = Dimension(preferredSize.width, mLastComponent.location.y + mLastComponent.height)
-                                updateUI()
-                            }
-                            mPrevPoint = mLastComponent.location
-                        }
+                        updateHeight()
                     }
                 })
+    }
+
+    fun updateHeight() {
+        if (components.isNotEmpty()) {
+            mLastComponent = components[0]
+            for (item in components) {
+                if ((item.location.y + item.height) > (mLastComponent.location.y + mLastComponent.height)) {
+                    mLastComponent = item
+                }
+            }
+
+            if (mPrevPoint.y != mLastComponent.location.y) {
+                Utils.printlnLog("lastComponent moved to ${mLastComponent.location}")
+                preferredSize = Dimension(preferredSize.width, mLastComponent.location.y + mLastComponent.height)
+                revalidate()
+                repaint()
+            }
+            mPrevPoint = mLastComponent.location
+        }
     }
 }

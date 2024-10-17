@@ -78,6 +78,8 @@ class ConfigManager private constructor() {
         const val ITEM_CMDS_CMD = "CMDS_CMD_"
         const val ITEM_CMDS_TABLEBAR = "CMDS_TABLEBAR_"
 
+        const val ITEM_PACKAGES_ITEM = "PACKAGES_ITEM_"
+
         const val ITEM_COLOR_MANAGER = "COLOR_MANAGER_"
         const val ITEM_COLOR_FILTER_STYLE = "COLOR_FILTER_STYLE_"
 
@@ -319,6 +321,45 @@ class ConfigManager private constructor() {
             mProperties[ITEM_CMDS_TITLE + i] = cmds[i].mTitle
             mProperties[ITEM_CMDS_CMD + i] = cmds[i].mValue
             mProperties[ITEM_CMDS_TABLEBAR + i] = cmds[i].mTableBar.toString()
+        }
+
+        saveConfig()
+        return
+    }
+
+    fun loadPackages() : ArrayList<String> {
+        val packages = ArrayList<String>()
+
+        var packageItem: String
+        for (i in 0 until PackageManager.MAX_PACKAGE_COUNT) {
+            packageItem = (mProperties[ITEM_PACKAGES_ITEM + i] ?: "") as String
+            if (packageItem.isEmpty()) {
+                break
+            }
+            packages.add(packageItem)
+        }
+
+        return packages
+    }
+
+    fun savePackages(packagess : ArrayList<String>) {
+        loadConfig()
+
+        var nCount = packagess.size
+        if (nCount > PackageManager.MAX_PACKAGE_COUNT) {
+            nCount = PackageManager.MAX_PACKAGE_COUNT
+        }
+
+        for (i in 0 until PackageManager.MAX_PACKAGE_COUNT) {
+            val packageItem: String = (mProperties[ITEM_PACKAGES_ITEM + i] ?: "") as String
+            if (packageItem.isEmpty()) {
+                break
+            }
+            mProperties.remove(ITEM_PACKAGES_ITEM + i)
+        }
+
+        for (i in 0 until nCount) {
+            mProperties[ITEM_PACKAGES_ITEM + i] = packagess[i]
         }
 
         saveConfig()
