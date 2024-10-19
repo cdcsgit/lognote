@@ -11,7 +11,7 @@ import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.DefaultTableModel
 
 
-data class PackageItem(val mPackageName: String, val mUid: String, var mIsShow: Boolean, var mIsSelected: Boolean)
+data class PackageItem(val mPackageName: String, var mUid: String, var mIsShow: Boolean, var mIsSelected: Boolean)
 
 class PackageManager private constructor() {
     private val mConfigManager = ConfigManager.getInstance()
@@ -60,6 +60,9 @@ class PackageManager private constructor() {
     private fun updatePackages(): Boolean {
         val time = System.currentTimeMillis()
         if (time > mUpdatedTime + UpdateTime){
+            for (showItem in mShowPackageList) {
+                showItem.mUid = ""
+            }
             LogCmdManager.getInstance().getPackages()
             mUpdatedTime = System.currentTimeMillis()
             return true
@@ -118,7 +121,7 @@ class PackageManager private constructor() {
                         break
                     }
                 }
-                if (tmpItem != null) {
+                if (tmpItem != null && tmpItem.mUid.isNotEmpty()) {
                     if (mSelectedUids.isEmpty()) {
                         mSelectedUids = tmpItem.mUid
                     }
@@ -175,8 +178,8 @@ class PackageManager private constructor() {
     inner class PackageSelectDialog(mainUI: MainUI) : JDialog(mainUI, Strings.SELECT_PACKAGE, true), ActionListener {
         private val mScrollPane: JScrollPane
         private val mTable: JTable
-        private var mOkBtn : ColorButton
-        private var mCloseBtn : ColorButton
+        private var mOkBtn : JButton
+        private var mCloseBtn : JButton
         private val mCellRenderer = PackageCellRenderer()
 
         init {
@@ -233,10 +236,10 @@ class PackageManager private constructor() {
             mScrollPane.isOpaque = false
             mScrollPane.viewport.isOpaque = false
 
-            mOkBtn = ColorButton(Strings.OK)
+            mOkBtn = JButton(Strings.OK)
             mOkBtn.addActionListener(this)
 
-            mCloseBtn = ColorButton(Strings.CLOSE)
+            mCloseBtn = JButton(Strings.CLOSE)
             mCloseBtn.addActionListener(this)
 
             val panel = JPanel()

@@ -91,7 +91,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     private var mFileSaveDir: String = ""
     private lateinit var mItemFileExit: JMenuItem
     private lateinit var mMenuView: JMenu
-    private lateinit var mItemFull: JCheckBoxMenuItem
+    lateinit var mItemFull: JCheckBoxMenuItem
     lateinit var mItemFullLogToNewWindow: JCheckBoxMenuItem
     private lateinit var mItemColumnMode: JCheckBoxMenuItem
     private lateinit var mItemProcessName: JMenu
@@ -153,7 +153,6 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     private lateinit var mLogCmdCombo: ColorComboBox<String>
 
     private lateinit var mDeviceCombo: ColorComboBox<String>
-    private lateinit var mDeviceStatus: JLabel
     private lateinit var mAdbConnectBtn: ColorButton
     private lateinit var mAdbRefreshBtn: ColorButton
     private lateinit var mAdbDisconnectBtn: ColorButton
@@ -798,9 +797,10 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mShowLogToggle = FilterToggleButton(Strings.LOG)
         mShowLogToggle.toolTipText = TooltipStrings.LOG_TOGGLE
         mShowLogToggle.margin = Insets(0, 0, 0, 0)
+        mShowLogToggle.preferredSize = Dimension(mShowLogToggle.preferredSize.width, mShowLogCombo.preferredSize.height)
         mShowLogTogglePanel = JPanel(GridLayout(1, 1))
         mShowLogTogglePanel.add(mShowLogToggle)
-        mShowLogTogglePanel.border = BorderFactory.createEmptyBorder(3,3,3,3)
+        mShowLogTogglePanel.border = BorderFactory.createEmptyBorder(0,3,0,3)
         mShowLogToggle.addItemListener(mItemHandler)
 
         mBoldLogPanel = JPanel()
@@ -814,9 +814,10 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mBoldLogToggle = FilterToggleButton(Strings.BOLD)
         mBoldLogToggle.toolTipText = TooltipStrings.BOLD_TOGGLE
         mBoldLogToggle.margin = Insets(0, 0, 0, 0)
+        mBoldLogToggle.preferredSize = Dimension(mBoldLogToggle.preferredSize.width, mBoldLogCombo.preferredSize.height)
         mBoldLogTogglePanel = JPanel(GridLayout(1, 1))
         mBoldLogTogglePanel.add(mBoldLogToggle)
-        mBoldLogTogglePanel.border = BorderFactory.createEmptyBorder(3,3,3,3)
+        mBoldLogTogglePanel.border = BorderFactory.createEmptyBorder(0,3,0,3)
         mBoldLogToggle.addItemListener(mItemHandler)
 
 
@@ -833,8 +834,9 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mTokenCombo[idx].editor.editorComponent.addMouseListener(mMouseHandler)
             mTokenToggle[idx].toolTipText = TooltipStrings.TOKEN_TOGGLE
             mTokenToggle[idx].margin = Insets(0, 0, 0, 0)
+            mTokenToggle[idx].preferredSize = Dimension(mTokenToggle[idx].preferredSize.width, mTokenCombo[idx].preferredSize.height)
             mTokenTogglePanel[idx].add(mTokenToggle[idx])
-            mTokenTogglePanel[idx].border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
+            mTokenTogglePanel[idx].border = BorderFactory.createEmptyBorder(0, 3, 0, 3)
             mTokenToggle[idx].addItemListener(mItemHandler)
         }
 
@@ -847,8 +849,6 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mLogCmdCombo.editor.editorComponent.addMouseListener(mMouseHandler)
         mLogCmdCombo.addPopupMenuListener(mPopupMenuHandler)
         
-        mDeviceStatus = JLabel("None", JLabel.LEFT)
-        mDeviceStatus.isEnabled = false
         val deviceComboPanel = JPanel(BorderLayout())
         mDeviceCombo = ColorComboBox()
         mDeviceCombo.toolTipText = TooltipStrings.DEVICES_COMBO
@@ -875,10 +875,11 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mMatchCaseToggle = FilterToggleButton("Aa")
         mMatchCaseToggle.toolTipText = TooltipStrings.CASE_TOGGLE
         mMatchCaseToggle.margin = Insets(0, 0, 0, 0)
+        mMatchCaseToggle.preferredSize = Dimension(mMatchCaseToggle.preferredSize.width, mBoldLogCombo.preferredSize.height)
         mMatchCaseToggle.addItemListener(mItemHandler)
         mMatchCaseTogglePanel = JPanel(GridLayout(1, 1))
         mMatchCaseTogglePanel.add(mMatchCaseToggle)
-        mMatchCaseTogglePanel.border = BorderFactory.createEmptyBorder(3,3,3,3)
+        mMatchCaseTogglePanel.border = BorderFactory.createEmptyBorder(0,3,0,3)
 
         mShowLogPanel.layout = BorderLayout()
         mShowLogPanel.add(mShowLogTogglePanel, BorderLayout.WEST)
@@ -900,9 +901,6 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mLogCmdCombo.preferredSize = Dimension(200 * mUIFontPercent / 100, mLogCmdCombo.preferredSize.height)
 
         mDeviceCombo.preferredSize = Dimension(200 * mUIFontPercent / 100, mDeviceCombo.preferredSize.height)
-        mDeviceStatus.preferredSize = Dimension(100, 30)
-        mDeviceStatus.border = BorderFactory.createEmptyBorder(3, 0, 3, 0)
-        mDeviceStatus.horizontalAlignment = JLabel.CENTER
 
         mScrollbackApplyBtn = ColorButton(Strings.APPLY)
         mScrollbackApplyBtn.margin = btnMargin
@@ -940,14 +938,6 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         itemFilterPanel.add(mBoldLogPanel)
         itemFilterPanel.add(mMatchCaseTogglePanel)
 
-        mShowLogToggle.background = mLogPanel.background
-        mBoldLogToggle.background = mLogPanel.background
-        mMatchCaseToggle.background = mLogPanel.background
-
-        for (item in mTokenToggle) {
-            item.background = mLogPanel.background
-        }
-
         mLogPanel.layout = BorderLayout()
         mLogPanel.add(mShowLogPanel, BorderLayout.CENTER)
         mLogPanel.add(itemFilterPanel, BorderLayout.EAST)
@@ -959,18 +949,8 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mFilterPanel.layout = BoxLayout(mFilterPanel, BoxLayout.Y_AXIS)
         mFilterPanel.addMouseListener(mMouseHandler)
 
-        mStartBtn.background = mLogToolBar.background
-        mRetryAdbToggle.background = mLogToolBar.background
-        mPauseToggle.background = mLogToolBar.background
-        mStopBtn.background = mLogToolBar.background
-        mSaveBtn.background = mLogToolBar.background
-        mAdbConnectBtn.background = mLogToolBar.background
-        mAdbDisconnectBtn.background = mLogToolBar.background
-        mAdbRefreshBtn.background = mLogToolBar.background
-        mClearViewsBtn.background = mLogToolBar.background
-        mScrollbackSplitFileToggle.background = mLogToolBar.background
-        mScrollbackApplyBtn.background = mLogToolBar.background
-        mScrollbackKeepToggle.background = mLogToolBar.background
+        changeToolBtnColor()
+
         mLogToolBar.add(mStartBtn)
         mLogToolBar.add(mRetryAdbToggle)
         addVSeparator2(mLogToolBar)
@@ -1031,9 +1011,6 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
             mTokenCombo[idx].setApplyFilter { filter -> mFilteredLogPanel.mTableModel.mFilterTokenMgr.set(idx, filter) }
         }
-
-        mFullLogPanel.updateTableBar(mConfigManager.loadCmds())
-        mFilteredLogPanel.updateTableBar(mConfigManager.loadFilters())
 
         mFiltersManager = FiltersManager(this, mFilteredLogPanel)
         mCmdManager = CmdManager(this, mFullLogPanel)
@@ -1111,7 +1088,6 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         followPanel.add(mPauseFollowToggle)
         followPanel.add(mStopFollowBtn)
 
-        enabledFollowBtn(false)
         setVisibleFollowBtn(false)
 
         val logFormatPanel = JPanel(FlowLayout(FlowLayout.LEFT, 2, 0))
@@ -1251,10 +1227,8 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mDeviceCombo.selectedIndex = 0
 
         if (mLogCmdManager.mDevices.contains(targetDevice)) {
-            mDeviceStatus.text = Strings.CONNECTED
             setDeviceComboColor(true)
         } else {
-            mDeviceStatus.text = Strings.NOT_CONNECTED
             setDeviceComboColor(false)
         }
 
@@ -1322,6 +1296,8 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mItemFullLogToNewWindow.state = true
         }
 
+        updateLogPanelTableBar()
+
         check = mConfigManager.getItem(ConfigManager.ITEM_FILTER_INCREMENTAL)
         if (!check.isNullOrEmpty()) {
             mItemFilterIncremental.state = check.toBoolean()
@@ -1385,21 +1361,17 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         if (!check.isNullOrEmpty()) {
             when (check) {
                 ConfigManager.VALUE_ICON_TEXT_I -> {
-                    setBtnIcons(true)
-                    setBtnTexts(false)
+                    setBtnIconsTexts(true, false)
                 }
                 ConfigManager.VALUE_ICON_TEXT_T -> {
-                    setBtnIcons(false)
-                    setBtnTexts(true)
+                    setBtnIconsTexts(false, true)
                 }
                 else -> {
-                    setBtnIcons(true)
-                    setBtnTexts(true)
+                    setBtnIconsTexts(true, true)
                 }
             }
         } else {
-            setBtnIcons(true)
-            setBtnTexts(true)
+            setBtnIconsTexts(true, true)
         }
 
         add(mFilterPanel, BorderLayout.NORTH)
@@ -1411,6 +1383,51 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         registerTriggerKeyStroke()
 
         IsCreatingUI = false
+    }
+
+    private fun changeToolBtnColor() {
+        mStartBtn.background = mLogToolBar.background
+        mRetryAdbToggle.background = mLogToolBar.background
+        mPauseToggle.background = mLogToolBar.background
+        mStopBtn.background = mLogToolBar.background
+        mSaveBtn.background = mLogToolBar.background
+        mAdbConnectBtn.background = mLogToolBar.background
+        mAdbDisconnectBtn.background = mLogToolBar.background
+        mAdbRefreshBtn.background = mLogToolBar.background
+        mClearViewsBtn.background = mLogToolBar.background
+        mScrollbackSplitFileToggle.background = mLogToolBar.background
+        mScrollbackApplyBtn.background = mLogToolBar.background
+        mScrollbackKeepToggle.background = mLogToolBar.background
+
+        mShowLogToggle.background = mLogPanel.background
+        mBoldLogToggle.background = mLogPanel.background
+        mMatchCaseToggle.background = mLogPanel.background
+
+        for (item in mTokenToggle) {
+            item.background = mLogPanel.background
+        }
+
+        mStartBtn.border = ColorButtonBorder(mLogToolBar.background)
+        mStartBtn.background = mLogToolBar.background
+        mRetryAdbToggle.border = ColorButtonBorder(mLogToolBar.background)
+        mPauseToggle.border = ColorButtonBorder(mLogToolBar.background)
+        mStopBtn.border = ColorButtonBorder(mLogToolBar.background)
+        mSaveBtn.border = ColorButtonBorder(mLogToolBar.background)
+        mAdbConnectBtn.border = ColorButtonBorder(mLogToolBar.background)
+        mAdbDisconnectBtn.border = ColorButtonBorder(mLogToolBar.background)
+        mAdbRefreshBtn.border = ColorButtonBorder(mLogToolBar.background)
+        mClearViewsBtn.border = ColorButtonBorder(mLogToolBar.background)
+        mScrollbackSplitFileToggle.border = ColorButtonBorder(mLogToolBar.background)
+        mScrollbackApplyBtn.border = ColorButtonBorder(mLogToolBar.background)
+        mScrollbackKeepToggle.border = ColorButtonBorder(mLogToolBar.background)
+
+        mShowLogToggle.border = ColorButtonBorder(mLogPanel.background)
+        mBoldLogToggle.border = ColorButtonBorder(mLogPanel.background)
+        mMatchCaseToggle.border = ColorButtonBorder(mLogPanel.background)
+
+        for (item in mTokenToggle) {
+            item.border = ColorButtonBorder(mLogPanel.background)
+        }
     }
 
     private fun resetLogPanel() {
@@ -1432,8 +1449,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mTokenCombo[idx].setApplyFilter { filter -> mFilteredLogPanel.mTableModel.mFilterTokenMgr.set(idx, filter) }
         }
 
-        mFullLogPanel.updateTableBar(mConfigManager.loadCmds())
-        mFilteredLogPanel.updateTableBar(mConfigManager.loadFilters())
+        updateLogPanelTableBar()
 
         mFiltersManager = FiltersManager(this, mFilteredLogPanel)
         mCmdManager = CmdManager(this, mFullLogPanel)
@@ -1519,6 +1535,47 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             }
         }
     }
+
+    private fun setBtnIconsTexts(isShowIcons: Boolean, isShowTexts: Boolean) {
+        setBtnPreferredHeight(0)
+        setBtnIcons(isShowIcons)
+        setBtnTexts(isShowTexts)
+        setBtnPreferredHeight(mLogCmdCombo.preferredSize.height)
+    }
+
+    private fun setBtnPreferredHeight(preferredHeight: Int) {
+        if (preferredHeight == 0) {
+            mStartBtn.preferredSize = null
+            mStopBtn.preferredSize = null
+            mClearViewsBtn.preferredSize = null
+            mSaveBtn.preferredSize = null
+            mAdbConnectBtn.preferredSize = null
+            mAdbRefreshBtn.preferredSize = null
+            mAdbDisconnectBtn.preferredSize = null
+            mScrollbackApplyBtn.preferredSize = null
+            mRetryAdbToggle.preferredSize = null
+            mPauseToggle.preferredSize = null
+            mScrollbackKeepToggle.preferredSize = null
+            mScrollbackSplitFileToggle.preferredSize = null
+            mScrollbackLabel.preferredSize = null
+        }
+        else {
+            mStartBtn.preferredSize = Dimension(mStartBtn.preferredSize.width, preferredHeight)
+            mStopBtn.preferredSize = Dimension(mStopBtn.preferredSize.width, preferredHeight)
+            mClearViewsBtn.preferredSize = Dimension(mClearViewsBtn.preferredSize.width, preferredHeight)
+            mSaveBtn.preferredSize = Dimension(mSaveBtn.preferredSize.width, preferredHeight)
+            mAdbConnectBtn.preferredSize = Dimension(mAdbConnectBtn.preferredSize.width, preferredHeight)
+            mAdbRefreshBtn.preferredSize = Dimension(mAdbRefreshBtn.preferredSize.width, preferredHeight)
+            mAdbDisconnectBtn.preferredSize = Dimension(mAdbDisconnectBtn.preferredSize.width, preferredHeight)
+            mScrollbackApplyBtn.preferredSize = Dimension(mScrollbackApplyBtn.preferredSize.width, preferredHeight)
+            mRetryAdbToggle.preferredSize = Dimension(mRetryAdbToggle.preferredSize.width, preferredHeight)
+            mPauseToggle.preferredSize = Dimension(mPauseToggle.preferredSize.width, preferredHeight)
+            mScrollbackKeepToggle.preferredSize = Dimension(mScrollbackKeepToggle.preferredSize.width, preferredHeight)
+            mScrollbackSplitFileToggle.preferredSize = Dimension(mScrollbackSplitFileToggle.preferredSize.width, preferredHeight)
+            mScrollbackLabel.preferredSize = Dimension(mScrollbackLabel.preferredSize.width, preferredHeight)
+        }
+    }
+
     private fun setBtnIcons(isShow:Boolean) {
         if (isShow) {
             mStartBtn.icon = ImageIcon(this.javaClass.getResource("/images/start.png"))
@@ -1800,6 +1857,9 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                 mLogTableDialog = LogTableDialog(this@MainUI, logPanel)
                 mLogTableDialog?.isVisible = true
             }
+            else {
+                mLogTableDialog?.isVisible = false
+            }
         }
     }
 
@@ -1843,7 +1903,9 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         else {
             mStatusMethod.background = Color(0xF0, 0xF0, 0x30)
         }
-        enabledFollowBtn(true)
+
+        setVisibleFollowBtn(false)
+
         applyRecentOpen(path, openItem.mStartLine)
         repaint()
 
@@ -1989,7 +2051,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mStatusMethod.background = Color(0x90, 0xE0, 0x90)
         }
 
-        enabledFollowBtn(false)
+        setVisibleFollowBtn(false)
     }
 
     fun stopAdbScan() {
@@ -2012,8 +2074,6 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         else {
             mStatusMethod.background = Color.LIGHT_GRAY
         }
-
-        enabledFollowBtn(true)
     }
 
     fun isRestartAdbLogcat(): Boolean {
@@ -2061,7 +2121,6 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         }
 
         setVisibleFollowBtn(true)
-        enabledFollowBtn(true)
     }
 
     fun stopFileFollow() {
@@ -2077,7 +2136,6 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         else {
             mStatusMethod.background = Color.LIGHT_GRAY
         }
-        enabledFollowBtn(true)
     }
 
     fun pauseFileFollow(pause: Boolean) {
@@ -2086,13 +2144,6 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             return
         }
         mFilteredLogPanel.mTableModel.pauseFollow(pause)
-    }
-
-    private fun enabledFollowBtn(enabled: Boolean) {
-        mFollowLabel.isEnabled = enabled
-        mStartFollowBtn.isEnabled = enabled
-        mPauseFollowToggle.isEnabled = enabled
-        mStopFollowBtn.isEnabled = enabled
     }
 
     internal inner class ActionHandler : ActionListener {
@@ -2116,6 +2167,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                     fileDialog.directory = mFullLogPanel.mTableModel.mLogFile?.parent
                     fileDialog.isVisible = true
                     if (fileDialog.file != null) {
+                        setVisibleFollowBtn(true)
                         val file = File(fileDialog.directory + fileDialog.file)
                         startFileFollow(file.absolutePath)
                     } else {
@@ -2200,6 +2252,8 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                     } else {
                         windowedModeLogPanel(mFullLogPanel)
                     }
+
+                    updateLogPanelTableBar()
                     mItemFullLogToNewWindow.state = !mItemFull.state
                     mItemFullLogToNewWindow.isEnabled = mItemFull.state
 
@@ -2364,18 +2418,15 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             override fun actionPerformed(p0: ActionEvent?) {
                 when (p0?.source) {
                     mItemIconText -> {
-                        setBtnIcons(true)
-                        setBtnTexts(true)
+                        setBtnIconsTexts(true, true)
                         mConfigManager.saveItem(ConfigManager.ITEM_ICON_TEXT, ConfigManager.VALUE_ICON_TEXT_I_T)
                     }
                     mItemIcon -> {
-                        setBtnIcons(true)
-                        setBtnTexts(false)
+                        setBtnIconsTexts(true, false)
                         mConfigManager.saveItem(ConfigManager.ITEM_ICON_TEXT, ConfigManager.VALUE_ICON_TEXT_I)
                     }
                     mItemText -> {
-                        setBtnIcons(false)
-                        setBtnTexts(true)
+                        setBtnIconsTexts(false, true)
                         mConfigManager.saveItem(ConfigManager.ITEM_ICON_TEXT, ConfigManager.VALUE_ICON_TEXT_I)
                     }
                 }
@@ -2556,6 +2607,11 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     }
 
     fun setVisibleFollowBtn(visible: Boolean) {
+        if (CurrentMethod == METHOD_FOLLOW && !visible) {
+            Utils.printlnLog("Follow ctrl btns :  cannot be hidden in \"follow mode\"")
+            return
+        }
+        mFollowLabel.isVisible = visible
         mStartFollowBtn.isVisible = visible
         mPauseFollowToggle.isVisible = visible
         mStopFollowBtn.isVisible = visible
@@ -2940,7 +2996,6 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                     }
 
                     if (mLogCmdManager.mDevices.contains(selectedItem.toString())) {
-                        mDeviceStatus.text = Strings.CONNECTED
                         setDeviceComboColor(true)
                     } else {
                         var isExist = false
@@ -2953,10 +3008,8 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                             }
                         }
                         if (isExist) {
-                            mDeviceStatus.text = Strings.CONNECTED
                             setDeviceComboColor(true)
                         } else {
-                            mDeviceStatus.text = Strings.NOT_CONNECTED
                             setDeviceComboColor(false)
                         }
                     }
@@ -3244,22 +3297,16 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mSearchMatchCaseToggle.toolTipText = TooltipStrings.SEARCH_CASE_TOGGLE
             mSearchMatchCaseToggle.margin = Insets(0, 0, 0, 0)
             mSearchMatchCaseToggle.addItemListener(SearchItemHandler())
-            mSearchMatchCaseToggle.background = background
-            mSearchMatchCaseToggle.border = BorderFactory.createEmptyBorder()
 
             mUpBtn = ColorButton("▲") //△ ▲ ▽ ▼
             mUpBtn.toolTipText = TooltipStrings.SEARCH_PREV_BTN
             mUpBtn.margin = Insets(0, 7, 0, 7)
             mUpBtn.addActionListener(mSearchActionHandler)
-            mUpBtn.background = background
-            mUpBtn.border = BorderFactory.createEmptyBorder()
 
             mDownBtn = ColorButton("▼") //△ ▲ ▽ ▼
             mDownBtn.toolTipText = TooltipStrings.SEARCH_NEXT_BTN
             mDownBtn.margin = Insets(0, 7, 0, 7)
             mDownBtn.addActionListener(mSearchActionHandler)
-            mDownBtn.background = background
-            mDownBtn.border = BorderFactory.createEmptyBorder()
 
             mTargetLabel = if (mTargetView) {
                 JLabel("  # ${Strings.FILTER} ${Strings.LOG} View")
@@ -3285,7 +3332,20 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
             layout = BorderLayout()
             add(searchPanel, BorderLayout.WEST)
+
+            updateColor()
         }
+
+        fun updateColor() {
+            mSearchMatchCaseToggle.background = background
+            mUpBtn.background = background
+            mDownBtn.background = background
+
+            mSearchMatchCaseToggle.border = ColorButtonBorder(background)
+            mUpBtn.border = ColorButtonBorder(background)
+            mDownBtn.border = ColorButtonBorder(background)
+        }
+
 
         override fun setVisible(aFlag: Boolean) {
             super.setVisible(aFlag)
@@ -3650,6 +3710,15 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mFilteredLogPanel.updateTablePNameColumn(isShow)
     }
 
+    fun updateLogPanelTableBar() {
+        updateLogPanelTableBar(mConfigManager.loadFilters(), mConfigManager.loadCmds())
+    }
+
+    private fun updateLogPanelTableBar(filters: ArrayList<CustomListManager.CustomElement>?, cmds: ArrayList<CustomListManager.CustomElement>?) {
+        mFullLogPanel.updateTableBar(filters, cmds)
+        mFilteredLogPanel.updateTableBar(filters, cmds)
+    }
+
     fun updateUI() {
         mLogCmdCombo.toolTipText = ""
         mLogCmdCombo.toolTipText = TooltipStrings.LOG_CMD_COMBO
@@ -3680,29 +3749,10 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
         setDeviceComboColor(mLogCmdManager.mDevices.contains(mDeviceCombo.selectedItem?.toString() ?: ""))
 
-        mStartBtn.background = mLogToolBar.background
-        mRetryAdbToggle.background = mLogToolBar.background
-        mPauseToggle.background = mLogToolBar.background
-        mStopBtn.background = mLogToolBar.background
-        mSaveBtn.background = mLogToolBar.background
-        mAdbConnectBtn.background = mLogToolBar.background
-        mAdbDisconnectBtn.background = mLogToolBar.background
-        mAdbRefreshBtn.background = mLogToolBar.background
-        mClearViewsBtn.background = mLogToolBar.background
-        mScrollbackSplitFileToggle.background = mLogToolBar.background
-        mScrollbackApplyBtn.background = mLogToolBar.background
-        mScrollbackKeepToggle.background = mLogToolBar.background
+        mSearchPanel.updateColor()
 
-        mShowLogToggle.background = mLogPanel.background
-        mBoldLogToggle.background = mLogPanel.background
-        mMatchCaseToggle.background = mLogPanel.background
-
-        for (item in mTokenToggle) {
-            item.background = mLogPanel.background
-        }
-
-        mFullLogPanel.updateTableBar(mConfigManager.loadCmds())
-        mFilteredLogPanel.updateTableBar(mConfigManager.loadFilters())
+        changeToolBtnColor()
+        updateLogPanelTableBar(mConfigManager.loadFilters(), mConfigManager.loadCmds())
     }
 }
 

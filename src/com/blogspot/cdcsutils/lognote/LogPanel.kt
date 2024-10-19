@@ -49,14 +49,14 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
         mCtrlPanel = JPanel()
         mCtrlMainPanel = ButtonPanel()
         mFirstBtn = ColorButton("")
-        mFirstBtn.border = BorderFactory.createEmptyBorder()
+        mFirstBtn.border = ColorButtonBorder(mCtrlMainPanel.background)
         mFirstBtn.icon = Icons.TopIcon(ConfigManager.LaFAccentColor)
         mFirstBtn.toolTipText = TooltipStrings.VIEW_FIRST_BTN
         mFirstBtn.margin = Insets(2, 3, 1, 3)
         mFirstBtn.addActionListener(mActionHandler)
 
         mLastBtn = ColorButton("")
-        mLastBtn.border = BorderFactory.createEmptyBorder()
+        mLastBtn.border = ColorButtonBorder(mCtrlMainPanel.background)
         mLastBtn.icon = Icons.BottomIcon(ConfigManager.LaFAccentColor)
         mLastBtn.toolTipText = TooltipStrings.VIEW_LAST_BTN
         mLastBtn.margin = Insets(2, 3, 1, 3)
@@ -79,7 +79,7 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
         mFullBtn.margin = Insets(0, 3, 0, 3)
         mFullBtn.addActionListener(mActionHandler)
 
-        updateTableBar(null)
+        updateTableBar(null, null)
 
         if (mColumnMode) {
             mTableModel = LogColumnTableModel(mMainUI, mBasePanel?.mTableModel)
@@ -155,6 +155,7 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
 
     private fun updateTableBarFilters(customArray: ArrayList<CustomListManager.CustomElement>?) {
         val filtersBtn = TableBarButton(Strings.FILTERS)
+        filtersBtn.border = ColorButtonBorder(mCtrlMainPanel.background)
         filtersBtn.background = mCtrlMainPanel.background
         filtersBtn.icon = Icons.FiltersCmdsIcon(ConfigManager.LaFAccentColor)
         filtersBtn.toolTipText = TooltipStrings.ADD_FILTER_BTN
@@ -171,6 +172,7 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
                     continue
                 }
                 val button = TableBarButton(item.mTitle)
+                button.border = ColorButtonBorder(mCtrlMainPanel.background)
                 button.background = mCtrlMainPanel.background
                 button.icon = icon
                 button.mValue = item.mValue
@@ -200,6 +202,7 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
 
     private fun updateTableBarCmds(customArray: ArrayList<CustomListManager.CustomElement>?) {
         val cmdsBtn = TableBarButton(Strings.CMDS)
+        cmdsBtn.border = ColorButtonBorder(mCtrlMainPanel.background)
         cmdsBtn.background = mCtrlMainPanel.background
         cmdsBtn.icon = Icons.FiltersCmdsIcon(ConfigManager.LaFAccentColor)
         cmdsBtn.toolTipText = TooltipStrings.ADD_CMD_BTN
@@ -216,6 +219,7 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
                     continue
                 }
                 val button = TableBarButton(item.mTitle)
+                button.border = ColorButtonBorder(mCtrlMainPanel.background)
                 button.background = mCtrlMainPanel.background
                 button.icon = icon
                 button.mValue = item.mValue
@@ -237,13 +241,14 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
 
     private fun updateTableBarPackages() {
         val packagesBtn = TableBarButton(Strings.PACKAGES)
+        packagesBtn.border = ColorButtonBorder(mCtrlMainPanel.background)
         packagesBtn.background = mCtrlMainPanel.background
         packagesBtn.icon = Icons.FiltersCmdsIcon(ConfigManager.LaFAccentColor)
         packagesBtn.toolTipText = TooltipStrings.ADD_PACKAGE_BTN
         packagesBtn.margin = Insets(0, 3, 0, 3)
         packagesBtn.addActionListener {
             PackageManager.getInstance().showPackageDialog()
-            updateTableBar(ConfigManager.getInstance().loadCmds())
+            mMainUI.updateLogPanelTableBar()
 
             // to resize mCtrlMainPanel
             mMainUI.mLogSplitPane.dividerLocation -= 1
@@ -261,7 +266,7 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
             for (idx in mPackageBtns.indices) {
                 mPackageBtns[idx].mIsValid = true
                 mPackageBtns[idx].isSelected = true
-                mPackageBtns[idx].border = BorderFactory.createEmptyBorder()
+                mPackageBtns[idx].border = ColorButtonBorder(mCtrlMainPanel.background)
                 mPackageBtns[idx].margin = Insets(0, 3, 0, 3)
                 mPackageBtns[idx].addActionListener(mActionHandler)
                 mPackageBtns[idx].background = mCtrlMainPanel.background
@@ -270,11 +275,14 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
         }
     }
 
-    fun updateTableBar(customArray: ArrayList<CustomListManager.CustomElement>?) {
+    fun updateTableBar(filters: ArrayList<CustomListManager.CustomElement>?, cmds: ArrayList<CustomListManager.CustomElement>?) {
         mCtrlMainPanel.removeAll()
         mFirstBtn.background = mCtrlMainPanel.background
+        mFirstBtn.border = ColorButtonBorder(mCtrlMainPanel.background)
+
         mFirstBtn.icon = Icons.TopIcon(ConfigManager.LaFAccentColor)
         mLastBtn.background = mCtrlMainPanel.background
+        mLastBtn.border = ColorButtonBorder(mCtrlMainPanel.background)
         mLastBtn.icon = Icons.BottomIcon(ConfigManager.LaFAccentColor)
         mCtrlMainPanel.add(mFirstBtn)
         mCtrlMainPanel.add(mLastBtn)
@@ -295,14 +303,24 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
 
         addVSeparator(mCtrlMainPanel)
         if (mBasePanel != null) {
-            updateTableBarFilters(customArray)
+            updateTableBarFilters(filters)
+            if (!mMainUI.mItemFull.state) {
+                addVSeparator(mCtrlMainPanel)
+                updateTableBarPackages()
+                addVSeparator(mCtrlMainPanel)
+                updateTableBarCmds(cmds)
+            }
         }
         else {
-            updateTableBarPackages()
-            addVSeparator(mCtrlMainPanel)
-            updateTableBarCmds(customArray)
+            if (mMainUI.mItemFull.state) {
+                updateTableBarPackages()
+                addVSeparator(mCtrlMainPanel)
+                updateTableBarCmds(cmds)
+            }
         }
         mCtrlMainPanel.updateHeight()
+        revalidate()
+        repaint()
     }
 
     var mFont: Font = Font(MainUI.DEFAULT_FONT_NAME, Font.PLAIN, 12)

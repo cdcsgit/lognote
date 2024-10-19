@@ -121,7 +121,7 @@ class ConfigManager private constructor() {
         for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
             mProperties["$ITEM_TOKEN_CHECK$idx"] = "false"
         }
-        mProperties[ITEM_HIGHLIGHT_LOG_CHECK] = "true"
+        mProperties[ITEM_HIGHLIGHT_LOG_CHECK] = "false"
     }
 
     fun loadConfig(): Boolean {

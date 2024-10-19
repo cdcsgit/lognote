@@ -861,18 +861,18 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
             }
         }
 
-        private val mFirstBtn: ColorButton
-        private val mPrevBtn: ColorButton
-        private val mNextBtn: ColorButton
-        private val mLastBtn: ColorButton
+        private val mFirstBtn: JButton
+        private val mPrevBtn: JButton
+        private val mNextBtn: JButton
+        private val mLastBtn: JButton
 
-        private val mAddBtn: ColorButton
-        private val mCopyBtn: ColorButton
-        private val mEditBtn: ColorButton
-        private val mDeleteBtn: ColorButton
-        private val mResetBtn: ColorButton
-        private val mOkBtn: ColorButton
-        private val mCancelBtn: ColorButton
+        private val mAddBtn: JButton
+        private val mCopyBtn: JButton
+        private val mEditBtn: JButton
+        private val mDeleteBtn: JButton
+        private val mResetBtn: JButton
+        private val mOkBtn: JButton
+        private val mCancelBtn: JButton
         private val mFormatPanel = JPanel()
         private val mFormatTableModel = FormatTableModel()
         private val mFormatTable = JTable(mFormatTableModel)
@@ -909,24 +909,24 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
             mFormatPanel.add(inUsePanel)
             mFormatPanel.add(mScrollPane)
 
-            mFirstBtn = ColorButton("↑")
+            mFirstBtn = JButton("↑")
             mFirstBtn.addActionListener(this)
-            mPrevBtn = ColorButton("∧")
+            mPrevBtn = JButton("∧")
             mPrevBtn.addActionListener(this)
-            mNextBtn = ColorButton("∨")
+            mNextBtn = JButton("∨")
             mNextBtn.addActionListener(this)
-            mLastBtn = ColorButton("↓")
+            mLastBtn = JButton("↓")
             mLastBtn.addActionListener(this)
 
-            mAddBtn = ColorButton(Strings.ADD)
+            mAddBtn = JButton(Strings.ADD)
             mAddBtn.addActionListener(this)
-            mCopyBtn = ColorButton(Strings.COPY)
+            mCopyBtn = JButton(Strings.COPY)
             mCopyBtn.addActionListener(this)
-            mEditBtn = ColorButton(Strings.EDIT)
+            mEditBtn = JButton(Strings.EDIT)
             mEditBtn.addActionListener(this)
-            mDeleteBtn = ColorButton(Strings.DELETE)
+            mDeleteBtn = JButton(Strings.DELETE)
             mDeleteBtn.addActionListener(this)
-            mResetBtn = ColorButton(Strings.RESET)
+            mResetBtn = JButton(Strings.RESET)
             mResetBtn.addActionListener(this)
             val buttonPanel = JPanel()
             buttonPanel.add(mAddBtn)
@@ -944,9 +944,9 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
             mFormatPanel.add(mDetailPanel)
             Utils.addHEmptySeparator(mFormatPanel, 20)
 
-            mOkBtn = ColorButton(Strings.OK)
+            mOkBtn = JButton(Strings.OK)
             mOkBtn.addActionListener(this)
-            mCancelBtn = ColorButton(Strings.CANCEL)
+            mCancelBtn = JButton(Strings.CANCEL)
             mCancelBtn.addActionListener(this)
 
             val bottomPanel = JPanel()
@@ -1186,8 +1186,8 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
 
         inner class FormatEditDialog(parent: JDialog, title: String, cmd: String) : JDialog(parent, title, true), ActionListener {
             private val mDetailPanel = DetailPanel(true)
-            private val mOkBtn: ColorButton
-            private val mCancelBtn: ColorButton
+            private val mOkBtn: JButton
+            private val mCancelBtn: JButton
             private val mFormatPanel = JPanel()
             private val mCmd = cmd
             var mFormat: FormatItem? = null
@@ -1201,9 +1201,9 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                 mFormatPanel.add(mDetailPanel)
                 Utils.addHEmptySeparator(mFormatPanel, 20)
 
-                mOkBtn = ColorButton(Strings.OK)
+                mOkBtn = JButton(Strings.OK)
                 mOkBtn.addActionListener(this)
-                mCancelBtn = ColorButton(Strings.CANCEL)
+                mCancelBtn = JButton(Strings.CANCEL)
                 mCancelBtn.addActionListener(this)
 
                 val bottomPanel = JPanel()

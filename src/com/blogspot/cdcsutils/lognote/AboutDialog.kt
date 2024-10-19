@@ -3,6 +3,7 @@ package com.blogspot.cdcsutils.lognote
 import java.awt.BorderLayout
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
+import javax.swing.JButton
 import javax.swing.JDialog
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -10,10 +11,10 @@ import javax.swing.JPanel
 
 class AboutDialog(mainUI: MainUI) :JDialog(mainUI, Strings.ABOUT, true), ActionListener {
     private var mAboutLabel: JLabel
-    private var mCloseBtn : ColorButton
+    private var mCloseBtn : JButton
 
     init {
-        mCloseBtn = ColorButton(Strings.CLOSE)
+        mCloseBtn = JButton(Strings.CLOSE)
         mCloseBtn.addActionListener(this)
 
         mAboutLabel = JLabel("<html><center><h1>LogNote " + Main.VERSION + "</h1><br>cdcsman@gmail.com</center></html>")

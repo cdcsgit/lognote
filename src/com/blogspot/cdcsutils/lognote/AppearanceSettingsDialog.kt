@@ -21,8 +21,8 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
     private val mFilterComboPanel = FilterComboPanel()
     private val mFontColorPanel = FontColorPanel()
 
-    private val mOkBtn = ColorButton(Strings.OK)
-    private val mCancelBtn = ColorButton(Strings.CANCEL)
+    private val mOkBtn = JButton(Strings.OK)
+    private val mCancelBtn = JButton(Strings.CANCEL)
     private val mPrevLaf = ConfigManager.LaF
     private val mPrevLafAccentColor = ConfigManager.LaFAccentColor
 

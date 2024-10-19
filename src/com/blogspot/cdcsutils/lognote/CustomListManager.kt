@@ -46,16 +46,16 @@ abstract class CustomListManager(mainUI: MainUI, logPanel: LogPanel) {
     internal inner class CustomDialog (mainUI: MainUI) : JDialog(mainUI, mDialogTitle, true), ActionListener {
         private var mScrollPane: JScrollPane
         var mList = JList<CustomElement>()
-        private var mFirstBtn: ColorButton
-        private var mPrevBtn: ColorButton
-        private var mNextBtn: ColorButton
-        private var mLastBtn: ColorButton
-        private var mNewBtn: ColorButton
-        private var mCopyBtn: ColorButton
-        private var mEditBtn: ColorButton
-        private var mDeleteBtn: ColorButton
-        private var mSaveBtn: ColorButton
-        private var mCloseBtn: ColorButton
+        private var mFirstBtn: JButton
+        private var mPrevBtn: JButton
+        private var mNextBtn: JButton
+        private var mLastBtn: JButton
+        private var mNewBtn: JButton
+        private var mCopyBtn: JButton
+        private var mEditBtn: JButton
+        private var mDeleteBtn: JButton
+        private var mSaveBtn: JButton
+        private var mCloseBtn: JButton
         private var mModel = DefaultListModel<CustomElement>()
 
         init {
@@ -84,26 +84,26 @@ abstract class CustomListManager(mainUI: MainUI, logPanel: LogPanel) {
             mScrollPane = JScrollPane(mList)
             mScrollPane.preferredSize = Dimension(800, 500)
 
-            mFirstBtn = ColorButton("↑")
+            mFirstBtn = JButton("↑")
             mFirstBtn.addActionListener(this)
-            mPrevBtn = ColorButton("∧")
+            mPrevBtn = JButton("∧")
             mPrevBtn.addActionListener(this)
-            mNextBtn = ColorButton("∨")
+            mNextBtn = JButton("∨")
             mNextBtn.addActionListener(this)
-            mLastBtn = ColorButton("↓")
+            mLastBtn = JButton("↓")
             mLastBtn.addActionListener(this)
 
-            mNewBtn = ColorButton(Strings.NEW)
+            mNewBtn = JButton(Strings.NEW)
             mNewBtn.addActionListener(this)
-            mCopyBtn = ColorButton(Strings.COPY)
+            mCopyBtn = JButton(Strings.COPY)
             mCopyBtn.addActionListener(this)
-            mEditBtn = ColorButton(Strings.EDIT)
+            mEditBtn = JButton(Strings.EDIT)
             mEditBtn.addActionListener(this)
-            mDeleteBtn = ColorButton(Strings.DELETE)
+            mDeleteBtn = JButton(Strings.DELETE)
             mDeleteBtn.addActionListener(this)
-            mSaveBtn = ColorButton(Strings.SAVE)
+            mSaveBtn = JButton(Strings.SAVE)
             mSaveBtn.addActionListener(this)
-            mCloseBtn = ColorButton(Strings.CLOSE)
+            mCloseBtn = JButton(Strings.CLOSE)
             mCloseBtn.addActionListener(this)
             val bottomPanel = JPanel()
             bottomPanel.add(mFirstBtn)
@@ -324,7 +324,7 @@ abstract class CustomListManager(mainUI: MainUI, logPanel: LogPanel) {
 
                     saveList(customListArray)
 
-                    mLogPanel.updateTableBar(customListArray)
+                    mMainUI.updateLogPanelTableBar()
                 }
                 mCloseBtn -> {
                     dispose()
@@ -353,8 +353,8 @@ abstract class CustomListManager(mainUI: MainUI, logPanel: LogPanel) {
         }
 
         internal inner class EditDialog(parent: CustomDialog, cmd: Int, title: String, value: String, tableBar: Boolean) :JDialog(parent, "Edit", true), ActionListener {
-            private var mOkBtn: ColorButton
-            private var mCancelBtn: ColorButton
+            private var mOkBtn: JButton
+            private var mCancelBtn: JButton
 
             private var mTitleLabel: JLabel
             private var mValueLabel: JLabel
@@ -372,9 +372,9 @@ abstract class CustomListManager(mainUI: MainUI, logPanel: LogPanel) {
             private var mCmd = cmd
 
             init {
-                mOkBtn = ColorButton(Strings.OK)
+                mOkBtn = JButton(Strings.OK)
                 mOkBtn.addActionListener(this)
-                mCancelBtn = ColorButton(Strings.CANCEL)
+                mCancelBtn = JButton(Strings.CANCEL)
                 mCancelBtn.addActionListener(this)
 
                 mTitleLabel = JLabel("Title")

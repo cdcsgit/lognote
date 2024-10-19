@@ -18,8 +18,8 @@ import javax.swing.*
 
 class CheckUpdateDialog(parent: JFrame) :JDialog(parent, Strings.CHECK_UPDATE, true), ActionListener, MouseListener {
     private var mUpdateLabel: JLabel
-    private var mGoUpdateBtn: ColorButton
-    private var mCloseBtn : ColorButton
+    private var mGoUpdateBtn: JButton
+    private var mCloseBtn : JButton
     private val RELEASE_ADDRESS = "https://github.com/cdcsgit/lognote/releases/latest"
     private var mLatestVersion = ""
 
@@ -49,10 +49,10 @@ class CheckUpdateDialog(parent: JFrame) :JDialog(parent, Strings.CHECK_UPDATE, t
         }
         mUpdateLabel.horizontalAlignment = JLabel.CENTER
 
-        mCloseBtn = ColorButton(Strings.CLOSE)
+        mCloseBtn = JButton(Strings.CLOSE)
         mCloseBtn.addActionListener(this)
 
-        mGoUpdateBtn = ColorButton(RELEASE_ADDRESS)
+        mGoUpdateBtn = JButton(RELEASE_ADDRESS)
         mGoUpdateBtn.addMouseListener(this)
 
         val panel = JPanel()

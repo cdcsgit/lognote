@@ -12,15 +12,15 @@ import javax.swing.*
 
 
 class HelpGotoDialog(parent: JFrame) :JDialog(parent, Strings.HELP, true), ActionListener, MouseListener {
-    private var mHelpBtn: ColorButton
-    private var mCloseBtn : ColorButton
+    private var mHelpBtn: JButton
+    private var mCloseBtn : JButton
     private val HELP_ADDRESS = "https://github.com/cdcsgit/lognote#readme"
 
     init {
-        mCloseBtn = ColorButton(Strings.CLOSE)
+        mCloseBtn = JButton(Strings.CLOSE)
         mCloseBtn.addActionListener(this)
 
-        mHelpBtn = ColorButton(HELP_ADDRESS)
+        mHelpBtn = JButton(HELP_ADDRESS)
         mHelpBtn.addMouseListener(this)
 
         val panel = JPanel()

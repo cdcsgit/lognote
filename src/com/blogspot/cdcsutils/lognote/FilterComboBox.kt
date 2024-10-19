@@ -6,7 +6,6 @@ import javax.swing.*
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 import javax.swing.plaf.basic.BasicComboBoxRenderer
-import javax.swing.plaf.basic.BasicComboBoxUI
 import javax.swing.text.BadLocationException
 import javax.swing.text.DefaultHighlighter
 import javax.swing.text.Highlighter
@@ -657,6 +656,8 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
             private val mActionListeners = ArrayList<ActionListener>()
 
             private var mFgColor = foreground
+            private val initialPreferredHeight = preferredSize.height
+            private var mPreferredHeightGap = 0
 
             init {
                 lineWrap = true
@@ -725,7 +726,7 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
                             }
                         }
 
-                        mCombo.preferredSize = Dimension(mCombo.preferredSize.width, preferredSize.height)
+                        mCombo.preferredSize = Dimension(mCombo.preferredSize.width, preferredSize.height + mPreferredHeightGap)
                         mCombo.parent.revalidate()
                         mCombo.parent.repaint()
                     }
@@ -796,12 +797,13 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
 
             fun setComboBox(filterComboBox: FilterComboBox) {
                 mCombo = filterComboBox
+                mPreferredHeightGap = mCombo.preferredSize.height - initialPreferredHeight
             }
 
             override fun setText(t: String?) {
                 super.setText(t)
                 if (t != null) {
-                    mCombo.preferredSize = Dimension(mCombo.preferredSize.width, preferredSize.height)
+                    mCombo.preferredSize = Dimension(mCombo.preferredSize.width, preferredSize.height + mPreferredHeightGap)
                 }
             }
 

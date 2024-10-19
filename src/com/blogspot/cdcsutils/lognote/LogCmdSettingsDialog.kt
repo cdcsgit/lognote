@@ -9,10 +9,10 @@ import javax.swing.table.DefaultTableModel
 
 
 class LogCmdSettingsDialog(mainUI: MainUI) :JDialog(mainUI, "${Strings.LOG_CMD} ${Strings.SETTING}", true), ActionListener {
-    private var mAdbCmdBtn: ColorButton
-    private var mAdbSaveBtn: ColorButton
-    private var mOkBtn: ColorButton
-    private var mCancelBtn: ColorButton
+    private var mAdbCmdBtn: JButton
+    private var mAdbSaveBtn: JButton
+    private var mOkBtn: JButton
+    private var mCancelBtn: JButton
 
     private var mAdbCmdLabel: JLabel
     private var mAdbSaveLabel: JLabel
@@ -59,14 +59,14 @@ class LogCmdSettingsDialog(mainUI: MainUI) :JDialog(mainUI, "${Strings.LOG_CMD} 
 
     init {
         val rowHeight = 30
-        mAdbCmdBtn = ColorButton(Strings.SELECT)
+        mAdbCmdBtn = JButton(Strings.SELECT)
         mAdbCmdBtn.addActionListener(this)
         mAdbCmdBtn.preferredSize = Dimension(mAdbCmdBtn.preferredSize.width, rowHeight)
-        mAdbSaveBtn = ColorButton(Strings.SELECT)
+        mAdbSaveBtn = JButton(Strings.SELECT)
         mAdbSaveBtn.addActionListener(this)
-        mOkBtn = ColorButton(Strings.OK)
+        mOkBtn = JButton(Strings.OK)
         mOkBtn.addActionListener(this)
-        mCancelBtn = ColorButton(Strings.CANCEL)
+        mCancelBtn = JButton(Strings.CANCEL)
         mCancelBtn.addActionListener(this)
 
         mAdbCmdLabel = JLabel(Strings.ADB_PATH)
@@ -308,10 +308,10 @@ class LogCmdSettingsDialog(mainUI: MainUI) :JDialog(mainUI, "${Strings.LOG_CMD} 
         private var mAdbTF: JTextField
         private var mCmdTF: JTextField
 
-        private var mCmdBtn: ColorButton
+        private var mCmdBtn: JButton
 
-        private var mOkBtn: ColorButton
-        private var mCancelBtn: ColorButton
+        private var mOkBtn: JButton
+        private var mCancelBtn: JButton
 
         init {
             val rowHeight = 30
@@ -338,13 +338,13 @@ class LogCmdSettingsDialog(mainUI: MainUI) :JDialog(mainUI, "${Strings.LOG_CMD} 
                 mAdbRadio.isSelected = true
             }
 
-            mCmdBtn = ColorButton(Strings.SELECT)
+            mCmdBtn = JButton(Strings.SELECT)
             mCmdBtn.addActionListener(this)
             mCmdBtn.preferredSize = Dimension(mCmdBtn.preferredSize.width, rowHeight)
 
-            mOkBtn = ColorButton(Strings.OK)
+            mOkBtn = JButton(Strings.OK)
             mOkBtn.addActionListener(this)
-            mCancelBtn = ColorButton(Strings.CANCEL)
+            mCancelBtn = JButton(Strings.CANCEL)
             mCancelBtn.addActionListener(this)
 
             val panel1 = JPanel(GridLayout(2, 1, 0, 2))

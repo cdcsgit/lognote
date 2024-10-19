@@ -285,9 +285,9 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
         private val mInUseLabel: JLabel
         private var mInUseTrigger = ""
 
-        private var mAddBtn: ColorButton
-        private var mHideBtn: ColorButton
-        private var mHideListBtn: ColorButton
+        private var mAddBtn: JButton
+        private var mHideBtn: JButton
+        private var mHideListBtn: JButton
 
 
         init {
@@ -298,20 +298,20 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
             mInUseLabel = JLabel("${Strings.AGING_TEST_TRIGGER} / ${Strings.IN_USE} - [$mInUseTrigger] ")
             inUsePanel.add(mInUseLabel)
 
-            mAddBtn = ColorButton(Strings.ADD)
+            mAddBtn = JButton(Strings.ADD)
             mAddBtn.margin = Insets(0, 3, 0, 3)
             if (mInUseTrigger.isNotEmpty()) {
                 mAddBtn.isEnabled = false
             }
             mAddBtn.addActionListener(this)
             
-            mHideBtn = ColorButton(Strings.HIDE)
+            mHideBtn = JButton(Strings.HIDE)
             mHideBtn.margin = Insets(0, 3, 0, 3)
             if (mInUseTrigger.isNotEmpty()) {
                 mHideBtn.isEnabled = false
             }
             mHideBtn.addActionListener(this)
-            mHideListBtn = ColorButton(Strings.HIDE_LIST)
+            mHideListBtn = JButton(Strings.HIDE_LIST)
             mHideListBtn.margin = Insets(0, 3, 0, 3)
             mHideListBtn.addActionListener(this)
             inUsePanel.add(mAddBtn)
@@ -457,7 +457,7 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
         }
 
         inner class TriggerCtrlPane(row: Int) : JPanel(), ActionListener {
-            private val mBtns: Array<ColorButton>
+            private val mBtns: Array<JButton>
             private var mBtnNum = 0
             private val mIdxStartStop = mBtnNum++
             private val mIdxResult = mBtnNum++
@@ -482,7 +482,7 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
 
             init {
                 layout = FlowLayout(FlowLayout.LEFT, 0, 0)
-                mBtns = Array(mBtnNum) { ColorButton("") }
+                mBtns = Array(mBtnNum) { JButton("") }
                 mBtns[mIdxStartStop].actionCommand = "START_STOP"
                 mBtns[mIdxStartStop].icon = ImageIcon(this.javaClass.getResource("/images/trigger_start.png"))
                 mBtns[mIdxStartStop].toolTipText = "${Strings.START} / ${Strings.STOP}"
@@ -526,6 +526,15 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
             }
 
             fun updatePane(row: Int) {
+                background = mTriggerTable.background
+                mBtns[mIdxStartStop].background = mTriggerTable.background
+                mBtns[mIdxResult].background = mTriggerTable.background
+                mBtns[mIdxEdit].background = mTriggerTable.background
+                mBtns[mIdxCopy].background = mTriggerTable.background
+                mBtns[mIdxRemove].background = mTriggerTable.background
+                mBtns[mIdxUp].background = mTriggerTable.background
+                mBtns[mIdxDown].background = mTriggerTable.background
+                
                 mRow = row
                 if (mTriggerList.isNotEmpty() && mTriggerList[mRow].mStatus != mStatus) {
                     if (mTriggerList[row].mStatus == TriggerStatus.STOPPED) {
@@ -689,8 +698,8 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
         }
 
         internal inner class EditDialog(parent: MainUI, cmd: Int, item: TriggerItem) :JDialog(parent, Strings.EDIT, true), ActionListener {
-            private var mOkBtn: ColorButton
-            private var mCancelBtn: ColorButton
+            private var mOkBtn: JButton
+            private var mCancelBtn: JButton
 
             private var mNameLabel: JLabel
             private var mNameTF: JTextField
@@ -712,9 +721,9 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
 
             init {
                 val panelWidth = 700
-                mOkBtn = ColorButton(Strings.OK)
+                mOkBtn = JButton(Strings.OK)
                 mOkBtn.addActionListener(this)
-                mCancelBtn = ColorButton(Strings.CANCEL)
+                mCancelBtn = JButton(Strings.CANCEL)
                 mCancelBtn.addActionListener(this)
 
                 mNameLabel = JLabel(" ${Strings.NAME} : ")
@@ -928,8 +937,8 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
     
     inner class ResultDialog(parent: MainUI, item: TriggerItem) :JDialog(parent, Strings.INFO, false), ActionListener {
         private var mName = item.mName
-        private var mStopBtn: ColorButton
-        private var mOkBtn: ColorButton
+        private var mStopBtn: JButton
+        private var mOkBtn: JButton
 
         private var mNameLabel: JLabel
         private var mFilterLabel: JLabel
@@ -941,9 +950,9 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
 
         init {
             val panelWidth = 700
-            mStopBtn = ColorButton(Strings.STOP)
+            mStopBtn = JButton(Strings.STOP)
             mStopBtn.addActionListener(this)
-            mOkBtn = ColorButton(Strings.OK)
+            mOkBtn = JButton(Strings.OK)
             mOkBtn.addActionListener(this)
 
             mNameLabel = JLabel(" ${Strings.NAME} : ${item.mName} (${if (item.mOnce) Strings.ONCE else "${Strings.REPEAT} ${item.mRunCount}"})")

@@ -97,7 +97,7 @@ class ProcessList private constructor() {
     inner class ListDialog(mainUI: MainUI) : JDialog(mainUI, Strings.PROCESS_LIST, true), ActionListener {
         private val mScrollPane: JScrollPane
         private val mTable: JTable
-        private var mCloseBtn : ColorButton
+        private var mCloseBtn : JButton
         private val mCellRenderer = ProcessCellRenderer()
 
         init {
@@ -142,7 +142,7 @@ class ProcessList private constructor() {
             mScrollPane.isOpaque = false
             mScrollPane.viewport.isOpaque = false
 
-            mCloseBtn = ColorButton(Strings.CLOSE)
+            mCloseBtn = JButton(Strings.CLOSE)
             mCloseBtn.addActionListener(this)
 
             val panel = JPanel()

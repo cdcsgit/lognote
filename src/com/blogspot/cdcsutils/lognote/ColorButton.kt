@@ -1,11 +1,16 @@
 package com.blogspot.cdcsutils.lognote
 
-import javax.swing.BorderFactory
+import com.formdev.flatlaf.ui.FlatButtonBorder
+import java.awt.Color
 import javax.swing.JButton
+class ColorButtonBorder(val color: Color) : FlatButtonBorder() {
+    init {
+        borderColor = color
+    }
+}
 
 open class ColorButton(title:String) : JButton(title) {
     init {
-        putClientProperty("JButton.buttonType", "square")
     }
 }
 
@@ -17,9 +22,6 @@ class TableBarButton(title:String) : ColorButton(title) {
     }
 
     init {
-        border = BorderFactory.createEmptyBorder()
-
-//        putClientProperty("JButton.buttonType", "roundRect")
         if (title.length > MAX_TITLE) {
             text = title.substring(0, MAX_TITLE) + ".."
         }
