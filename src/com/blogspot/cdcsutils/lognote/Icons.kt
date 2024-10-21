@@ -28,23 +28,23 @@ class Icons {
         }
     }
 
-    class TopIcon(private val mColor: String) : FlatAbstractIcon(15, 15, null) {
+    class TopIcon(private val mColor: String) : FlatAbstractIcon(14, 14, null) {
         override fun paintIcon(c: Component, g: Graphics2D) {
             g.color = Color.decode(mColor)
             g.fillRect(0, 0, width, 2)
 
             g.color = Color.GRAY
-            g.fillPolygon(intArrayOf(8, 13, 10, 10, 6, 6, 3), intArrayOf(2, 7, 7, 13, 13, 7, 7), 7)
+            g.fillPolygon(intArrayOf(7, 12, 9, 9, 5, 5, 2), intArrayOf(2, 7, 7, 13, 13, 7, 7), 7)
         }
     }
 
-    class BottomIcon(private val mColor: String) : FlatAbstractIcon(15, 15, null) {
+    class BottomIcon(private val mColor: String) : FlatAbstractIcon(14, 14, null) {
         override fun paintIcon(c: Component, g: Graphics2D) {
             g.color = Color.decode(mColor)
             g.fillRect(0, height - 2, width, 2)
 
             g.color = Color.GRAY
-            g.fillPolygon(intArrayOf(7, 12, 9, 9, 5, 5, 2), intArrayOf(13, 8, 8, 1, 1, 8, 8), 7)
+            g.fillPolygon(intArrayOf(7, 12, 9, 9, 5, 5, 2), intArrayOf(12, 7, 7, 1, 1, 7, 7), 7)
         }
     }
     class ToggleOnIcon(private val mColor: String) : FlatAbstractIcon(15, 15, null) {
