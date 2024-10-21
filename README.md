@@ -12,7 +12,9 @@ Aging Test : Save split file by lines
 
 Kotlin + swing
 
-![lognote_main_2](https://github.com/user-attachments/assets/adc7f2b5-52dd-4d82-82c6-6622dbc506ea)
+![Lognote_1 0_main](https://github.com/user-attachments/assets/42707659-de5b-4e81-b6f6-32cdf86e114b)
+![Lognote_1 0_open](https://github.com/user-attachments/assets/6868cd9d-a4fc-43c4-9a6e-df48ea208793)
+
 
 <br/>
 
@@ -36,8 +38,9 @@ Mac : java -Dfile.encoding=utf8 -Xmx2048m -jar LogNote.jar
 <br/>
 
 # How to use(tips)
-1. [Show only specific package logs](https://cdcsutils.blogspot.com/2024/09/lognote-show-only-specific-package-logs.html)
-2. [Add desktop shortcut in ubuntu](https://cdcsutils.blogspot.com/2024/10/lognote-setting-up-shortcut-to-re-run.html)
+1. [Show only specific package logs - 1.0 ~ (use "Packages" menu)](https://cdcsutils.blogspot.com/2024/10/lognote-show-only-specific-package-logs.html)
+1. [Show only specific package logs - ~ 0.3.8](https://cdcsutils.blogspot.com/2024/09/lognote-show-only-specific-package-logs.html)
+1. [Add desktop shortcut in ubuntu](https://cdcsutils.blogspot.com/2024/10/lognote-setting-up-shortcut-to-re-run.html)
 
 <br/>
 
