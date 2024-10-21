@@ -61,7 +61,7 @@ class CheckUpdateDialog(parent: JFrame) :JDialog(parent, Strings.CHECK_UPDATE, t
         panel.add(mUpdateLabel, BorderLayout.NORTH)
 
         val goUpdatePanel = JPanel()
-        goUpdatePanel.preferredSize = Dimension(350, 40)
+        goUpdatePanel.preferredSize = Dimension(550, 70)
         goUpdatePanel.add(mGoUpdateBtn)
         panel.add(goUpdatePanel, BorderLayout.CENTER)
 

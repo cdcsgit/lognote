@@ -27,7 +27,7 @@ class HelpGotoDialog(parent: JFrame) :JDialog(parent, Strings.HELP, true), Actio
         panel.layout = BorderLayout()
 
         val helpPanel = JPanel()
-        helpPanel.preferredSize = Dimension(350, 40)
+        helpPanel.preferredSize = Dimension(550, 40)
         helpPanel.add(mHelpBtn)
         panel.add(helpPanel, BorderLayout.CENTER)
 

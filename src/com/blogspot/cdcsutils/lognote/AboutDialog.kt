@@ -1,6 +1,7 @@
 package com.blogspot.cdcsutils.lognote
 
 import java.awt.BorderLayout
+import java.awt.Dimension
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import javax.swing.JButton
@@ -21,6 +22,7 @@ class AboutDialog(mainUI: MainUI) :JDialog(mainUI, Strings.ABOUT, true), ActionL
 
         val aboutPanel = JPanel()
         aboutPanel.add(mAboutLabel)
+        aboutPanel.preferredSize = Dimension(350, 120)
 
         val panel = JPanel()
         panel.layout = BorderLayout()
