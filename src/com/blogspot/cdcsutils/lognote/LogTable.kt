@@ -43,7 +43,6 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         this.setShowGrid(false)
         autoResizeMode = AUTO_RESIZE_OFF
         autoscrolls = false
-        dragEnabled = true
         dropMode = DropMode.INSERT
 
         val columnNum = columnModel.getColumn(LogTableModel.COLUMN_NUM)

@@ -642,10 +642,16 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
                         if (item.isNotEmpty()) {
                             Utils.printlnLog("importData item = $item")
                             try {
-                                fileList.add(File(URI("file://${item.trim()}")))
+                                val file = File(URI("file://${item.trim()}"))
+                                if (file.exists()) {
+                                    fileList.add(file)
+                                }
                             } catch (ex: Exception) {
                                 Utils.printlnLog("failed fileList.add")
-                                fileList.add(File(item.trim()))
+                                val file = File(item.trim())
+                                if (file.exists()) {
+                                    fileList.add(file)
+                                }
                             }
                         }
                     }
