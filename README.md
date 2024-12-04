@@ -41,6 +41,7 @@ Mac : java -Dfile.encoding=utf8 -Xmx2048m -jar LogNote.jar
 1. [Show only specific package logs - 1.0 ~ (use "Packages" menu)](https://cdcsutils.blogspot.com/2024/10/lognote-show-only-specific-package-logs.html)
 1. [Show only specific package logs - ~ 0.3.8](https://cdcsutils.blogspot.com/2024/09/lognote-show-only-specific-package-logs.html)
 1. [Add desktop shortcut in ubuntu](https://cdcsutils.blogspot.com/2024/10/lognote-setting-up-shortcut-to-re-run.html)
+1. [Make screen capture(Add button, Use log trigger)](https://cdcsutils.blogspot.com/2024/12/lognote-make-screen-captureadd-button.html)
 
 <br/>
 
