@@ -24,7 +24,7 @@ class Icons {
     class FiltersCmdsItemIcon(private val mColor: String) : FlatAbstractIcon(11, 11, null) {
         override fun paintIcon(c: Component, g: Graphics2D) {
             g.color = Color.decode(mColor)
-            g.fillRoundRect(3, 1, width - 2, height - 2, 5, 5)
+            g.fillRoundRect(4, 2, width - 4, height - 4, 5, 5)
         }
     }
 
