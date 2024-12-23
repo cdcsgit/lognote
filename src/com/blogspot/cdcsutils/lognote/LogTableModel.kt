@@ -96,8 +96,8 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
 
             mTokenNthMax = mLevelIdx
             for (token in value) {
-                if (token.mNth > mTokenNthMax) {
-                    mTokenNthMax = token.mNth
+                if (token.mPosition > mTokenNthMax) {
+                    mTokenNthMax = token.mPosition
                 }
             }
             mEmptyTokenFilters = Array(value.size) { "" }
@@ -106,7 +106,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
     private var mSortedTokensIdxs = mFormatManager.mCurrFormat.mSortedTokensIdxs
     private var mTokenNthMax = 0
     protected var mEmptyTokenFilters = arrayOf("")
-    protected var mLevelIdx = mFormatManager.mCurrFormat.mLevelNth
+    protected var mLevelIdx = mFormatManager.mCurrFormat.mLevelPosition
     protected var mSeparator = mFormatManager.mCurrFormat.mSeparator
     protected var mTokenCount = mFormatManager.mCurrFormat.mTokenCount
 
@@ -355,8 +355,8 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
         mLevelMap = mFormatManager.mCurrFormat.mLevels
         mTokenNthMax = mLevelIdx
         for (token in mSortedTokenFilters) {
-            if (token.mNth > mTokenNthMax) {
-                mTokenNthMax = token.mNth
+            if (token.mPosition > mTokenNthMax) {
+                mTokenNthMax = token.mPosition
             }
         }
         mEmptyTokenFilters = Array(mSortedTokenFilters.size) { "" }
@@ -1135,8 +1135,8 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
             if (textSplited.size > mTokenNthMax) {
                 level = mLevelMap[textSplited[mLevelIdx]] ?: LEVEL_NONE
                 tokenFilterLogs = Array(mSortedTokenFilters.size) {
-                    if (mSortedTokenFilters[it].mNth >= 0) {
-                        textSplited[mSortedTokenFilters[it].mNth]
+                    if (mSortedTokenFilters[it].mPosition >= 0) {
+                        textSplited[mSortedTokenFilters[it].mPosition]
                     }
                     else {
                         ""

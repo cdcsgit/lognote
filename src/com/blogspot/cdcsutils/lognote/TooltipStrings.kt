@@ -136,5 +136,9 @@ class TooltipStrings private constructor() {
             get() { return currStrings[field]!! }
         val PACKAGE_APPLY_START = idx++.toString()
             get() { return currStrings[field]!! }
+        val FILTER_LOG_POSITION = idx++.toString()
+            get() { return currStrings[field]!! }
+        val LOG_COLUMN_VALUES = idx++.toString()
+            get() { return currStrings[field]!! }
     }
 }

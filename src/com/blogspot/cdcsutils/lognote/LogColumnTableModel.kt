@@ -6,7 +6,7 @@ data class LogColumnItem(val mName: String, val mNth: Int, val mWidth: Int )
 class LogColumnTableModel(mainUI: MainUI, baseModel: LogTableModel?) : LogTableModel(mainUI, baseModel) {
 
     private val mCurrFormat = FormatManager.getInstance().mCurrFormat
-    private val mLogNth = FormatManager.getInstance().mCurrFormat.mLogNth
+    private val mLogNth = FormatManager.getInstance().mCurrFormat.mLogPosition
     companion object {
     }
 
@@ -99,8 +99,8 @@ class LogColumnTableModel(mainUI: MainUI, baseModel: LogTableModel?) : LogTableM
                 mLevelMap[textSplited[mLevelIdx]] ?: LEVEL_NONE
             }
             tokenFilterLogs = Array(mSortedTokenFilters.size) {
-                if (mSortedTokenFilters[it].mNth >= 0) {
-                    textSplited[mSortedTokenFilters[it].mNth]
+                if (mSortedTokenFilters[it].mPosition >= 0) {
+                    textSplited[mSortedTokenFilters[it].mPosition]
                 } else {
                     ""
                 }
@@ -131,7 +131,7 @@ class LogColumnTableModel(mainUI: MainUI, baseModel: LogTableModel?) : LogTableM
         else {
             val tokenNth = mColumnItems[col]?.mNth ?: -1
             for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
-                if (tokenNth == mTokenFilters[idx].mNth) {
+                if (tokenNth == mTokenFilters[idx].mPosition) {
                     pattern = mPatternShowTokens[idx]
                     break
                 }

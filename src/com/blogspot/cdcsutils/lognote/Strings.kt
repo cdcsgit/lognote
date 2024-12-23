@@ -228,7 +228,7 @@ class Strings private constructor() {
             get() { return currStrings[field]!! }
         val SEPARATOR: String = idx++.toString()
             get() { return currStrings[field]!! }
-        val LEVEL_NTH: String = idx++.toString()
+        val LEVEL: String = idx++.toString()
             get() { return currStrings[field]!! }
         val LEVELS: String = idx++.toString()
             get() { return currStrings[field]!! }
@@ -236,7 +236,7 @@ class Strings private constructor() {
             get() { return currStrings[field]!! }
         val PID_TOKEN_FILTER: String = idx++.toString()
             get() { return currStrings[field]!! }
-        val NTH: String = idx++.toString()
+        val POSITION: String = idx++.toString()
             get() { return currStrings[field]!! }
         val SAVE_FILTER: String = idx++.toString()
             get() { return currStrings[field]!! }
@@ -349,6 +349,10 @@ class Strings private constructor() {
         val PACKAGES: String = idx++.toString()
             get() { return currStrings[field]!! }
         val SELECT_UNSELECT_PACKAGE: String = idx++.toString()
+            get() { return currStrings[field]!! }
+        val SAMPLE_TEXT: String = idx++.toString()
+            get() { return currStrings[field]!! }
+        val APPLY_CTRL_ENTER: String = idx++.toString()
             get() { return currStrings[field]!! }
     }
 }

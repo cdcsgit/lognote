@@ -109,11 +109,11 @@ class StringsEn private constructor() {
                 , "Log Format"
                 , "Name"
                 , "Separator"
-                , "Level Position(Nth)"
+                , "Level"
                 , "Levels"
                 , "Tokens"
                 , "PID Token filter"
-                , "Position(Nth)"
+                , "Position(First : 0)"
                 , "Save Filter"
                 , "Width"
                 , "Optional - Used when show process name tooltips in logs"
@@ -170,6 +170,8 @@ class StringsEn private constructor() {
                 , "Select package"
                 , "Packages"
                 , "Select / Unselect package : ENTER key or Double click"
+                , "Sample Text"
+                , "apply [CTRL + ENTER]"
 //            , ""
             )
 

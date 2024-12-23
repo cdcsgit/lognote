@@ -65,6 +65,8 @@ class TooltipStringsEn private constructor() {
                 , "Set the package to get the logs from"
                 , "This package is not installed, so it not be applied"
                 , "The selected packages will be applied when starting logcat"
+                , "Where to apply filters to log"
+                , "Order: A|B|C|D...\nValues: Name, Log Position(see sample text table), Width(-1 : remainder)\nShow only the set log positions"
 //                , ""
             )
 

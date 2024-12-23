@@ -73,7 +73,7 @@ class LogColumnTable(tableModel:LogColumnTableModel) : LogTable(tableModel) {
 
         if (selectedRowCount > 1) {
             for (row in selectedRows) {
-                value = mTableModel.getValueAt(row, FormatManager.getInstance().mCurrFormat.mLogNth + LogTableModel.COLUMN_LOG_START).toString() + "\n"
+                value = mTableModel.getValueAt(row, FormatManager.getInstance().mCurrFormat.mLogPosition + LogTableModel.COLUMN_LOG_START).toString() + "\n"
                 log.append(value)
             }
         }
@@ -91,7 +91,7 @@ class LogColumnTable(tableModel:LogColumnTableModel) : LogTable(tableModel) {
                 if (idx == targetRow) {
                     caretPos = log.length
                 }
-                value = mTableModel.getValueAt(idx, FormatManager.getInstance().mCurrFormat.mLogNth + LogTableModel.COLUMN_LOG_START).toString() + "\n"
+                value = mTableModel.getValueAt(idx, FormatManager.getInstance().mCurrFormat.mLogPosition + LogTableModel.COLUMN_LOG_START).toString() + "\n"
                 log.append(value)
             }
         }
