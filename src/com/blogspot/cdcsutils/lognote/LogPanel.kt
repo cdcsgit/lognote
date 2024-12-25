@@ -526,20 +526,22 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
     internal inner class ListSelectionHandler : ListSelectionListener {
         override fun valueChanged(p0: ListSelectionEvent?) {
             if (mBasePanel != null) {
-                val value = mTable.mTableModel.getValueAt(mTable.selectedRow, 0)
-                val selectedRow = value.toString().trim().toInt()
+                if (p0?.valueIsAdjusting == true) {
+                    val value = mTable.mTableModel.getValueAt(mTable.selectedRow, 0)
+                    val selectedNum = value.toString().trim().toInt()
 
-                val baseValue = mBasePanel.mTable.mTableModel.getValueAt(mBasePanel.mTable.selectedRow, 0)
-                val baseSelectedRow = baseValue.toString().trim().toInt()
+                    val baseValue = mBasePanel.mTable.mTableModel.getValueAt(mBasePanel.mTable.selectedRow, 0)
+                    val baseSelectedNum = baseValue.toString().trim().toInt()
 
-                if (selectedRow != baseSelectedRow) {
-                    setGoToLast(false)
-                    mBasePanel.setGoToLast(false)
-                    mBasePanel.goToRowByNum(selectedRow, -1)
-                    mTable.mTableModel.mSelectionChanged = true
+                    if (selectedNum != baseSelectedNum) {
+                        setGoToLast(false)
+                        mBasePanel.setGoToLast(false)
+                        mBasePanel.goToRowByNum(selectedNum, -1)
+                        mTable.mTableModel.mSelectionChanged = true
 
-                    if (mTable.selectedRow == mTable.rowCount - 1) {
-                        setGoToLast(true)
+                        if (mTable.selectedRow == mTable.rowCount - 1) {
+                            setGoToLast(true)
+                        }
                     }
                 }
             } else {
