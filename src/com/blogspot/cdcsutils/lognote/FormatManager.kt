@@ -311,6 +311,37 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                 "This line is sample 5"
         formatList.add(FormatItem("plain text", separator, tokenCount, logPosition, columnNames, levelPosition, levels, tokenFilters, pidTokIdx, sampleText))
 
+        // case android studio
+        separator = "\\s+"
+        tokenCount = 7
+        logPosition = 6
+        columnNames = "Date,0,100|Time,1,120|PID,2,120|Tag,3,50|Package,4,100|Level,5,15|Log,6,-1"
+        levels = mapOf(
+            "V" to LEVEL_VERBOSE,
+            "D" to LEVEL_DEBUG,
+            "I" to LEVEL_INFO,
+            "W" to LEVEL_WARNING,
+            "E" to LEVEL_ERROR,
+            "F" to LEVEL_FATAL
+        )
+        levelPosition = 5
+
+        tokenFilters = arrayOf(
+            FormatItem.TokenFilterItem("", 0, false, 120),
+            FormatItem.TokenFilterItem("", 0, false, 120),
+            FormatItem.TokenFilterItem("", 0, false, 120),
+        )
+        pidTokIdx = -1
+
+        sampleText = "2024-12-24 11:47:05.005  1351-2455  Test0        TestPackage                          V  This line is sample 0\n" +
+                "2024-12-24 11:47:05.005  1351-2455  Test1        TestPackage                          D  This line is sample 1\n" +
+                "2024-12-24 11:47:05.005  1351-2455  Test2        TestPackage                          I  This line is sample 2\n" +
+                "2024-12-24 11:47:05.005  1351-2455  Test3        TestPackage                          W  This line is sample 3\n" +
+                "2024-12-24 11:47:05.005  1351-2455  Test4        TestPackage                          E  This line is sample 4\n" +
+                "2024-12-24 11:47:05.005  1351-2455  Test5        TestPackage                          F  This line is sample 5"
+
+        formatList.add(FormatItem("android studio", separator, tokenCount, logPosition, columnNames, levelPosition, levels, tokenFilters, pidTokIdx, sampleText))
+
         // case logcat -v time
         separator = "/|\\s+\\(\\s+|\\s+\\(|\\(\\s+|\\(|\\s+|\\):?\\s+"
         tokenCount = 6
@@ -423,59 +454,65 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
         }
     }
 
-    private fun isEqualList(list1: MutableList<FormatItem>, list2: MutableList<FormatItem>): Boolean {
-        var format1: FormatItem
-        var format2: FormatItem
+    private fun isEqualFormatItem(format1: FormatItem, format2: FormatItem): Boolean {
+        if (format1.mName != format2.mName) {
+            return false
+        }
+        if (format1.mSeparator != format2.mSeparator) {
+            return false
+        }
+        if (format1.mTokenCount != format2.mTokenCount) {
+            return false
+        }
+        if (format1.mLogPosition != format2.mLogPosition) {
+            return false
+        }
+        if (format1.mColumnNames != format2.mColumnNames) {
+            return false
+        }
+        if (format1.mLevels != format2.mLevels) {
+            return false
+        }
+        if (format1.mLevelPosition != format2.mLevelPosition) {
+            return false
+        }
+        for (idxTok in 0 until MAX_TOKEN_FILTER_COUNT) {
+            if (format1.mTokenFilters[idxTok].mToken != format2.mTokenFilters[idxTok].mToken) {
+                return false
+            }
+            if (format1.mTokenFilters[idxTok].mPosition != format2.mTokenFilters[idxTok].mPosition) {
+                return false
+            }
+            if (format1.mTokenFilters[idxTok].mIsSaveFilter != format2.mTokenFilters[idxTok].mIsSaveFilter) {
+                return false
+            }
+            if (format1.mTokenFilters[idxTok].mUiWidth != format2.mTokenFilters[idxTok].mUiWidth) {
+                return false
+            }
+        }
+
+        if (format1.mPidTokIdx != format2.mPidTokIdx) {
+            return false
+        }
+
+        if (format1.mSampleText != format2.mSampleText) {
+            return false
+        }
+
+        return true
+    }
+
+    private fun isEqualFormatList(list1: MutableList<FormatItem>, list2: MutableList<FormatItem>): Boolean {
         if (list1.size != list2.size) {
             return false
         }
+
         for (idx in 0 until list1.size) {
-            format1 = list1[idx]
-            format2 = list2[idx]
-            if (format1.mName != format2.mName) {
-                return false
-            }
-            if (format1.mSeparator != format2.mSeparator) {
-                return false
-            }
-            if (format1.mTokenCount != format2.mTokenCount) {
-                return false
-            }
-            if (format1.mLogPosition != format2.mLogPosition) {
-                return false
-            }
-            if (format1.mColumnNames != format2.mColumnNames) {
-                return false
-            }
-            if (format1.mLevels != format2.mLevels) {
-                return false
-            }
-            if (format1.mLevelPosition != format2.mLevelPosition) {
-                return false
-            }
-            for (idxTok in 0 until MAX_TOKEN_FILTER_COUNT) {
-                if (format1.mTokenFilters[idxTok].mToken != format2.mTokenFilters[idxTok].mToken) {
-                    return false
-                }
-                if (format1.mTokenFilters[idxTok].mPosition != format2.mTokenFilters[idxTok].mPosition) {
-                    return false
-                }
-                if (format1.mTokenFilters[idxTok].mIsSaveFilter != format2.mTokenFilters[idxTok].mIsSaveFilter) {
-                    return false
-                }
-                if (format1.mTokenFilters[idxTok].mUiWidth != format2.mTokenFilters[idxTok].mUiWidth) {
-                    return false
-                }
-            }
-
-            if (format1.mPidTokIdx != format2.mPidTokIdx) {
-                return false
-            }
-
-            if (format1.mSampleText != format2.mSampleText) {
+            if (!isEqualFormatItem(list1[idx], list2[idx])) {
                 return false
             }
         }
+
         return true
     }
 
@@ -647,11 +684,6 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
             buttonPanel.add(mDeleteBtn)
             buttonPanel.add(mResetBtn)
             Utils.addVSeparator(buttonPanel, 20)
-            buttonPanel.add(mFirstBtn)
-            buttonPanel.add(mPrevBtn)
-            buttonPanel.add(mNextBtn)
-            buttonPanel.add(mLastBtn)
-            Utils.addVSeparator(buttonPanel, 20)
             buttonPanel.add(mSaveBtn)
 
             inUsePanel.add(buttonPanel)
@@ -666,7 +698,18 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
             mFormatJList.selectionMode = ListSelectionModel.SINGLE_SELECTION
             mFormatJList.selectionModel.addListSelectionListener(ListSelectionHandler())
             mFormatListScrollPane = JScrollPane(mFormatJList)
-            mSplitPane = JSplitPane(JSplitPane.HORIZONTAL_SPLIT, false, mFormatListScrollPane, mFormatPanel)
+
+            val leftBtnPanel = JPanel()
+            leftBtnPanel.layout = GridLayout(1, 4)
+            leftBtnPanel.add(mFirstBtn)
+            leftBtnPanel.add(mPrevBtn)
+            leftBtnPanel.add(mNextBtn)
+            leftBtnPanel.add(mLastBtn)
+            val leftPanel = JPanel()
+            leftPanel.layout = BorderLayout()
+            leftPanel.add(leftBtnPanel, BorderLayout.NORTH)
+            leftPanel.add(mFormatListScrollPane, BorderLayout.CENTER)
+            mSplitPane = JSplitPane(JSplitPane.HORIZONTAL_SPLIT, false, leftPanel, mFormatPanel)
 
             val panel = JPanel(BorderLayout())
             panel.add(inUsePanel, BorderLayout.NORTH)
@@ -684,25 +727,37 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
             defaultCloseOperation = WindowConstants.DO_NOTHING_ON_CLOSE
             addWindowListener(object : WindowAdapter() {
                 override fun windowClosing(e: WindowEvent?) {
-//                    if (!isEqualList(mFormatList, mDialogFormatList)) {
-//                        val dialogResult = JOptionPane.showConfirmDialog(this@FormatListDialog, Strings.VAL_CHANGE_SAVE, "Warning", JOptionPane.YES_NO_CANCEL_OPTION)
-//                        when (dialogResult) {
-//                            JOptionPane.YES_OPTION -> {
-//                                copyFormatList(mDialogFormatList, mFormatList)
-//                                saveList()
-//                                dispose()
-//                            }
-//                            JOptionPane.NO_OPTION -> {
-//                                dispose()
-//                            }
-//                            else -> {
-//                                // do nothing
-//                            }
-//                        }
-//                    }
-//                    else {
+                    val selectedIdx = mFormatJList.selectedIndex
+                    val editingFormat: FormatItem
+                    val orgFormat: FormatItem
+                    if (selectedIdx >= 0 && selectedIdx < mDialogFormatList.size) {
+                        editingFormat = try {
+                            mDetailPanel.makeFormatItem()
+                        } catch (ex: Exception) {
+                            getDefaultFormat("")
+                        }
+
+                        orgFormat = mDialogFormatList[selectedIdx]
+                    }
+                    else {
+                        orgFormat = getDefaultFormat("")
+                        editingFormat = orgFormat
+                    }
+
+                    if (!isEqualFormatList(mFormatList, mDialogFormatList) || !isEqualFormatItem(orgFormat, editingFormat)) {
+                        val dialogResult = JOptionPane.showConfirmDialog(this@FormatListDialog, Strings.VAL_CHANGE_SAVE, "Warning", JOptionPane.YES_NO_CANCEL_OPTION)
+                        if (dialogResult == JOptionPane.YES_OPTION) {
+                            if (save(true)) {
+                                dispose()
+                            }
+                        }
+                        else {
+                                dispose()
+                        }
+                    }
+                    else {
                         dispose()
-//                    }
+                    }
                 }
 
                 override fun windowClosed(e: WindowEvent?) {
@@ -1436,30 +1491,41 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                 }
 
                 mSaveBtn -> {
-                    try {
-                        val format = mDetailPanel.makeFormatItem()
-                        val isExist = isExistFormat(format.mName, mFormatJList.selectedIndex)
-                        if (isExist) {
-                            JOptionPane.showMessageDialog(this, "${Strings.INVALID_NAME_EXIST} \"${format.mName}\"", "Error", JOptionPane.ERROR_MESSAGE)
-                        }
-                        else {
-                            val selectedIdx = mFormatJList.selectedIndex
-                            mDialogFormatList.removeAt(selectedIdx)
-                            mDialogFormatList.add(selectedIdx, format)
-                            copyFormatList(mDialogFormatList, mFormatList)
-                            saveList()
-                            JOptionPane.showMessageDialog(this, Strings.SAVED_FORMAT_LIST, "Info", JOptionPane.INFORMATION_MESSAGE)
-                            mFormatListModel.clear()
-                            for (item in mDialogFormatList) {
-                                mFormatListModel.addElement(item.mName)
-                            }
-                            mFormatJList.selectedIndex = selectedIdx
-                        }
-                    } catch (ex: Exception) {
-                        JOptionPane.showMessageDialog(this, Strings.INVALID_VALUE, "Error", JOptionPane.ERROR_MESSAGE)
-                    }
+                    save(false)
                 }
             }
+        }
+
+        fun save(withExit: Boolean): Boolean {
+            var isSaved = false
+            try {
+                val format = mDetailPanel.makeFormatItem()
+                val isExist = isExistFormat(format.mName, mFormatJList.selectedIndex)
+                if (isExist) {
+                    JOptionPane.showMessageDialog(this, "${Strings.INVALID_NAME_EXIST} \"${format.mName}\"", "Error", JOptionPane.ERROR_MESSAGE)
+                }
+                else {
+                    val selectedIdx = mFormatJList.selectedIndex
+                    mDialogFormatList.removeAt(selectedIdx)
+                    mDialogFormatList.add(selectedIdx, format)
+                    copyFormatList(mDialogFormatList, mFormatList)
+                    saveList()
+
+                    if (!withExit) {
+                        JOptionPane.showMessageDialog(this, Strings.SAVED_FORMAT_LIST, "Info", JOptionPane.INFORMATION_MESSAGE)
+                        mFormatListModel.clear()
+                        for (item in mDialogFormatList) {
+                            mFormatListModel.addElement(item.mName)
+                        }
+                        mFormatJList.selectedIndex = selectedIdx
+                    }
+                    isSaved = true
+                }
+            } catch (ex: Exception) {
+                JOptionPane.showMessageDialog(this, Strings.INVALID_VALUE, "Error", JOptionPane.ERROR_MESSAGE)
+            }
+
+            return isSaved
         }
 
         inner class FormatEditDialog(parent: JDialog, title: String, cmd: String) : JDialog(parent, title, true), ActionListener {

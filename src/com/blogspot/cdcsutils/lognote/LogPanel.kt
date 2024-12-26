@@ -709,17 +709,17 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
                 when (value) {
                     0 -> {
                         for (file in fileList) {
-                            mMainUI.openFile(file.absolutePath, true)
+                            mMainUI.openFile(file.absolutePath, true, false)
                         }
                     }
                     1 -> {
                         var isFirst = true
                         for (file in fileList) {
                             if (isFirst) {
-                                mMainUI.openFile(file.absolutePath, false)
+                                mMainUI.openFile(file.absolutePath, false, false)
                                 isFirst = false
                             } else {
-                                mMainUI.openFile(file.absolutePath, true)
+                                mMainUI.openFile(file.absolutePath, true, false)
                             }
                         }
                     }

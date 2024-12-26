@@ -220,8 +220,8 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         }
 
     var mUIFontPercent = 100
-
     private var mColumnMode = false
+    private val mOpenFileList = mutableListOf<String>()
 
     init {
         loadConfigOnCreate()
@@ -494,7 +494,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             val menuItem = JMenuItem(path.fileName.toString())
             menuItem.toolTipText = item.mPath
             menuItem.addActionListener { e: ActionEvent? ->
-                openFile((e?.source as JMenuItem).toolTipText ?: "", false)
+                openFile((e?.source as JMenuItem).toolTipText ?: "", false, false)
             }
             mItemFileOpenRecents.add(menuItem)
         }
@@ -1430,12 +1430,28 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         }
     }
 
-    private fun resetLogPanel() {
+    private fun resetLogPanel(keepCurrentMethod: Boolean) {
+        val method = CurrentMethod
+        val isRunning = when (method) {
+            METHOD_ADB, METHOD_CMD -> {
+                mFilteredLogPanel.mTableModel.isScanning()
+            }
+            METHOD_FOLLOW -> {
+                mFilteredLogPanel.mTableModel.isFollowing()
+            }
+            else -> {
+                false
+            }
+        }
+
+
         mFilteredLogPanel.mTableModel.stopScan()
         mFilteredLogPanel.mTableModel.stopFollow()
         mFullLogPanel.mTableModel.stopScan()
         mFullLogPanel.mTableModel.stopFollow()
         mLogCmdManager.stop()
+
+        val scrollback = mFilteredLogPanel.mTableModel.mScrollback
 
         mLogSplitPane.remove(mFilteredLogPanel)
         mLogSplitPane.remove(mFullLogPanel)
@@ -1490,7 +1506,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mItemFullLogToNewWindow.state = true
         }
 
-        mFilteredLogPanel.mTableModel.mScrollback = mScrollbackTF.text.toInt()
+        mFilteredLogPanel.mTableModel.mScrollback = scrollback
         mFilteredLogPanel.mTableModel.mScrollbackSplitFile = mScrollbackSplitFileToggle.isSelected
         mFilteredLogPanel.mTableModel.mMatchCase = mMatchCaseToggle.isSelected
         mFilteredLogPanel.mTableModel.mSearchMatchCase = mSearchPanel.mSearchMatchCaseToggle.isSelected
@@ -1501,6 +1517,24 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mStatusMethod.text = ""
         updateTablePNameColumn(false)
         title = Main.NAME
+
+        if (keepCurrentMethod) {
+            when (method) {
+                METHOD_OPEN -> {
+                    for ((idx, path) in mOpenFileList.withIndex()) {
+                        openFile(path, idx != 0, true)
+                    }
+                }
+                METHOD_CMD, METHOD_ADB -> {
+                    startAdbScan(true)
+                }
+                METHOD_FOLLOW -> {
+                    startFileFollow(mOpenFileList.first())
+                }
+                else -> {
+                }
+            }
+        }
     }
 
     private fun rotateLogSplitPane(isNeedRemove: Boolean) {
@@ -1872,19 +1906,47 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         }
     }
 
-    fun openFile(path: String, isAppend: Boolean) {
-        Utils.printlnLog("Opening: $path, $isAppend")
-        saveRecentFile()
-        mStatusMethod.text = " ${Strings.OPEN} "
-        CurrentMethod = METHOD_OPEN
+    private fun setCurrentMethod(method: Int) {
+        when (method) {
+            METHOD_OPEN -> {
+                mStatusMethod.text = " ${Strings.OPEN} "
+            }
+            METHOD_CMD -> {
+                mStatusMethod.text = " ${Strings.CMD} "
+                mOpenFileList.clear()
+            }
+            METHOD_ADB -> {
+                mStatusMethod.text = " ${Strings.ADB} "
+                mOpenFileList.clear()
+            }
+            METHOD_FOLLOW -> {
+                mStatusMethod.text = " ${Strings.FOLLOW} "
+                mOpenFileList.clear()
+            }
+            else -> {
+                mStatusMethod.text = ""
+                mOpenFileList.clear()
+            }
+        }
+
+        CurrentMethod = method
         mFilteredLogPanel.mTableModel.stopScan()
         mFilteredLogPanel.mTableModel.stopFollow()
+    }
+
+    fun openFile(path: String, isAppend: Boolean, isReload: Boolean) {
+        Utils.printlnLog("Opening: $path, $isAppend")
+        saveRecentFile()
+        setCurrentMethod(METHOD_OPEN)
         updateTablePNameColumn(false)
         if (isAppend) {
             mStatusTF.text += "| $path"
+            mOpenFileList.add(path)
         } else {
             mStatusTF.text = path
             mRecentFileManager.mOpenList.clear()
+            mOpenFileList.clear()
+            mOpenFileList.add(path)
         }
 
         val openItem = RecentFileManager.OpenItem(path.trim(), 0, 0)
@@ -1906,7 +1968,9 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
         setVisibleFollowBtn(false)
 
-        applyRecentOpen(path, openItem.mStartLine)
+        if (!isReload) {
+            applyRecentOpen(path, openItem.mStartLine)
+        }
         repaint()
 
         return
@@ -2025,18 +2089,14 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         }
 
         if (mLogCmdManager.getType() == LogCmdManager.TYPE_CMD) {
-            mStatusMethod.text = " ${Strings.CMD} "
-            CurrentMethod = METHOD_CMD
+            setCurrentMethod(METHOD_CMD)
             updateTablePNameColumn(false)
         }
         else {
-            mStatusMethod.text = " ${Strings.ADB} "
-            CurrentMethod = METHOD_ADB
+            setCurrentMethod(METHOD_ADB)
             updateTablePNameColumn(LogTableModel.TypeShowProcessName != LogTableModel.SHOW_PROCESS_NONE)
         }
 
-        mFilteredLogPanel.mTableModel.stopScan()
-        mFilteredLogPanel.mTableModel.stopFollow()
         mPauseToggle.isSelected = false
         setSaveLogFile()
         if (reconnect) {
@@ -2061,7 +2121,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         else {
             mStatusMethod.text = " ${Strings.ADB} ${Strings.STOP} "
         }
-         mStatusTF.text = mStatusTF.text
+        mStatusTF.text = mStatusTF.text
 
         if (!mFilteredLogPanel.mTableModel.isScanning()) {
             Utils.printlnLog("stopAdbScan : not adb scanning mode")
@@ -2101,15 +2161,12 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         if (filePath.isNotEmpty()) {
             mFullLogPanel.mTableModel.setLogFile(filePath)
             mFilteredLogPanel.mTableModel.setLogFile(filePath)
-            CurrentMethod = METHOD_FOLLOW
             updateTablePNameColumn(false)
             mStatusTF.text = filePath
         }
 
-        mStatusMethod.text = " ${Strings.FOLLOW} "
-
-        mFilteredLogPanel.mTableModel.stopScan()
-        mFilteredLogPanel.mTableModel.stopFollow()
+        setCurrentMethod(METHOD_FOLLOW)
+        mOpenFileList.add(filePath)
         mPauseFollowToggle.isSelected = false
         mFilteredLogPanel.mTableModel.startFollow()
 
@@ -2156,7 +2213,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                     fileDialog.isVisible = true
                     if (fileDialog.file != null) {
                         val file = File(fileDialog.directory + fileDialog.file)
-                        openFile(file.absolutePath, false)
+                        openFile(file.absolutePath, false, false)
                     } else {
                         Utils.printlnLog("Cancel Open")
                     }
@@ -2184,10 +2241,10 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                         var isFirst = true
                         for (file in fileList) {
                             if (isFirst) {
-                                openFile(file.absolutePath, false)
+                                openFile(file.absolutePath, false, false)
                                 isFirst = false
                             } else {
-                                openFile(file.absolutePath, true)
+                                openFile(file.absolutePath, true, false)
                             }
                         }
                     } else {
@@ -2202,7 +2259,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                     val fileList = fileDialog.files
                     if (fileList != null) {
                         for (file in fileList) {
-                            openFile(file.absolutePath, true)
+                            openFile(file.absolutePath, true, false)
                         }
                     } else {
                         Utils.printlnLog("Cancel Open")
@@ -2272,7 +2329,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
                 mItemColumnMode -> {
                     mConfigManager.saveItem(ConfigManager.ITEM_VIEW_COLUMN_MODE, mItemColumnMode.state.toString())
-                    resetLogPanel()
+                    resetLogPanel(true)
                 }
 
                 mItemSearch -> {
@@ -3220,10 +3277,10 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             val file = File(fileName)
             if (file.isFile) {
                 if (isFirst) {
-                    openFile(file.absolutePath, false)
+                    openFile(file.absolutePath, false, false)
                     isFirst = false
                 } else {
-                    openFile(file.absolutePath, true)
+                    openFile(file.absolutePath, true, false)
                 }
             }
         }
@@ -3693,7 +3750,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mTokenPanel[idx].isVisible = (tokenFilters[idx].mToken.isNotEmpty() && tokenFilters[idx].mUiWidth > 0)
         }
 
-        resetLogPanel()
+        resetLogPanel(true)
     }
 
     override fun formatListChanged() {
