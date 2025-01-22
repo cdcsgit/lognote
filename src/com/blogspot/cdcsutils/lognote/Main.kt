@@ -32,6 +32,8 @@ class Main {
                 // (must be set on main thread and before AWT/Swing is initialized;
                 //  setting it on AWT thread does not work)
                 System.setProperty( "apple.awt.application.appearance", "system" )
+
+                System.setProperty("apple.eawt.quitStrategy", "CLOSE_ALL_WINDOWS")
             }
 
             if (SystemInfo.isLinux) {
