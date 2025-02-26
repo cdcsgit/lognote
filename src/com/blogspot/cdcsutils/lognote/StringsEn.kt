@@ -172,6 +172,7 @@ class StringsEn private constructor() {
                 , "Select / Unselect package : ENTER key or Double click"
                 , "Sample Text"
                 , "apply [CTRL + ENTER]"
+                , "Reload"
 //            , ""
             )
 

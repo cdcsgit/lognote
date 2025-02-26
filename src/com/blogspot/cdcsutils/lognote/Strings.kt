@@ -354,5 +354,7 @@ class Strings private constructor() {
             get() { return currStrings[field]!! }
         val APPLY_CTRL_ENTER: String = idx++.toString()
             get() { return currStrings[field]!! }
+        val RELOAD: String = idx++.toString()
+            get() { return currStrings[field]!! }
     }
 }

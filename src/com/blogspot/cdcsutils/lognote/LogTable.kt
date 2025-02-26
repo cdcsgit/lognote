@@ -231,7 +231,6 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
             } else {
                 mTableColor.mLineNumBG
             }
-            
             val thickness = 1
             if (isSelected) {
                 val top = if (isCellSelected(row - thickness, col)) 0 else thickness

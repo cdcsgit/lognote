@@ -171,6 +171,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
     private lateinit var mStatusBar: JPanel
     private lateinit var mStatusMethod: JLabel
+    private lateinit var mStatusReloadBtn: ColorButton
     private lateinit var mStatusTF: JTextField
 
     private lateinit var mFollowLabel: JLabel
@@ -1055,6 +1056,10 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mStatusMethod.isOpaque = true
         mStatusMethod.background = Color.DARK_GRAY
         mStatusMethod.addPropertyChangeListener(mStatusChangeListener)
+        mStatusReloadBtn = ColorButton(Strings.RELOAD)
+        mStatusReloadBtn.margin = Insets(mStatusReloadBtn.margin.top, 2, mStatusReloadBtn.margin.bottom, 2)
+        mStatusReloadBtn.isVisible = false
+        mStatusReloadBtn.addActionListener(mActionHandler)
         mStatusTF = StatusTextField(Strings.NONE)
         mStatusTF.document.addDocumentListener(mStatusChangeListener)
         mStatusTF.toolTipText = TooltipStrings.SAVED_FILE_TF
@@ -1113,7 +1118,11 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         statusRightPanel.add(followPanel)
         statusRightPanel.add(logFormatPanel)
 
-        mStatusBar.add(mStatusMethod, BorderLayout.WEST)
+        val statusLeftPanel = JPanel(FlowLayout(FlowLayout.LEFT, 2, 0))
+        statusLeftPanel.add(mStatusMethod)
+        statusLeftPanel.add(mStatusReloadBtn)
+
+        mStatusBar.add(statusLeftPanel, BorderLayout.WEST)
         mStatusBar.add(mStatusTF, BorderLayout.CENTER)
         mStatusBar.add(statusRightPanel, BorderLayout.EAST)
 
@@ -1907,9 +1916,11 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     }
 
     private fun setCurrentMethod(method: Int) {
+        mStatusReloadBtn.isVisible = false
         when (method) {
             METHOD_OPEN -> {
                 mStatusMethod.text = " ${Strings.OPEN} "
+                mStatusReloadBtn.isVisible = true
             }
             METHOD_CMD -> {
                 mStatusMethod.text = " ${Strings.CMD} "
@@ -2452,6 +2463,13 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                 }
                 mStopFollowBtn -> {
                     stopFileFollow()
+                }
+                mStatusReloadBtn -> {
+                    if (mOpenFileList.isNotEmpty()) {
+                        for ((idx, path) in mOpenFileList.withIndex()) {
+                            openFile(path, idx != 0, true)
+                        }
+                    }
                 }
             }
         }

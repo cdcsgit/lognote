@@ -172,6 +172,7 @@ class StringsKo private constructor() {
                 , "패키지 선택 / 해제 : Enter 키 또는 더블 클릭"
                 , "샘플 텍스트"
                 , "적용 [CTRL + ENTER]"
+                , "다시읽기"
 //            , ""
             )
 
