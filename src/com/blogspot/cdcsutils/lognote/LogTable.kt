@@ -24,7 +24,7 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
     }
 
     var mTableModel = tableModel
-    private val mTableColor: ColorManager.TableColor
+    val mTableColor: ColorManager.TableColor
     private val mBookmarkManager = BookmarkManager.getInstance()
     val mMultiClickInterval = try {
         Toolkit.getDefaultToolkit().getDesktopProperty("awt.multiClickInterval").toString().toInt() + 500
@@ -373,7 +373,7 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
             col: Int
         ): Component {
             val newValue:String = if (value != null) {
-                mTableModel.getPrintValue(value.toString(), row, col, isSelected)
+                mTableModel.getPrintValue(value.toString(), row, col, isSelected, true)
             } else {
                 ""
             }
@@ -504,16 +504,19 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         return
     }
 
-    protected open fun showSelected(targetRow:Int) {
+    open fun getLogText(row:Int): String {
+        return mTableModel.getValueAt(row, LogTableModel.COLUMN_LOG_START).toString()
+    }
+
+    fun getSelectedLog(targetRow:Int): Pair<String, Int> {
         val log = StringBuilder("")
         var caretPos = 0
         var value:String
+        var newValue:String
 
+        val rows: IntArray
         if (selectedRowCount > 1) {
-            for (row in selectedRows) {
-                value = mTableModel.getValueAt(row, LogTableModel.COLUMN_LOG_START).toString() + "\n"
-                log.append(value)
-            }
+            rows = selectedRows
         }
         else {
             var startIdx = targetRow - 2
@@ -525,17 +528,27 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
                 endIdx = rowCount
             }
 
-            for (idx in startIdx until endIdx) {
-                if (idx == targetRow) {
-                    caretPos = log.length
-                }
-                value = mTableModel.getValueAt(idx, LogTableModel.COLUMN_LOG_START).toString() + "\n"
-                log.append(value)
-            }
+            rows = IntArray(endIdx - startIdx) { index -> startIdx + index }
         }
 
+        for (row in rows) {
+            value = getLogText(row)
+            newValue = mTableModel.getPrintValue(value, row, LogTableModel.COLUMN_LOG_START, false, false)
+            if (newValue.isEmpty()) {
+                val color = mTableModel.getFgStrColor(row)
+                newValue = "<font color=$color>$value</font>"
+            }
+            newValue += "<br>"
+            log.append(newValue)
+        }
+
+        return Pair(log.toString(), caretPos)
+    }
+
+    private fun showSelected(targetRow:Int) {
+        val selectedPair = getSelectedLog(targetRow)
         val mainUI = MainUI.getInstance()
-        val logViewDialog = LogViewDialog(mainUI, log.toString().trim(), caretPos)
+        val logViewDialog = LogViewDialog(mainUI, selectedPair.first.trim(), selectedPair.second)
         logViewDialog.setLocationRelativeTo(mainUI)
         logViewDialog.isVisible = true
     }

@@ -173,6 +173,7 @@ class StringsEn private constructor() {
                 , "Sample Text"
                 , "apply [CTRL + ENTER]"
                 , "Reload"
+                , "Tool windows"
 //            , ""
             )
 

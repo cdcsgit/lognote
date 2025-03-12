@@ -356,5 +356,7 @@ class Strings private constructor() {
             get() { return currStrings[field]!! }
         val RELOAD: String = idx++.toString()
             get() { return currStrings[field]!! }
+        val TOOL_WINDOWS: String = idx++.toString()
+            get() { return currStrings[field]!! }
     }
 }

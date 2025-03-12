@@ -13,6 +13,7 @@ import javax.swing.plaf.basic.BasicScrollBarUI
 
 
 class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusHandler, columnMode: Boolean) :JPanel() {
+    private var mTableChanging = false
     private val mMainUI = mainUI
     private val mBasePanel = basePanel
     private val mCtrlPanel: JPanel
@@ -26,7 +27,7 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
 
     private val mScrollPane: JScrollPane
     private val mVStatusPanel: VStatusPanel
-    private val mTable: LogTable
+    val mTable: LogTable
     val mTableModel: LogTableModel
     private val mBookmarkManager = BookmarkManager.getInstance()
     private val mFormatManager = FormatManager.getInstance()
@@ -493,7 +494,9 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
 
                         val viewLine = mTable.getValueAt(viewIdx, LogTableModel.COLUMN_NUM).toString().trim().toInt()
                         if (viewLine >= 0 && selectIdx < mTable.rowCount) {
+                            mTableChanging = true
                             mTable.setRowSelectionInterval(selectIdx, selectIdxEnd)
+                            mTableChanging = false
                             val viewRect: Rectangle = mTable.getCellRect(viewIdx, LogTableModel.COLUMN_NUM, true)
                             mTable.scrollRectToVisible(viewRect)
                             mTable.scrollRectToVisible(viewRect) // sometimes not work
@@ -509,7 +512,9 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
                             num = mTable.getValueAt(idx, 0).toString().trim().toInt()
                             if (selectedLine <= num && idx < mTable.rowCount) {
                                 Utils.printlnLog("tableChanged Tid = ${Thread.currentThread().id}, num = $num, selectedLine = $selectedLine")
+                                mTableChanging = true
                                 mTable.setRowSelectionInterval(idx, idx)
+                                mTableChanging = false
                                 val viewRect: Rectangle = mTable.getCellRect(idx, 0, true)
                                 Utils.printlnLog("tableChanged Tid = ${Thread.currentThread().id}, viewRect = $viewRect, rowCount = ${ mTable.rowCount }, idx = $idx")
                                 mTable.scrollRectToVisible(viewRect)
@@ -526,7 +531,7 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
     internal inner class ListSelectionHandler : ListSelectionListener {
         override fun valueChanged(p0: ListSelectionEvent?) {
             if (mBasePanel != null) {
-                if (p0?.valueIsAdjusting == true) {
+                if (!mTableChanging) {
                     val value = mTable.mTableModel.getValueAt(mTable.selectedRow, 0)
                     val selectedNum = value.toString().trim().toInt()
 
@@ -543,10 +548,26 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
                             setGoToLast(true)
                         }
                     }
+                    if (ToolsPane.getInstance().isVisible && !getGoToLast()) {
+                        val pair = mTable.getSelectedLog(mTable.selectedRow)
+                        ToolsPane.getInstance().mLogView.setBgColor(mTable.mTableColor.mLogBG)
+                        ToolsPane.getInstance().mLogView.setLog(pair)
+                    }
                 }
             } else {
                 if (mTable.selectedRow == mTable.rowCount - 1) {
                     setGoToLast(true)
+                }
+
+                if (!mTableChanging) {
+                    if (mTable.selectedRow != mTable.rowCount - 1) {
+                        setGoToLast(false)
+                    }
+                    if (ToolsPane.getInstance().isVisible && !getGoToLast()) {
+                        val pair = mTable.getSelectedLog(mTable.selectedRow)
+                        ToolsPane.getInstance().mLogView.setBgColor(mTable.mTableColor.mLogBG)
+                        ToolsPane.getInstance().mLogView.setLog(pair)
+                    }
                 }
             }
 

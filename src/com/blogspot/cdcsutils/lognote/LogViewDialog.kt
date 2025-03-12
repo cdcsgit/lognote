@@ -8,8 +8,8 @@ import javax.swing.*
 
 class LogViewDialog (mainUI: MainUI, log:String, caretPos: Int) : JDialog(mainUI, "Log", false) {
 
-    val mTextArea = JTextArea()
-    private val mScrollPane = JScrollPane(mTextArea)
+    val mEditorPane = JEditorPane()
+    private val mScrollPane = JScrollPane(mEditorPane)
     private val mMainUI = mainUI
     private val mPopupMenu: PopUpLogViewDialog
     private val mIncludeAction: Action
@@ -17,29 +17,30 @@ class LogViewDialog (mainUI: MainUI, log:String, caretPos: Int) : JDialog(mainUI
 
     init {
         isUndecorated = true
-        mTextArea.isEditable = false
-        mTextArea.caret.isVisible = true
-        mTextArea.lineWrap = true
-        if (!MainUI.IsFlatLaf || MainUI.IsFlatLightLaf) {
-            mTextArea.background = Color(0xFF, 0xFA, 0xE3)
-        }
-        mTextArea.font = mMainUI.mFont
+        mEditorPane.isEditable = false
+        mEditorPane.caret.isVisible = true
+        mEditorPane.contentType = "text/html";
 
-        mTextArea.addKeyListener(KeyHandler())
-        mTextArea.addMouseListener(MouseHandler())
-        mTextArea.addFocusListener(FocusHandler())
-        mTextArea.text = log
-        mTextArea.caretPosition = caretPos
+        if (!MainUI.IsFlatLaf || MainUI.IsFlatLightLaf) {
+            mEditorPane.background = Color(0xFF, 0xFA, 0xE3)
+        }
+        mEditorPane.font = mMainUI.mFont
+
+        mEditorPane.addKeyListener(KeyHandler())
+        mEditorPane.addMouseListener(MouseHandler())
+        mEditorPane.addFocusListener(FocusHandler())
+        mEditorPane.text = log
+//        mEditorPane.caretPosition = caretPos
         var width = mainUI.width - 100
         if (width < 960) {
             width = 960
         }
-        mTextArea.setSize(width, 100)
-        mTextArea.border = BorderFactory.createEmptyBorder(7, 7, 7, 7)
+        mEditorPane.setSize(width, 100)
+        mEditorPane.border = BorderFactory.createEmptyBorder(7, 7, 7, 7)
 
         var height = mainUI.height - 100
-        if (height > mTextArea.preferredSize.height) {
-            height = mTextArea.preferredSize.height + 2
+        if (height > mEditorPane.preferredSize.height) {
+            height = mEditorPane.preferredSize.height + 2
         }
         mScrollPane.preferredSize = Dimension(width, height)
 
@@ -54,10 +55,11 @@ class LogViewDialog (mainUI: MainUI, log:String, caretPos: Int) : JDialog(mainUI
                     if (comboText.isNotEmpty()) {
                         comboText += "|"
                     }
+                    val selectedText = mEditorPane.selectedText.replace("\u00a0"," ")
                     comboText += if (textSplit.size == 2) {
-                        "${textSplit[1].trim()}${mTextArea.selectedText}"
+                        "${textSplit[1].trim()}$selectedText"
                     } else {
-                        mTextArea.selectedText
+                        selectedText
                     }
                     mMainUI.setTextShowLogCombo(comboText)
                     mMainUI.applyShowLogCombo(true)
@@ -66,9 +68,9 @@ class LogViewDialog (mainUI: MainUI, log:String, caretPos: Int) : JDialog(mainUI
         }
 
         val key = mAddIncludeKey
-        mTextArea.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+        mEditorPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
                 KeyStroke.getKeyStroke(KeyEvent.VK_F, KeyEvent.CTRL_MASK or KeyEvent.SHIFT_MASK), key)
-        mTextArea.actionMap.put(key, mIncludeAction)
+        mEditorPane.actionMap.put(key, mIncludeAction)
 
         Utils.installKeyStrokeEscClosing(this)
 
@@ -87,7 +89,7 @@ class LogViewDialog (mainUI: MainUI, log:String, caretPos: Int) : JDialog(mainUI
 
         override fun keyReleased(p0: KeyEvent?) {
             if (p0?.keyCode == KeyEvent.VK_ENTER && pressedKeyCode == KeyEvent.VK_ENTER) {
-                mTextArea.copy()
+                mEditorPane.copy()
                 dispose()
             }
         }
@@ -143,27 +145,27 @@ class LogViewDialog (mainUI: MainUI, log:String, caretPos: Int) : JDialog(mainUI
             override fun actionPerformed(p0: ActionEvent?) {
                 when (p0?.source) {
                     mExcludeItem -> {
-                        if (!mTextArea.selectedText.isNullOrEmpty()) {
+                        if (!mEditorPane.selectedText.isNullOrEmpty()) {
                             var text = mMainUI.getTextShowLogCombo()
-                            text += "|-" + mTextArea.selectedText
+                            text += "|-" + mEditorPane.selectedText.replace("\u00a0"," ")
                             mMainUI.setTextShowLogCombo(text)
                             mMainUI.applyShowLogCombo(true)
                         }
                     }
                     mSearchAddItem -> {
-                        if (!mTextArea.selectedText.isNullOrEmpty()) {
+                        if (!mEditorPane.selectedText.isNullOrEmpty()) {
                             var text = mMainUI.getTextSearchCombo()
-                            text += "|" + mTextArea.selectedText
+                            text += "|" + mEditorPane.selectedText.replace("\u00a0"," ")
                             mMainUI.setTextSearchCombo(text)
                         }
                     }
                     mSearchSetItem -> {
-                        if (!mTextArea.selectedText.isNullOrEmpty()) {
-                            mMainUI.setTextSearchCombo(mTextArea.selectedText)
+                        if (!mEditorPane.selectedText.isNullOrEmpty()) {
+                            mMainUI.setTextSearchCombo(mEditorPane.selectedText.replace("\u00a0"," "))
                         }
                     }
                     mCopyItem -> {
-                        mTextArea.copy()
+                        mEditorPane.copy()
                     }
                     mCloseItem -> {
                         dispose()

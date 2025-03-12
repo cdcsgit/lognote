@@ -66,39 +66,7 @@ class LogColumnTable(tableModel:LogColumnTableModel) : LogTable(tableModel) {
         }
     }
 
-    override fun showSelected(targetRow: Int) {
-        val log = StringBuilder("")
-        var caretPos = 0
-        var value:String
-
-        if (selectedRowCount > 1) {
-            for (row in selectedRows) {
-                value = mTableModel.getValueAt(row, FormatManager.getInstance().mCurrFormat.mLogPosition + LogTableModel.COLUMN_LOG_START).toString() + "\n"
-                log.append(value)
-            }
-        }
-        else {
-            var startIdx = targetRow - 2
-            if (startIdx < 0) {
-                startIdx = 0
-            }
-            var endIdx = targetRow + 3
-            if (endIdx > rowCount) {
-                endIdx = rowCount
-            }
-
-            for (idx in startIdx until endIdx) {
-                if (idx == targetRow) {
-                    caretPos = log.length
-                }
-                value = mTableModel.getValueAt(idx, FormatManager.getInstance().mCurrFormat.mLogPosition + LogTableModel.COLUMN_LOG_START).toString() + "\n"
-                log.append(value)
-            }
-        }
-
-        val mainUI = MainUI.getInstance()
-        val logViewDialog = LogViewDialog(mainUI, log.toString().trim(), caretPos)
-        logViewDialog.setLocationRelativeTo(mainUI)
-        logViewDialog.isVisible = true
+    override fun getLogText(row:Int): String {
+        return mTableModel.getValueAt(row, FormatManager.getInstance().mCurrFormat.mLogPosition + LogTableModel.COLUMN_LOG_START).toString()
     }
 }

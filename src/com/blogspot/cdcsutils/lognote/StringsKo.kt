@@ -173,6 +173,7 @@ class StringsKo private constructor() {
                 , "샘플 텍스트"
                 , "적용 [CTRL + ENTER]"
                 , "다시읽기"
+                , "툴 윈도우"
 //            , ""
             )
 

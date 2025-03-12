@@ -675,7 +675,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
         }
     }
 
-    private fun getFgStrColor(row: Int) : String {
+    fun getFgStrColor(row: Int) : String {
         return when (mLogItems[row].mLevel) {
             LEVEL_VERBOSE -> {
                 mTableColor.mStrLogLevelVerbose
@@ -710,7 +710,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
         return null
     }
 
-    open fun getPrintValue(value: String, row: Int, col: Int, isSelected: Boolean) : String {
+    fun getPrintValue(value: String, row: Int, col: Int, isSelected: Boolean, htmlTag: Boolean) : String {
         var newValue = value
         if (newValue.indexOf("<") >= 0) {
             newValue = newValue.replace("<", "&lt;")
@@ -1114,8 +1114,15 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
         }
 
         val color = getFgStrColor(row)
-        stringBuilder.replace(0, 0, "<html><p><nobr><font color=$color>")
-        stringBuilder.append("</font></nobr></p></html>")
+        if (htmlTag) {
+            stringBuilder.replace(0, 0, "<html><p><nobr><font color=$color>")
+            stringBuilder.append("</font></nobr></p></html>")
+        }
+        else {
+            stringBuilder.replace(0, 0, "<font color=$color>")
+            stringBuilder.append("</font>")
+        }
+
         return stringBuilder.toString()
     }
 

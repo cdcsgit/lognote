@@ -20,6 +20,10 @@ class ConfigManager private constructor() {
         const val ITEM_DIVIDER_LOCATION = "DIVIDER_LOCATION"
         const val ITEM_LAST_DIVIDER_LOCATION = "LAST_DIVIDER_LOCATION"
 
+        const val ITEM_TOOL_ROTATION = "TOOL_ROTATION"
+        const val ITEM_TOOL_DIVIDER_LOCATION = "TOOL_DIVIDER_LOCATION"
+        const val ITEM_TOOL_LAST_DIVIDER_LOCATION = "TOOL_LAST_DIVIDER_LOCATION"
+
         const val ITEM_LANG = "LANG"
 
         const val ITEM_SHOW_LOG = "SHOW_LOG_"
@@ -93,6 +97,8 @@ class ConfigManager private constructor() {
         const val VALUE_ICON_TEXT_I_T = "IconText"
         const val VALUE_ICON_TEXT_I = "Icon"
         const val VALUE_ICON_TEXT_T = "Text"
+
+        const val ITEM_TOOL_LOG = "TOOL_LOG"
 
         var LaF = ""
         var LaFAccentColor = ""
