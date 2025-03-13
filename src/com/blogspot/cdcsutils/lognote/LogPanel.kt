@@ -541,7 +541,9 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
                     if (selectedNum != baseSelectedNum) {
                         setGoToLast(false)
                         mBasePanel.setGoToLast(false)
+                        mBasePanel.mTableChanging = true
                         mBasePanel.goToRowByNum(selectedNum, -1)
+                        mBasePanel.mTableChanging = false
                         mTable.mTableModel.mSelectionChanged = true
 
                         if (mTable.selectedRow == mTable.rowCount - 1) {

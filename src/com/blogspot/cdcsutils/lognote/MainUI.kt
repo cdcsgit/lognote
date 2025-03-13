@@ -530,7 +530,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                 break
             }
         }
-        
+
         if (path == recentItem.mPath) {
             if (startLine == 0) {
                 val result = JOptionPane.showConfirmDialog(this, Strings.APPLY_RECENT_FILE, Strings.RECENT_FILE, JOptionPane.YES_NO_OPTION)
@@ -1068,31 +1068,6 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         }
         mLogSplitPane.isOneTouchExpandable = false
 
-        mToolsPane = ToolsPane.getInstance()
-        mToolsPane.isVisible = mItemToolLog.state
-
-        when (mToolRotationStatus) {
-            ROTATION_TOP_BOTTOM -> {
-                mToolSplitPane = JSplitPane(JSplitPane.VERTICAL_SPLIT, false, mToolsPane, mLogSplitPane)
-                mToolSplitPane.resizeWeight = SPLIT_WEIGHT
-            }
-
-            ROTATION_BOTTOM_TOP -> {
-                mToolSplitPane = JSplitPane(JSplitPane.VERTICAL_SPLIT, false, mLogSplitPane, mToolsPane)
-                mToolSplitPane.resizeWeight = 1 - SPLIT_WEIGHT
-            }
-        }
-
-        if (mItemToolLog.state) {
-            mToolsPane.mLogView.setBgColor(mFilteredLogPanel.mTable.mTableColor.mLogBG)
-            mToolSplitPane.dividerSize = mLogSplitPane.dividerSize
-        }
-        else {
-            mToolSplitPane.dividerSize = 0
-        }
-
-        mToolSplitPane.isOneTouchExpandable = false
-
         val logWidth = mConfigManager.getItem(ConfigManager.ITEM_LOG_VIEW_WIDTH)
         if (!logWidth.isNullOrEmpty()) {
             LogTable.LogWidth = logWidth.toInt()
@@ -1317,18 +1292,6 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mLogSplitPane.dividerLocation = divider.toInt()
         }
 
-        divider = mConfigManager.getItem(ConfigManager.ITEM_TOOL_LAST_DIVIDER_LOCATION)
-        if (!divider.isNullOrEmpty()) {
-            mToolSplitLastDividerLocation = divider.toInt()
-            mToolSplitPane.lastDividerLocation = mToolSplitLastDividerLocation
-        }
-
-        divider = mConfigManager.getItem(ConfigManager.ITEM_TOOL_DIVIDER_LOCATION)
-        if (!divider.isNullOrEmpty() && mToolSplitLastDividerLocation != -1) {
-            mToolSplitDividerLocation = divider.toInt()
-            mToolSplitPane.dividerLocation = mToolSplitDividerLocation
-        }
-
         if (mLogLevelCombo.selectedIndex >= 0) {
             mFilteredLogPanel.mTableModel.mFilterLevel = mLogLevelCombo.selectedIndex
         }
@@ -1370,6 +1333,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
         updateLogPanelTableBar()
 
+        mToolsPane = ToolsPane.getInstance()
         check = mConfigManager.getItem(ConfigManager.ITEM_TOOL_LOG)
         if (!check.isNullOrEmpty()) {
             mItemToolLog.state = check.toBoolean()
@@ -1380,6 +1344,50 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         if (mItemToolLog.state) {
             mToolsPane.showTab(ToolsPane.TAB_LOG_VIEW)
         }
+
+        mToolsPane.isVisible = mItemToolLog.state
+
+        when (mToolRotationStatus) {
+            ROTATION_TOP_BOTTOM -> {
+                mToolSplitPane = JSplitPane(JSplitPane.VERTICAL_SPLIT, false, mToolsPane, mLogSplitPane)
+                mToolSplitPane.resizeWeight = SPLIT_WEIGHT
+            }
+
+            ROTATION_BOTTOM_TOP -> {
+                mToolSplitPane = JSplitPane(JSplitPane.VERTICAL_SPLIT, false, mLogSplitPane, mToolsPane)
+                mToolSplitPane.resizeWeight = 1 - SPLIT_WEIGHT
+            }
+        }
+
+        if (mItemToolLog.state) {
+            mToolsPane.mLogView.setBgColor(mFilteredLogPanel.mTable.mTableColor.mLogBG)
+            mToolSplitPane.dividerSize = mLogSplitPane.dividerSize
+        }
+        else {
+            mToolSplitPane.dividerSize = 0
+        }
+
+        divider = mConfigManager.getItem(ConfigManager.ITEM_TOOL_LAST_DIVIDER_LOCATION)
+        if (!divider.isNullOrEmpty()) {
+            mToolSplitLastDividerLocation = divider.toInt()
+            mToolSplitPane.lastDividerLocation = mToolSplitLastDividerLocation
+        }
+
+        divider = mConfigManager.getItem(ConfigManager.ITEM_TOOL_DIVIDER_LOCATION)
+        if (!divider.isNullOrEmpty() && mToolSplitLastDividerLocation != -1) {
+            mToolSplitDividerLocation = divider.toInt()
+            mToolSplitPane.dividerLocation = mToolSplitDividerLocation
+        }
+
+        mToolSplitPane.addPropertyChangeListener(JSplitPane.DIVIDER_LOCATION_PROPERTY) { evt ->
+            if (evt.propertyName == JSplitPane.DIVIDER_LOCATION_PROPERTY && mToolsPane.isVisible) {
+                Utils.printlnLog("Tool divider location = ${mToolSplitPane.dividerLocation}")
+                mToolSplitDividerLocation = mToolSplitPane.dividerLocation
+                mToolSplitLastDividerLocation = mToolSplitPane.lastDividerLocation
+            }
+        }
+
+        mToolSplitPane.isOneTouchExpandable = false
 
         check = mConfigManager.getItem(ConfigManager.ITEM_FILTER_INCREMENTAL)
         if (!check.isNullOrEmpty()) {

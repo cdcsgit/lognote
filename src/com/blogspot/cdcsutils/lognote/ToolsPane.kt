@@ -72,10 +72,11 @@ class ToolsPane private constructor(): JTabbedPane() {
         init {
             mEditorPane.isEditable = false
             mEditorPane.caret.isVisible = true
-            mEditorPane.contentType = "text/html";
+            mEditorPane.contentType = "text/html"
 
             mEditorPane.addMouseListener(MouseHandler())
             setViewportView(mEditorPane)
+            horizontalScrollBarPolicy = HORIZONTAL_SCROLLBAR_NEVER
 
             mIncludeAction = object : AbstractAction(mAddIncludeKey) {
                 override fun actionPerformed(evt: ActionEvent?) {
@@ -112,7 +113,7 @@ class ToolsPane private constructor(): JTabbedPane() {
 
         fun setLog(pair: Pair<String, Int>) {
 //            mTextArea.text = pair.first
-            mEditorPane.text = "<html><font color=#ff0000>${pair.first}</font></html>"
+            mEditorPane.text = "<html>${pair.first}</html>"
             mEditorPane.caretPosition = pair.second
         }
 

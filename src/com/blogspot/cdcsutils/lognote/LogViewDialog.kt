@@ -4,6 +4,7 @@ import java.awt.Color
 import java.awt.Dimension
 import java.awt.event.*
 import javax.swing.*
+import javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
 
 
 class LogViewDialog (mainUI: MainUI, log:String, caretPos: Int) : JDialog(mainUI, "Log", false) {
@@ -19,7 +20,8 @@ class LogViewDialog (mainUI: MainUI, log:String, caretPos: Int) : JDialog(mainUI
         isUndecorated = true
         mEditorPane.isEditable = false
         mEditorPane.caret.isVisible = true
-        mEditorPane.contentType = "text/html";
+        mEditorPane.contentType = "text/html"
+        mScrollPane.horizontalScrollBarPolicy = HORIZONTAL_SCROLLBAR_NEVER
 
         if (!MainUI.IsFlatLaf || MainUI.IsFlatLightLaf) {
             mEditorPane.background = Color(0xFF, 0xFA, 0xE3)
