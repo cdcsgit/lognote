@@ -174,6 +174,9 @@ class StringsEn private constructor() {
                 , "apply [CTRL + ENTER]"
                 , "Reload"
                 , "Tool windows"
+                , "Panel"
+                , "Move to Top"
+                , "Move to Bottom"
 //            , ""
             )
 

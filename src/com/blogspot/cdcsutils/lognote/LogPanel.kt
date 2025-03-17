@@ -552,8 +552,8 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
                     }
                     if (ToolsPane.getInstance().isVisible && !getGoToLast()) {
                         val pair = mTable.getSelectedLog(mTable.selectedRow)
-                        ToolsPane.getInstance().mLogView.setBgColor(mTable.mTableColor.mLogBG)
-                        ToolsPane.getInstance().mLogView.setLog(pair)
+                        ToolsPane.getInstance().mLogTool.setBgColor(mTable.mTableColor.mLogBG)
+                        ToolsPane.getInstance().mLogTool.setLog(pair)
                     }
                 }
             } else {
@@ -567,8 +567,8 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
                     }
                     if (ToolsPane.getInstance().isVisible && !getGoToLast()) {
                         val pair = mTable.getSelectedLog(mTable.selectedRow)
-                        ToolsPane.getInstance().mLogView.setBgColor(mTable.mTableColor.mLogBG)
-                        ToolsPane.getInstance().mLogView.setLog(pair)
+                        ToolsPane.getInstance().mLogTool.setBgColor(mTable.mTableColor.mLogBG)
+                        ToolsPane.getInstance().mLogTool.setLog(pair)
                     }
                 }
             }

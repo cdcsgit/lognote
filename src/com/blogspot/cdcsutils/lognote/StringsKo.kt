@@ -174,6 +174,9 @@ class StringsKo private constructor() {
                 , "적용 [CTRL + ENTER]"
                 , "다시읽기"
                 , "툴 윈도우"
+                , "판넬"
+                , "상단으로 이동"
+                , "하단으로 이동"
 //            , ""
             )
 

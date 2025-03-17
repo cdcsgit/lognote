@@ -98,7 +98,9 @@ class ConfigManager private constructor() {
         const val VALUE_ICON_TEXT_I = "Icon"
         const val VALUE_ICON_TEXT_T = "Text"
 
+        const val ITEM_TOOL_PANEL = "TOOL_PANEL"
         const val ITEM_TOOL_LOG = "TOOL_LOG"
+        const val ITEM_TOOL_TEST = "TOOL_TEST"
 
         var LaF = ""
         var LaFAccentColor = ""

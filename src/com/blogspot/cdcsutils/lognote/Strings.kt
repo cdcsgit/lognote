@@ -358,5 +358,11 @@ class Strings private constructor() {
             get() { return currStrings[field]!! }
         val TOOL_WINDOWS: String = idx++.toString()
             get() { return currStrings[field]!! }
+        val PANEL: String = idx++.toString()
+            get() { return currStrings[field]!! }
+        val MOVE_TO_TOP: String = idx++.toString()
+            get() { return currStrings[field]!! }
+        val MOVE_TO_BOTTOM: String = idx++.toString()
+            get() { return currStrings[field]!! }
     }
 }

@@ -546,11 +546,17 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
     }
 
     private fun showSelected(targetRow:Int) {
-        val selectedPair = getSelectedLog(targetRow)
-        val mainUI = MainUI.getInstance()
-        val logViewDialog = LogViewDialog(mainUI, selectedPair.first.trim(), selectedPair.second)
-        logViewDialog.setLocationRelativeTo(mainUI)
-        logViewDialog.isVisible = true
+        val toolsPane = ToolsPane.getInstance()
+        if (toolsPane.isVisible && toolsPane.isExistInTab(ToolsPane.Companion.ToolId.TOOL_ID_LOG)) {
+            toolsPane.showTab(ToolsPane.Companion.ToolId.TOOL_ID_LOG)
+        }
+        else {
+            val selectedPair = getSelectedLog(targetRow)
+            val mainUI = MainUI.getInstance()
+            val logToolDialog = LogToolDialog(mainUI, selectedPair)
+            logToolDialog.setLocationRelativeTo(mainUI)
+            logToolDialog.isVisible = true
+        }
     }
 
     private fun updateBookmark(targetRow:Int) {

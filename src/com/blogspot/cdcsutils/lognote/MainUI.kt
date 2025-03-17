@@ -28,9 +28,9 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         private const val SPLIT_WEIGHT = 0.7
 
         private const val ROTATION_LEFT_RIGHT = 0
-        private const val ROTATION_TOP_BOTTOM = 1
+        const val ROTATION_TOP_BOTTOM = 1
         private const val ROTATION_RIGHT_LEFT = 2
-        private const val ROTATION_BOTTOM_TOP = 3
+        const val ROTATION_BOTTOM_TOP = 3
         private const val ROTATION_MAX = ROTATION_BOTTOM_TOP
 
         const val DEFAULT_FONT_NAME = "DialogInput"
@@ -92,7 +92,9 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     private lateinit var mItemFileExit: JMenuItem
     private lateinit var mMenuView: JMenu
     private lateinit var mItemToolWindows: JMenu
-    private lateinit var mItemToolLog: JCheckBoxMenuItem
+    lateinit var mItemToolPanel: JCheckBoxMenuItem
+    lateinit var mItemToolLog: JCheckBoxMenuItem
+    lateinit var mItemToolTest: JCheckBoxMenuItem
     lateinit var mItemFull: JCheckBoxMenuItem
     lateinit var mItemFullLogToNewWindow: JCheckBoxMenuItem
     private lateinit var mItemColumnMode: JCheckBoxMenuItem
@@ -214,7 +216,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     private var mFrameExtendedState = Frame.MAXIMIZED_BOTH
 
     private var mRotationStatus = ROTATION_LEFT_RIGHT
-    private var mToolRotationStatus = ROTATION_BOTTOM_TOP
+    var mToolRotationStatus = ROTATION_BOTTOM_TOP
 
     private var mLogTableDialog: LogTableDialog? = null
 
@@ -629,9 +631,19 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mItemToolWindows.addActionListener(mActionHandler)
         mMenuView.add(mItemToolWindows)
 
+        mItemToolPanel = JCheckBoxMenuItem(Strings.PANEL)
+        mItemToolPanel.addActionListener(mActionHandler)
+        mItemToolWindows.add(mItemToolPanel)
+
+        mItemToolWindows.addSeparator()
+
         mItemToolLog = JCheckBoxMenuItem(Strings.LOG)
         mItemToolLog.addActionListener(mActionHandler)
         mItemToolWindows.add(mItemToolLog)
+
+        mItemToolTest = JCheckBoxMenuItem("Test")
+        mItemToolTest.addActionListener(mActionHandler)
+        mItemToolWindows.add(mItemToolTest)
 
         mMenuView.addSeparator()
 
@@ -1334,6 +1346,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         updateLogPanelTableBar()
 
         mToolsPane = ToolsPane.getInstance()
+
         check = mConfigManager.getItem(ConfigManager.ITEM_TOOL_LOG)
         if (!check.isNullOrEmpty()) {
             mItemToolLog.state = check.toBoolean()
@@ -1342,10 +1355,28 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         }
 
         if (mItemToolLog.state) {
-            mToolsPane.showTab(ToolsPane.TAB_LOG_VIEW)
+            mToolsPane.addTab(ToolsPane.Companion.ToolId.TOOL_ID_LOG)
         }
 
-        mToolsPane.isVisible = mItemToolLog.state
+        check = mConfigManager.getItem(ConfigManager.ITEM_TOOL_TEST)
+        if (!check.isNullOrEmpty()) {
+            mItemToolTest.state = check.toBoolean()
+        } else {
+            mItemToolTest.state = false
+        }
+
+        if (mItemToolTest.state) {
+            mToolsPane.addTab(ToolsPane.Companion.ToolId.TOOL_ID_TEST)
+        }
+
+        check = mConfigManager.getItem(ConfigManager.ITEM_TOOL_PANEL)
+        if (!check.isNullOrEmpty()) {
+            mToolsPane.updateVisible(check.toBoolean())
+        } else {
+            mToolsPane.isVisible = false
+        }
+
+        mItemToolPanel.state = mToolsPane.isVisible
 
         when (mToolRotationStatus) {
             ROTATION_TOP_BOTTOM -> {
@@ -1359,8 +1390,8 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             }
         }
 
-        if (mItemToolLog.state) {
-            mToolsPane.mLogView.setBgColor(mFilteredLogPanel.mTable.mTableColor.mLogBG)
+        if (mToolsPane.isVisible) {
+            mToolsPane.mLogTool.setBgColor(mFilteredLogPanel.mTable.mTableColor.mLogBG)
             mToolSplitPane.dividerSize = mLogSplitPane.dividerSize
         }
         else {
@@ -1661,11 +1692,11 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         }
     }
 
-    private fun rotateToolSplitPane(isNeedRemove: Boolean) {
-        if (isNeedRemove) {
-            mToolSplitPane.remove(mLogSplitPane)
-            mToolSplitPane.remove(mToolsPane)
-        }
+    fun rotateToolSplitPane(rotation: Int) {
+        mToolRotationStatus = rotation
+        mToolSplitPane.remove(mLogSplitPane)
+        mToolSplitPane.remove(mToolsPane)
+
         when (mToolRotationStatus) {
             ROTATION_TOP_BOTTOM -> {
                 mToolSplitPane.orientation = JSplitPane.VERTICAL_SPLIT
@@ -1680,6 +1711,8 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                 mToolSplitPane.resizeWeight = 1 - SPLIT_WEIGHT
             }
         }
+
+        mConfigManager.saveItem(ConfigManager.ITEM_TOOL_ROTATION, mToolRotationStatus.toString())
     }
 
     private fun setBtnIconsTexts(isShowIcons: Boolean, isShowTexts: Boolean) {
@@ -2317,6 +2350,36 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mFilteredLogPanel.mTableModel.pauseFollow(pause)
     }
 
+    fun performToolsMenu(visible: Boolean, toolId: ToolsPane.Companion.ToolId) {
+        val prevVisible = mToolsPane.isVisible
+        if (visible) {
+            mToolsPane.showTab(toolId)
+        } else {
+            mToolsPane.hideTab(toolId)
+        }
+
+        if (prevVisible != mToolsPane.isVisible) {
+            if (mToolsPane.isVisible) {
+                rotateToolSplitPane(mToolRotationStatus)
+                mToolSplitPane.dividerSize = mLogSplitPane.dividerSize
+                mToolSplitPane.dividerLocation = mToolSplitDividerLocation
+                mToolSplitPane.lastDividerLocation = mToolSplitLastDividerLocation
+            }
+            else {
+                mToolSplitPane.dividerSize = 0
+                mToolSplitDividerLocation = mToolSplitPane.dividerLocation
+                mToolSplitLastDividerLocation = mToolSplitPane.lastDividerLocation
+            }
+        }
+        mToolSplitPane.revalidate()
+        mToolSplitPane.repaint()
+
+        if (mItemToolPanel.state != mToolsPane.isVisible) {
+            mItemToolPanel.state = mToolsPane.isVisible
+            mConfigManager.saveItem(ConfigManager.ITEM_TOOL_PANEL, mItemToolPanel.state.toString())
+        }
+    }
+
     internal inner class ActionHandler : ActionListener {
         override fun actionPerformed(p0: ActionEvent?) {
             when (p0?.source) {
@@ -2431,30 +2494,18 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                     mConfigManager.saveItem(ConfigManager.ITEM_VIEW_FULL, mItemFull.state.toString())
                 }
 
-                mItemToolLog -> {
-                    val prevVisible = mToolsPane.isVisible
-                    if (mItemToolLog.state) {
-                        mToolsPane.showTab(ToolsPane.TAB_LOG_VIEW)
-                    } else {
-                        mToolsPane.hideTab(ToolsPane.TAB_LOG_VIEW)
-                    }
+                mItemToolPanel -> {
+                    performToolsMenu(mItemToolPanel.state, ToolsPane.Companion.ToolId.TOOL_ID_PANEL)
+                }
 
-                    if (prevVisible != mToolsPane.isVisible) {
-                        if (mToolsPane.isVisible) {
-                            rotateToolSplitPane(true)
-                            mToolSplitPane.dividerSize = mLogSplitPane.dividerSize
-                            mToolSplitPane.dividerLocation = mToolSplitDividerLocation
-                            mToolSplitPane.lastDividerLocation = mToolSplitLastDividerLocation
-                        }
-                        else {
-                            mToolSplitPane.dividerSize = 0
-                            mToolSplitDividerLocation = mToolSplitPane.dividerLocation
-                            mToolSplitLastDividerLocation = mToolSplitPane.lastDividerLocation
-                        }
-                    }
-                    mToolSplitPane.revalidate()
-                    mToolSplitPane.repaint()
+                mItemToolLog -> {
+                    performToolsMenu(mItemToolLog.state, ToolsPane.Companion.ToolId.TOOL_ID_LOG)
                     mConfigManager.saveItem(ConfigManager.ITEM_TOOL_LOG, mItemToolLog.state.toString())
+                }
+
+                mItemToolTest -> {
+                    performToolsMenu(mItemToolTest.state, ToolsPane.Companion.ToolId.TOOL_ID_TEST)
+                    mConfigManager.saveItem(ConfigManager.ITEM_TOOL_TEST, mItemToolTest.state.toString())
                 }
 
                 mItemFullLogToNewWindow -> {
