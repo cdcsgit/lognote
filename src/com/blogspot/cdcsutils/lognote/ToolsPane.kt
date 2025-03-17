@@ -5,6 +5,7 @@ import java.awt.Color
 import java.awt.Component
 import java.awt.event.*
 import javax.swing.*
+import javax.swing.text.Utilities
 
 class ToolsPane private constructor(): JTabbedPane() {
     private val mToolMap = mutableMapOf<ToolId, Component>()
@@ -370,6 +371,18 @@ class ToolsPane private constructor(): JTabbedPane() {
                 }
 
                 if (SwingUtilities.isRightMouseButton(p0)) {
+                    val offset = mEditorPane.viewToModel(p0.point)
+                    var needSelect = true
+                    if (!mEditorPane.selectedText.isNullOrEmpty()) {
+                        if (offset >= mEditorPane.selectionStart && offset <= mEditorPane.selectionEnd) {
+                            needSelect = false
+                        }
+                    }
+                    if (needSelect) {
+                        val start = Utilities.getWordStart(mEditorPane, offset)
+                        val end = Utilities.getWordEnd(mEditorPane, offset)
+                        mEditorPane.select(start, end)
+                    }
                     mPopupMenu.show(p0.component, p0.x, p0.y)
                 } else {
                     mPopupMenu.isVisible = false

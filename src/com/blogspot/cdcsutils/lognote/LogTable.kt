@@ -596,6 +596,7 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
 
     internal inner class PopUpTable(point: Point) : JPopupMenu() {
         var mProcessItem: JMenuItem = JMenuItem("")
+        var mIncludeWordItem: JMenuItem = JMenuItem("")
         var mCopyItem: JMenuItem = JMenuItem(Strings.COPY)
         var mShowEntireItem = JMenuItem(Strings.SHOW_ENTIRE_LINE)
         var mBookmarkItem = JMenuItem(Strings.BOOKMARK)
@@ -624,6 +625,34 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
                 }
             }
 
+            var selectedWord = ""
+            val row = rowAtPoint(point)
+            if (row in 0..<rowCount) {
+                if (!selectedRows.contains(row)) {
+                    setRowSelectionInterval(row, row)
+                }
+
+                val col = columnAtPoint(point)
+                if (col >= 0) {
+                    val renderer = getCellRenderer(row, col)
+                    val component = prepareRenderer(renderer, row, col)
+
+                    if (component is JComponent) {
+                        var columnX = 0
+                        for (i in 0 until col) {
+                            columnX += columnModel.getColumn(i).width
+                        }
+                        val text = mTableModel.getValueAt(row, col).toString()
+                        selectedWord = getWordUnderCursor(text, Point(point.x - columnX, point.y), component.getFontMetrics(component.font)).trim()
+                    }
+                }
+            }
+            if (selectedWord.isNotEmpty()) {
+                mIncludeWordItem.text = selectedWord
+                mIncludeWordItem.addActionListener(mActionHandler)
+                add(mIncludeWordItem)
+            }
+
             mCopyItem.addActionListener(mActionHandler)
             add(mCopyItem)
             mShowEntireItem.addActionListener(mActionHandler)
@@ -642,6 +671,37 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
 //            mClearSaveItem.addActionListener(mActionHandler)
 //            add(mClearSaveItem)
         }
+
+        private fun getWordUnderCursor(text: String, point: Point, metrics: FontMetrics): String {
+            var ret = ""
+            try {
+                var offset = -1
+                var x = 0
+                for (i in text.indices) {
+                    x += metrics.charWidth(text[i])
+                    if (x >= point.x) {
+                        offset = i
+                        break
+                    }
+                }
+                if (offset >= 0) {
+                    var start = offset
+                    var end = offset
+                    while (start > 0 && !Character.isWhitespace(text[start])) {
+                        start--
+                    }
+                    while (end < text.length && !Character.isWhitespace(text[end])) {
+                        end++
+                    }
+                    ret = text.substring(start, end)
+                }
+            } catch (ex: Exception) {
+                ex.printStackTrace()
+            }
+
+            return ret
+        }
+
         internal inner class ActionHandler : ActionListener {
             override fun actionPerformed(p0: ActionEvent?) {
                 when (p0?.source) {
@@ -725,6 +785,12 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
             }
 
             if (SwingUtilities.isRightMouseButton(p0)) {
+                val row = rowAtPoint(p0.point)
+                if (row in 0..<rowCount) {
+                    if (!selectedRows.contains(row)) {
+                        setRowSelectionInterval(row, row)
+                    }
+                }
                 popupMenu = PopUpTable(Point(p0.x, p0.y))
                 popupMenu?.show(p0.component, p0.x, p0.y)
             }
