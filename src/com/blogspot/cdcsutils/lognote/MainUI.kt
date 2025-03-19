@@ -2374,7 +2374,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mToolSplitPane.revalidate()
         mToolSplitPane.repaint()
 
-        if (mItemToolPanel.state != mToolsPane.isVisible) {
+        if (prevVisible != mToolsPane.isVisible || mItemToolPanel.state != mToolsPane.isVisible) {
             mItemToolPanel.state = mToolsPane.isVisible
             mConfigManager.saveItem(ConfigManager.ITEM_TOOL_PANEL, mItemToolPanel.state.toString())
         }
@@ -2726,16 +2726,16 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         private val mActionHandler = ActionHandler()
 
         init {
-            mSelectAllItem = JMenuItem("Select All")
+            mSelectAllItem = JMenuItem(Strings.SELECT_ALL)
             mSelectAllItem.addActionListener(mActionHandler)
             add(mSelectAllItem)
-            mCopyItem = JMenuItem("Copy")
+            mCopyItem = JMenuItem(Strings.COPY)
             mCopyItem.addActionListener(mActionHandler)
             add(mCopyItem)
-            mPasteItem = JMenuItem("Paste")
+            mPasteItem = JMenuItem(Strings.PASTE)
             mPasteItem.addActionListener(mActionHandler)
             add(mPasteItem)
-            mReconnectItem = JMenuItem("Reconnect " + mDeviceCombo.selectedItem?.toString())
+            mReconnectItem = JMenuItem("${Strings.RECONNECT} " + mDeviceCombo.selectedItem?.toString())
             mReconnectItem.addActionListener(mActionHandler)
             add(mReconnectItem)
             mCombo = combo
@@ -2768,6 +2768,8 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         var mSelectAllItem: JMenuItem
         var mCopyItem: JMenuItem
         var mPasteItem: JMenuItem
+        var mRemoveItem: JMenuItem
+        var mRemoveOthersItem: JMenuItem
         var mRemoveColorTagsItem: JMenuItem
         lateinit var mRemoveOneColorTagItem: JMenuItem
         lateinit var mAddColorTagItems: ArrayList<JMenuItem>
@@ -2791,16 +2793,24 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                     }
                 }
             }
-            mSelectAllItem = JMenuItem("Select All")
+            mSelectAllItem = JMenuItem(Strings.SELECT_ALL)
             mSelectAllItem.addActionListener(mActionHandler)
             add(mSelectAllItem)
-            mCopyItem = JMenuItem("Copy")
+            mCopyItem = JMenuItem(Strings.COPY)
             mCopyItem.addActionListener(mActionHandler)
             add(mCopyItem)
-            mPasteItem = JMenuItem("Paste")
+            mPasteItem = JMenuItem(Strings.PASTE)
             mPasteItem.addActionListener(mActionHandler)
             add(mPasteItem)
-            mRemoveColorTagsItem = JMenuItem("Remove All Color Tags")
+            addSeparator()
+            mRemoveItem = JMenuItem(Strings.REMOVE)
+            mRemoveItem.addActionListener(mActionHandler)
+            add(mRemoveItem)
+            mRemoveOthersItem = JMenuItem(Strings.REMOVE_OTHERS)
+            mRemoveOthersItem.addActionListener(mActionHandler)
+            add(mRemoveOthersItem)
+            addSeparator()
+            mRemoveColorTagsItem = JMenuItem(Strings.REMOVE_ALL_COLOR_TAGS)
             mRemoveColorTagsItem.isOpaque = true
             mRemoveColorTagsItem.foreground = Color.decode(ColorManager.getInstance().mFilterTableColor.mStrFilteredFGs[0])
             mRemoveColorTagsItem.background = Color.decode(ColorManager.getInstance().mFilterTableColor.mStrFilteredBGs[0])
@@ -2808,7 +2818,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             add(mRemoveColorTagsItem)
 
             if (mCombo.mUseColorTag) {
-                mRemoveOneColorTagItem = JMenuItem("Remove Color Tag")
+                mRemoveOneColorTagItem = JMenuItem(Strings.REMOVE_COLOR_TAG)
                 mRemoveOneColorTagItem.isOpaque = true
                 mRemoveOneColorTagItem.foreground = Color.decode(ColorManager.getInstance().mFilterTableColor.mStrFilteredFGs[0])
                 mRemoveOneColorTagItem.background = Color.decode(ColorManager.getInstance().mFilterTableColor.mStrFilteredBGs[0])
@@ -2817,7 +2827,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                 mAddColorTagItems = arrayListOf()
                 for (idx in 0..8) {
                     val num = idx + 1
-                    val item = JMenuItem("Add Color Tag : #$num")
+                    val item = JMenuItem("${Strings.ADD_COLOR_TAG} : #$num")
                     item.isOpaque = true
                     item.foreground = Color.decode(ColorManager.getInstance().mFilterTableColor.mStrFilteredFGs[num])
                     item.background = Color.decode(ColorManager.getInstance().mFilterTableColor.mStrFilteredBGs[num])
@@ -2843,6 +2853,20 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                     mPasteItem -> {
                         val editorCom = mCombo.editor?.editorComponent as JTextComponent
                         editorCom.paste()
+                    }
+                    mRemoveItem -> {
+                        val editorCom = mCombo.editor?.editorComponent as JTextComponent
+                        editorCom.replaceSelection("")
+                        if (mCombo == mShowLogCombo) {
+                            applyShowLogComboEditor()
+                        }
+                    }
+                    mRemoveOthersItem -> {
+                        val editorCom = mCombo.editor?.editorComponent as JTextComponent
+                        editorCom.text = editorCom.selectedText
+                        if (mCombo == mShowLogCombo) {
+                            applyShowLogComboEditor()
+                        }
                     }
                     mRemoveColorTagsItem -> {
                         mCombo.removeAllColorTags()
@@ -2905,9 +2929,35 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                         }
 
                         mShowLogCombo.editor.editorComponent, mBoldLogCombo.editor.editorComponent -> {
+                            mShowLogCombo.requestFocus()
                             lateinit var combo: FilterComboBox
                             when (p0.source) {
                                 mShowLogCombo.editor.editorComponent -> {
+                                    if (mShowLogCombo.editor.editorComponent is JTextArea) {
+                                        val textArea = mShowLogCombo.editor.editorComponent as JTextArea
+                                        val offset = textArea.viewToModel(p0.point)
+                                        var needSelect = true
+                                        if (!textArea.selectedText.isNullOrEmpty()) {
+                                            if (offset >= textArea.selectionStart && offset <= textArea.selectionEnd) {
+                                                needSelect = false
+                                            }
+                                        }
+                                        if (needSelect) {
+                                            val text = textArea.text
+                                            if (offset >= 0) {
+                                                var start = offset
+                                                var end = offset
+                                                while (start > 0 && text[start - 1] != '|') {
+                                                    start--
+                                                }
+
+                                                while (end < text.length && text[end] != '|') {
+                                                    end++
+                                                }
+                                                textArea.select(start, end)
+                                            }
+                                        }
+                                    }
                                     combo = mShowLogCombo
                                 }
 

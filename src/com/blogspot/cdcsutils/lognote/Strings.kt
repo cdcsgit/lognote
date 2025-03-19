@@ -188,6 +188,10 @@ class Strings private constructor() {
             get() { return currStrings[field]!! }
         val ADD_SEARCH: String = idx++.toString()
             get() { return currStrings[field]!! }
+        val SET_INCLUDE: String = idx++.toString()
+            get() { return currStrings[field]!! }
+        val REMOVE_INCLUDE: String = idx++.toString()
+            get() { return currStrings[field]!! }
         val SET_SEARCH: String = idx++.toString()
             get() { return currStrings[field]!! }
         val SEARCH: String = idx++.toString()
@@ -363,6 +367,26 @@ class Strings private constructor() {
         val MOVE_TO_TOP: String = idx++.toString()
             get() { return currStrings[field]!! }
         val MOVE_TO_BOTTOM: String = idx++.toString()
+            get() { return currStrings[field]!! }
+        val NO_FILTER_MATCHING: String = idx++.toString()
+            get() { return currStrings[field]!! }
+        val NO_FILTER_MATCHING_2: String = idx++.toString()
+            get() { return currStrings[field]!! }
+        val FILTERS_ARE_EMPTY: String = idx++.toString()
+            get() { return currStrings[field]!! }
+        val SELECT_ALL: String = idx++.toString()
+            get() { return currStrings[field]!! }
+        val PASTE: String = idx++.toString()
+            get() { return currStrings[field]!! }
+        val REMOVE: String = idx++.toString()
+            get() { return currStrings[field]!! }
+        val REMOVE_OTHERS: String = idx++.toString()
+            get() { return currStrings[field]!! }
+        val REMOVE_ALL_COLOR_TAGS: String = idx++.toString()
+            get() { return currStrings[field]!! }
+        val REMOVE_COLOR_TAG: String = idx++.toString()
+            get() { return currStrings[field]!! }
+        val ADD_COLOR_TAG: String = idx++.toString()
             get() { return currStrings[field]!! }
     }
 }

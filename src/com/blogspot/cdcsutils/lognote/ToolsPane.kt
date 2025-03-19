@@ -215,6 +215,14 @@ class ToolsPane private constructor(): JTabbedPane() {
         return isExist
     }
 
+    fun isShowingTool(toolId: ToolId): Boolean {
+        if (!isVisible) {
+            return false
+        }
+
+        return selectedComponent == mToolMap[toolId]
+    }
+
     inner class TestTool: JLabel() {
         init {
             name = "Test Tool"
@@ -371,6 +379,7 @@ class ToolsPane private constructor(): JTabbedPane() {
                 }
 
                 if (SwingUtilities.isRightMouseButton(p0)) {
+                    mEditorPane.requestFocus()
                     val offset = mEditorPane.viewToModel(p0.point)
                     var needSelect = true
                     if (!mEditorPane.selectedText.isNullOrEmpty()) {
