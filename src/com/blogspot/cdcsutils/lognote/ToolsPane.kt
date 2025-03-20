@@ -300,6 +300,8 @@ class ToolsPane private constructor(): JTabbedPane() {
 
         internal inner class PopUpLogViewDialog : JPopupMenu() {
             var mIncludeItem = JMenuItem(Strings.ADD_INCLUDE)
+            var mIncludeSetItem = JMenuItem(Strings.SET_INCLUDE)
+            var mIncludeRemoveItem = JMenuItem(Strings.REMOVE_INCLUDE)
             var mExcludeItem = JMenuItem(Strings.ADD_EXCLUDE)
             var mSearchAddItem = JMenuItem(Strings.ADD_SEARCH)
             var mSearchSetItem = JMenuItem(Strings.SET_SEARCH)
@@ -322,6 +324,11 @@ class ToolsPane private constructor(): JTabbedPane() {
                     item.addActionListener(mIncludeAction)
                     add(item)
                 }
+                mIncludeSetItem.addActionListener(mActionHandler)
+                add(mIncludeSetItem)
+                mIncludeRemoveItem.addActionListener(mActionHandler)
+                add(mIncludeRemoveItem)
+
                 mExcludeItem.addActionListener(mActionHandler)
                 add(mExcludeItem)
                 mSearchAddItem.addActionListener(mActionHandler)
@@ -337,6 +344,19 @@ class ToolsPane private constructor(): JTabbedPane() {
             internal inner class ActionHandler : ActionListener {
                 override fun actionPerformed(p0: ActionEvent?) {
                     when (p0?.source) {
+                        mIncludeSetItem -> {
+                            if (!mEditorPane.selectedText.isNullOrEmpty()) {
+                                val text = mEditorPane.selectedText.replace("\u00a0"," ") // remove &nbsp;
+                                MainUI.getInstance().setTextShowLogCombo(text)
+                                MainUI.getInstance().applyShowLogCombo(true)
+                            }
+                        }
+                        mIncludeRemoveItem -> {
+                            if (!mEditorPane.selectedText.isNullOrEmpty()) {
+                                val text = mEditorPane.selectedText.replace("\u00a0"," ") // remove &nbsp;
+                                MainUI.getInstance().removeIncludeFilterShowLogCombo(text)
+                            }
+                        }
                         mExcludeItem -> {
                             if (!mEditorPane.selectedText.isNullOrEmpty()) {
                                 var text = MainUI.getInstance().getTextShowLogCombo()

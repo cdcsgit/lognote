@@ -596,13 +596,15 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
 
     internal inner class PopUpTable(point: Point) : JPopupMenu() {
         var mProcessItem: JMenuItem = JMenuItem("")
+        var mSelectedTextItem: JMenuItem = JMenuItem("")
         var mIncludeAddItem = JMenuItem(Strings.ADD_INCLUDE)
         var mExcludeAddItem = JMenuItem(Strings.ADD_EXCLUDE)
         var mSearchAddItem = JMenuItem(Strings.ADD_SEARCH)
         var mSearchSetItem = JMenuItem(Strings.SET_SEARCH)
         var mIncludeSetItem = JMenuItem(Strings.SET_INCLUDE)
         var mIncludeRemoveItem = JMenuItem(Strings.REMOVE_INCLUDE)
-        var mCopyItem: JMenuItem = JMenuItem(Strings.COPY)
+        var mCopyLineItem: JMenuItem = JMenuItem(Strings.COPY_SELECTED_LINES)
+        var mCopyWordItem: JMenuItem = JMenuItem(Strings.COPY)
         var mShowEntireItem = JMenuItem(Strings.SHOW_ENTIRE_LINE)
         var mBookmarkItem = JMenuItem(Strings.BOOKMARK)
         var mReconnectItem = JMenuItem("${Strings.RECONNECT} - adb")
@@ -612,6 +614,8 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         private val mActionHandler = ActionHandler()
         private val mIncludeAction: Action
         private val mAddIncludeKey = "add_include"
+
+        private var mSelectedWord = ""
 
 
         init {
@@ -637,13 +641,18 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
                 override fun actionPerformed(evt: ActionEvent?) {
                     if (evt != null) {
                         val textSplit = evt.actionCommand.split(Regex(":"), 2)
-
-                        if (textSplit.size == 2) {
+                        val tagText = if (textSplit.size == 2) {
+                            textSplit[1].trim()
+                        }
+                        else {
+                            ""
+                        }
+                        if (mSelectedWord.isNotEmpty()) {
                             var comboText = MainUI.getInstance().getTextShowLogCombo()
                             if (comboText.isNotEmpty()) {
                                 comboText += "|"
                             }
-                            comboText += textSplit[1].trim()
+                            comboText += "$tagText$mSelectedWord"
                             MainUI.getInstance().setTextShowLogCombo(comboText)
                             MainUI.getInstance().applyShowLogCombo(true)
                         }
@@ -673,42 +682,53 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
                     }
                 }
             }
-            if (selectedWord.isNotEmpty()) {
-                mIncludeAddItem.text = "${Strings.ADD_INCLUDE} : $selectedWord"
+
+            mSelectedWord = selectedWord.trim()
+            if (mSelectedWord.isNotEmpty()) {
+                val prefix = "  - "
+                mSelectedTextItem.text = "\"$mSelectedWord\""
+                add(mSelectedTextItem)
+
+                mIncludeAddItem.text = "$prefix${Strings.ADD_INCLUDE}"
                 mIncludeAddItem.isOpaque = true
                 mIncludeAddItem.foreground = Color.decode(ColorManager.getInstance().mFilterTableColor.mStrFilteredFGs[0])
                 mIncludeAddItem.background = Color.decode(ColorManager.getInstance().mFilterTableColor.mStrFilteredBGs[0])
                 mIncludeAddItem.addActionListener(mIncludeAction)
                 add(mIncludeAddItem)
                 for (idx in 1..9) {
-                    val item = JMenuItem("${Strings.ADD_INCLUDE} : #$idx$selectedWord")
+                    val item = JMenuItem("$prefix${Strings.ADD_INCLUDE} : #$idx")
                     item.isOpaque = true
                     item.foreground = Color.decode(ColorManager.getInstance().mFilterTableColor.mStrFilteredFGs[idx])
                     item.background = Color.decode(ColorManager.getInstance().mFilterTableColor.mStrFilteredBGs[idx])
                     item.addActionListener(mIncludeAction)
                     add(item)
                 }
-                mExcludeAddItem.text = "${Strings.ADD_EXCLUDE} : $selectedWord"
-                mExcludeAddItem.addActionListener(mActionHandler)
-                add(mExcludeAddItem)
-                mSearchAddItem.text = "${Strings.ADD_SEARCH} : $selectedWord"
-                mSearchAddItem.addActionListener(mActionHandler)
-                add(mSearchAddItem)
-                addSeparator()
-                mIncludeSetItem.text = "${Strings.SET_INCLUDE} : $selectedWord"
+                mIncludeSetItem.text = "$prefix${Strings.SET_INCLUDE}"
                 mIncludeSetItem.addActionListener(mActionHandler)
                 add(mIncludeSetItem)
-                mIncludeRemoveItem.text = "${Strings.REMOVE_INCLUDE} : $selectedWord"
+                mIncludeRemoveItem.text = "$prefix${Strings.REMOVE_INCLUDE}"
                 mIncludeRemoveItem.addActionListener(mActionHandler)
                 add(mIncludeRemoveItem)
-                mSearchSetItem.text = "${Strings.SET_SEARCH} : $selectedWord"
+
+                mExcludeAddItem.text = "$prefix${Strings.ADD_EXCLUDE}"
+                mExcludeAddItem.addActionListener(mActionHandler)
+                add(mExcludeAddItem)
+
+                mSearchAddItem.text = "$prefix${Strings.ADD_SEARCH}"
+                mSearchAddItem.addActionListener(mActionHandler)
+                add(mSearchAddItem)
+                mSearchSetItem.text = "$prefix${Strings.SET_SEARCH}"
                 mSearchSetItem.addActionListener(mActionHandler)
                 add(mSearchSetItem)
+
+                mCopyWordItem.text = "$prefix${Strings.COPY}"
+                mCopyWordItem.addActionListener(mActionHandler)
+                add(mCopyWordItem)
                 addSeparator()
             }
 
-            mCopyItem.addActionListener(mActionHandler)
-            add(mCopyItem)
+            mCopyLineItem.addActionListener(mActionHandler)
+            add(mCopyLineItem)
             mShowEntireItem.addActionListener(mActionHandler)
             val toolsPane = ToolsPane.getInstance()
             if (!toolsPane.isShowingTool(ToolsPane.Companion.ToolId.TOOL_ID_LOG)) {
@@ -725,8 +745,6 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
             add(mStopItem)
             mClearItem.addActionListener(mActionHandler)
             add(mClearItem)
-//            mClearSaveItem.addActionListener(mActionHandler)
-//            add(mClearSaveItem)
         }
 
         private fun getWordUnderCursor(text: String, point: Point, metrics: FontMetrics): String {
@@ -763,77 +781,42 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         internal inner class ActionHandler : ActionListener {
             override fun actionPerformed(p0: ActionEvent?) {
                 when (p0?.source) {
-                    mCopyItem -> {
+                    mCopyLineItem -> {
                         this@LogTable.processKeyEvent(KeyEvent(this@LogTable, KeyEvent.KEY_PRESSED, p0.`when`, KeyEvent.CTRL_MASK, KeyEvent.VK_C, 'C'))
                     }
+                    mCopyWordItem -> {
+                        if (mSelectedWord.isNotEmpty()) {
+                            val sel = StringSelection(mSelectedWord)
+                            Toolkit.getDefaultToolkit().systemClipboard.setContents(sel, null)
+                        }
+                    }
                     mExcludeAddItem -> {
-                        val textSplit = p0.actionCommand.split(Regex(":"), 2)
-                        if (textSplit.size == 2) {
+                        if (mSelectedWord.isNotEmpty()) {
                             var text = MainUI.getInstance().getTextShowLogCombo()
-                            text += "|-" + textSplit[1].trim()
+                            text += "|-$mSelectedWord"
                             MainUI.getInstance().setTextShowLogCombo(text)
                             MainUI.getInstance().applyShowLogCombo(true)
                         }
                     }
                     mSearchAddItem -> {
-                        val textSplit = p0.actionCommand.split(Regex(":"), 2)
-                        if (textSplit.size == 2) {
+                        if (mSelectedWord.isNotEmpty()) {
                             var text = MainUI.getInstance().getTextSearchCombo()
-                            text += "|" + textSplit[1].trim()
+                            text += "|$mSelectedWord"
                             MainUI.getInstance().setTextSearchCombo(text)
                         }
                     }
                     mIncludeSetItem -> {
-                        val textSplit = p0.actionCommand.split(Regex(":"), 2)
-
-                        if (textSplit.size == 2) {
-                            MainUI.getInstance().setTextShowLogCombo(textSplit[1].trim())
+                        if (mSelectedWord.isNotEmpty()) {
+                            MainUI.getInstance().setTextShowLogCombo(mSelectedWord)
                             MainUI.getInstance().applyShowLogCombo(true)
                         }
                     }
                     mIncludeRemoveItem -> {
-                        val textSplit = p0.actionCommand.split(Regex(":"), 2)
-                        if (textSplit.size == 2) {
-                            val text = MainUI.getInstance().getTextShowLogCombo()
-                            if (text.isNotEmpty()) {
-                                val filterList = mutableListOf<String>()
-                                val filterRemove = textSplit[1].trim()
-                                val filterRegex = Regex("(#[0-9])?$filterRemove")
-                                val filterSplit = text.split("|")
-                                var isChanged = false
-                                for (str in filterSplit) {
-                                    if (!filterRegex.matches(str)) {
-                                        filterList.add(str)
-                                    }
-                                    else {
-                                        isChanged = true
-                                    }
-                                }
-
-                                if (isChanged) {
-                                    val newFilter = StringBuilder()
-                                    for (filter in filterList) {
-                                        if (newFilter.isNotEmpty()) {
-                                            newFilter.append("|")
-                                        }
-                                        newFilter.append(filter)
-                                    }
-                                    MainUI.getInstance().setTextShowLogCombo(newFilter.toString())
-                                    MainUI.getInstance().applyShowLogCombo(true)
-                                }
-                                else {
-                                    JOptionPane.showMessageDialog(MainUI.getInstance(), "${Strings.NO_FILTER_MATCHING} '$filterRemove'\n(${Strings.NO_FILTER_MATCHING_2})", Strings.REMOVE_INCLUDE, JOptionPane.INFORMATION_MESSAGE)
-                                }
-                            }
-                            else {
-                                JOptionPane.showMessageDialog(MainUI.getInstance(), Strings.FILTERS_ARE_EMPTY, Strings.REMOVE_INCLUDE, JOptionPane.INFORMATION_MESSAGE)
-                            }
-                        }
+                        MainUI.getInstance().removeIncludeFilterShowLogCombo(mSelectedWord)
                     }
                     mSearchSetItem -> {
-                        val textSplit = p0.actionCommand.split(Regex(":"), 2)
-                        if (textSplit.size == 2) {
-                            MainUI.getInstance().setTextSearchCombo(textSplit[1].trim())
+                        if (mSelectedWord.isNotEmpty()) {
+                            MainUI.getInstance().setTextSearchCombo(mSelectedWord)
                         }
                     }
 

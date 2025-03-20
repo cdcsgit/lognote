@@ -180,7 +180,7 @@ class StringsEn private constructor() {
                 , "Move to Top"
                 , "Move to Bottom"
                 , "There are no filters matching"
-                , "If the filter contains a regular expression or whitespace, it will not be removed"
+                , "If the string does not match, it will not be removed, just like regular expressions."
                 , "Filters are empty"
                 , "Select All"
                 , "Paste"
@@ -189,6 +189,7 @@ class StringsEn private constructor() {
                 , "Remove All Color Tags"
                 , "Remove Color Tag"
                 , "Add Color Tag"
+                , "Copy selected lines"
 //            , ""
             )
 

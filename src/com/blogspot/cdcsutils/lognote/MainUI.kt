@@ -3060,7 +3060,49 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     fun applyShowLogComboEditor() {
         mShowLogCombo.applyFilterTextEditor()
     }
-    
+
+    fun removeIncludeFilterShowLogCombo(filterRemove: String) {
+        if (filterRemove.isNotEmpty()) {
+            val text = getTextShowLogCombo()
+            if (text.isNotEmpty()) {
+                val filterList = mutableListOf<String>()
+                val filterRegex = if (mMatchCaseToggle.isSelected) {
+                    Regex("(#[0-9])?$filterRemove")
+                } else {
+                    Regex("(#[0-9])?$filterRemove", RegexOption.IGNORE_CASE)
+                }
+                val filterSplit = text.split("|")
+                var isChanged = false
+                for (str in filterSplit) {
+                    if (!filterRegex.matches(str)) {
+                        filterList.add(str)
+                    }
+                    else {
+                        isChanged = true
+                    }
+                }
+
+                if (isChanged) {
+                    val newFilter = StringBuilder()
+                    for (filter in filterList) {
+                        if (newFilter.isNotEmpty()) {
+                            newFilter.append("|")
+                        }
+                        newFilter.append(filter)
+                    }
+                    setTextShowLogCombo(newFilter.toString())
+                    applyShowLogCombo(true)
+                }
+                else {
+                    JOptionPane.showMessageDialog(this, "${Strings.NO_FILTER_MATCHING} '$filterRemove'\n(${Strings.NO_FILTER_MATCHING_2})", Strings.REMOVE_INCLUDE, JOptionPane.INFORMATION_MESSAGE)
+                }
+            }
+            else {
+                JOptionPane.showMessageDialog(this, Strings.FILTERS_ARE_EMPTY, Strings.REMOVE_INCLUDE, JOptionPane.INFORMATION_MESSAGE)
+            }
+        }
+    }
+
     fun getTextSearchCombo() : String {
         if (mSearchPanel.mSearchCombo.selectedItem == null) {
             return ""

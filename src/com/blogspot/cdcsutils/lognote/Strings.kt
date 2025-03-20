@@ -388,5 +388,7 @@ class Strings private constructor() {
             get() { return currStrings[field]!! }
         val ADD_COLOR_TAG: String = idx++.toString()
             get() { return currStrings[field]!! }
+        val COPY_SELECTED_LINES: String = idx++.toString()
+            get() { return currStrings[field]!! }
     }
 }
