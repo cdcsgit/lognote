@@ -551,10 +551,10 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
                         }
                     }
                     if (ToolsPane.getInstance().isVisible && !getGoToLast()) {
-                        val logTool = ToolsPane.getInstance().mLogTool
-                        val pair = mTable.getSelectedLog(mTable.selectedRow, logTool.mPrevLines, logTool.mNextLines)
-                        logTool.setBgColor(mTable.mTableColor.mLogBG)
-                        logTool.setLog(pair)
+                        val toolSelection = ToolsPane.getInstance().mToolSelection
+                        val pair = mTable.getSelectedLog(mTable.selectedRow, toolSelection.mPrevLines, toolSelection.mNextLines)
+                        toolSelection.setBgColor(mTable.mTableColor.mLogBG)
+                        toolSelection.setSelectionLog(pair)
                     }
                 }
             } else {
@@ -567,10 +567,10 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
                         setGoToLast(false)
                     }
                     if (ToolsPane.getInstance().isVisible && !getGoToLast()) {
-                        val logTool = ToolsPane.getInstance().mLogTool
-                        val pair = mTable.getSelectedLog(mTable.selectedRow, logTool.mPrevLines, logTool.mNextLines)
-                        logTool.setBgColor(mTable.mTableColor.mLogBG)
-                        logTool.setLog(pair)
+                        val toolSelection = ToolsPane.getInstance().mToolSelection
+                        val pair = mTable.getSelectedLog(mTable.selectedRow, toolSelection.mPrevLines, toolSelection.mNextLines)
+                        toolSelection.setBgColor(mTable.mTableColor.mLogBG)
+                        toolSelection.setSelectionLog(pair)
                     }
                 }
             }

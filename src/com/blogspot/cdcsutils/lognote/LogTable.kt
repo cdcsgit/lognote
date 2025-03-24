@@ -547,16 +547,16 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
 
     private fun showSelected(targetRow:Int) {
         val toolsPane = ToolsPane.getInstance()
-        if (toolsPane.isVisible && toolsPane.isExistInTab(ToolsPane.Companion.ToolId.TOOL_ID_LOG)) {
-            toolsPane.showTab(ToolsPane.Companion.ToolId.TOOL_ID_LOG)
+        if (toolsPane.isVisible && toolsPane.isExistInTab(ToolsPane.Companion.ToolId.TOOL_ID_SELECTION)) {
+            toolsPane.showTab(ToolsPane.Companion.ToolId.TOOL_ID_SELECTION)
         }
         else {
-            val logTool = ToolsPane.getInstance().mLogTool
-            val selectedPair = getSelectedLog(targetRow, logTool.mPrevLines, logTool.mNextLines)
+            val toolSelection = ToolsPane.getInstance().mToolSelection
+            val selectedPair = getSelectedLog(targetRow, toolSelection.mPrevLines, toolSelection.mNextLines)
             val mainUI = MainUI.getInstance()
-            val logToolDialog = LogToolDialog(mainUI, selectedPair)
-            logToolDialog.setLocationRelativeTo(mainUI)
-            logToolDialog.isVisible = true
+            val toolSelectionDialog = ToolSelectionDialog(mainUI, selectedPair)
+            toolSelectionDialog.setLocationRelativeTo(mainUI)
+            toolSelectionDialog.isVisible = true
         }
     }
 
@@ -732,7 +732,7 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
             add(mCopyLineItem)
             mShowEntireItem.addActionListener(mActionHandler)
             val toolsPane = ToolsPane.getInstance()
-            if (!toolsPane.isShowingTool(ToolsPane.Companion.ToolId.TOOL_ID_LOG)) {
+            if (!toolsPane.isShowingTool(ToolsPane.Companion.ToolId.TOOL_ID_SELECTION)) {
                 add(mShowEntireItem)
             }
             mBookmarkItem.addActionListener(mActionHandler)

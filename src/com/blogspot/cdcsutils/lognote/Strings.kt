@@ -392,13 +392,15 @@ class Strings private constructor() {
             get() { return currStrings[field]!! }
         val COPY_SELECTED_LINES: String = idx++.toString()
             get() { return currStrings[field]!! }
-        val TOOL_LOG_RANGE: String = idx++.toString()
+        val TOOL_SELECTION: String = idx++.toString()
             get() { return currStrings[field]!! }
-        val TOOL_LOG_RANGE_PREVIOUS: String = idx++.toString()
+        val TOOL_SELECTION_RANGE: String = idx++.toString()
             get() { return currStrings[field]!! }
-        val TOOL_LOG_RANGE_NEXT: String = idx++.toString()
+        val TOOL_SELECTION_RANGE_PREVIOUS: String = idx++.toString()
             get() { return currStrings[field]!! }
-        val TOOL_LOG_MSG_MAX_LINES: String = idx++.toString()
+        val TOOL_SELECTION_RANGE_NEXT: String = idx++.toString()
+            get() { return currStrings[field]!! }
+        val TOOL_SELECTION_MSG_MAX_LINES: String = idx++.toString()
             get() { return currStrings[field]!! }
     }
 }

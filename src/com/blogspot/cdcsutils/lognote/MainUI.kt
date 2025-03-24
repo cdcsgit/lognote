@@ -93,7 +93,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     private lateinit var mMenuView: JMenu
     private lateinit var mItemToolWindows: JMenu
     lateinit var mItemToolPanel: JCheckBoxMenuItem
-    lateinit var mItemToolLog: JCheckBoxMenuItem
+    lateinit var mItemToolSelection: JCheckBoxMenuItem
     var mToolTestEnable = false
     lateinit var mItemToolTest: JCheckBoxMenuItem
     lateinit var mItemFull: JCheckBoxMenuItem
@@ -646,9 +646,10 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
         mItemToolWindows.addSeparator()
 
-        mItemToolLog = JCheckBoxMenuItem(Strings.LOG)
-        mItemToolLog.addActionListener(mActionHandler)
-        mItemToolWindows.add(mItemToolLog)
+        mItemToolSelection = JCheckBoxMenuItem(Strings.TOOL_SELECTION)
+        mItemToolSelection.toolTipText = TooltipStrings.TOOL_SELECTION
+        mItemToolSelection.addActionListener(mActionHandler)
+        mItemToolWindows.add(mItemToolSelection)
 
         mItemToolTest = JCheckBoxMenuItem("Test")
         mItemToolTest.addActionListener(mActionHandler)
@@ -1362,25 +1363,25 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
         mToolsPane = ToolsPane.getInstance()
 
-        check = mConfigManager.getItem(ConfigManager.ITEM_TOOL_LOG)
+        check = mConfigManager.getItem(ConfigManager.ITEM_TOOL_SELECTION)
         if (!check.isNullOrEmpty()) {
-            mItemToolLog.state = check.toBoolean()
+            mItemToolSelection.state = check.toBoolean()
         } else {
-            mItemToolLog.state = false
+            mItemToolSelection.state = false
         }
 
-        if (mItemToolLog.state) {
-            mToolsPane.addTab(ToolsPane.Companion.ToolId.TOOL_ID_LOG)
+        if (mItemToolSelection.state) {
+            mToolsPane.addTab(ToolsPane.Companion.ToolId.TOOL_ID_SELECTION)
         }
 
-        check = mConfigManager.getItem(ConfigManager.ITEM_TOOL_LOG_RANGE_PREVIOUS)
+        check = mConfigManager.getItem(ConfigManager.ITEM_TOOL_SELECTION_RANGE_PREVIOUS)
         if (!check.isNullOrEmpty()) {
-            mToolsPane.mLogTool.mPrevLines = check.toInt()
+            mToolsPane.mToolSelection.mPrevLines = check.toInt()
         }
 
-        check = mConfigManager.getItem(ConfigManager.ITEM_TOOL_LOG_RANGE_NEXT)
+        check = mConfigManager.getItem(ConfigManager.ITEM_TOOL_SELECTION_RANGE_NEXT)
         if (!check.isNullOrEmpty()) {
-            mToolsPane.mLogTool.mNextLines = check.toInt()
+            mToolsPane.mToolSelection.mNextLines = check.toInt()
         }
 
         check = mConfigManager.getItem(ConfigManager.ITEM_TOOL_TEST)
@@ -1416,7 +1417,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         }
 
         if (mToolsPane.isVisible) {
-            mToolsPane.mLogTool.setBgColor(mFilteredLogPanel.mTable.mTableColor.mLogBG)
+            mToolsPane.mToolSelection.setBgColor(mFilteredLogPanel.mTable.mTableColor.mLogBG)
             mToolSplitPane.dividerSize = mLogSplitPane.dividerSize
         }
         else {
@@ -2523,9 +2524,9 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                     performToolsMenu(mItemToolPanel.state, ToolsPane.Companion.ToolId.TOOL_ID_PANEL)
                 }
 
-                mItemToolLog -> {
-                    performToolsMenu(mItemToolLog.state, ToolsPane.Companion.ToolId.TOOL_ID_LOG)
-                    mConfigManager.saveItem(ConfigManager.ITEM_TOOL_LOG, mItemToolLog.state.toString())
+                mItemToolSelection -> {
+                    performToolsMenu(mItemToolSelection.state, ToolsPane.Companion.ToolId.TOOL_ID_SELECTION)
+                    mConfigManager.saveItem(ConfigManager.ITEM_TOOL_SELECTION, mItemToolSelection.state.toString())
                 }
 
                 mItemToolTest -> {

@@ -99,9 +99,9 @@ class ConfigManager private constructor() {
         const val VALUE_ICON_TEXT_T = "Text"
 
         const val ITEM_TOOL_PANEL = "TOOL_PANEL"
-        const val ITEM_TOOL_LOG = "TOOL_LOG"
-        const val ITEM_TOOL_LOG_RANGE_PREVIOUS = "TOOL_LOG_RANGE_PREVIOUS"
-        const val ITEM_TOOL_LOG_RANGE_NEXT = "TOOL_LOG_RANGE_NEXT"
+        const val ITEM_TOOL_SELECTION = "TOOL_SELECTION"
+        const val ITEM_TOOL_SELECTION_RANGE_PREVIOUS = "TOOL_SELECTION_RANGE_PREVIOUS"
+        const val ITEM_TOOL_SELECTION_RANGE_NEXT = "TOOL_SELECTION_RANGE_NEXT"
         const val ITEM_TOOL_TEST_ENABLE = "TOOL_TEST_ENABLE"
         const val ITEM_TOOL_TEST = "TOOL_TEST"
 

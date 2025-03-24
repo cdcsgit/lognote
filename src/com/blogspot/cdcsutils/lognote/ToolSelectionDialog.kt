@@ -5,29 +5,29 @@ import java.awt.event.*
 import javax.swing.*
 
 
-class LogToolDialog(mainUI: MainUI, log: Pair<String, Int>) : JDialog(mainUI, "Log", false) {
-    private val mLogTool = ToolsPane.LogTool()
+class ToolSelectionDialog(mainUI: MainUI, log: Pair<String, Int>) : JDialog(mainUI, "Log", false) {
+    private val mToolSelection = ToolsPane.ToolSelection()
 
     init {
         isUndecorated = true
-        mLogTool.addFocusListenerToEditor(FocusHandler())
-        mLogTool.addFocusListenerToPopup(PopupFocusHandler())
-        mLogTool.setLog(log)
+        mToolSelection.addFocusListenerToEditor(FocusHandler())
+        mToolSelection.addFocusListenerToPopup(PopupFocusHandler())
+        mToolSelection.setSelectionLog(log)
         var width = mainUI.width - 100
         if (width < 960) {
             width = 960
         }
 
-        mLogTool.preferredSize = Dimension(width, mLogTool.preferredSize.height)
+        mToolSelection.preferredSize = Dimension(width, mToolSelection.preferredSize.height)
 
-        contentPane.add(mLogTool)
+        contentPane.add(mToolSelection)
         pack()
     }
 
     internal inner class FocusHandler: FocusAdapter() {
         override fun focusLost(p0: FocusEvent?) {
             super.focusLost(p0)
-            if (!mLogTool.isVisiblePopupMenu()) {
+            if (!mToolSelection.isVisiblePopupMenu()) {
                 dispose()
             }
         }
@@ -36,7 +36,7 @@ class LogToolDialog(mainUI: MainUI, log: Pair<String, Int>) : JDialog(mainUI, "L
     internal inner class PopupFocusHandler: FocusAdapter() {
         override fun focusLost(p0: FocusEvent?) {
             super.focusLost(p0)
-            if (!this@LogToolDialog.hasFocus()) {
+            if (!this@ToolSelectionDialog.hasFocus()) {
                 dispose()
             }
         }

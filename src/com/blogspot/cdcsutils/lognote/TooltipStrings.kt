@@ -140,5 +140,7 @@ class TooltipStrings private constructor() {
             get() { return currStrings[field]!! }
         val LOG_COLUMN_VALUES = idx++.toString()
             get() { return currStrings[field]!! }
+        val TOOL_SELECTION = idx++.toString()
+            get() { return currStrings[field]!! }
     }
 }

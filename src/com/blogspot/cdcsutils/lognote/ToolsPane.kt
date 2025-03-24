@@ -9,13 +9,13 @@ import javax.swing.text.Utilities
 
 class ToolsPane private constructor(): JTabbedPane() {
     private val mToolMap = mutableMapOf<ToolId, Component>()
-    val mLogTool = LogTool()
-    val mTestTool = TestTool()
+    val mToolSelection = ToolSelection()
+    val mToolTest = ToolTest()
 
     companion object {
         enum class ToolId(val value: Int) {
             TOOL_ID_PANEL(0),
-            TOOL_ID_LOG(1),
+            TOOL_ID_SELECTION(1),
             TOOL_ID_TEST(2);
 
             companion object {
@@ -38,16 +38,21 @@ class ToolsPane private constructor(): JTabbedPane() {
                 return mTabHeight
             }
         })
-        mToolMap[ToolId.TOOL_ID_LOG] = mLogTool
-        mToolMap[ToolId.TOOL_ID_TEST] = mTestTool
+        mToolMap[ToolId.TOOL_ID_SELECTION] = mToolSelection
+        mToolMap[ToolId.TOOL_ID_TEST] = mToolTest
         addMouseListener(ToolsMouseHandler())
+    }
+
+    interface ToolComponent {
+        fun getToolIcon(): Icon?
+        fun getTooltip(): String
     }
 
     internal inner class ToolsPopUp : JPopupMenu() {
         val mMainUI = MainUI.getInstance()
         var mItemPanel = JCheckBoxMenuItem(Strings.PANEL)
         var mItemMoveTo = JMenuItem(Strings.MOVE_TO_TOP)
-        var mItemLog = JCheckBoxMenuItem(Strings.LOG)
+        var mItemSelection = JCheckBoxMenuItem(Strings.TOOL_SELECTION)
         var mItemTest = JCheckBoxMenuItem("Test")
         private val mToolsActionHandler = ToolsActionHandler()
 
@@ -63,9 +68,10 @@ class ToolsPane private constructor(): JTabbedPane() {
             mItemMoveTo.addActionListener(mToolsActionHandler)
             add(mItemMoveTo)
             addSeparator()
-            mItemLog.state = mMainUI.mItemToolLog.state
-            mItemLog.addActionListener(mToolsActionHandler)
-            add(mItemLog)
+            mItemSelection.toolTipText = TooltipStrings.TOOL_SELECTION
+            mItemSelection.state = mMainUI.mItemToolSelection.state
+            mItemSelection.addActionListener(mToolsActionHandler)
+            add(mItemSelection)
             mItemTest.state = mMainUI.mItemToolTest.state
             mItemTest.addActionListener(mToolsActionHandler)
             if (mMainUI.mToolTestEnable) {
@@ -86,8 +92,8 @@ class ToolsPane private constructor(): JTabbedPane() {
                             mMainUI.rotateToolSplitPane(MainUI.ROTATION_BOTTOM_TOP)
                         }
                     }
-                    mItemLog -> {
-                        mMainUI.mItemToolLog.doClick()
+                    mItemSelection -> {
+                        mMainUI.mItemToolSelection.doClick()
                     }
                     mItemTest -> {
                         mMainUI.mItemToolTest.doClick()
@@ -136,7 +142,13 @@ class ToolsPane private constructor(): JTabbedPane() {
         }
 
         if (!isExist) {
-            addTab(mToolMap[toolId]!!.name, mToolMap[toolId])
+            if (mToolMap[toolId] is ToolComponent) {
+                val toolComponent = mToolMap[toolId] as ToolComponent
+                addTab(mToolMap[toolId]!!.name, toolComponent.getToolIcon(), mToolMap[toolId], toolComponent.getTooltip())
+            }
+            else {
+                addTab(mToolMap[toolId]!!.name, mToolMap[toolId])
+            }
         }
     }
 
@@ -225,14 +237,22 @@ class ToolsPane private constructor(): JTabbedPane() {
         return selectedComponent == mToolMap[toolId]
     }
 
-    inner class TestTool: JLabel() {
+    inner class ToolTest: JLabel(), ToolComponent {
         init {
             name = "Test Tool"
             text = "This is test tool"
         }
+
+        override fun getToolIcon(): Icon? {
+            return null
+        }
+
+        override fun getTooltip(): String {
+            return ""
+        }
     }
 
-    class LogTool: JScrollPane() {
+    class ToolSelection: JScrollPane(), ToolComponent {
         private val mEditorPane = JEditorPane()
         private val mPopupMenu: PopUpLogViewDialog
         private val mIncludeAction: Action
@@ -241,7 +261,7 @@ class ToolsPane private constructor(): JTabbedPane() {
         var mNextLines = 2
 
         init {
-            name = Strings.LOG
+            name = Strings.TOOL_SELECTION
             mEditorPane.isEditable = false
             mEditorPane.caret.isVisible = true
             mEditorPane.contentType = "text/html"
@@ -285,7 +305,7 @@ class ToolsPane private constructor(): JTabbedPane() {
             mEditorPane.background = logBG
         }
 
-        fun setLog(pair: Pair<String, Int>) {
+        fun setSelectionLog(pair: Pair<String, Int>) {
             mEditorPane.text = "<html>${pair.first}</html>"
             mEditorPane.caretPosition = pair.second
         }
@@ -423,6 +443,14 @@ class ToolsPane private constructor(): JTabbedPane() {
 
                 super.mouseReleased(p0)
             }
+        }
+
+        override fun getToolIcon(): Icon? {
+            return null
+        }
+
+        override fun getTooltip(): String {
+            return TooltipStrings.TOOL_SELECTION
         }
     }
 }

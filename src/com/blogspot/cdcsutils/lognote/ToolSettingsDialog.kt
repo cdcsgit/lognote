@@ -11,18 +11,18 @@ class ToolSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.TOOL, true), 
 
     private val mToolsPanel = JPanel()
     private val mScrollPane = JScrollPane()
-    private val mLogPanel = LogPanel()
+    private val mSelectionPanel = SelectionPanel()
 
     private val mOkBtn = JButton(Strings.OK)
     private val mCancelBtn = JButton(Strings.CANCEL)
 
     init {
-        addWindowListener(mLogPanel)
+        addWindowListener(mSelectionPanel)
         mScrollPane.verticalScrollBar.unitIncrement = 10
         mToolsPanel.layout = BoxLayout(mToolsPanel, BoxLayout.Y_AXIS)
         mScrollPane.horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
-        Utils.addHSeparator(mToolsPanel, " ${Strings.LOG} ")
-        mToolsPanel.add(mLogPanel)
+        Utils.addHSeparator(mToolsPanel, " ${Strings.TOOL_SELECTION} ")
+        mToolsPanel.add(mSelectionPanel)
 //        Utils.addHEmptySeparator(mToolsPanel, 20)
 //        Utils.addHSeparator(mToolsPanel, " ${Strings.FILTER_STYLE} ")
 //        mToolsPanel.add(mTestPanel)
@@ -51,42 +51,42 @@ class ToolSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.TOOL, true), 
 
     override fun actionPerformed(e: ActionEvent?) {
         if (e?.source == mOkBtn) {
-            if (mLogPanel.actionBtn(true) == false) {
+            if (mSelectionPanel.actionBtn(true) == false) {
                 return
             }
             this.dispatchEvent(WindowEvent(this, WindowEvent.WINDOW_CLOSING))
         } else if (e?.source == mCancelBtn) {
-            mLogPanel.actionBtn(false)
+            mSelectionPanel.actionBtn(false)
             this.dispatchEvent(WindowEvent(this, WindowEvent.WINDOW_CLOSING))
         }
     }
 
-    inner class LogPanel : JPanel(), WindowListener {
+    inner class SelectionPanel : JPanel(), WindowListener {
         private var mIsNeedRestore = true
         private var mRangeLabel: JLabel
         private var mPreviousLabel: JLabel
         private val mPreviousTF: JTextField
         private var mNextLabel: JLabel
         private val mNextTF: JTextField
-        private val mLogTool = ToolsPane.getInstance().mLogTool
+        private val mToolSelection = ToolsPane.getInstance().mToolSelection
 
         private val MAX_LINES = 20
 
         init {
             layout = BorderLayout()
 
-            mRangeLabel = JLabel(" ${Strings.TOOL_LOG_RANGE}")
+            mRangeLabel = JLabel(" ${Strings.TOOL_SELECTION_RANGE}")
             add(mRangeLabel, BorderLayout.NORTH)
 
             val rangePanel = JPanel(FlowLayout(FlowLayout.LEFT))
-            mPreviousLabel = JLabel(" ${Strings.TOOL_LOG_RANGE_PREVIOUS}")
+            mPreviousLabel = JLabel(" ${Strings.TOOL_SELECTION_RANGE_PREVIOUS}")
             rangePanel.add(mPreviousLabel)
-            mPreviousTF = JTextField(mLogTool.mPrevLines.toString())
+            mPreviousTF = JTextField(mToolSelection.mPrevLines.toString())
             mPreviousTF.addKeyListener(Utils.NumberKeyListener)
             rangePanel.add(mPreviousTF)
-            mNextLabel = JLabel("   ${Strings.TOOL_LOG_RANGE_NEXT}")
+            mNextLabel = JLabel("   ${Strings.TOOL_SELECTION_RANGE_NEXT}")
             rangePanel.add(mNextLabel)
-            mNextTF = JTextField(mLogTool.mNextLines.toString())
+            mNextTF = JTextField(mToolSelection.mNextLines.toString())
             mNextTF.addKeyListener(Utils.NumberKeyListener)
             rangePanel.add(mNextTF)
             
@@ -95,11 +95,11 @@ class ToolSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.TOOL, true), 
 
         fun actionBtn(isOK: Boolean): Boolean {
             if (isOK) {
-                mLogTool.mPrevLines = mPreviousTF.text.toInt()
-                mLogTool.mNextLines = mNextTF.text.toInt()
+                mToolSelection.mPrevLines = mPreviousTF.text.toInt()
+                mToolSelection.mNextLines = mNextTF.text.toInt()
 
-                if (mLogTool.mPrevLines > MAX_LINES || mLogTool.mNextLines > MAX_LINES) {
-                    JOptionPane.showMessageDialog(mMainUI, Strings.TOOL_LOG_MSG_MAX_LINES.format(MAX_LINES), Strings.WARNING, JOptionPane.WARNING_MESSAGE)
+                if (mToolSelection.mPrevLines > MAX_LINES || mToolSelection.mNextLines > MAX_LINES) {
+                    JOptionPane.showMessageDialog(mMainUI, Strings.TOOL_SELECTION_MSG_MAX_LINES.format(MAX_LINES), Strings.WARNING, JOptionPane.WARNING_MESSAGE)
                     return false
                 }
                 mIsNeedRestore = false
@@ -118,8 +118,8 @@ class ToolSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.TOOL, true), 
             if (mIsNeedRestore) {
                 // nothing
             } else {
-                mConfigManager.saveItem(ConfigManager.ITEM_TOOL_LOG_RANGE_PREVIOUS, mLogTool.mPrevLines.toString())
-                mConfigManager.saveItem(ConfigManager.ITEM_TOOL_LOG_RANGE_NEXT, mLogTool.mNextLines.toString())
+                mConfigManager.saveItem(ConfigManager.ITEM_TOOL_SELECTION_RANGE_PREVIOUS, mToolSelection.mPrevLines.toString())
+                mConfigManager.saveItem(ConfigManager.ITEM_TOOL_SELECTION_RANGE_NEXT, mToolSelection.mNextLines.toString())
             }
         }
 
