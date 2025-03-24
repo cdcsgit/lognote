@@ -94,6 +94,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     private lateinit var mItemToolWindows: JMenu
     lateinit var mItemToolPanel: JCheckBoxMenuItem
     lateinit var mItemToolLog: JCheckBoxMenuItem
+    var mToolTestEnable = false
     lateinit var mItemToolTest: JCheckBoxMenuItem
     lateinit var mItemFull: JCheckBoxMenuItem
     lateinit var mItemFullLogToNewWindow: JCheckBoxMenuItem
@@ -113,6 +114,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     private lateinit var mItemFilterByFile: JCheckBoxMenuItem
     private lateinit var mItemColorTagRegex: JCheckBoxMenuItem
     private lateinit var mItemAppearance: JMenuItem
+    private lateinit var mItemTool: JMenuItem
     private lateinit var mMenuHelp: JMenu
     private lateinit var mItemHelp: JMenuItem
     private lateinit var mItemCheckUpdate: JMenuItem
@@ -368,6 +370,13 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                 }
         } else {
             LogTableModel.TypeShowProcessName = LogTableModel.SHOW_PROCESS_SHOW_WITH_BGCOLOR
+        }
+
+        prop = mConfigManager.getItem(ConfigManager.ITEM_TOOL_TEST_ENABLE)
+        if (!prop.isNullOrEmpty()) {
+            mToolTestEnable = prop.toBoolean()
+        } else {
+            mToolTestEnable = false
         }
 
         createUI()
@@ -643,7 +652,9 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
         mItemToolTest = JCheckBoxMenuItem("Test")
         mItemToolTest.addActionListener(mActionHandler)
-        mItemToolWindows.add(mItemToolTest)
+        if (mToolTestEnable) {
+            mItemToolWindows.add(mItemToolTest)
+        }
 
         mMenuView.addSeparator()
 
@@ -742,6 +753,10 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mItemAppearance = JMenuItem(Strings.APPEARANCE)
         mItemAppearance.addActionListener(mActionHandler)
         mMenuSettings.add(mItemAppearance)
+
+        mItemTool = JMenuItem(Strings.TOOL)
+        mItemTool.addActionListener(mActionHandler)
+        mMenuSettings.add(mItemTool)
 
         mMenuBar.add(mMenuSettings)
 
@@ -1358,8 +1373,18 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mToolsPane.addTab(ToolsPane.Companion.ToolId.TOOL_ID_LOG)
         }
 
-        check = mConfigManager.getItem(ConfigManager.ITEM_TOOL_TEST)
+        check = mConfigManager.getItem(ConfigManager.ITEM_TOOL_LOG_RANGE_PREVIOUS)
         if (!check.isNullOrEmpty()) {
+            mToolsPane.mLogTool.mPrevLines = check.toInt()
+        }
+
+        check = mConfigManager.getItem(ConfigManager.ITEM_TOOL_LOG_RANGE_NEXT)
+        if (!check.isNullOrEmpty()) {
+            mToolsPane.mLogTool.mNextLines = check.toInt()
+        }
+
+        check = mConfigManager.getItem(ConfigManager.ITEM_TOOL_TEST)
+        if (mToolTestEnable && !check.isNullOrEmpty()) {
             mItemToolTest.state = check.toBoolean()
         } else {
             mItemToolTest.state = false
@@ -2560,6 +2585,11 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                     val appearanceSettingsDialog = AppearanceSettingsDialog(this@MainUI)
                     appearanceSettingsDialog.setLocationRelativeTo(this@MainUI)
                     appearanceSettingsDialog.isVisible = true
+                }
+                mItemTool -> {
+                    val toolSettingsDialog = ToolSettingsDialog(this@MainUI)
+                    toolSettingsDialog.setLocationRelativeTo(this@MainUI)
+                    toolSettingsDialog.isVisible = true
                 }
                 mItemAbout -> {
                     val aboutDialog = AboutDialog(this@MainUI)

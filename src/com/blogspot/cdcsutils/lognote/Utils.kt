@@ -2,6 +2,7 @@ package com.blogspot.cdcsutils.lognote
 
 import java.awt.*
 import java.awt.event.ActionEvent
+import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.WindowEvent
 import java.time.LocalDateTime
@@ -159,6 +160,15 @@ class Utils {
             const val LEFT = 0x2
             const val BOTTOM = 0x4
             const val RIGHT = 0x8
+        }
+    }
+
+    object NumberKeyListener: KeyAdapter() {
+        override fun keyTyped(e: KeyEvent?) {
+            val char = e?.keyChar
+            if (!char?.isDigit()!!) {
+                e.consume()
+            }
         }
     }
 }

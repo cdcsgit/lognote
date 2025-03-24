@@ -68,7 +68,9 @@ class ToolsPane private constructor(): JTabbedPane() {
             add(mItemLog)
             mItemTest.state = mMainUI.mItemToolTest.state
             mItemTest.addActionListener(mToolsActionHandler)
-            add(mItemTest)
+            if (mMainUI.mToolTestEnable) {
+                add(mItemTest)
+            }
         }
 
         internal inner class ToolsActionHandler : ActionListener {
@@ -235,6 +237,8 @@ class ToolsPane private constructor(): JTabbedPane() {
         private val mPopupMenu: PopUpLogViewDialog
         private val mIncludeAction: Action
         private val mAddIncludeKey = "add_include"
+        var mPrevLines = 2
+        var mNextLines = 2
 
         init {
             name = Strings.LOG

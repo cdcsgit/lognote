@@ -508,7 +508,7 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         return mTableModel.getValueAt(row, LogTableModel.COLUMN_LOG_START).toString()
     }
 
-    fun getSelectedLog(targetRow:Int): Pair<String, Int> {
+    fun getSelectedLog(targetRow: Int, prevLines: Int, nextLines: Int): Pair<String, Int> {
         val log = StringBuilder("")
         var caretPos = 0
         var value:String
@@ -519,11 +519,11 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
             rows = selectedRows
         }
         else {
-            var startIdx = targetRow - 2
+            var startIdx = targetRow - prevLines
             if (startIdx < 0) {
                 startIdx = 0
             }
-            var endIdx = targetRow + 3
+            var endIdx = targetRow + nextLines + 1
             if (endIdx > rowCount) {
                 endIdx = rowCount
             }
@@ -551,7 +551,8 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
             toolsPane.showTab(ToolsPane.Companion.ToolId.TOOL_ID_LOG)
         }
         else {
-            val selectedPair = getSelectedLog(targetRow)
+            val logTool = ToolsPane.getInstance().mLogTool
+            val selectedPair = getSelectedLog(targetRow, logTool.mPrevLines, logTool.mNextLines)
             val mainUI = MainUI.getInstance()
             val logToolDialog = LogToolDialog(mainUI, selectedPair)
             logToolDialog.setLocationRelativeTo(mainUI)

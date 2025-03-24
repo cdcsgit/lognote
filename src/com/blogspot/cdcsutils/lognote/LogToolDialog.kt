@@ -6,8 +6,6 @@ import javax.swing.*
 
 
 class LogToolDialog(mainUI: MainUI, log: Pair<String, Int>) : JDialog(mainUI, "Log", false) {
-
-    private val mMainUI = mainUI
     private val mLogTool = ToolsPane.LogTool()
 
     init {

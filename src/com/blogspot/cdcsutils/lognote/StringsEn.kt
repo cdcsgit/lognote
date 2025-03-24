@@ -175,6 +175,7 @@ class StringsEn private constructor() {
                 , "Sample Text"
                 , "apply [CTRL + ENTER]"
                 , "Reload"
+                , "Tool"
                 , "Tool windows"
                 , "Panel"
                 , "Move to Top"
@@ -190,6 +191,10 @@ class StringsEn private constructor() {
                 , "Remove Color Tag"
                 , "Add Color Tag"
                 , "Copy selected lines"
+                , "Log Range"
+                , "Previous Lines"
+                , "Next Lines"
+                , "The max number of lines is %d."
 //            , ""
             )
 
