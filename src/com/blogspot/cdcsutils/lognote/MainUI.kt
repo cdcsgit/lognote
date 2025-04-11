@@ -4014,6 +4014,20 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         }
         rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(stroke, actionMapKey)
         rootPane.actionMap.put(actionMapKey, action)
+
+        stroke = KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK)
+        actionMapKey = javaClass.name + ":PREVIOUS_FILTER"
+        action = object : AbstractAction() {
+            override fun actionPerformed(event: ActionEvent) {
+                if (mShowLogCombo.itemCount > 1) {
+                    val filter = mShowLogCombo.getItemAt(1)
+                    setTextShowLogCombo(filter)
+                    applyShowLogCombo(true)
+                }
+            }
+        }
+        rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(stroke, actionMapKey)
+        rootPane.actionMap.put(actionMapKey, action)
     }
 
     fun showSearchResultTooltip(isNext: Boolean, result: String) {
