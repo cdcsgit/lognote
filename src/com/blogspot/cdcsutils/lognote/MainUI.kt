@@ -15,6 +15,7 @@ import java.nio.file.Paths
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
+import java.util.regex.Pattern
 import javax.swing.*
 import javax.swing.event.*
 import javax.swing.plaf.FontUIResource
@@ -2231,6 +2232,19 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mRecentFileManager.saveList()
     }
 
+    private fun sanitizeFileName(fileName: String): String {
+        val pattern = Pattern.compile("[<>:\"/\\\\|?*]")
+        val matcher = pattern.matcher(fileName)
+
+        var newName = matcher.replaceAll("_")
+        newName = newName.trim()
+
+        if (fileName != newName) {
+            Utils.printlnLog("filename is incorrect, changed from $fileName to $newName")
+        }
+        return newName
+    }
+
     fun setSaveLogFile() {
         val dtf = DateTimeFormatter.ofPattern("yyyyMMdd_HH.mm.ss")
         var device = mDeviceCombo.selectedItem!!.toString()
@@ -2239,7 +2253,8 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mLogCmdManager.mPrefix = LogCmdManager.DEFAULT_PREFIX
         }
 
-        val filePath = "${mLogCmdManager.mLogSavePath}/${mLogCmdManager.mPrefix}_${device}_${dtf.format(LocalDateTime.now())}.txt"
+        val fileName = sanitizeFileName("${mLogCmdManager.mPrefix}_${device}_${dtf.format(LocalDateTime.now())}.txt")
+        val filePath = "${mLogCmdManager.mLogSavePath}/$fileName"
         var file = File(filePath)
         var idx = 1
         var filePathSaved = filePath

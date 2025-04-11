@@ -3,6 +3,7 @@ package com.blogspot.cdcsutils.lognote
 import java.awt.*
 import java.awt.event.*
 import java.io.File
+import java.util.regex.Pattern
 import javax.swing.*
 import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.DefaultTableModel
@@ -248,15 +249,10 @@ class LogCmdSettingsDialog(mainUI: MainUI) :JDialog(mainUI, "${Strings.LOG_CMD} 
             val prefix = mPrefixTF.text.trim()
 
             mPrefixLabel2 = JLabel("Default : LogNote, Do not use \\ / : * ? \" < > |")
-            if (prefix.contains('\\')
-                    || prefix.contains('/')
-                    || prefix.contains(':')
-                    || prefix.contains('*')
-                    || prefix.contains('?')
-                    || prefix.contains('"')
-                    || prefix.contains("<")
-                    || prefix.contains(">")
-                    || prefix.contains("|")) {
+
+            val pattern = Pattern.compile("[<>:\"/\\\\|?*]")
+            val matcher = pattern.matcher(prefix)
+            if (matcher.find()) {
                 JOptionPane.showMessageDialog(this, "Invalid prefix : ${mPrefixTF.text}", "Error", JOptionPane.ERROR_MESSAGE)
                 return
             }
