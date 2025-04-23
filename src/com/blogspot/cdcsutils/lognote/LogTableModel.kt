@@ -752,8 +752,8 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
             }
         }
 
-        val boldStarts: Queue<Int> = LinkedList()
-        val boldEnds: Queue<Int> = LinkedList()
+        val tokenStarts: Queue<Int> = LinkedList()
+        val tokenEnds: Queue<Int> = LinkedList()
         val boldStartTokens = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { -1 }
         val boldEndTokens = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { -1 }
 
@@ -766,8 +766,8 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                     if (mBoldTokens[idx]) {
                         boldStartTokens[idx] = currPos
                         boldEndTokens[idx] = boldStartTokens[idx] + item.mTokenFilterLogs[idx].length
-                        boldStarts.add(boldStartTokens[idx])
-                        boldEnds.add(boldEndTokens[idx])
+                        tokenStarts.add(boldStartTokens[idx])
+                        tokenEnds.add(boldEndTokens[idx])
                     }
                     currPos++
                 }
@@ -779,271 +779,131 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
         val fgColors = Stack<String>()
         val bgColors = Stack<String>()
 
-        var searchS = -1
-        var searchE = -1
-        var highlightS = -1
-        var highlightE = -1
-        var highlightSNext = -1
-        var highlightENext = -1
-        var filterS = -1
-        var filterSNext = -1
-        var filterENext = -1
-        var filterE = -1
-        var boldS = -1
-        var boldE = -1
-        var boldSNext = -1
-        var boldENext = -1
-        var boldSCheck = -1
-        var boldECheck = -1
+        val STEP_SIZE = 4
+        val STEP_SEARCH = 0
+        val STEP_HIGHLIGHT = 1
+        val STEP_FILTER = 2
+        val STEP_TOKEN = 3
+        val stepStarts: Array<Int> = Array(STEP_SIZE) { -1 }
+        val stepEnds: Array<Int> = Array(STEP_SIZE) { -1 }
+        val posStarts: Array<Queue<Int>> = arrayOf(searchStarts, highlightStarts, filterStarts, tokenStarts)
+        val posEnds: Array<Queue<Int>> = arrayOf(searchEnds, highlightEnds, filterEnds, tokenEnds)
 
-        for (idx in newValue.indices) {
-            while (searchE <= idx) {
-                if (searchStarts.size > 0) {
-                    searchS = searchStarts.poll()
-                    searchE = searchEnds.poll()
+        var idx = 0
+        var prevIdx = 0
+        while (idx < newValue.length) {
+            prevIdx = idx
+            for (currStep in STEP_SEARCH until STEP_SIZE) {
+                while (stepEnds[currStep] <= idx) {
+                    if (posStarts[currStep].size > 0) {
+                        stepStarts[currStep] = posStarts[currStep].poll()
+                        stepEnds[currStep] = posEnds[currStep].poll()
 
-                    if (idx in (searchS + 1) until searchE) {
-                        searchS = idx
+                        if (idx in (stepStarts[currStep] + 1) until stepEnds[currStep]) {
+                            stepStarts[currStep] = idx
+                        }
+                    } else {
+                        stepStarts[currStep] = -1
+                        stepEnds[currStep] = -1
+                        break
                     }
                 }
-                else {
-                    searchS = -1
-                    searchE = -1
-                    break
-                }
             }
-            while (highlightE <= idx) {
-                if (highlightStarts.size > 0) {
-                    highlightS = highlightStarts.poll()
-                    highlightE = highlightEnds.poll()
 
-                    if (idx in (highlightS + 1) until highlightE) {
-                        highlightS = idx
+            for (currStep in STEP_SEARCH until STEP_SIZE) {
+                if (idx == stepStarts[currStep]) {
+                    for (step in currStep + 1 until STEP_SIZE) {
+                        if (stepEnds[currStep] in (stepStarts[step] + 1) until stepEnds[step]) {
+                            stepStarts[step] = stepEnds[currStep]
+                        }
                     }
-                }
-                else {
-                    highlightS = -1
-                    highlightE = -1
-                    break
-                }
-            }
-            while (filterE <= idx) {
-                if (filterStarts.size > 0) {
-                    filterS = filterStarts.poll()
-                    filterE = filterEnds.poll()
 
-                    if (idx in (filterS + 1) until filterE) {
-                        filterS = idx
-                    }
-                }
-                else {
-                    filterS = -1
-                    filterE = -1
-                    break
-                }
-            }
-            while (boldE <= idx) {
-                if (boldStarts.size > 0) {
-                    boldS = boldStarts.poll()
-                    boldE = boldEnds.poll()
-
-                    if (idx in (boldS + 1) until boldE) {
-                        boldS = idx
-                    }
-                }
-                else {
-                    boldS = -1
-                    boldE = -1
-                    break
-                }
-            }
-
-            if (idx == searchS) {
-                if (searchE in (highlightS + 1) until highlightE) {
-                    highlightS = searchE
-                }
-                
-                if (searchE in (filterS + 1) until filterE) {
-                    filterS = searchE
-                }
-
-                if (searchE in (boldS + 1) until boldE) {
-                    boldS = searchE
-                }
-                starts.push(searchS)
-                ends.push(searchE)
-                fgColors.push(mTableColor.mStrSearchFG)
-                bgColors.push(mTableColor.mStrSearchBG)
-            }
-
-            if (idx in searchS until searchE) {
-                continue
-            }
-            
-            if (idx == highlightS) {
-                if (highlightE in (filterS + 1) until filterE) {
-                    filterS = highlightE
-                }
-
-                if (highlightE in (boldS + 1) until boldE) {
-                    boldS = highlightE
-                }
-
-                if (searchS in 1 until highlightE) {
-                    if (highlightE > searchE) {
-                        highlightSNext = searchE
-                        highlightENext = highlightE
-                    }
-                    highlightE = searchS
-                }
-                
-                starts.push(highlightS)
-                ends.push(highlightE)
-                fgColors.push(mTableColor.mStrHighlightFG)
-                bgColors.push(mTableColor.mStrHighlightBG)
-
-                if (highlightS < highlightSNext) {
-                    highlightS = highlightSNext
-                }
-                if (highlightE < highlightENext) {
-                    highlightE = highlightENext
-                }
-            }
-
-            if (idx in highlightS until highlightE) {
-                continue
-            }
-
-            if (idx == filterS) {
-                if (filterE in (boldS + 1) until boldE) {
-                    boldS = filterE
-                }
-
-                if (searchS > filterS && highlightS > filterS) {
-                    if (searchS < highlightS) {
-                        if (searchS in filterS until filterE) {
-                            if (filterE > searchE) {
-                                filterSNext = searchE
-                                filterENext = filterE
+                    var nextS = -1
+                    var nextE = -1
+                    for (step in STEP_SEARCH until currStep) {
+                        if (stepStarts[step] in stepStarts[currStep] until stepEnds[currStep]) {
+                            if (stepEnds[currStep] > stepEnds[step]) {
+                                nextS = stepEnds[step]
+                                nextE = stepEnds[currStep]
                             }
-                            filterE = searchS
+                            stepEnds[currStep] = stepStarts[step]
                         }
                     }
-                    else {
-                        if (highlightS in filterS until filterE) {
-                            if (filterE > highlightE) {
-                                filterSNext = highlightE
-                                filterENext = filterE
+
+                    starts.push(stepStarts[currStep])
+                    ends.push(stepEnds[currStep])
+
+                    idx = stepEnds[currStep]
+
+                    if (stepStarts[currStep] < nextS) {
+                        stepStarts[currStep] = nextS
+                    }
+                    if (stepEnds[currStep] < nextE) {
+                        stepEnds[currStep] = nextE
+                    }
+
+                    when (currStep) {
+                        STEP_SEARCH -> {
+                            fgColors.push(mTableColor.mStrSearchFG)
+                            bgColors.push(mTableColor.mStrSearchBG)
+                        }
+                        STEP_HIGHLIGHT -> {
+                            fgColors.push(mTableColor.mStrHighlightFG)
+                            bgColors.push(mTableColor.mStrHighlightBG)
+                        }
+                        STEP_FILTER -> {
+                            val key = newValue.substring(stepStarts[currStep], stepEnds[currStep]).uppercase()
+
+                            if (mFilteredFGMap[key] != null) {
+                                fgColors.push(mFilteredFGMap[key]!!.mColor)
+                                bgColors.push(mFilteredBGMap[key]!!.mColor)
+                            } else if (IsColorTagRegex) {
+                                var isFind = false
+                                for (item in mFilteredFGMap.keys) {
+                                    val pattern = mFilteredFGMap[item]?.mPattern
+                                    if ((pattern != null) && pattern.matcher(key).find()) {
+                                        fgColors.push(mFilteredFGMap[item]!!.mColor)
+                                        bgColors.push(mFilteredBGMap[item]!!.mColor)
+                                        isFind = true
+                                        break
+                                    }
+                                }
+                                if (!isFind) {
+                                    fgColors.push(mTableColor.mStrFilteredFGs[0])
+                                    bgColors.push(mTableColor.mStrFilteredBGs[0])
+                                }
+                            } else {
+                                fgColors.push(mTableColor.mStrFilteredFGs[0])
+                                bgColors.push(mTableColor.mStrFilteredBGs[0])
                             }
-                            filterE = highlightS
                         }
-                    }
-                }
-                else if (searchS > filterS) {
-                    if (searchS in filterS until filterE) {
-                        if (filterE > searchE) {
-                            filterSNext = searchE
-                            filterENext = filterE
-                        }
-                        filterE = searchS
-                    }
-                }
-                else if (highlightS > filterS){
-                    if (highlightS in filterS until filterE) {
-                        if (filterE > highlightE) {
-                            filterSNext = highlightE
-                            filterENext = filterE
-                        }
-                        filterE = highlightS
-                    }
-                }
+                        STEP_TOKEN -> {
+                            when (stepStarts[currStep]) {
+                                in boldStartTokens[0] until boldEndTokens[0] -> {
+                                    fgColors.push(mTableColor.mStrToken0FG)
+                                    bgColors.push(mTableColor.mStrLogBG)
+                                }
 
-                starts.push(filterS)
-                ends.push(filterE)
-                val key = newValue.substring(filterS, filterE).uppercase()
+                                in boldStartTokens[1] until boldEndTokens[1] -> {
+                                    fgColors.push(mTableColor.mStrToken1FG)
+                                    bgColors.push(mTableColor.mStrLogBG)
+                                }
 
-                if (mFilteredFGMap[key] != null) {
-                    fgColors.push(mFilteredFGMap[key]!!.mColor)
-                    bgColors.push(mFilteredBGMap[key]!!.mColor)
-                }
-                else if (IsColorTagRegex) {
-                    var isFind = false
-                    for (item in mFilteredFGMap.keys) {
-                        val pattern = mFilteredFGMap[item]?.mPattern
-                        if ((pattern != null) && pattern.matcher(key).find()) {
-                            fgColors.push(mFilteredFGMap[item]!!.mColor)
-                            bgColors.push(mFilteredBGMap[item]!!.mColor)
-                            isFind = true
-                            break
+                                in boldStartTokens[2] until boldEndTokens[2] -> {
+                                    fgColors.push(mTableColor.mStrToken2FG)
+                                    bgColors.push(mTableColor.mStrLogBG)
+                                }
+                            }
+                        }
+                        else -> {
+                            Utils.printlnLog("invalid step $currStep")
                         }
                     }
-                    if (!isFind) {
-                        fgColors.push(mTableColor.mStrFilteredFGs[0])
-                        bgColors.push(mTableColor.mStrFilteredBGs[0])
-                    }
-                }
-                else {
-                    fgColors.push(mTableColor.mStrFilteredFGs[0])
-                    bgColors.push(mTableColor.mStrFilteredBGs[0])
-                }
-
-                if (filterS < filterSNext) {
-                    filterS = filterSNext
-                }
-                if (filterE < filterENext) {
-                    filterE = filterENext
+                    break
                 }
             }
-
-            if (idx in filterS until filterE) {
-                continue
-            }
-
-            if (idx == boldS) {
-                boldSCheck = -1
-                boldECheck = -1
-                if (highlightS in (boldS + 1) until boldE) {
-                    boldSCheck = highlightS
-                    boldECheck = highlightE
-                }
-
-                if (filterS in (boldS + 1) until boldE && filterS < highlightS) {
-                    boldSCheck = filterS
-                    boldECheck = filterE
-                }
-
-                if (boldSCheck in 1 until boldE) {
-                    if (boldE > boldECheck) {
-                        boldSNext = boldECheck
-                        boldENext = boldE
-                    }
-                    boldE = boldSCheck
-                }
-
-                starts.push(boldS)
-                ends.push(boldE)
-
-                when (boldS) {
-                    in boldStartTokens[0] until boldEndTokens[0] -> {
-                        fgColors.push(mTableColor.mStrToken0FG)
-                        bgColors.push(mTableColor.mStrLogBG)
-                    }
-                    in boldStartTokens[1] until boldEndTokens[1] -> {
-                        fgColors.push(mTableColor.mStrToken1FG)
-                        bgColors.push(mTableColor.mStrLogBG)
-                    }
-                    in boldStartTokens[2] until boldEndTokens[2] -> {
-                        fgColors.push(mTableColor.mStrToken2FG)
-                        bgColors.push(mTableColor.mStrLogBG)
-                    }
-                }
-
-                if (boldS < boldSNext) {
-                    boldS = boldSNext
-                }
-                if (boldE < boldENext) {
-                    boldE = boldENext
-                }
+            if (prevIdx == idx) {
+                idx++
             }
         }
 
