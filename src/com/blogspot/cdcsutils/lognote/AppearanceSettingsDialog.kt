@@ -10,7 +10,7 @@ import javax.swing.event.ListSelectionListener
 import javax.swing.plaf.basic.BasicScrollBarUI
 
 
-class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARANCE, true), ActionListener, ItemListener {
+class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARANCE, true), ActionListener, ItemListener, WindowListener {
     private val mMainUI = mainUI
     private val mConfigManager = ConfigManager.getInstance()
     private val mFormatManager = FormatManager.getInstance()
@@ -26,10 +26,13 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
     private val mPrevLaf = ConfigManager.LaF
     private val mPrevLafAccentColor = ConfigManager.LaFAccentColor
 
+    private var mLognoteRestart = false
+
     init {
         addWindowListener(mLnFPanel)
         addWindowListener(mFilterComboPanel)
         addWindowListener(mFontColorPanel)
+        addWindowListener(this)
         mScrollPane.verticalScrollBar.unitIncrement = 10
         mSettingsPanel.layout = BoxLayout(mSettingsPanel, BoxLayout.Y_AXIS)
         mScrollPane.horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
@@ -120,6 +123,7 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
                         mLaFAccentColorCustomBtn.icon = Icons.AccentColorIcon(ConfigManager.LaFAccentColor)
                         mMainUI.setLaF()
                         mMainUI.updateUI()
+                        mLognoteRestart = true
                     }
                 }
             }
@@ -129,6 +133,7 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
                         ConfigManager.LaFAccentColor = MainUI.LAF_ACCENT_COLORS[idx]
                         mMainUI.setLaF()
                         mMainUI.updateUI()
+                        mLognoteRestart = true
                         break
                     }
                 }
@@ -1217,5 +1222,39 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
         }
         mMainUI.setLaF()
         mMainUI.updateUI()
+        mLognoteRestart = true
+    }
+
+    override fun windowOpened(p0: WindowEvent?) {
+    }
+
+    override fun windowClosing(p0: WindowEvent?) {
+        if (mLognoteRestart) {
+            val ret = JOptionPane.showConfirmDialog(
+                MainUI.getInstance(),
+                Strings.NEED_RESTART_LNF,
+                Main.NAME,
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE
+            )
+            if (ret == JOptionPane.OK_OPTION) {
+                Utils.restartLognote()
+            }
+        }
+    }
+
+    override fun windowClosed(p0: WindowEvent?) {
+    }
+
+    override fun windowIconified(p0: WindowEvent?) {
+    }
+
+    override fun windowDeiconified(p0: WindowEvent?) {
+    }
+
+    override fun windowActivated(p0: WindowEvent?) {
+    }
+
+    override fun windowDeactivated(p0: WindowEvent?) {
     }
 }

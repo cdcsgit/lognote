@@ -402,5 +402,7 @@ class Strings private constructor() {
             get() { return currStrings[field]!! }
         val TOOL_SELECTION_MSG_MAX_LINES: String = idx++.toString()
             get() { return currStrings[field]!! }
+        val NEED_RESTART_LNF: String = idx++.toString()
+            get() { return currStrings[field]!! }
     }
 }

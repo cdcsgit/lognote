@@ -196,6 +196,7 @@ class StringsKo private constructor() {
                 , "이전 줄수"
                 , "이후 줄수"
                 , "최대 라인수는 %d 입니다."
+                , " \"Look and Feel\" 변경 사항을 적용하기 위해 lognote를 다시 시작해야 합니다.\n재시작 하시겠습니까?"
 //            , ""
             )
 

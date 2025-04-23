@@ -1,14 +1,20 @@
 package com.blogspot.cdcsutils.lognote
 
+import com.formdev.flatlaf.util.SystemInfo
 import java.awt.*
 import java.awt.event.ActionEvent
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.WindowEvent
+import java.io.BufferedReader
+import java.io.IOException
+import java.io.InputStreamReader
+import java.lang.management.ManagementFactory
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import javax.swing.*
 import javax.swing.border.AbstractBorder
+import kotlin.system.exitProcess
 
 
 class Utils {
@@ -96,6 +102,53 @@ class Utils {
             }
 
             return newCmd
+        }
+
+        private fun getLognoteCmd(): String {
+            val pid = ManagementFactory.getRuntimeMXBean().name.split("@".toRegex()).dropLastWhile { it.isEmpty() }
+                .toTypedArray()[0]
+            var command: String = ""
+
+            try {
+                if (SystemInfo.isWindows) {
+                    val process = Runtime.getRuntime().exec("wmic process where processid=$pid get commandline")
+                    val reader = BufferedReader(InputStreamReader(process.inputStream))
+                    var line: String
+                    while ((reader.readLine().also { line = it }) != null) {
+                        if (line.contains(".jar") || line.contains(".class")) {
+                            command = line.trim { it <= ' ' }
+                            break
+                        }
+                    }
+                } else if (SystemInfo.isLinux || SystemInfo.isMacOS) {
+                    val process = Runtime.getRuntime().exec(
+                        arrayOf(
+                            "/bin/sh", "-c",
+                            "ps -p $pid -o command="
+                        )
+                    )
+                    val reader = BufferedReader(InputStreamReader(process.inputStream))
+                    command = reader.readLine().trim { it <= ' ' }
+                }
+
+                if (command.isEmpty()) {
+                    printlnLog("Failed get command")
+                }
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
+            return command
+        }
+
+        fun restartLognote() {
+            val cmd = getLognoteCmd()
+            if (cmd.isNotEmpty()) {
+                Runtime.getRuntime().exec(cmd)
+                exitProcess(0)
+            }
+            else {
+                printlnLog("lognote cmd is empty")
+            }
         }
     }
 

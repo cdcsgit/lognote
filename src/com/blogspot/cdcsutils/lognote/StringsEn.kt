@@ -196,6 +196,7 @@ class StringsEn private constructor() {
                 , "Previous Lines"
                 , "Next Lines"
                 , "The max number of lines is %d."
+                , "You must restart lognote for the \"Look and Feel\" changes to take effect.\nDo you want to restart?"
 //            , ""
             )
 
