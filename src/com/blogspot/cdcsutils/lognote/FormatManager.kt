@@ -358,11 +358,11 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
         levelPosition = 2
 
         tokenFilters = arrayOf(
-            FormatItem.TokenFilterItem("", 0, false, 120),
+            FormatItem.TokenFilterItem("PID", 4, false, 120),
             FormatItem.TokenFilterItem("", 0, false, 120),
             FormatItem.TokenFilterItem("", 0, false, 120),
         )
-        pidTokIdx = -1
+        pidTokIdx = 0
 
         sampleText = "11-20 23:29:26.908  V/Test0(  1376): This line is sample 0\n" +
                 "11-20 23:29:26.908  D/Test1(  1376): This line is sample 1\n" +
