@@ -758,18 +758,26 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
         val boldEndTokens = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { -1 }
 
         if (mBoldTokenEndIdx >= 0) {
+            val textSplited = stringBuilder.toString().split(Regex(mSeparator), mTokenCount)
             var currPos = 0
-            val item = mLogItems[row]
-            for (idx in 0 .. mBoldTokenEndIdx) {
-                if (item.mTokenFilterLogs[idx].isNotEmpty()) {
-                    currPos = newValue.indexOf(item.mTokenFilterLogs[idx], currPos)
-                    if (mBoldTokens[idx]) {
-                        boldStartTokens[idx] = currPos
-                        boldEndTokens[idx] = boldStartTokens[idx] + item.mTokenFilterLogs[idx].length
-                        tokenStarts.add(boldStartTokens[idx])
-                        tokenEnds.add(boldEndTokens[idx])
+            var tokenIdx = 0;
+            if (textSplited.size > mTokenNthMax) {
+                for ((splitIdx, item) in textSplited.withIndex()) {
+                    while (tokenIdx <= mBoldTokenEndIdx) {
+                        if (splitIdx < mSortedTokenFilters[tokenIdx].mPosition) {
+                            break
+                        }
+                        else if (splitIdx == mSortedTokenFilters[tokenIdx].mPosition) {
+                            if (mBoldTokens[tokenIdx]) {
+                                boldStartTokens[tokenIdx] = newValue.indexOf(item, currPos)
+                                boldEndTokens[tokenIdx] = boldStartTokens[tokenIdx] + item.length
+                                tokenStarts.add(boldStartTokens[tokenIdx])
+                                tokenEnds.add(boldEndTokens[tokenIdx])
+                            }
+                        }
+                        tokenIdx++
                     }
-                    currPos++
+                    currPos = newValue.indexOf(item, currPos) + item.length + 1
                 }
             }
         }
@@ -993,26 +1001,25 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
         val level: Int
         val tokenFilterLogs: Array<String>
 
-        if (mFilterLevel == LEVEL_NONE) {
+        val textSplited = logLine.split(Regex(mSeparator), mTokenCount)
+        if (textSplited.size > mTokenNthMax) {
+            level = if (mFilterLevel == LEVEL_NONE) {
+                LEVEL_NONE
+            } else {
+                mLevelMap[textSplited[mLevelIdx]] ?: LEVEL_NONE
+            }
+
+            tokenFilterLogs = Array(mSortedTokenFilters.size) {
+                if (mSortedTokenFilters[it].mPosition >= 0) {
+                    textSplited[mSortedTokenFilters[it].mPosition]
+                }
+                else {
+                    ""
+                }
+            }
+        } else {
             level = LEVEL_NONE
             tokenFilterLogs = mEmptyTokenFilters
-        }
-        else {
-            val textSplited = logLine.split(Regex(mSeparator), mTokenCount)
-            if (textSplited.size > mTokenNthMax) {
-                level = mLevelMap[textSplited[mLevelIdx]] ?: LEVEL_NONE
-                tokenFilterLogs = Array(mSortedTokenFilters.size) {
-                    if (mSortedTokenFilters[it].mPosition >= 0) {
-                        textSplited[mSortedTokenFilters[it].mPosition]
-                    }
-                    else {
-                        ""
-                    }
-                }
-            } else {
-                level = LEVEL_NONE
-                tokenFilterLogs = mEmptyTokenFilters
-            }
         }
 
         val processName = if (TypeShowProcessName != SHOW_PROCESS_NONE && mSortedPidTokIdx >= 0 && tokenFilterLogs.size > mSortedPidTokIdx) {
