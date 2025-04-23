@@ -76,7 +76,7 @@ class StringsKo private constructor() {
                 , "명령"
                 , "재시도"
                 , "필터 스타일"
-                , "Look and Feel"
+                , "Look and Feel(재시작)"
                 , "전체 로그 테이블"
                 , "필터 로그 테이블"
                 , "내장 색상표"

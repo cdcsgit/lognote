@@ -76,7 +76,7 @@ class StringsEn private constructor() {
                 , "Cmds"
                 , "Retry"
                 , "Filter Style"
-                , "Look and Feel"
+                , "Look and Feel(restart)"
                 , "Full Log Table"
                 , "Filter Log Table"
                 , "Built-in schemes"
