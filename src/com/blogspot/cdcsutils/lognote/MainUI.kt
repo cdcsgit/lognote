@@ -390,6 +390,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     }
 
     private fun exit() {
+        Utils.printlnLog("Exit Lognote")
         saveConfigOnDestroy()
         saveRecentFile()
         mFilteredLogPanel.mTableModel.stopScan()
@@ -628,8 +629,10 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
         mMenuFile.addSeparator()
 
-        mItemFileExit = JMenuItem(Strings.EXIT)
-        mItemFileExit.addActionListener(mActionHandler)
+        mItemFileExit = JMenuItem(Strings.EXIT).apply {
+            accelerator = KeyStroke.getKeyStroke(KeyEvent.VK_Q, ActionEvent.CTRL_MASK)
+            addActionListener { exit() }
+        }
         mMenuFile.add(mItemFileExit)
         mMenuBar.add(mMenuFile)
 
@@ -707,12 +710,31 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
         mMenuView.addSeparator()
 
-        mItemFind = JCheckBoxMenuItem(Strings.FIND)
-        mItemFind.addActionListener(mActionHandler)
+        mItemFind = JCheckBoxMenuItem(Strings.FIND).apply {
+            accelerator = KeyStroke.getKeyStroke(KeyEvent.VK_F, ActionEvent.CTRL_MASK)
+            addActionListener {
+                mFindPanel.isVisible = true
+                mItemFind.state = mFindPanel.isVisible
+            }
+        }
         mMenuView.add(mItemFind)
 
-        mItemTrigger = JCheckBoxMenuItem(Strings.LOG_TRIGGER)
-        mItemTrigger.addActionListener(mActionHandler)
+        mItemTrigger = JCheckBoxMenuItem(Strings.LOG_TRIGGER).apply {
+            accelerator = KeyStroke.getKeyStroke(KeyEvent.VK_T, ActionEvent.CTRL_MASK)
+            addActionListener {
+                if (!mAgingTestManager.mTriggerPanel.isVisible) {
+                    mAgingTestManager.mTriggerPanel.isVisible = true
+                }
+                else {
+                    if (mAgingTestManager.mTriggerPanel.canHide()) {
+                        mAgingTestManager.mTriggerPanel.isVisible = false
+                    }
+                    else {
+                        JOptionPane.showMessageDialog(this@MainUI, Strings.TRIGGER_CANNOT_HIDE, Strings.WARNING, JOptionPane.WARNING_MESSAGE)
+                    }
+                }
+            }
+        }
         mMenuView.add(mItemTrigger)
 
         mMenuView.addSeparator()
@@ -2510,9 +2532,6 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                         Utils.printlnLog("Cancel $title")
                     }
                 }
-                mItemFileExit -> {
-                    exit()
-                }
                 mItemLogCmd, mItemLogFile -> {
                     val settingsDialog = LogCmdSettingsDialog(this@MainUI)
                     settingsDialog.setLocationRelativeTo(this@MainUI)
@@ -3878,17 +3897,6 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         var action: Action = object : AbstractAction() {
             override fun actionPerformed(event: ActionEvent) {
                 mFindPanel.isVisible = false
-                mItemFind.state = mFindPanel.isVisible
-            }
-        }
-        rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(stroke, actionMapKey)
-        rootPane.actionMap.put(actionMapKey, action)
-
-        stroke = KeyStroke.getKeyStroke(KeyEvent.VK_F, KeyEvent.CTRL_MASK)
-        actionMapKey = javaClass.name + ":FIND_OPENING"
-        action = object : AbstractAction() {
-            override fun actionPerformed(event: ActionEvent) {
-                mFindPanel.isVisible = true
                 mItemFind.state = mFindPanel.isVisible
             }
         }
