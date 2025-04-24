@@ -799,6 +799,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
 
         var idx = 0
         var prevIdx = 0
+        var keyFilterColor = ""
         while (idx < newValue.length) {
             prevIdx = idx
             for (currStep in STEP_FIND until STEP_SIZE) {
@@ -806,6 +807,9 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                     if (posStarts[currStep].size > 0) {
                         stepStarts[currStep] = posStarts[currStep].poll()
                         stepEnds[currStep] = posEnds[currStep].poll()
+                        if (currStep == STEP_FILTER) {
+                            keyFilterColor = newValue.substring(stepStarts[currStep], stepEnds[currStep]).uppercase()
+                        }
 
                         if (idx in (stepStarts[currStep] + 1) until stepEnds[currStep]) {
                             stepStarts[currStep] = idx
@@ -860,16 +864,14 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                             bgColors.push(mTableColor.mStrHighlightBG)
                         }
                         STEP_FILTER -> {
-                            val key = newValue.substring(stepStarts[currStep], stepEnds[currStep]).uppercase()
-
-                            if (mFilteredFGMap[key] != null) {
-                                fgColors.push(mFilteredFGMap[key]!!.mColor)
-                                bgColors.push(mFilteredBGMap[key]!!.mColor)
+                            if (mFilteredFGMap[keyFilterColor] != null) {
+                                fgColors.push(mFilteredFGMap[keyFilterColor]!!.mColor)
+                                bgColors.push(mFilteredBGMap[keyFilterColor]!!.mColor)
                             } else if (IsColorTagRegex) {
                                 var isFind = false
                                 for (item in mFilteredFGMap.keys) {
                                     val pattern = mFilteredFGMap[item]?.mPattern
-                                    if ((pattern != null) && pattern.matcher(key).find()) {
+                                    if ((pattern != null) && pattern.matcher(keyFilterColor).find()) {
                                         fgColors.push(mFilteredFGMap[item]!!.mColor)
                                         bgColors.push(mFilteredBGMap[item]!!.mColor)
                                         isFind = true
