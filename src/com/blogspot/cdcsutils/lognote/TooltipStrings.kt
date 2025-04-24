@@ -102,17 +102,17 @@ class TooltipStrings private constructor() {
             get() { return currStrings[field]!! }
         val LOG_CMD_COMBO = idx++.toString()
             get() { return currStrings[field]!! }
-        val SEARCH_COMBO = idx++.toString()
+        val FIND_COMBO = idx++.toString()
             get() { return currStrings[field]!! }
-        val SEARCH_CASE_TOGGLE = idx++.toString()
+        val FIND_CASE_TOGGLE = idx++.toString()
             get() { return currStrings[field]!! }
-        val SEARCH_PREV_BTN = idx++.toString()
+        val FIND_PREV_BTN = idx++.toString()
             get() { return currStrings[field]!! }
-        val SEARCH_NEXT_BTN = idx++.toString()
+        val FIND_NEXT_BTN = idx++.toString()
             get() { return currStrings[field]!! }
-        val SEARCH_TARGET_LABEL = idx++.toString()
+        val FIND_TARGET_LABEL = idx++.toString()
             get() { return currStrings[field]!! }
-        val SEARCH_CLOSE_BTN = idx++.toString()
+        val FIND_CLOSE_BTN = idx++.toString()
             get() { return currStrings[field]!! }
         val ONLY_NUMBER = idx++.toString()
             get() { return currStrings[field]!! }

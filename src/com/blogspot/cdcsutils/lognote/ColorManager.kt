@@ -70,8 +70,8 @@ class ColorManager private constructor(){
         HIGHLIGHT_BG(23),
         FILTERED_START_FG(24),
         FILTERED_START_BG(33),
-        SEARCH_FG(42),
-        SEARCH_BG(43),
+        FIND_FG(42),
+        FIND_BG(43),
         ;
 
         companion object {
@@ -228,12 +228,12 @@ class ColorManager private constructor(){
         var mHighlightFG: Color = Color.decode(mStrHighlightFG)
             private set
 
-        var mStrSearchFG = "#000000"
+        var mStrFindFG = "#000000"
             set(value) {
                 field = value
-                mSearchFG = Color.decode(value)
+                mFindFG = Color.decode(value)
             }
-        var mSearchFG: Color = Color.decode(mStrSearchFG)
+        var mFindFG: Color = Color.decode(mStrFindFG)
             private set
 
         var mStrSelectedBG = "#000000"
@@ -380,12 +380,12 @@ class ColorManager private constructor(){
         var mHighlightBG: Color = Color.decode(mStrHighlightBG)
             private set
 
-        var mStrSearchBG = "#000000"
+        var mStrFindBG = "#000000"
             set(value) {
                 field = value
-                mSearchBG = Color.decode(value)
+                mFindBG = Color.decode(value)
             }
-        var mSearchBG: Color = Color.decode(mStrSearchBG)
+        var mFindBG: Color = Color.decode(mStrFindBG)
             private set
         
         var mStrFilteredFGs = arrayOf(mColorSchemeLight[0],
@@ -455,8 +455,8 @@ class ColorManager private constructor(){
                 ColorItem(41, "Filtered 7 BG", mColorSchemeLight[39]),
                 ColorItem(42, "Filtered 8 BG", mColorSchemeLight[40]),
                 ColorItem(43, "Filtered 9 BG", mColorSchemeLight[41]),
-                ColorItem(12, "Search FG", mColorSchemeLight[42]),
-                ColorItem(25, "Search BG", mColorSchemeLight[43]),
+                ColorItem(12, "Find FG", mColorSchemeLight[42]),
+                ColorItem(25, "Find BG", mColorSchemeLight[43]),
         )
 
         fun getConfig() {
@@ -492,7 +492,7 @@ class ColorManager private constructor(){
             mStrToken1FG = mColorArray[TableColorIdx.TOKEN1_FG.value].mStrColor
             mStrToken2FG = mColorArray[TableColorIdx.TOKEN2_FG.value].mStrColor
             mStrHighlightFG = mColorArray[TableColorIdx.HIGHLIGHT_FG.value].mStrColor
-            mStrSearchFG = mColorArray[TableColorIdx.SEARCH_FG.value].mStrColor
+            mStrFindFG = mColorArray[TableColorIdx.FIND_FG.value].mStrColor
             mStrLineNumFG = mColorArray[TableColorIdx.LINE_NUM_FG.value].mStrColor
             mStrNumLogSeperatorBG = mColorArray[TableColorIdx.NUM_LOG_SEPERATOR_BG.value].mStrColor
             mStrBookmarkSelectedBG = mColorArray[TableColorIdx.BOOKMARK_SELECTED_BG.value].mStrColor
@@ -500,7 +500,7 @@ class ColorManager private constructor(){
             mStrNumBookmarkBG = mColorArray[TableColorIdx.NUM_BOOKMARK_BG.value].mStrColor
             mStrNumSelectedBG = mColorArray[TableColorIdx.NUM_SELECTED_BG.value].mStrColor
             mStrHighlightBG = mColorArray[TableColorIdx.HIGHLIGHT_BG.value].mStrColor
-            mStrSearchBG = mColorArray[TableColorIdx.SEARCH_BG.value].mStrColor
+            mStrFindBG = mColorArray[TableColorIdx.FIND_BG.value].mStrColor
 
             for (idx in mStrFilteredFGs.indices) {
                 if (idx == 0) {

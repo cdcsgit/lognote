@@ -186,15 +186,15 @@ class Strings private constructor() {
             get() { return currStrings[field]!! }
         val ADD_EXCLUDE: String = idx++.toString()
             get() { return currStrings[field]!! }
-        val ADD_SEARCH: String = idx++.toString()
+        val ADD_FIND: String = idx++.toString()
             get() { return currStrings[field]!! }
         val SET_INCLUDE: String = idx++.toString()
             get() { return currStrings[field]!! }
         val REMOVE_INCLUDE: String = idx++.toString()
             get() { return currStrings[field]!! }
-        val SET_SEARCH: String = idx++.toString()
+        val SET_FIND: String = idx++.toString()
             get() { return currStrings[field]!! }
-        val SEARCH: String = idx++.toString()
+        val FIND: String = idx++.toString()
             get() { return currStrings[field]!! }
         val CMD: String = idx++.toString()
             get() { return currStrings[field]!! }

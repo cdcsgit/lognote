@@ -327,8 +327,8 @@ class ToolsPane private constructor(): JTabbedPane() {
             var mIncludeSetItem = JMenuItem(Strings.SET_INCLUDE)
             var mIncludeRemoveItem = JMenuItem(Strings.REMOVE_INCLUDE)
             var mExcludeItem = JMenuItem(Strings.ADD_EXCLUDE)
-            var mSearchAddItem = JMenuItem(Strings.ADD_SEARCH)
-            var mSearchSetItem = JMenuItem(Strings.SET_SEARCH)
+            var mFindAddItem = JMenuItem(Strings.ADD_FIND)
+            var mFindSetItem = JMenuItem(Strings.SET_FIND)
             var mCopyItem = JMenuItem(Strings.COPY)
             var mCloseItem = JMenuItem(Strings.CLOSE)
             private val mActionHandler = ActionHandler()
@@ -355,10 +355,10 @@ class ToolsPane private constructor(): JTabbedPane() {
 
                 mExcludeItem.addActionListener(mActionHandler)
                 add(mExcludeItem)
-                mSearchAddItem.addActionListener(mActionHandler)
-                add(mSearchAddItem)
-                mSearchSetItem.addActionListener(mActionHandler)
-                add(mSearchSetItem)
+                mFindAddItem.addActionListener(mActionHandler)
+                add(mFindAddItem)
+                mFindSetItem.addActionListener(mActionHandler)
+                add(mFindSetItem)
                 mCopyItem.addActionListener(mActionHandler)
                 add(mCopyItem)
                 mCloseItem.addActionListener(mActionHandler)
@@ -389,16 +389,16 @@ class ToolsPane private constructor(): JTabbedPane() {
                                 MainUI.getInstance().applyShowLogCombo(true)
                             }
                         }
-                        mSearchAddItem -> {
+                        mFindAddItem -> {
                             if (!mEditorPane.selectedText.isNullOrEmpty()) {
-                                var text = MainUI.getInstance().getTextSearchCombo()
+                                var text = MainUI.getInstance().getTextFindCombo()
                                 text += "|" + mEditorPane.selectedText.replace("\u00a0"," ")
-                                MainUI.getInstance().setTextSearchCombo(text)
+                                MainUI.getInstance().setTextFindCombo(text)
                             }
                         }
-                        mSearchSetItem -> {
+                        mFindSetItem -> {
                             if (!mEditorPane.selectedText.isNullOrEmpty()) {
-                                MainUI.getInstance().setTextSearchCombo(mEditorPane.selectedText.replace("\u00a0"," "))
+                                MainUI.getInstance().setTextFindCombo(mEditorPane.selectedText.replace("\u00a0"," "))
                             }
                         }
                         mCopyItem -> {

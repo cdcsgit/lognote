@@ -35,10 +35,9 @@ class ConfigManager private constructor() {
         const val ITEM_HIGHLIGHT_LOG = "HIGHLIGHT_LOG_"
         const val COUNT_HIGHLIGHT_LOG = 10
 
-        const val ITEM_SEARCH_LOG = "SEARCH_LOG_"
-        const val COUNT_SEARCH_LOG = 10
-
-        const val ITEM_SEARCH_MATCH_CASE = "SEARCH_MATCH_CASE"
+        const val ITEM_FIND_LOG = "SEARCH_LOG_"
+        const val COUNT_FIND_LOG = 10
+        const val ITEM_FIND_MATCH_CASE = "SEARCH_MATCH_CASE"
 
         const val ITEM_SHOW_LOG_CHECK = "SHOW_LOG_CHECK"
         const val ITEM_TOKEN_CHECK = "TOKEN_CHECK_"

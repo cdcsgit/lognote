@@ -104,7 +104,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     private lateinit var mItemProcessNameNone: JRadioButtonMenuItem
     private lateinit var mItemProcessNameShow: JRadioButtonMenuItem
     private lateinit var mItemProcessNameColor: JRadioButtonMenuItem
-    private lateinit var mItemSearch: JCheckBoxMenuItem
+    private lateinit var mItemFind: JCheckBoxMenuItem
     private lateinit var mItemTrigger: JCheckBoxMenuItem
     private lateinit var mItemRotation: JMenuItem
     private lateinit var mMenuSettings: JMenu
@@ -134,7 +134,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 //    private lateinit var mRotationBtn: ColorButton
 //    lateinit var mFiltersBtn: ColorButton
 //    lateinit var mCmdsBtn: ColorButton
-    internal lateinit var mSearchPanel: SearchPanel
+    internal lateinit var mFindPanel: FindPanel
 
     private lateinit var mLogPanel: JPanel
     private lateinit var mShowLogPanel: JPanel
@@ -486,7 +486,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         }
 
         saveFilterCombo(mBoldLogCombo, ConfigManager.ITEM_HIGHLIGHT_LOG, ConfigManager.SAVE_FILTER_COUNT, ConfigManager.COUNT_HIGHLIGHT_LOG)
-        saveFilterCombo(mSearchPanel.mSearchCombo, ConfigManager.ITEM_SEARCH_LOG, ConfigManager.SAVE_FILTER_COUNT, ConfigManager.COUNT_SEARCH_LOG)
+        saveFilterCombo(mFindPanel.mFindCombo, ConfigManager.ITEM_FIND_LOG, ConfigManager.SAVE_FILTER_COUNT, ConfigManager.COUNT_FIND_LOG)
 
         try {
             mConfigManager.setItem(ConfigManager.ITEM_ADB_DEVICE, mLogCmdManager.mTargetDevice)
@@ -556,7 +556,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                     
                     mBoldLogToggle.isSelected = recentItem.mHighlightLogCheck
                     mBoldLogCombo.setEnabledFilter(mBoldLogToggle.isSelected)
-                    mSearchPanel.mSearchMatchCaseToggle.isSelected = recentItem.mSearchMatchCase
+                    mFindPanel.mFindMatchCaseToggle.isSelected = recentItem.mFindMatchCase
 
                     mShowLogCombo.setFilterText(recentItem.mShowLog)
                     mShowLogCombo.applyFilterText(true)
@@ -565,8 +565,8 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                     }
                     mBoldLogCombo.setFilterText(recentItem.mHighlightLog)
                     mBoldLogCombo.applyFilterText(true)
-                    mSearchPanel.mSearchCombo.setFilterText(recentItem.mSearchLog)
-                    mSearchPanel.mSearchCombo.applyFilterText(true)
+                    mFindPanel.mFindCombo.setFilterText(recentItem.mFindLog)
+                    mFindPanel.mFindCombo.applyFilterText(true)
                 }
             }
 
@@ -707,9 +707,9 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
         mMenuView.addSeparator()
 
-        mItemSearch = JCheckBoxMenuItem(Strings.SEARCH)
-        mItemSearch.addActionListener(mActionHandler)
-        mMenuView.add(mItemSearch)
+        mItemFind = JCheckBoxMenuItem(Strings.FIND)
+        mItemFind.addActionListener(mActionHandler)
+        mMenuView.add(mItemFind)
 
         mItemTrigger = JCheckBoxMenuItem(Strings.LOG_TRIGGER)
         mItemTrigger.addActionListener(mActionHandler)
@@ -800,7 +800,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mLogToolBar.border = BorderFactory.createEmptyBorder(3, 3, 3, 3)
         mLogToolBar.addMouseListener(mMouseHandler)
 
-        mSearchPanel = SearchPanel()
+        mFindPanel = FindPanel()
 
         val btnMargin = Insets(2, 5, 2, 5)
 //        mLogToolBar = JPanel()
@@ -1048,14 +1048,14 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
         mFilterPanel.add(toolBarPanel)
         mFilterPanel.add(mFilterLeftPanel)
-        mFilterPanel.add(mSearchPanel)
+        mFilterPanel.add(mFindPanel)
         mFilterPanel.add(mAgingTestManager.mTriggerPanel)
 
-        mSearchPanel.isVisible = false
-        mItemSearch.state = mSearchPanel.isVisible
+        mFindPanel.isVisible = false
+        mItemFind.state = mFindPanel.isVisible
 
         mAgingTestManager.mTriggerPanel.isVisible = false
-        mItemSearch.state = mAgingTestManager.mTriggerPanel.isVisible
+        mItemFind.state = mAgingTestManager.mTriggerPanel.isVisible
 
         layout = BorderLayout()
 
@@ -1271,18 +1271,18 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         }
         mBoldLogCombo.setEnabledFilter(mBoldLogToggle.isSelected)
 
-        for (i in 0 until ConfigManager.COUNT_SEARCH_LOG) {
-            item = mConfigManager.getItem(ConfigManager.ITEM_SEARCH_LOG + i)
+        for (i in 0 until ConfigManager.COUNT_FIND_LOG) {
+            item = mConfigManager.getItem(ConfigManager.ITEM_FIND_LOG + i)
             if (item == null) {
                 break
             }
-            mSearchPanel.mSearchCombo.insertItemAt(item, i)
+            mFindPanel.mFindCombo.insertItemAt(item, i)
             if (i == 0) {
-                mSearchPanel.mSearchCombo.selectedIndex = 0
+                mFindPanel.mFindCombo.selectedIndex = 0
             }
         }
 
-        mSearchPanel.mSearchCombo.updateTooltip()
+        mFindPanel.mFindCombo.updateTooltip()
 
         updateLogCmdCombo(true)
 
@@ -1335,10 +1335,10 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         } else {
             mFilteredLogPanel.mTableModel.mFilterHighlightLog = ""
         }
-        if (mSearchPanel.isVisible && mSearchPanel.mSearchCombo.selectedItem != null) {
-            mFilteredLogPanel.mTableModel.mFilterSearchLog = mSearchPanel.mSearchCombo.selectedItem!!.toString()
+        if (mFindPanel.isVisible && mFindPanel.mFindCombo.selectedItem != null) {
+            mFilteredLogPanel.mTableModel.mFilterFindLog = mFindPanel.mFindCombo.selectedItem!!.toString()
         } else {
-            mFilteredLogPanel.mTableModel.mFilterSearchLog = ""
+            mFilteredLogPanel.mTableModel.mFilterFindLog = ""
         }
         
         for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
@@ -1485,13 +1485,13 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         }
         mFilteredLogPanel.mTableModel.mMatchCase = mMatchCaseToggle.isSelected
 
-        check = mConfigManager.getItem(ConfigManager.ITEM_SEARCH_MATCH_CASE)
+        check = mConfigManager.getItem(ConfigManager.ITEM_FIND_MATCH_CASE)
         if (!check.isNullOrEmpty()) {
-            mSearchPanel.mSearchMatchCaseToggle.isSelected = check.toBoolean()
+            mFindPanel.mFindMatchCaseToggle.isSelected = check.toBoolean()
         } else {
-            mSearchPanel.mSearchMatchCaseToggle.isSelected = false
+            mFindPanel.mFindMatchCaseToggle.isSelected = false
         }
-        mFilteredLogPanel.mTableModel.mSearchMatchCase = mSearchPanel.mSearchMatchCaseToggle.isSelected
+        mFilteredLogPanel.mTableModel.mFindMatchCase = mFindPanel.mFindMatchCaseToggle.isSelected
 
         check = mConfigManager.getItem(ConfigManager.ITEM_COLOR_TAG_REGEX)
         if (!check.isNullOrEmpty()) {
@@ -1528,8 +1528,8 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         add(mStatusBar, BorderLayout.SOUTH)
 
         registerKeyStroke()
-        registerSearchKeyStroke()
-        registerTriggerKeyStroke()
+        registerFindKeyStroke()
+//        registerTriggerKeyStroke()
 
         IsCreatingUI = false
     }
@@ -1636,10 +1636,10 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         } else {
             mFilteredLogPanel.mTableModel.mFilterHighlightLog = ""
         }
-        if (mSearchPanel.isVisible && mSearchPanel.mSearchCombo.selectedItem != null) {
-            mFilteredLogPanel.mTableModel.mFilterSearchLog = mSearchPanel.mSearchCombo.selectedItem!!.toString()
+        if (mFindPanel.isVisible && mFindPanel.mFindCombo.selectedItem != null) {
+            mFilteredLogPanel.mTableModel.mFilterFindLog = mFindPanel.mFindCombo.selectedItem!!.toString()
         } else {
-            mFilteredLogPanel.mTableModel.mFilterSearchLog = ""
+            mFilteredLogPanel.mTableModel.mFilterFindLog = ""
         }
 
         for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
@@ -1658,7 +1658,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mFilteredLogPanel.mTableModel.mScrollback = scrollback
         mFilteredLogPanel.mTableModel.mScrollbackSplitFile = mScrollbackSplitFileToggle.isSelected
         mFilteredLogPanel.mTableModel.mMatchCase = mMatchCaseToggle.isSelected
-        mFilteredLogPanel.mTableModel.mSearchMatchCase = mSearchPanel.mSearchMatchCaseToggle.isSelected
+        mFilteredLogPanel.mTableModel.mFindMatchCase = mFindPanel.mFindMatchCaseToggle.isSelected
 
         rotateLogSplitPane(false)
 
@@ -2186,7 +2186,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                 item.mTokenCheck[idx] = mTokenToggle[idx].isSelected
             }
             item.mHighlightLogCheck = mBoldLogToggle.isSelected
-            item.mSearchMatchCase = mSearchPanel.mSearchMatchCaseToggle.isSelected
+            item.mFindMatchCase = mFindPanel.mFindMatchCaseToggle.isSelected
 
             for (bookmark in mBookmarkManager.mBookmarks) {
                 if (bookmark >= openItem.mStartLine && bookmark <= openItem.mEndLine) {
@@ -2199,7 +2199,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                 item.mTokenFilter[idx] = mTokenCombo[idx].selectedItem?.toString() ?: ""
             }
             item.mHighlightLog = mBoldLogCombo.selectedItem?.toString() ?: ""
-            item.mSearchLog = mSearchPanel.mSearchCombo.selectedItem?.toString() ?: ""
+            item.mFindLog = mFindPanel.mFindCombo.selectedItem?.toString() ?: ""
 
             mRecentFileManager.mRecentList.add(0, item)
         }
@@ -2219,14 +2219,14 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             item.mTokenCheck[idx] = mTokenToggle[idx].isSelected
         }
         item.mHighlightLogCheck = mBoldLogToggle.isSelected
-        item.mSearchMatchCase = mSearchPanel.mSearchMatchCaseToggle.isSelected
+        item.mFindMatchCase = mFindPanel.mFindMatchCaseToggle.isSelected
 
         item.mShowLog = mShowLogCombo.selectedItem?.toString() ?: ""
         for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
             item.mTokenFilter[idx] = mTokenCombo[idx].selectedItem?.toString() ?: ""
         }
         item.mHighlightLog = mBoldLogCombo.selectedItem?.toString() ?: ""
-        item.mSearchLog = mSearchPanel.mSearchCombo.selectedItem?.toString() ?: ""
+        item.mFindLog = mFindPanel.mFindCombo.selectedItem?.toString() ?: ""
 
         mRecentFileManager.mRecentList.add(0, item)
         mRecentFileManager.saveList()
@@ -2564,9 +2564,9 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                     resetLogPanel(true)
                 }
 
-                mItemSearch -> {
-                    mSearchPanel.isVisible = !mSearchPanel.isVisible
-                    mItemSearch.state = mSearchPanel.isVisible
+                mItemFind -> {
+                    mFindPanel.isVisible = !mFindPanel.isVisible
+                    mItemFind.state = mFindPanel.isVisible
                 }
 
                 mItemTrigger -> {
@@ -3149,18 +3149,18 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         }
     }
 
-    fun getTextSearchCombo() : String {
-        if (mSearchPanel.mSearchCombo.selectedItem == null) {
+    fun getTextFindCombo() : String {
+        if (mFindPanel.mFindCombo.selectedItem == null) {
             return ""
         }
-        return mSearchPanel.mSearchCombo.selectedItem!!.toString()
+        return mFindPanel.mFindCombo.selectedItem!!.toString()
     }
 
-    fun setTextSearchCombo(text : String) {
-        mSearchPanel.mSearchCombo.selectedItem = text
-        mFilteredLogPanel.mTableModel.mFilterSearchLog = mSearchPanel.mSearchCombo.selectedItem!!.toString()
-        mSearchPanel.isVisible = true
-        mItemSearch.state = mSearchPanel.isVisible
+    fun setTextFindCombo(text : String) {
+        mFindPanel.mFindCombo.selectedItem = text
+        mFilteredLogPanel.mTableModel.mFilterFindLog = mFindPanel.mFindCombo.selectedItem!!.toString()
+        mFindPanel.isVisible = true
+        mItemFind.state = mFindPanel.isVisible
     }
 
     fun setDeviceComboColor(isConnected: Boolean) {
@@ -3652,10 +3652,10 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         }
     }
 
-    inner class SearchPanel : JPanel() {
-        var mSearchCombo: FilterComboBox
-        var mSearchMatchCaseToggle: FilterToggleButton
-        private var mSearchLabel: JLabel
+    inner class FindPanel : JPanel() {
+        var mFindCombo: FilterComboBox
+        var mFindMatchCaseToggle: FilterToggleButton
+        private var mFindLabel: JLabel
         private var mTargetLabel: JLabel
         private var mUpBtn: ColorButton
         private var mDownBtn: ColorButton
@@ -3663,78 +3663,78 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
         var mTargetView = true  // true : filter view, false : full view
 
-        private val mSearchActionHandler = SearchActionHandler()
-        private val mSearchKeyHandler = SearchKeyHandler()
-        private val mSearchPopupMenuHandler = SearchPopupMenuHandler()
+        private val mFindActionHandler = FindActionHandler()
+        private val mFindKeyHandler = FindKeyHandler()
+        private val mFindPopupMenuHandler = FindPopupMenuHandler()
 
         init {
-            mSearchLabel = JLabel("${Strings.SEARCH} ")
-            mSearchCombo = FilterComboBox(FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT, false)
-            mSearchCombo.preferredSize = Dimension(700, mSearchCombo.preferredSize.height)
+            mFindLabel = JLabel("${Strings.FIND} ")
+            mFindCombo = FilterComboBox(FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT, false)
+            mFindCombo.preferredSize = Dimension(700, mFindCombo.preferredSize.height)
 
-            mSearchCombo.toolTipText = TooltipStrings.SEARCH_COMBO
-            mSearchCombo.mEnabledTfTooltip = false
-            mSearchCombo.isEditable = true
-            mSearchCombo.renderer = FilterComboBox.ComboBoxRenderer()
-            val keyListeners = mSearchCombo.editor.editorComponent.keyListeners
+            mFindCombo.toolTipText = TooltipStrings.FIND_COMBO
+            mFindCombo.mEnabledTfTooltip = false
+            mFindCombo.isEditable = true
+            mFindCombo.renderer = FilterComboBox.ComboBoxRenderer()
+            val keyListeners = mFindCombo.editor.editorComponent.keyListeners
             for (listener in keyListeners) {
                 if (listener is FilterComboBox.KeyHandler) {
-                    mSearchCombo.editor.editorComponent.removeKeyListener(listener)
+                    mFindCombo.editor.editorComponent.removeKeyListener(listener)
                     break
                 }
             }
-            mSearchCombo.editor.editorComponent.addKeyListener(mSearchKeyHandler)
-            mSearchCombo.addPopupMenuListener(mSearchPopupMenuHandler)
+            mFindCombo.editor.editorComponent.addKeyListener(mFindKeyHandler)
+            mFindCombo.addPopupMenuListener(mFindPopupMenuHandler)
 
-            mSearchMatchCaseToggle = FilterToggleButton("Aa")
-            mSearchMatchCaseToggle.toolTipText = TooltipStrings.SEARCH_CASE_TOGGLE
-            mSearchMatchCaseToggle.margin = Insets(0, 0, 0, 0)
-            mSearchMatchCaseToggle.addItemListener(SearchItemHandler())
+            mFindMatchCaseToggle = FilterToggleButton("Aa")
+            mFindMatchCaseToggle.toolTipText = TooltipStrings.FIND_CASE_TOGGLE
+            mFindMatchCaseToggle.margin = Insets(0, 0, 0, 0)
+            mFindMatchCaseToggle.addItemListener(FindItemHandler())
 
             mUpBtn = ColorButton("▲") //△ ▲ ▽ ▼
-            mUpBtn.toolTipText = TooltipStrings.SEARCH_PREV_BTN
+            mUpBtn.toolTipText = TooltipStrings.FIND_PREV_BTN
             mUpBtn.margin = Insets(0, 7, 0, 7)
-            mUpBtn.addActionListener(mSearchActionHandler)
+            mUpBtn.addActionListener(mFindActionHandler)
 
             mDownBtn = ColorButton("▼") //△ ▲ ▽ ▼
-            mDownBtn.toolTipText = TooltipStrings.SEARCH_NEXT_BTN
+            mDownBtn.toolTipText = TooltipStrings.FIND_NEXT_BTN
             mDownBtn.margin = Insets(0, 7, 0, 7)
-            mDownBtn.addActionListener(mSearchActionHandler)
+            mDownBtn.addActionListener(mFindActionHandler)
 
             mTargetLabel = if (mTargetView) {
                 JLabel("  # ${Strings.FILTER} ${Strings.LOG} View")
             } else {
                 JLabel("  # ${Strings.FULL} ${Strings.LOG} View")
             }
-            mTargetLabel.toolTipText = TooltipStrings.SEARCH_TARGET_LABEL
+            mTargetLabel.toolTipText = TooltipStrings.FIND_TARGET_LABEL
 
             mCloseBtn = ColorButton(Strings.HIDE)
-            mCloseBtn.toolTipText = TooltipStrings.SEARCH_CLOSE_BTN
+            mCloseBtn.toolTipText = TooltipStrings.FIND_CLOSE_BTN
             mCloseBtn.margin = Insets(0, 3, 0, 3)
-            mCloseBtn.addActionListener(mSearchActionHandler)
+            mCloseBtn.addActionListener(mFindActionHandler)
 
-            val searchPanel = JPanel(FlowLayout(FlowLayout.LEFT, 5, 2))
-            searchPanel.add(mSearchLabel)
-            searchPanel.add(mSearchCombo)
-            searchPanel.add(mSearchMatchCaseToggle)
-            searchPanel.add(mUpBtn)
-            searchPanel.add(mDownBtn)
+            val findPanel = JPanel(FlowLayout(FlowLayout.LEFT, 5, 2))
+            findPanel.add(mFindLabel)
+            findPanel.add(mFindCombo)
+            findPanel.add(mFindMatchCaseToggle)
+            findPanel.add(mUpBtn)
+            findPanel.add(mDownBtn)
 
-            searchPanel.add(mTargetLabel)
-            searchPanel.add(mCloseBtn)
+            findPanel.add(mTargetLabel)
+            findPanel.add(mCloseBtn)
 
             layout = BorderLayout()
-            add(searchPanel, BorderLayout.WEST)
+            add(findPanel, BorderLayout.WEST)
 
             updateColor()
         }
 
         fun updateColor() {
-            mSearchMatchCaseToggle.background = background
+            mFindMatchCaseToggle.background = background
             mUpBtn.background = background
             mDownBtn.background = background
 
-            mSearchMatchCaseToggle.border = ColorButtonBorder(background)
+            mFindMatchCaseToggle.border = ColorButtonBorder(background)
             mUpBtn.border = ColorButtonBorder(background)
             mDownBtn.border = ColorButtonBorder(background)
         }
@@ -3745,16 +3745,16 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
             if (!IsCreatingUI) {
                 if (aFlag) {
-                    mSearchCombo.requestFocus()
-                    mSearchCombo.editor.selectAll()
-                    if (mSearchCombo.selectedItem != null) {
-                        mFilteredLogPanel.mTableModel.mFilterSearchLog = mSearchCombo.selectedItem!!.toString()
+                    mFindCombo.requestFocus()
+                    mFindCombo.editor.selectAll()
+                    if (mFindCombo.selectedItem != null) {
+                        mFilteredLogPanel.mTableModel.mFilterFindLog = mFindCombo.selectedItem!!.toString()
                     }
                     else {
-                        mFilteredLogPanel.mTableModel.mFilterSearchLog = ""
+                        mFilteredLogPanel.mTableModel.mFilterFindLog = ""
                     }
                 } else {
-                    mFilteredLogPanel.mTableModel.mFilterSearchLog = ""
+                    mFilteredLogPanel.mTableModel.mFilterFindLog = ""
                 }
             }
         }
@@ -3770,23 +3770,23 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
         fun moveToNext() {
             if (mTargetView) {
-                mFilteredLogPanel.mTableModel.moveToNextSearch()
+                mFilteredLogPanel.mTableModel.moveToNextFind()
             }
             else {
-                mFullLogPanel.mTableModel.moveToNextSearch()
+                mFullLogPanel.mTableModel.moveToNextFind()
             }
         }
 
         fun moveToPrev() {
             if (mTargetView) {
-                mFilteredLogPanel.mTableModel.moveToPrevSearch()
+                mFilteredLogPanel.mTableModel.moveToPrevFind()
             }
             else {
-                mFullLogPanel.mTableModel.moveToPrevSearch()
+                mFullLogPanel.mTableModel.moveToPrevFind()
             }
         }
 
-        internal inner class SearchActionHandler : ActionListener {
+        internal inner class FindActionHandler : ActionListener {
             override fun actionPerformed(p0: ActionEvent?) {
                 when (p0?.source) {
                     mUpBtn -> {
@@ -3796,21 +3796,21 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                         moveToNext()
                     }
                     mCloseBtn -> {
-                        mSearchPanel.isVisible = false
-                        mItemSearch.state = mSearchPanel.isVisible
+                        mFindPanel.isVisible = false
+                        mItemFind.state = mFindPanel.isVisible
                     }
                 }
             }
         }
 
-        internal inner class SearchKeyHandler : KeyAdapter() {
+        internal inner class FindKeyHandler : KeyAdapter() {
             override fun keyReleased(p0: KeyEvent?) {
                 if (KeyEvent.VK_ENTER == p0?.keyCode) {
                     when (p0.source) {
-                        mSearchCombo.editor.editorComponent -> {
-                            val item = mSearchCombo.selectedItem!!.toString()
-                            mSearchCombo.resetComboItem(item)
-                            mFilteredLogPanel.mTableModel.mFilterSearchLog = item
+                        mFindCombo.editor.editorComponent -> {
+                            val item = mFindCombo.selectedItem!!.toString()
+                            mFindCombo.resetComboItem(item)
+                            mFilteredLogPanel.mTableModel.mFilterFindLog = item
                             if (KeyEvent.SHIFT_MASK == p0.modifiers) {
                                 moveToPrev()
                             }
@@ -3823,7 +3823,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                 super.keyReleased(p0)
             }
         }
-        internal inner class SearchPopupMenuHandler : PopupMenuListener {
+        internal inner class FindPopupMenuHandler : PopupMenuListener {
             private var mIsCanceled = false
             override fun popupMenuWillBecomeInvisible(p0: PopupMenuEvent?) {
                 if (mIsCanceled) {
@@ -3831,14 +3831,14 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                     return
                 }
                 when (p0?.source) {
-                    mSearchCombo -> {
-                        if (mSearchCombo.selectedIndex < 0) {
+                    mFindCombo -> {
+                        if (mFindCombo.selectedIndex < 0) {
                             return
                         }
-                        val item = mSearchCombo.selectedItem!!.toString()
-                        mSearchCombo.resetComboItem(item)
-                        mFilteredLogPanel.mTableModel.mFilterSearchLog = item
-                        mSearchCombo.updateTooltip()
+                        val item = mFindCombo.selectedItem!!.toString()
+                        mFindCombo.resetComboItem(item)
+                        mFilteredLogPanel.mTableModel.mFilterFindLog = item
+                        mFindCombo.updateTooltip()
                     }
                 }
             }
@@ -3857,50 +3857,50 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             }
         }
 
-        internal inner class SearchItemHandler : ItemListener {
+        internal inner class FindItemHandler : ItemListener {
             override fun itemStateChanged(p0: ItemEvent?) {
                 if (IsCreatingUI) {
                     return
                 }
                 when (p0?.source) {
-                    mSearchMatchCaseToggle -> {
-                        mFilteredLogPanel.mTableModel.mSearchMatchCase = mSearchMatchCaseToggle.isSelected
-                        mConfigManager.saveItem(ConfigManager.ITEM_SEARCH_MATCH_CASE, mSearchMatchCaseToggle.isSelected.toString())
+                    mFindMatchCaseToggle -> {
+                        mFilteredLogPanel.mTableModel.mFindMatchCase = mFindMatchCaseToggle.isSelected
+                        mConfigManager.saveItem(ConfigManager.ITEM_FIND_MATCH_CASE, mFindMatchCaseToggle.isSelected.toString())
                     }
                 }
             }
         }
     }
 
-    private fun registerSearchKeyStroke() {
+    private fun registerFindKeyStroke() {
         var stroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0)
-        var actionMapKey = javaClass.name + ":SEARCH_CLOSING"
+        var actionMapKey = javaClass.name + ":FIND_CLOSING"
         var action: Action = object : AbstractAction() {
             override fun actionPerformed(event: ActionEvent) {
-                mSearchPanel.isVisible = false
-                mItemSearch.state = mSearchPanel.isVisible
+                mFindPanel.isVisible = false
+                mItemFind.state = mFindPanel.isVisible
             }
         }
         rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(stroke, actionMapKey)
         rootPane.actionMap.put(actionMapKey, action)
 
         stroke = KeyStroke.getKeyStroke(KeyEvent.VK_F, KeyEvent.CTRL_MASK)
-        actionMapKey = javaClass.name + ":SEARCH_OPENING"
+        actionMapKey = javaClass.name + ":FIND_OPENING"
         action = object : AbstractAction() {
             override fun actionPerformed(event: ActionEvent) {
-                mSearchPanel.isVisible = true
-                mItemSearch.state = mSearchPanel.isVisible
+                mFindPanel.isVisible = true
+                mItemFind.state = mFindPanel.isVisible
             }
         }
         rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(stroke, actionMapKey)
         rootPane.actionMap.put(actionMapKey, action)
 
         stroke = KeyStroke.getKeyStroke(KeyEvent.VK_F3, 0)
-        actionMapKey = javaClass.name + ":SEARCH_MOVE_PREV"
+        actionMapKey = javaClass.name + ":FIND_MOVE_PREV"
         action = object : AbstractAction() {
             override fun actionPerformed(event: ActionEvent) {
-                if (mSearchPanel.isVisible) {
-                    mSearchPanel.moveToPrev()
+                if (mFindPanel.isVisible) {
+                    mFindPanel.moveToPrev()
                 }
             }
         }
@@ -3908,11 +3908,11 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         rootPane.actionMap.put(actionMapKey, action)
 
         stroke = KeyStroke.getKeyStroke(KeyEvent.VK_F4, 0)
-        actionMapKey = javaClass.name + ":SEARCH_MOVE_NEXT"
+        actionMapKey = javaClass.name + ":FIND_MOVE_NEXT"
         action = object : AbstractAction() {
             override fun actionPerformed(event: ActionEvent) {
-                if (mSearchPanel.isVisible) {
-                    mSearchPanel.moveToNext()
+                if (mFindPanel.isVisible) {
+                    mFindPanel.moveToNext()
                 }
             }
         }
@@ -4030,8 +4030,8 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         rootPane.actionMap.put(actionMapKey, action)
     }
 
-    fun showSearchResultTooltip(isNext: Boolean, result: String) {
-        val targetPanel = if (mSearchPanel.mTargetView) {
+    fun showFindResultTooltip(isNext: Boolean, result: String) {
+        val targetPanel = if (mFindPanel.mTargetView) {
             mFilteredLogPanel
         }
         else {
@@ -4062,7 +4062,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         private val mIsFilter = isFilter
         override fun focusGained(e: FocusEvent?) {
             super.focusGained(e)
-            mSearchPanel.setTargetView(mIsFilter)
+            mFindPanel.setTargetView(mIsFilter)
         }
     }
 
@@ -4156,7 +4156,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
         setDeviceComboColor(mLogCmdManager.mDevices.contains(mDeviceCombo.selectedItem?.toString() ?: ""))
 
-        mSearchPanel.updateColor()
+        mFindPanel.updateColor()
 
         changeToolBtnColor()
         updateLogPanelTableBar(mConfigManager.loadFilters(), mConfigManager.loadCmds())

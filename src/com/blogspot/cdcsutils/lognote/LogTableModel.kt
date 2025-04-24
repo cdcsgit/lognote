@@ -73,9 +73,9 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
         }
     }
 
-    private var mPatternSearchLog: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
-    private var mMatcherSearchLog: Matcher = mPatternSearchLog.matcher("")
-    private var mNormalSearchLogSplit: List<String>? = null
+    private var mPatternFindLog: Pattern = Pattern.compile("", Pattern.CASE_INSENSITIVE)
+    private var mMatcherFindLog: Matcher = mPatternFindLog.matcher("")
+    private var mNormalFindLogSplit: List<String>? = null
 
     private var mTableColor: ColorManager.TableColor
     private val mColumnNames = arrayOf("Line", "Process", "Log")
@@ -169,54 +169,54 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
             }
         }
 
-    private fun updateFilterSearchLog(field: String) {
-        var normalSearchLog = ""
-        val searchLogSplit = field.split("|")
-        mRegexSearchLog = ""
+    private fun updateFilterFindLog(field: String) {
+        var normalFindLog = ""
+        val findLogSplit = field.split("|")
+        mRegexFindLog = ""
 
-        for (logUnit in searchLogSplit) {
+        for (logUnit in findLogSplit) {
             val hasIt: Boolean = logUnit.chars().anyMatch { c -> "\\.[]{}()*+?^$|".indexOf(c.toChar()) >= 0 }
             if (hasIt) {
-                if (mRegexSearchLog.isEmpty()) {
-                    mRegexSearchLog = logUnit
+                if (mRegexFindLog.isEmpty()) {
+                    mRegexFindLog = logUnit
                 }
                 else {
-                    mRegexSearchLog += "|$logUnit"
+                    mRegexFindLog += "|$logUnit"
                 }
             }
             else {
-                if (normalSearchLog.isEmpty()) {
-                    normalSearchLog = logUnit
+                if (normalFindLog.isEmpty()) {
+                    normalFindLog = logUnit
                 }
                 else {
-                    normalSearchLog += "|$logUnit"
+                    normalFindLog += "|$logUnit"
                 }
 
-                if (mSearchPatternCase == Pattern.CASE_INSENSITIVE) {
-                    normalSearchLog = normalSearchLog.uppercase()
+                if (mFindPatternCase == Pattern.CASE_INSENSITIVE) {
+                    normalFindLog = normalFindLog.uppercase()
                 }
             }
         }
 
-        mMainUI.mSearchPanel.mSearchCombo.mErrorMsg = ""
-        mPatternSearchLog = compilePattern(mRegexSearchLog, mSearchPatternCase, mPatternSearchLog, mMainUI.mSearchPanel.mSearchCombo)
-        mMatcherSearchLog = mPatternSearchLog.matcher("")
+        mMainUI.mFindPanel.mFindCombo.mErrorMsg = ""
+        mPatternFindLog = compilePattern(mRegexFindLog, mFindPatternCase, mPatternFindLog, mMainUI.mFindPanel.mFindCombo)
+        mMatcherFindLog = mPatternFindLog.matcher("")
 
-        mNormalSearchLogSplit = normalSearchLog.split("|")
+        mNormalFindLogSplit = normalFindLog.split("|")
     }
 
-    var mFilterSearchLog: String = ""
+    var mFilterFindLog: String = ""
         set(value) {
             val patterns = parsePattern(value, false)
             if (field != patterns[0]) {
                 mIsFilterUpdated = true
                 field = patterns[0]
 
-                updateFilterSearchLog(field)
+                updateFilterFindLog(field)
             }
 
             if (mBaseModel != null) {
-                mBaseModel!!.mFilterSearchLog = value
+                mBaseModel!!.mFilterFindLog = value
             }
         }
 
@@ -272,12 +272,12 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
             }
         }
 
-    private var mRegexSearchLog = ""
-    private var mSearchPatternCase = Pattern.CASE_INSENSITIVE
-    var mSearchMatchCase: Boolean = false
+    private var mRegexFindLog = ""
+    private var mFindPatternCase = Pattern.CASE_INSENSITIVE
+    var mFindMatchCase: Boolean = false
         set(value) {
             if (field != value) {
-                mSearchPatternCase = if (!value) {
+                mFindPatternCase = if (!value) {
                     Pattern.CASE_INSENSITIVE
                 } else {
                     0
@@ -287,10 +287,10 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
 
                 field = value
 
-                updateFilterSearchLog(mFilterSearchLog)
+                updateFilterFindLog(mFilterFindLog)
 
                 if (mBaseModel != null) {
-                    mBaseModel!!.mSearchMatchCase = value
+                    mBaseModel!!.mFindMatchCase = value
                 }
             }
         }
@@ -699,7 +699,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
         }
     }
 
-    private var mPatternPrintSearch:Pattern? = null
+    private var mPatternPrintFind:Pattern? = null
     private var mPatternPrintHighlight:Pattern? = null
     protected var mPatternPrintFilter:Pattern? = null
 
@@ -721,13 +721,13 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
 
         val stringBuilder = StringBuilder(newValue)
 
-        val searchStarts: Queue<Int> = LinkedList()
-        val searchEnds: Queue<Int> = LinkedList()
-        if (mPatternPrintSearch != null) {
-            val matcher = mPatternPrintSearch!!.matcher(stringBuilder.toString())
+        val findStarts: Queue<Int> = LinkedList()
+        val findEnds: Queue<Int> = LinkedList()
+        if (mPatternPrintFind != null) {
+            val matcher = mPatternPrintFind!!.matcher(stringBuilder.toString())
             while (matcher.find()) {
-                searchStarts.add(matcher.start(0))
-                searchEnds.add(matcher.end(0))
+                findStarts.add(matcher.start(0))
+                findEnds.add(matcher.end(0))
             }
         }
         
@@ -788,20 +788,20 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
         val bgColors = Stack<String>()
 
         val STEP_SIZE = 4
-        val STEP_SEARCH = 0
+        val STEP_FIND = 0
         val STEP_HIGHLIGHT = 1
         val STEP_FILTER = 2
         val STEP_TOKEN = 3
         val stepStarts: Array<Int> = Array(STEP_SIZE) { -1 }
         val stepEnds: Array<Int> = Array(STEP_SIZE) { -1 }
-        val posStarts: Array<Queue<Int>> = arrayOf(searchStarts, highlightStarts, filterStarts, tokenStarts)
-        val posEnds: Array<Queue<Int>> = arrayOf(searchEnds, highlightEnds, filterEnds, tokenEnds)
+        val posStarts: Array<Queue<Int>> = arrayOf(findStarts, highlightStarts, filterStarts, tokenStarts)
+        val posEnds: Array<Queue<Int>> = arrayOf(findEnds, highlightEnds, filterEnds, tokenEnds)
 
         var idx = 0
         var prevIdx = 0
         while (idx < newValue.length) {
             prevIdx = idx
-            for (currStep in STEP_SEARCH until STEP_SIZE) {
+            for (currStep in STEP_FIND until STEP_SIZE) {
                 while (stepEnds[currStep] <= idx) {
                     if (posStarts[currStep].size > 0) {
                         stepStarts[currStep] = posStarts[currStep].poll()
@@ -818,7 +818,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                 }
             }
 
-            for (currStep in STEP_SEARCH until STEP_SIZE) {
+            for (currStep in STEP_FIND until STEP_SIZE) {
                 if (idx == stepStarts[currStep]) {
                     for (step in currStep + 1 until STEP_SIZE) {
                         if (stepEnds[currStep] in (stepStarts[step] + 1) until stepEnds[step]) {
@@ -828,7 +828,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
 
                     var nextS = -1
                     var nextE = -1
-                    for (step in STEP_SEARCH until currStep) {
+                    for (step in STEP_FIND until currStep) {
                         if (stepStarts[step] in stepStarts[currStep] until stepEnds[currStep]) {
                             if (stepEnds[currStep] > stepEnds[step]) {
                                 nextS = stepEnds[step]
@@ -851,9 +851,9 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                     }
 
                     when (currStep) {
-                        STEP_SEARCH -> {
-                            fgColors.push(mTableColor.mStrSearchFG)
-                            bgColors.push(mTableColor.mStrSearchBG)
+                        STEP_FIND -> {
+                            fgColors.push(mTableColor.mStrFindFG)
+                            bgColors.push(mTableColor.mStrFindBG)
                         }
                         STEP_HIGHLIGHT -> {
                             fgColors.push(mTableColor.mStrHighlightFG)
@@ -1036,27 +1036,27 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
             return
         }
 
-        mBaseModel?.mFilterSearchLog = mFilterSearchLog
-        if (mFilterSearchLog.isEmpty()) {
-            mPatternPrintSearch = null
-            mBaseModel?.mPatternPrintSearch = null
+        mBaseModel?.mFilterFindLog = mFilterFindLog
+        if (mFilterFindLog.isEmpty()) {
+            mPatternPrintFind = null
+            mBaseModel?.mPatternPrintFind = null
         } else {
             var start = 0
             var index = 0
             var skip = false
 
             while (index != -1) {
-                index = mFilterSearchLog.indexOf('|', start)
+                index = mFilterFindLog.indexOf('|', start)
                 start = index + 1
-                if (index == 0 || index == mFilterSearchLog.lastIndex || mFilterSearchLog[index + 1] == '|') {
+                if (index == 0 || index == mFilterFindLog.lastIndex || mFilterFindLog[index + 1] == '|') {
                     skip = true
                     break
                 }
             }
 
             if (!skip) {
-                mPatternPrintSearch = Pattern.compile(mFilterSearchLog, mSearchPatternCase)
-                mBaseModel?.mPatternPrintSearch = mPatternPrintSearch
+                mPatternPrintFind = Pattern.compile(mFilterFindLog, mFindPatternCase)
+                mBaseModel?.mPatternPrintFind = mPatternPrintFind
             }
         }
 
@@ -1672,12 +1672,12 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
         mIsFollowPause = pause
     }
 
-    fun moveToNextSearch() {
-        moveToSearch(true)
+    fun moveToNextFind() {
+        moveToFind(true)
     }
 
-    fun moveToPrevSearch() {
-        moveToSearch(false)
+    fun moveToPrevFind() {
+        moveToFind(false)
     }
 
     private infix fun Int.toward(to: Int): IntProgression {
@@ -1685,7 +1685,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
         return IntProgression.fromClosedRange(this, to, step)
     }
 
-    private fun moveToSearch(isNext: Boolean) {
+    private fun moveToFind(isNext: Boolean) {
         val selectedRow = if (mBaseModel != null) {
             mMainUI.mFilteredLogPanel.getSelectedRow()
         }
@@ -1699,8 +1699,8 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
         if (isNext) {
             startRow = selectedRow + 1
             endRow = mLogItems.count() - 1
-            if (startRow >= endRow) {
-                mMainUI.showSearchResultTooltip(isNext,"\"${mFilterSearchLog}\" ${Strings.NOT_FOUND}")
+            if (startRow > endRow) {
+                mMainUI.showFindResultTooltip(isNext,"\"${mFilterFindLog}\" ${Strings.NOT_FOUND}")
                 return
             }
         }
@@ -1709,7 +1709,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
             endRow = 0
 
             if (startRow < endRow) {
-                mMainUI.showSearchResultTooltip(isNext,"\"${mFilterSearchLog}\" ${Strings.NOT_FOUND}")
+                mMainUI.showFindResultTooltip(isNext,"\"${mFilterFindLog}\" ${Strings.NOT_FOUND}")
                 return
             }
         }
@@ -1717,14 +1717,14 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
         var idxFound = -1
         for (idx in startRow toward endRow) {
             val item = mLogItems[idx]
-            if (mNormalSearchLogSplit != null) {
+            if (mNormalFindLogSplit != null) {
                 var logLine = ""
-                logLine = if (mSearchPatternCase == Pattern.CASE_INSENSITIVE) {
+                logLine = if (mFindPatternCase == Pattern.CASE_INSENSITIVE) {
                     item.mLogLine.uppercase()
                 } else {
                     item.mLogLine
                 }
-                for (sp in mNormalSearchLogSplit!!) {
+                for (sp in mNormalFindLogSplit!!) {
                     if (sp.isNotEmpty() && logLine.contains(sp)) {
                         idxFound = idx
                         break
@@ -1732,9 +1732,9 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                 }
             }
 
-            if (idxFound < 0 && mRegexSearchLog.isNotEmpty()) {
-                mMatcherSearchLog.reset(item.mLogLine)
-                if (mMatcherSearchLog.find()) {
+            if (idxFound < 0 && mRegexFindLog.isNotEmpty()) {
+                mMatcherFindLog.reset(item.mLogLine)
+                if (mMatcherFindLog.find()) {
                     idxFound = idx
                 }
             }
@@ -1753,7 +1753,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
             }
         }
         else {
-            mMainUI.showSearchResultTooltip(isNext,"\"${mFilterSearchLog}\" ${Strings.NOT_FOUND}")
+            mMainUI.showFindResultTooltip(isNext,"\"${mFilterFindLog}\" ${Strings.NOT_FOUND}")
         }
     }
 

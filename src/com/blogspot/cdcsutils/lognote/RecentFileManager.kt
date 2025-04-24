@@ -9,13 +9,13 @@ class RecentFileManager private constructor(fileName: String) : PropertiesBase(f
         const val ITEM_SHOW_LOG = "_SHOW_LOG"
         const val ITEM_TOKEN_FILTER = "_TOKEN_FILTER_"
         const val ITEM_HIGHLIGHT_LOG = "_HIGHLIGHT_LOG"
-        const val ITEM_SEARCH_LOG = "_SEARCH_LOG"
+        const val ITEM_FIND_LOG = "_SEARCH_LOG"
         const val ITEM_BOOKMARKS = "_BOOKMARKS"
 
         const val ITEM_SHOW_LOG_CHECK = "_SHOW_LOG_CHECK"
         const val ITEM_TOKEN_CHECK = "_TOKEN_CHECK_"
         const val ITEM_HIGHLIGHT_LOG_CHECK = "_HIGHLIGHT_LOG_CHECK"
-        const val ITEM_SEARCH_MATCH_CASE = "_SEARCH_MATCH_CASE"
+        const val ITEM_FIND_MATCH_CASE = "_SEARCH_MATCH_CASE"
 
         const val MAX_RECENT_FILE = 30
         private val mInstance: RecentFileManager = RecentFileManager(RECENTES_LIST_FILE)
@@ -39,13 +39,13 @@ class RecentFileManager private constructor(fileName: String) : PropertiesBase(f
         var mShowLog = ""
         var mTokenFilter = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { "" }
         var mHighlightLog = ""
-        var mSearchLog = ""
+        var mFindLog = ""
         var mBookmarks = ""
 
         var mShowLogCheck = true
         var mTokenCheck = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { true }
         var mHighlightLogCheck = true
-        var mSearchMatchCase = true
+        var mFindMatchCase = true
     }
 
     data class OpenItem(val mPath: String, var mStartLine: Int, var mEndLine: Int)
@@ -74,7 +74,7 @@ class RecentFileManager private constructor(fileName: String) : PropertiesBase(f
                 }
             }
             recentItem.mHighlightLog = (mProperties["$i$ITEM_HIGHLIGHT_LOG"] ?: "") as String
-            recentItem.mSearchLog = (mProperties["$i$ITEM_SEARCH_LOG"] ?: "") as String
+            recentItem.mFindLog = (mProperties["$i$ITEM_FIND_LOG"] ?: "") as String
             recentItem.mBookmarks = (mProperties["$i$ITEM_BOOKMARKS"] ?: "") as String
 
             var check = (mProperties["$i$ITEM_SHOW_LOG_CHECK"] ?: "false") as String
@@ -90,8 +90,8 @@ class RecentFileManager private constructor(fileName: String) : PropertiesBase(f
             }
             check = (mProperties["$i$ITEM_HIGHLIGHT_LOG_CHECK"] ?: "false") as String
             recentItem.mHighlightLogCheck = check.toBoolean()
-            check = (mProperties["$i$ITEM_SEARCH_MATCH_CASE"] ?: "false") as String
-            recentItem.mSearchMatchCase = check.toBoolean()
+            check = (mProperties["$i$ITEM_FIND_MATCH_CASE"] ?: "false") as String
+            recentItem.mFindMatchCase = check.toBoolean()
 
             mRecentList.add(recentItem)
         }
@@ -107,7 +107,7 @@ class RecentFileManager private constructor(fileName: String) : PropertiesBase(f
                 mProperties.remove("$i$ITEM_TOKEN_FILTER${formatName}_${tokens[idx].mToken}")
             }
             mProperties.remove("$i$ITEM_HIGHLIGHT_LOG")
-            mProperties.remove("$i$ITEM_SEARCH_LOG")
+            mProperties.remove("$i$ITEM_FIND_LOG")
             mProperties.remove("$i$ITEM_BOOKMARKS")
 
             mProperties.remove("$i$ITEM_SHOW_LOG_CHECK")
@@ -115,7 +115,7 @@ class RecentFileManager private constructor(fileName: String) : PropertiesBase(f
                 mProperties.remove("$i$ITEM_TOKEN_CHECK${formatName}_${tokens[idx].mToken}")
             }
             mProperties.remove("$i$ITEM_HIGHLIGHT_LOG_CHECK")
-            mProperties.remove("$i$ITEM_SEARCH_MATCH_CASE")
+            mProperties.remove("$i$ITEM_FIND_MATCH_CASE")
         }
 
         val mSaveList = mutableListOf<String>()
@@ -135,7 +135,7 @@ class RecentFileManager private constructor(fileName: String) : PropertiesBase(f
                     }
                 }
                 mProperties["$i$ITEM_HIGHLIGHT_LOG"] = recentItem.mHighlightLog
-                mProperties["$i$ITEM_SEARCH_LOG"] = recentItem.mSearchLog
+                mProperties["$i$ITEM_FIND_LOG"] = recentItem.mFindLog
                 mProperties["$i$ITEM_BOOKMARKS"] = recentItem.mBookmarks
 
                 mProperties["$i$ITEM_SHOW_LOG_CHECK"] = recentItem.mShowLogCheck.toString()
@@ -146,7 +146,7 @@ class RecentFileManager private constructor(fileName: String) : PropertiesBase(f
                     }
                 }
                 mProperties["$i$ITEM_HIGHLIGHT_LOG_CHECK"] = recentItem.mHighlightLogCheck.toString()
-                mProperties["$i$ITEM_SEARCH_MATCH_CASE"] = recentItem.mSearchMatchCase.toString()
+                mProperties["$i$ITEM_FIND_MATCH_CASE"] = recentItem.mFindMatchCase.toString()
             }
         }
 

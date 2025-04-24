@@ -600,8 +600,8 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         var mSelectedTextItem: JMenuItem = JMenuItem("")
         var mIncludeAddItem = JMenuItem(Strings.ADD_INCLUDE)
         var mExcludeAddItem = JMenuItem(Strings.ADD_EXCLUDE)
-        var mSearchAddItem = JMenuItem(Strings.ADD_SEARCH)
-        var mSearchSetItem = JMenuItem(Strings.SET_SEARCH)
+        var mFindAddItem = JMenuItem(Strings.ADD_FIND)
+        var mFindSetItem = JMenuItem(Strings.SET_FIND)
         var mIncludeSetItem = JMenuItem(Strings.SET_INCLUDE)
         var mIncludeRemoveItem = JMenuItem(Strings.REMOVE_INCLUDE)
         var mCopyLineItem: JMenuItem = JMenuItem(Strings.COPY_SELECTED_LINES)
@@ -715,12 +715,12 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
                 mExcludeAddItem.addActionListener(mActionHandler)
                 add(mExcludeAddItem)
 
-                mSearchAddItem.text = "$prefix${Strings.ADD_SEARCH}"
-                mSearchAddItem.addActionListener(mActionHandler)
-                add(mSearchAddItem)
-                mSearchSetItem.text = "$prefix${Strings.SET_SEARCH}"
-                mSearchSetItem.addActionListener(mActionHandler)
-                add(mSearchSetItem)
+                mFindAddItem.text = "$prefix${Strings.ADD_FIND}"
+                mFindAddItem.addActionListener(mActionHandler)
+                add(mFindAddItem)
+                mFindSetItem.text = "$prefix${Strings.SET_FIND}"
+                mFindSetItem.addActionListener(mActionHandler)
+                add(mFindSetItem)
 
                 mCopyWordItem.text = "$prefix${Strings.COPY}"
                 mCopyWordItem.addActionListener(mActionHandler)
@@ -799,11 +799,11 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
                             MainUI.getInstance().applyShowLogCombo(true)
                         }
                     }
-                    mSearchAddItem -> {
+                    mFindAddItem -> {
                         if (mSelectedWord.isNotEmpty()) {
-                            var text = MainUI.getInstance().getTextSearchCombo()
+                            var text = MainUI.getInstance().getTextFindCombo()
                             text += "|$mSelectedWord"
-                            MainUI.getInstance().setTextSearchCombo(text)
+                            MainUI.getInstance().setTextFindCombo(text)
                         }
                     }
                     mIncludeSetItem -> {
@@ -815,9 +815,9 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
                     mIncludeRemoveItem -> {
                         MainUI.getInstance().removeIncludeFilterShowLogCombo(mSelectedWord)
                     }
-                    mSearchSetItem -> {
+                    mFindSetItem -> {
                         if (mSelectedWord.isNotEmpty()) {
-                            MainUI.getInstance().setTextSearchCombo(mSelectedWord)
+                            MainUI.getInstance().setTextFindCombo(mSelectedWord)
                         }
                     }
 
