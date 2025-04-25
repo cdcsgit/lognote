@@ -1179,13 +1179,11 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mLogFormatCombo.isEditable = false
         mLogFormatCombo.renderer = ColorComboBox.ComboBoxRenderer()
         mLogFormatCombo.addPopupMenuListener(mPopupMenuHandler)
-        mLogFormatCombo.preferredSize = Dimension(150 * mUIFontPercent / 100, mLogFormatCombo.preferredSize.height)
         mLogLevelCombo = ColorComboBox(true)
         mLogLevelCombo.toolTipText = TooltipStrings.LOG_LEVEL_COMBO
         mLogLevelCombo.isEditable = false
         mLogLevelCombo.renderer = ColorComboBox.ComboBoxRenderer()
         mLogLevelCombo.addPopupMenuListener(mPopupMenuHandler)
-        mLogLevelCombo.preferredSize = Dimension(100 * mUIFontPercent / 100, mLogLevelCombo.preferredSize.height)
 
         logFormatPanel.add(mLogFormatCombo)
         logFormatPanel.add(mLogLevelCombo)
@@ -1195,9 +1193,10 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         statusRightPanel.add(followPanel)
         statusRightPanel.add(logFormatPanel)
 
-        val statusLeftPanel = JPanel(FlowLayout(FlowLayout.LEFT, 2, 0))
-        statusLeftPanel.add(mStatusMethod)
-        statusLeftPanel.add(mStatusReloadBtn)
+        val statusLeftPanel = JPanel(BorderLayout())
+        statusLeftPanel.border = BorderFactory.createEmptyBorder(0, 2, 0, 2)
+        statusLeftPanel.add(mStatusMethod, BorderLayout.CENTER)
+        statusLeftPanel.add(mStatusReloadBtn, BorderLayout.EAST)
 
         mStatusBar.add(statusLeftPanel, BorderLayout.WEST)
         mStatusBar.add(mStatusTF, BorderLayout.CENTER)
