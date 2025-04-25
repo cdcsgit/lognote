@@ -6,9 +6,10 @@ import java.awt.event.ItemEvent
 import java.awt.event.KeyEvent
 import javax.swing.*
 import javax.swing.plaf.basic.BasicComboBoxRenderer
+import kotlin.math.max
 
 
-class ColorComboBox<E>(val autoResize:Boolean = false) : JComboBox<E>() {
+class ColorComboBox<E>(autoResize:Boolean = false, minWidth:Int = 0) : JComboBox<E>() {
     init {
         val textField = editor.editorComponent as JTextField
         textField.getInputMap(WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, KeyEvent.CTRL_MASK), "none")
@@ -18,7 +19,7 @@ class ColorComboBox<E>(val autoResize:Boolean = false) : JComboBox<E>() {
                 if (e.stateChange == ItemEvent.SELECTED) {
                     val selectedItem = e.item as String
                     val fm = getFontMetrics(font)
-                    val width = fm.stringWidth(selectedItem) + insets.left + insets.right + 40
+                    val width = max(fm.stringWidth(selectedItem) + insets.left + insets.right + 40, minWidth)
                     preferredSize = Dimension(width, preferredSize.height)
                     revalidate()
                 }

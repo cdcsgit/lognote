@@ -919,7 +919,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mTokenToggle[idx].addItemListener(mItemHandler)
         }
 
-        mLogCmdCombo = ColorComboBox(true)
+        mLogCmdCombo = ColorComboBox(true, 100)
         mLogCmdCombo.toolTipText = TooltipStrings.LOG_CMD_COMBO
         mLogCmdCombo.isEditable = true
         mLogCmdCombo.renderer = ColorComboBox.ComboBoxRenderer()
@@ -929,7 +929,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mLogCmdCombo.addPopupMenuListener(mPopupMenuHandler)
         
         val deviceComboPanel = JPanel(BorderLayout())
-        mDeviceCombo = ColorComboBox(true)
+        mDeviceCombo = ColorComboBox(true, 100)
         mDeviceCombo.toolTipText = TooltipStrings.DEVICES_COMBO
         mDeviceCombo.isEditable = true
         mDeviceCombo.renderer = ColorComboBox.ComboBoxRenderer()
@@ -1174,12 +1174,12 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
         val logFormatPanel = JPanel(FlowLayout(FlowLayout.LEFT, 2, 0))
         logFormatPanel.border = BorderFactory.createEmptyBorder(0, 3, 0, 3)
-        mLogFormatCombo = ColorComboBox(true)
+        mLogFormatCombo = ColorComboBox(true, 60)
         mLogFormatCombo.toolTipText = TooltipStrings.LOG_FORMAT_COMBO
         mLogFormatCombo.isEditable = false
         mLogFormatCombo.renderer = ColorComboBox.ComboBoxRenderer()
         mLogFormatCombo.addPopupMenuListener(mPopupMenuHandler)
-        mLogLevelCombo = ColorComboBox(true)
+        mLogLevelCombo = ColorComboBox(true, 60)
         mLogLevelCombo.toolTipText = TooltipStrings.LOG_LEVEL_COMBO
         mLogLevelCombo.isEditable = false
         mLogLevelCombo.renderer = ColorComboBox.ComboBoxRenderer()
