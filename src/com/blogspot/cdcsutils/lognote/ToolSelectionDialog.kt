@@ -6,7 +6,7 @@ import javax.swing.*
 
 
 class ToolSelectionDialog(mainUI: MainUI, log: Pair<String, Int>) : JDialog(mainUI, "Log", false) {
-    private val mToolSelection = ToolsPane.ToolSelection()
+    private val mToolSelection = ToolsPane.ToolSelection(true)
 
     init {
         isUndecorated = true

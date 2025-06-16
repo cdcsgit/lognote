@@ -63,8 +63,8 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         this.updateProcessNameColumnWidth(false)
 
         getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "none")
-        getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, KeyEvent.CTRL_MASK), "none")
-        getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, KeyEvent.CTRL_MASK), "none")
+        getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, InputEvent.CTRL_DOWN_MASK), "none")
+        getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, InputEvent.CTRL_DOWN_MASK), "none")
 
         this.addMouseListener(MouseHandler())
         this.addMouseMotionListener(MouseHandler())
@@ -508,7 +508,7 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         return mTableModel.getValueAt(row, LogTableModel.COLUMN_LOG_START).toString()
     }
 
-    fun getSelectedLog(targetRow: Int, prevLines: Int, nextLines: Int): Pair<String, Int> {
+    fun getSelectedLog(targetRow: Int, prevLines: Int, nextLines: Int, isPlaneText: Boolean): Pair<String, Int> {
         val log = StringBuilder("")
         var caretPos = 0
         var value:String
@@ -533,13 +533,23 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
 
         for (row in rows) {
             value = getLogText(row)
-            newValue = mTableModel.getPrintValue(value, row, LogTableModel.COLUMN_LOG_START, false, false)
-            if (newValue.isEmpty()) {
-                val color = mTableModel.getFgStrColor(row)
-                newValue = "<font color=$color>$value</font>"
+            if (isPlaneText) {
+                if (log.isEmpty()) {
+                    log.append(value)
+                }
+                else {
+                    log.append(System.lineSeparator() + value)
+                }
             }
-            newValue += "<br>"
-            log.append(newValue)
+            else {
+                newValue = mTableModel.getPrintValue(value, row, LogTableModel.COLUMN_LOG_START, false, false)
+                if (newValue.isEmpty()) {
+                    val color = mTableModel.getFgStrColor(row)
+                    newValue = "<font color=$color>$value</font>"
+                }
+                newValue += "<br>"
+                log.append(newValue)
+            }
         }
 
         return Pair(log.toString(), caretPos)
@@ -552,7 +562,7 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         }
         else {
             val toolSelection = ToolsPane.getInstance().mToolSelection
-            val selectedPair = getSelectedLog(targetRow, toolSelection.mPrevLines, toolSelection.mNextLines)
+            val selectedPair = getSelectedLog(targetRow, toolSelection.mPrevLines, toolSelection.mNextLines, toolSelection.mIsPlainText)
             val mainUI = MainUI.getInstance()
             val toolSelectionDialog = ToolSelectionDialog(mainUI, selectedPair)
             toolSelectionDialog.setLocationRelativeTo(mainUI)

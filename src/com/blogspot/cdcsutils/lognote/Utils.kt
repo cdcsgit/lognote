@@ -2,10 +2,7 @@ package com.blogspot.cdcsutils.lognote
 
 import com.formdev.flatlaf.util.SystemInfo
 import java.awt.*
-import java.awt.event.ActionEvent
-import java.awt.event.KeyAdapter
-import java.awt.event.KeyEvent
-import java.awt.event.WindowEvent
+import java.awt.event.*
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
@@ -150,6 +147,35 @@ class Utils {
                 printlnLog("lognote cmd is empty")
             }
         }
+
+        fun convertHtmlToPlainText(html: String): String {
+            var text = html
+
+            text = text.replace("(?i)<br\\s*/?>".toRegex(), "\n")
+
+            text = text.replace("(?i)<p[^>]*>".toRegex(), "\n\n")
+            text = text.replace("(?i)<div[^>]*>".toRegex(), "\n\n")
+            text = text.replace("(?i)<h[1-6][^>]*>".toRegex(), "\n\n")
+            text = text.replace("(?i)<ul[^>]*>".toRegex(), "\n")
+            text = text.replace("(?i)<ol[^>]*>".toRegex(), "\n")
+            text = text.replace("(?i)<li[^>]*>".toRegex(), "\n* ")
+
+            text = text.replace("<[^>]*>".toRegex(), "")
+
+            text = text.replace("&nbsp;".toRegex(), " ")
+            text = text.replace("&amp;".toRegex(), "&")
+            text = text.replace("&lt;".toRegex(), "<")
+            text = text.replace("&gt;".toRegex(), ">")
+            text = text.replace("&quot;".toRegex(), "\"")
+            text = text.replace("&#39;".toRegex(), "'")
+
+            text = text.replace("(?m)^[ \t]*\r?\n".toRegex(), "")
+            text = text.replace("(?m)(\\n){3,}".toRegex(), "\n\n")
+            text = text.trim { it <= ' ' }
+
+            return text
+        }
+
     }
 
     class CustomLineBorder(private val mColor: Color, private val mThickness: Int, private val mTarget: Int) :

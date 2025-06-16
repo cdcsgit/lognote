@@ -3,13 +3,19 @@ package com.blogspot.cdcsutils.lognote
 import com.formdev.flatlaf.ui.FlatTabbedPaneUI
 import java.awt.Color
 import java.awt.Component
+import java.awt.Toolkit
+import java.awt.datatransfer.Clipboard
+import java.awt.datatransfer.DataFlavor
+import java.awt.datatransfer.StringSelection
 import java.awt.event.*
 import javax.swing.*
+import javax.swing.text.JTextComponent
 import javax.swing.text.Utilities
+
 
 class ToolsPane private constructor(): JTabbedPane() {
     private val mToolMap = mutableMapOf<ToolId, Component>()
-    val mToolSelection = ToolSelection()
+    val mToolSelection = ToolSelection(true)
     val mToolTest = ToolTest()
 
     companion object {
@@ -252,8 +258,9 @@ class ToolsPane private constructor(): JTabbedPane() {
         }
     }
 
-    class ToolSelection: JScrollPane(), ToolComponent {
-        private val mEditorPane = JEditorPane()
+    class ToolSelection(isPlainText: Boolean): JScrollPane(), ToolComponent {
+        val mIsPlainText = isPlainText
+        private val mEditorPane:JTextComponent
         private val mPopupMenu: PopUpLogViewDialog
         private val mIncludeAction: Action
         private val mAddIncludeKey = "add_include"
@@ -262,9 +269,19 @@ class ToolsPane private constructor(): JTabbedPane() {
 
         init {
             name = Strings.TOOL_SELECTION
+            mEditorPane = if (mIsPlainText) {
+                JTextArea()
+            } else {
+                JEditorPane()
+            }
             mEditorPane.isEditable = false
             mEditorPane.caret.isVisible = true
-            mEditorPane.contentType = "text/html"
+            if (mEditorPane is JEditorPane) {
+                mEditorPane.contentType = "text/html"
+            }
+            else if (mEditorPane is JTextArea) {
+                mEditorPane.lineWrap = true
+            }
 
             mEditorPane.addMouseListener(MouseHandler())
             setViewportView(mEditorPane)
@@ -280,7 +297,11 @@ class ToolsPane private constructor(): JTabbedPane() {
                         }
 
                         if (mEditorPane.selectedText != null) {
-                            val selectedText = mEditorPane.selectedText.replace("\u00a0", " ")
+                            val selectedText = if (mIsPlainText) {
+                                mEditorPane.selectedText
+                            } else {
+                                mEditorPane.selectedText.replace("\u00a0", " ")
+                            }
                             comboText += if (textSplit.size == 2) {
                                 "${textSplit[1].trim()}$selectedText"
                             } else {
@@ -306,7 +327,12 @@ class ToolsPane private constructor(): JTabbedPane() {
         }
 
         fun setSelectionLog(pair: Pair<String, Int>) {
-            mEditorPane.text = "<html>${pair.first}</html>"
+            if (mIsPlainText) {
+                mEditorPane.text = pair.first
+            }
+            else {
+                mEditorPane.text = "<html>${pair.first}</html>"
+            }
             mEditorPane.caretPosition = pair.second
         }
 
@@ -370,21 +396,35 @@ class ToolsPane private constructor(): JTabbedPane() {
                     when (p0?.source) {
                         mIncludeSetItem -> {
                             if (!mEditorPane.selectedText.isNullOrEmpty()) {
-                                val text = mEditorPane.selectedText.replace("\u00a0"," ") // remove &nbsp;
-                                MainUI.getInstance().setTextShowLogCombo(text)
+                                val selectedText = if (mIsPlainText) {
+                                    mEditorPane.selectedText
+                                } else {
+                                    mEditorPane.selectedText.replace("\u00a0", " ")
+                                }
+
+                                MainUI.getInstance().setTextShowLogCombo(selectedText)
                                 MainUI.getInstance().applyShowLogCombo(true)
                             }
                         }
                         mIncludeRemoveItem -> {
                             if (!mEditorPane.selectedText.isNullOrEmpty()) {
-                                val text = mEditorPane.selectedText.replace("\u00a0"," ") // remove &nbsp;
-                                MainUI.getInstance().removeIncludeFilterShowLogCombo(text)
+                                val selectedText = if (mIsPlainText) {
+                                    mEditorPane.selectedText
+                                } else {
+                                    mEditorPane.selectedText.replace("\u00a0", " ")
+                                }
+                                MainUI.getInstance().removeIncludeFilterShowLogCombo(selectedText)
                             }
                         }
                         mExcludeItem -> {
                             if (!mEditorPane.selectedText.isNullOrEmpty()) {
                                 var text = MainUI.getInstance().getTextShowLogCombo()
-                                text += "|-" + mEditorPane.selectedText.replace("\u00a0"," ") // remove &nbsp;
+                                val selectedText = if (mIsPlainText) {
+                                    mEditorPane.selectedText
+                                } else {
+                                    mEditorPane.selectedText.replace("\u00a0", " ")
+                                }
+                                text += "|-$selectedText"
                                 MainUI.getInstance().setTextShowLogCombo(text)
                                 MainUI.getInstance().applyShowLogCombo(true)
                             }
@@ -392,17 +432,46 @@ class ToolsPane private constructor(): JTabbedPane() {
                         mFindAddItem -> {
                             if (!mEditorPane.selectedText.isNullOrEmpty()) {
                                 var text = MainUI.getInstance().getTextFindCombo()
-                                text += "|" + mEditorPane.selectedText.replace("\u00a0"," ")
+                                val selectedText = if (mIsPlainText) {
+                                    mEditorPane.selectedText
+                                } else {
+                                    mEditorPane.selectedText.replace("\u00a0", " ")
+                                }
+                                text += "|$selectedText"
                                 MainUI.getInstance().setTextFindCombo(text)
                             }
                         }
                         mFindSetItem -> {
                             if (!mEditorPane.selectedText.isNullOrEmpty()) {
-                                MainUI.getInstance().setTextFindCombo(mEditorPane.selectedText.replace("\u00a0"," "))
+                                val selectedText = if (mIsPlainText) {
+                                    mEditorPane.selectedText
+                                } else {
+                                    mEditorPane.selectedText.replace("\u00a0", " ")
+                                }
+                                MainUI.getInstance().setTextFindCombo(selectedText)
                             }
                         }
                         mCopyItem -> {
                             mEditorPane.copy()
+                            if (!mIsPlainText) {
+                                val clipboard: Clipboard = Toolkit.getDefaultToolkit().systemClipboard
+                                var htmlFromClipboard: String? = null
+                                var htmlFlavor: DataFlavor? = null
+                                for (flavor in clipboard.availableDataFlavors) {
+                                    if (flavor.isMimeTypeEqual(DataFlavor.allHtmlFlavor.mimeType) && flavor.representationClass == DataFlavor.allHtmlFlavor.representationClass) {
+                                        htmlFlavor = flavor
+                                    }
+                                }
+                                if (htmlFlavor != null) {
+                                    htmlFromClipboard = clipboard.getData(htmlFlavor) as String
+                                    htmlFromClipboard = htmlFromClipboard.replace("[\\r\\n]+".toRegex(), "");
+                                    val text = Utils.convertHtmlToPlainText(htmlFromClipboard)
+                                    if (text.isNotEmpty()) {
+                                        val sel = StringSelection(text)
+                                        Toolkit.getDefaultToolkit().systemClipboard.setContents(sel, null)
+                                    }
+                                }
+                            }
                         }
                         mCloseItem -> {
                         }
