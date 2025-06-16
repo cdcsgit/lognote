@@ -127,6 +127,31 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
         const val LEVEL_ERROR = 5
         const val LEVEL_FATAL = 6
 
+        const val SEPARATOR_DELIMITER = ":::SEPARATOR:::"
+
+        fun splitLog(line: String, tokenCount: Int, separator: String, separatorList: List<String>?): List<String> {
+            if (separatorList == null) {
+                return line.split(Regex(separator), tokenCount)
+            }
+            else {
+                var remainingLine = line
+                val splitedLine: MutableList<String> = mutableListOf()
+                var tmpSplited: List<String>
+                for (item in separatorList) {
+                    tmpSplited = remainingLine.split(Regex(item), 2)
+                    splitedLine.add(tmpSplited[0])
+                    if (tmpSplited.size > 1) {
+                        remainingLine = tmpSplited[1]
+                    }
+                    else {
+                        break
+                    }
+                }
+                splitedLine.add(remainingLine)
+                return splitedLine
+            }
+        }
+
         private val mInstance: FormatManager = FormatManager(FORMATS_LIST_FILE)
         fun getInstance(): FormatManager {
             return mInstance
@@ -889,12 +914,19 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
             private val mNameLabel = JLabel()
             private val mNameTF = JTextField()
             private val mSeparatorLabel = JLabel()
-            private val mSeparatorTF = JTextField()
+            private var mSeparator = ""
+            private val mSeparatorTfList: MutableList<JTextField> = ArrayList()
             private val mLevelPositionLabel = JLabel()
             private val mLevelPositionTF = JTextField()
             private val mPidTokIdxLabel = JLabel()
             private val mPidTokIdxCombo = ColorComboBox<String>()
+            private val mLogFormatPanel = JPanel()
             private val mNamePanel = JPanel()
+            private val mSeparatorPanel = JPanel()
+            private val mSeparatorListPanel = JPanel()
+            private val mSeparatorSingleRadio = JRadioButton("Single")
+            private val mSeparatorMultipleRadio = JRadioButton("Multiple")
+
             private val mLevelsLabelArr = Array(TEXT_LEVEL.size) { JLabel(TEXT_LEVEL[it]) }
             private val mLevelsTFArr = Array(TEXT_LEVEL.size) { JTextField() }
             private val mLevelsPanel = JPanel()
@@ -952,8 +984,7 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                 mNameTF.text = ""
                 mTextFieldBg = mNameTF.background
                 mSeparatorLabel.text = Strings.SEPARATOR
-                mSeparatorTF.text = ""
-                mSeparatorTF.preferredSize = Dimension(100, mSeparatorTF.preferredSize.height)
+                mSeparator = ""
                 mTokenCountLabel.text = Strings.TOKEN_COUNT
                 mTokenCountTF.preferredSize = Dimension(70, mTokenCountTF.preferredSize.height)
                 mLevelPositionLabel.text = "${Strings.LEVEL} ${Strings.POSITION}"
@@ -967,14 +998,45 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                 mNamePanel.add(mNameLabel)
                 mNamePanel.add(mNameTF)
                 mNamePanel.add(JLabel("   "))
-                mNamePanel.add(mSeparatorLabel)
-                mNamePanel.add(mSeparatorTF)
-                mNamePanel.add(JLabel("   "))
                 mNamePanel.add(mTokenCountLabel)
                 mNamePanel.add(mTokenCountTF)
                 mNamePanel.add(JLabel("   "))
                 mNamePanel.add(mLevelPositionLabel)
                 mNamePanel.add(mLevelPositionTF)
+
+                mSeparatorSingleRadio.addActionListener {
+                        updateSeparatorList()
+                }
+
+                mSeparatorMultipleRadio.addActionListener {
+                        updateSeparatorList()
+                }
+
+                val buttonGroup = ButtonGroup()
+                buttonGroup.add(mSeparatorSingleRadio)
+                buttonGroup.add(mSeparatorMultipleRadio)
+
+                val separatorRadioPanel = JPanel()
+                separatorRadioPanel.layout = FlowLayout(FlowLayout.LEFT)
+                separatorRadioPanel.add(JLabel("   "))
+                separatorRadioPanel.add(mSeparatorLabel)
+                separatorRadioPanel.add(mSeparatorSingleRadio)
+                separatorRadioPanel.add(mSeparatorMultipleRadio)
+
+                val separatorListWrapperPanel = JPanel()
+                separatorListWrapperPanel.layout = BorderLayout()
+                separatorListWrapperPanel.add(JLabel("     "), BorderLayout.WEST)
+                mSeparatorListPanel.layout = GridLayout(1, 1, 0, 0)
+                mSeparatorTfList.add(JTextField(""))
+                mSeparatorListPanel.add(mSeparatorTfList[0])
+                separatorListWrapperPanel.add(mSeparatorListPanel, BorderLayout.CENTER)
+                mSeparatorPanel.layout = BorderLayout()
+                mSeparatorPanel.add(separatorRadioPanel, BorderLayout.NORTH)
+                mSeparatorPanel.add(separatorListWrapperPanel, BorderLayout.CENTER)
+
+                mLogFormatPanel.layout = BorderLayout()
+                mLogFormatPanel.add(mNamePanel, BorderLayout.NORTH)
+                mLogFormatPanel.add(mSeparatorPanel, BorderLayout.CENTER)
 
                 mLevelsPanel.layout = FlowLayout(FlowLayout.LEFT)
                 mLevelsPanel.add(JLabel("   "))
@@ -1013,7 +1075,6 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
 
                 if (!isEditable) {
                     mNameTF.isEditable = false
-                    mSeparatorTF.isEditable = false
                     mLevelPositionTF.isEditable = false
                     mPidTokIdxCombo.isEnabled = false
                     for (idx in TEXT_LEVEL.indices) {
@@ -1030,7 +1091,7 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                 layout = BoxLayout(this, BoxLayout.Y_AXIS)
 
                 Utils.addHSeparator(this, " ${Strings.LOG_FORMAT} ")
-                add(mNamePanel)
+                add(mLogFormatPanel)
                 Utils.addHEmptySeparator(this, 20)
                 Utils.addHSeparator(this, " ${Strings.LEVELS} ")
                 add(mLevelsPanel)
@@ -1051,11 +1112,63 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                 registerKeyStroke()
             }
 
+            private fun updateSeparatorList() {
+                mSeparatorListPanel.removeAll()
+                mSeparatorTfList.clear()
+
+                val separatorCount = if (mSeparatorSingleRadio.isSelected) {
+                    1
+                } else {
+                    try {
+                        mTokenCountTF.text.toInt() - 1
+                    } catch (ex: NumberFormatException) {
+                        1
+                    }
+                }
+
+                mSeparatorListPanel.layout = GridLayout(1, separatorCount)
+
+                val separatorList = mSeparator.split(SEPARATOR_DELIMITER)
+                for (idx in 0 until separatorCount) {
+                    val tf = JTextField()
+                    if (idx < separatorList.size) {
+                        tf.text = separatorList[idx]
+                    }
+                    else {
+                        tf.text = separatorList[0]
+                    }
+                    mSeparatorTfList.add(tf)
+                    mSeparatorListPanel.add(tf)
+                }
+                revalidate()
+//                repaint()
+
+
+            }
+
+            private fun getSeparator(): String {
+                var separator = ""
+                for (tf in mSeparatorTfList) {
+                    if (separator.isNotEmpty()) {
+                        separator += SEPARATOR_DELIMITER
+                    }
+                    separator += tf.text
+                }
+                return separator
+            }
+
             fun setFormat(format: FormatItem) {
                 if (format.mName.isNotEmpty()) {
                     mNameTF.text = format.mName
-                    mSeparatorTF.text = format.mSeparator
                     mTokenCountTF.text = format.mTokenCount.toString()
+                    mSeparator = format.mSeparator
+                    if (mSeparator.contains(SEPARATOR_DELIMITER)) {
+                        mSeparatorMultipleRadio.isSelected = true
+                    }
+                    else {
+                        mSeparatorSingleRadio.isSelected = true
+                    }
+                    updateSeparatorList()
                     mLogPositionTF.text = format.mLogPosition.toString()
                     mColumnNamesTF.text = format.mColumnNames
                     mLevelPositionTF.text = format.mLevelPosition.toString()
@@ -1127,7 +1240,7 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                 }
 
                 val name = mNameTF.text.trim()
-                val separator = mSeparatorTF.text
+                val separator = getSeparator()
                 val tokenCount = mTokenCountTF.text.toInt()
                 val logPosition = mLogPositionTF.text.toInt()
                 val columnNames = mColumnNamesTF.text
@@ -1189,9 +1302,15 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
 
                 mSampleDataList.clear()
                 val lines: List<String> = mSampleTextArea.text.split("\n")
-                val separator = mSeparatorTF.text
+                val separator = getSeparator()
+                val separatorList = if (separator.contains(SEPARATOR_DELIMITER)) {
+                    separator.split(SEPARATOR_DELIMITER)
+                }
+                else {
+                    null
+                }
                 for (line in lines) {
-                    mSampleDataList.add(line.split(Regex(separator), tokenCount))
+                    mSampleDataList.add(splitLog(line, tokenCount, separator, separatorList))
                 }
 
                 mSampleStep1TableModel.updateColumns(tokenCount, levelIdx)

@@ -1,5 +1,6 @@
 package com.blogspot.cdcsutils.lognote
 
+import com.blogspot.cdcsutils.lognote.FormatManager.Companion.SEPARATOR_DELIMITER
 import java.awt.Color
 import java.io.*
 import java.util.*
@@ -107,6 +108,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
     private var mTokenNthMax = 0
     protected var mEmptyTokenFilters = arrayOf("")
     protected var mLevelIdx = mFormatManager.mCurrFormat.mLevelPosition
+    protected var mSeparatorList: List<String>? = null
     protected var mSeparator = mFormatManager.mCurrFormat.mSeparator
     protected var mTokenCount = mFormatManager.mCurrFormat.mTokenCount
 
@@ -363,6 +365,12 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
 
         if (mSeparator.isEmpty()) {
             mFilterLevel = LEVEL_NONE
+        }
+        mSeparatorList = if (mSeparator.contains(SEPARATOR_DELIMITER)) {
+            mSeparator.split(SEPARATOR_DELIMITER)
+        }
+        else {
+            null
         }
 
         mBaseModel = baseModel
@@ -758,7 +766,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
         val boldEndTokens = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { -1 }
 
         if (mBoldTokenEndIdx >= 0) {
-            val textSplited = stringBuilder.toString().split(Regex(mSeparator), mTokenCount)
+            val textSplited = FormatManager.splitLog(stringBuilder.toString(), mTokenCount, mSeparator, mSeparatorList)
             var currPos = 0
             var tokenIdx = 0;
             if (textSplited.size > mTokenNthMax) {
@@ -1003,7 +1011,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
         val level: Int
         val tokenFilterLogs: Array<String>
 
-        val textSplited = logLine.split(Regex(mSeparator), mTokenCount)
+        val textSplited = FormatManager.splitLog(logLine, mTokenCount, mSeparator, mSeparatorList)
         if (textSplited.size > mTokenNthMax) {
             level = if (mFilterLevel == LEVEL_NONE) {
                 LEVEL_NONE
