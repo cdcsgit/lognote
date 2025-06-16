@@ -148,6 +148,14 @@ class Utils {
             }
         }
 
+        fun getShortcutMask(): Int {
+            return if (SystemInfo.isMacOS) {
+                InputEvent.META_DOWN_MASK
+            } else {
+                InputEvent.CTRL_DOWN_MASK
+            }
+        }
+
         fun convertHtmlToPlainText(html: String): String {
             var text = html
 

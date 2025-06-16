@@ -793,7 +793,7 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
             override fun actionPerformed(p0: ActionEvent?) {
                 when (p0?.source) {
                     mCopyLineItem -> {
-                        this@LogTable.processKeyEvent(KeyEvent(this@LogTable, KeyEvent.KEY_PRESSED, p0.`when`, KeyEvent.CTRL_MASK, KeyEvent.VK_C, 'C'))
+                        this@LogTable.processKeyEvent(KeyEvent(this@LogTable, KeyEvent.KEY_PRESSED, p0.`when`, Utils.getShortcutMask(), KeyEvent.VK_C, 'C'))
                     }
                     mCopyWordItem -> {
                         if (mSelectedWord.isNotEmpty()) {
