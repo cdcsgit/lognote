@@ -397,6 +397,36 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                 "11-20 23:29:26.908  F/Test5(  1376): This line is sample 5"
 
         formatList.add(FormatItem("logcat -v time", separator, tokenCount, logPosition, columnNames, levelPosition, levels, tokenFilters, pidTokIdx, sampleText))
+
+        separator = "\\s+:::SEPARATOR:::\\s+:::SEPARATOR:::\\s+:::SEPARATOR:::\\s+:::SEPARATOR:::\\s+:::SEPARATOR:::\\s+:\\s+|:\\s+"
+        tokenCount = 7
+        logPosition = 6
+        columnNames = "Date,0,50|Time,1,100|PID,2,50|TID,3,50|Level,4,15|Tag,5,150|Log,6,-1"
+        levels = mapOf(
+            "V" to LEVEL_VERBOSE,
+            "D" to LEVEL_DEBUG,
+            "I" to LEVEL_INFO,
+            "W" to LEVEL_WARNING,
+            "E" to LEVEL_ERROR,
+            "F" to LEVEL_FATAL
+        )
+        levelPosition = 4
+
+        tokenFilters = arrayOf(
+            FormatItem.TokenFilterItem("Tag", 5, true, 250),
+            FormatItem.TokenFilterItem("PID", 2, false, 120),
+            FormatItem.TokenFilterItem("TID", 3, false, 120),
+        )
+        pidTokIdx = 1
+
+        sampleText = "11-20 23:29:26.908  1376  3136 V Test0  : This line is sample 0\n" +
+                "11-20 23:29:26.908  1376  3136 D Test1  : This line is sample 1\n" +
+                "11-20 23:29:26.908  1376  3136 I Test2 test  : This line is sample 2\n" +
+                "11-20 23:29:26.908  1376  3136 W Test3  : This line is sample 3\n" +
+                "11-20 23:29:26.908  1376  3136 E   : This line is sample 4\n" +
+                "11-20 23:29:26.908  1376  3136 F Test5  : This line is sample 5"
+
+        formatList.add(FormatItem("logcat multi separator", separator, tokenCount, logPosition, columnNames, levelPosition, levels, tokenFilters, pidTokIdx, sampleText))
     }
 
     private fun loadList() {
@@ -924,8 +954,8 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
             private val mNamePanel = JPanel()
             private val mSeparatorPanel = JPanel()
             private val mSeparatorListPanel = JPanel()
-            private val mSeparatorSingleRadio = JRadioButton("Single")
-            private val mSeparatorMultipleRadio = JRadioButton("Multiple")
+            private val mSeparatorSingleRadio = JRadioButton(Strings.SINGLE)
+            private val mSeparatorMultipleRadio = JRadioButton(Strings.MULTIPLE)
 
             private val mLevelsLabelArr = Array(TEXT_LEVEL.size) { JLabel(TEXT_LEVEL[it]) }
             private val mLevelsTFArr = Array(TEXT_LEVEL.size) { JTextField() }
@@ -987,6 +1017,18 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                 mSeparator = ""
                 mTokenCountLabel.text = Strings.TOKEN_COUNT
                 mTokenCountTF.preferredSize = Dimension(70, mTokenCountTF.preferredSize.height)
+                mTokenCountTF.addKeyListener(object : KeyListener {
+                    override fun keyTyped(e: KeyEvent) {
+                    }
+
+                    override fun keyPressed(e: KeyEvent) {
+
+                    }
+
+                    override fun keyReleased(e: KeyEvent) {
+                        updateSeparatorList()
+                    }
+                })
                 mLevelPositionLabel.text = "${Strings.LEVEL} ${Strings.POSITION}"
                 mLevelPositionTF.text = "-1"
                 mPidTokIdxLabel.text = "${Strings.PID_TOKEN_FILTER}(${Strings.PID_TOKEN_FILTER_OPTIONAL})"
@@ -1005,11 +1047,11 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                 mNamePanel.add(mLevelPositionTF)
 
                 mSeparatorSingleRadio.addActionListener {
-                        updateSeparatorList()
+                    updateSeparatorList()
                 }
 
                 mSeparatorMultipleRadio.addActionListener {
-                        updateSeparatorList()
+                    updateSeparatorList()
                 }
 
                 val buttonGroup = ButtonGroup()
@@ -1116,12 +1158,19 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                 mSeparatorListPanel.removeAll()
                 mSeparatorTfList.clear()
 
+                val tokenCount = try {
+                    mTokenCountTF.text.toInt()
+                } catch (ex: NumberFormatException) {
+                    1
+                }
+
                 val separatorCount = if (mSeparatorSingleRadio.isSelected) {
                     1
                 } else {
-                    try {
-                        mTokenCountTF.text.toInt() - 1
-                    } catch (ex: NumberFormatException) {
+                    if (tokenCount > 1) {
+                        tokenCount - 1
+                    }
+                    else {
                         1
                     }
                 }
@@ -1131,19 +1180,21 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                 val separatorList = mSeparator.split(SEPARATOR_DELIMITER)
                 for (idx in 0 until separatorCount) {
                     val tf = JTextField()
-                    if (idx < separatorList.size) {
-                        tf.text = separatorList[idx]
+                    if (tokenCount == 1) {
+                        tf.isEnabled = false
                     }
                     else {
-                        tf.text = separatorList[0]
+                        if (idx < separatorList.size) {
+                            tf.text = separatorList[idx]
+                        } else {
+                            tf.text = separatorList[0]
+                        }
                     }
                     mSeparatorTfList.add(tf)
                     mSeparatorListPanel.add(tf)
                 }
                 revalidate()
-//                repaint()
-
-
+                repaint()
             }
 
             private fun getSeparator(): String {

@@ -404,5 +404,11 @@ class Strings private constructor() {
             get() { return currStrings[field]!! }
         val NEED_RESTART_LNF: String = idx++.toString()
             get() { return currStrings[field]!! }
+        val INPUT_ONLY_NUMBER: String = idx++.toString()
+            get() { return currStrings[field]!! }
+        val SINGLE: String = idx++.toString()
+            get() { return currStrings[field]!! }
+        val MULTIPLE: String = idx++.toString()
+            get() { return currStrings[field]!! }
     }
 }
