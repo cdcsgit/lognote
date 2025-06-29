@@ -3,6 +3,7 @@ package com.blogspot.cdcsutils.lognote
 import com.formdev.flatlaf.ui.FlatTabbedPaneUI
 import java.awt.Color
 import java.awt.Component
+import java.awt.FontMetrics
 import java.awt.Toolkit
 import java.awt.datatransfer.Clipboard
 import java.awt.datatransfer.DataFlavor
@@ -520,6 +521,33 @@ class ToolsPane private constructor(): JTabbedPane() {
 
         override fun getTooltip(): String {
             return TooltipStrings.TOOL_SELECTION
+        }
+
+        fun getLogHeight(width: Int): Int {
+            if (mIsPlainText) {
+                val fm: FontMetrics = mEditorPane.getFontMetrics(mEditorPane.font)
+                val lines = mEditorPane.text.split("\n")
+
+                var lineCount = lines.size
+                for (line in lines) {
+                    lineCount += fm.stringWidth(line) / width
+                }
+
+                return if (lineCount > 0) {
+                    val height = fm.height * lineCount
+                    if (height > MainUI.getInstance().height) {
+                        MainUI.getInstance().height
+                    }
+                    else {
+                        height
+                    }
+                } else {
+                    preferredSize.height
+                }
+            }
+            else {
+                return preferredSize.height
+            }
         }
     }
 }

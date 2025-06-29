@@ -18,8 +18,7 @@ class ToolSelectionDialog(mainUI: MainUI, log: Pair<String, Int>) : JDialog(main
             width = 960
         }
 
-        mToolSelection.preferredSize = Dimension(width, mToolSelection.preferredSize.height)
-
+        mToolSelection.preferredSize = Dimension(width, mToolSelection.getLogHeight(width))
         contentPane.add(mToolSelection)
         pack()
     }
