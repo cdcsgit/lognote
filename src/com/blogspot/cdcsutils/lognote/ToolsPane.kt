@@ -261,7 +261,7 @@ class ToolsPane private constructor(): JTabbedPane() {
 
     class ToolSelection(isPlainText: Boolean): JScrollPane(), ToolComponent {
         val mIsPlainText = isPlainText
-        private val mEditorPane:JTextComponent
+        private val mTextComponent:JTextComponent
         private val mPopupMenu: PopUpLogViewDialog
         private val mIncludeAction: Action
         private val mAddIncludeKey = "add_include"
@@ -270,22 +270,22 @@ class ToolsPane private constructor(): JTabbedPane() {
 
         init {
             name = Strings.TOOL_SELECTION
-            mEditorPane = if (mIsPlainText) {
+            mTextComponent = if (mIsPlainText) {
                 JTextArea()
             } else {
                 JEditorPane()
             }
-            mEditorPane.isEditable = false
-            mEditorPane.caret.isVisible = true
-            if (mEditorPane is JEditorPane) {
-                mEditorPane.contentType = "text/html"
+            mTextComponent.isEditable = false
+            mTextComponent.caret.isVisible = true
+            if (mTextComponent is JEditorPane) {
+                mTextComponent.contentType = "text/html"
             }
-            else if (mEditorPane is JTextArea) {
-                mEditorPane.lineWrap = true
+            else if (mTextComponent is JTextArea) {
+                mTextComponent.lineWrap = true
             }
 
-            mEditorPane.addMouseListener(MouseHandler())
-            setViewportView(mEditorPane)
+            mTextComponent.addMouseListener(MouseHandler())
+            setViewportView(mTextComponent)
             horizontalScrollBarPolicy = HORIZONTAL_SCROLLBAR_NEVER
 
             mIncludeAction = object : AbstractAction(mAddIncludeKey) {
@@ -297,11 +297,11 @@ class ToolsPane private constructor(): JTabbedPane() {
                             comboText += "|"
                         }
 
-                        if (mEditorPane.selectedText != null) {
+                        if (mTextComponent.selectedText != null) {
                             val selectedText = if (mIsPlainText) {
-                                mEditorPane.selectedText
+                                mTextComponent.selectedText
                             } else {
-                                mEditorPane.selectedText.replace("\u00a0", " ")
+                                mTextComponent.selectedText.replace("\u00a0", " ")
                             }
                             comboText += if (textSplit.size == 2) {
                                 "${textSplit[1].trim()}$selectedText"
@@ -316,25 +316,25 @@ class ToolsPane private constructor(): JTabbedPane() {
             }
 
             val key = mAddIncludeKey
-            mEditorPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+            mTextComponent.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
                 KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_DOWN_MASK or InputEvent.SHIFT_DOWN_MASK), key)
-            mEditorPane.actionMap.put(key, mIncludeAction)
+            mTextComponent.actionMap.put(key, mIncludeAction)
 
             mPopupMenu = PopUpLogViewDialog()
         }
 
         fun setBgColor(logBG: Color) {
-            mEditorPane.background = logBG
+            mTextComponent.background = logBG
         }
 
         fun setSelectionLog(pair: Pair<String, Int>) {
             if (mIsPlainText) {
-                mEditorPane.text = pair.first
+                mTextComponent.text = pair.first
             }
             else {
-                mEditorPane.text = "<html>${pair.first}</html>"
+                mTextComponent.text = "<html>${pair.first}</html>"
             }
-            mEditorPane.caretPosition = pair.second
+            mTextComponent.caretPosition = pair.second
         }
 
         fun isVisiblePopupMenu(): Boolean {
@@ -342,7 +342,7 @@ class ToolsPane private constructor(): JTabbedPane() {
         }
 
         fun addFocusListenerToEditor(focusHandler: FocusListener) {
-            mEditorPane.addFocusListener(focusHandler)
+            mTextComponent.addFocusListener(focusHandler)
         }
 
         fun addFocusListenerToPopup(popupFocusHandler: FocusListener) {
@@ -396,11 +396,11 @@ class ToolsPane private constructor(): JTabbedPane() {
                 override fun actionPerformed(p0: ActionEvent?) {
                     when (p0?.source) {
                         mIncludeSetItem -> {
-                            if (!mEditorPane.selectedText.isNullOrEmpty()) {
+                            if (!mTextComponent.selectedText.isNullOrEmpty()) {
                                 val selectedText = if (mIsPlainText) {
-                                    mEditorPane.selectedText
+                                    mTextComponent.selectedText
                                 } else {
-                                    mEditorPane.selectedText.replace("\u00a0", " ")
+                                    mTextComponent.selectedText.replace("\u00a0", " ")
                                 }
 
                                 MainUI.getInstance().setTextShowLogCombo(selectedText)
@@ -408,22 +408,22 @@ class ToolsPane private constructor(): JTabbedPane() {
                             }
                         }
                         mIncludeRemoveItem -> {
-                            if (!mEditorPane.selectedText.isNullOrEmpty()) {
+                            if (!mTextComponent.selectedText.isNullOrEmpty()) {
                                 val selectedText = if (mIsPlainText) {
-                                    mEditorPane.selectedText
+                                    mTextComponent.selectedText
                                 } else {
-                                    mEditorPane.selectedText.replace("\u00a0", " ")
+                                    mTextComponent.selectedText.replace("\u00a0", " ")
                                 }
                                 MainUI.getInstance().removeIncludeFilterShowLogCombo(selectedText)
                             }
                         }
                         mExcludeItem -> {
-                            if (!mEditorPane.selectedText.isNullOrEmpty()) {
+                            if (!mTextComponent.selectedText.isNullOrEmpty()) {
                                 var text = MainUI.getInstance().getTextShowLogCombo()
                                 val selectedText = if (mIsPlainText) {
-                                    mEditorPane.selectedText
+                                    mTextComponent.selectedText
                                 } else {
-                                    mEditorPane.selectedText.replace("\u00a0", " ")
+                                    mTextComponent.selectedText.replace("\u00a0", " ")
                                 }
                                 text += "|-$selectedText"
                                 MainUI.getInstance().setTextShowLogCombo(text)
@@ -431,29 +431,29 @@ class ToolsPane private constructor(): JTabbedPane() {
                             }
                         }
                         mFindAddItem -> {
-                            if (!mEditorPane.selectedText.isNullOrEmpty()) {
+                            if (!mTextComponent.selectedText.isNullOrEmpty()) {
                                 var text = MainUI.getInstance().getTextFindCombo()
                                 val selectedText = if (mIsPlainText) {
-                                    mEditorPane.selectedText
+                                    mTextComponent.selectedText
                                 } else {
-                                    mEditorPane.selectedText.replace("\u00a0", " ")
+                                    mTextComponent.selectedText.replace("\u00a0", " ")
                                 }
                                 text += "|$selectedText"
                                 MainUI.getInstance().setTextFindCombo(text)
                             }
                         }
                         mFindSetItem -> {
-                            if (!mEditorPane.selectedText.isNullOrEmpty()) {
+                            if (!mTextComponent.selectedText.isNullOrEmpty()) {
                                 val selectedText = if (mIsPlainText) {
-                                    mEditorPane.selectedText
+                                    mTextComponent.selectedText
                                 } else {
-                                    mEditorPane.selectedText.replace("\u00a0", " ")
+                                    mTextComponent.selectedText.replace("\u00a0", " ")
                                 }
                                 MainUI.getInstance().setTextFindCombo(selectedText)
                             }
                         }
                         mCopyItem -> {
-                            mEditorPane.copy()
+                            mTextComponent.copy()
                             if (!mIsPlainText) {
                                 val clipboard: Clipboard = Toolkit.getDefaultToolkit().systemClipboard
                                 var htmlFromClipboard: String? = null
@@ -493,18 +493,18 @@ class ToolsPane private constructor(): JTabbedPane() {
                 }
 
                 if (SwingUtilities.isRightMouseButton(p0)) {
-                    mEditorPane.requestFocus()
-                    val offset = mEditorPane.viewToModel(p0.point)
+                    mTextComponent.requestFocus()
+                    val offset = mTextComponent.viewToModel(p0.point)
                     var needSelect = true
-                    if (!mEditorPane.selectedText.isNullOrEmpty()) {
-                        if (offset >= mEditorPane.selectionStart && offset <= mEditorPane.selectionEnd) {
+                    if (!mTextComponent.selectedText.isNullOrEmpty()) {
+                        if (offset >= mTextComponent.selectionStart && offset <= mTextComponent.selectionEnd) {
                             needSelect = false
                         }
                     }
                     if (needSelect) {
-                        val start = Utilities.getWordStart(mEditorPane, offset)
-                        val end = Utilities.getWordEnd(mEditorPane, offset)
-                        mEditorPane.select(start, end)
+                        val start = Utilities.getWordStart(mTextComponent, offset)
+                        val end = Utilities.getWordEnd(mTextComponent, offset)
+                        mTextComponent.select(start, end)
                     }
                     mPopupMenu.show(p0.component, p0.x, p0.y)
                 } else {
@@ -525,8 +525,8 @@ class ToolsPane private constructor(): JTabbedPane() {
 
         fun getLogHeight(width: Int): Int {
             if (mIsPlainText) {
-                val fm: FontMetrics = mEditorPane.getFontMetrics(mEditorPane.font)
-                val lines = mEditorPane.text.split("\n")
+                val fm: FontMetrics = mTextComponent.getFontMetrics(mTextComponent.font)
+                val lines = mTextComponent.text.split("\n")
 
                 var lineCount = lines.size
                 for (line in lines) {
