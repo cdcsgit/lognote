@@ -9,7 +9,6 @@ class ToolSelectionDialog(mainUI: MainUI, log: Pair<String, Int>) : JDialog(main
     private val mToolSelection = ToolsPane.ToolSelection(true)
 
     init {
-        isUndecorated = true
         mToolSelection.addFocusListenerToEditor(FocusHandler())
         mToolSelection.addFocusListenerToPopup(PopupFocusHandler())
         mToolSelection.setSelectionLog(log)

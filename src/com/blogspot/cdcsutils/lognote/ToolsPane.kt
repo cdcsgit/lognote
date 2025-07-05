@@ -534,7 +534,9 @@ class ToolsPane private constructor(): JTabbedPane() {
                 }
 
                 return if (lineCount > 0) {
-                    val height = fm.height * lineCount
+                    val borderInsets = mTextComponent.border.getBorderInsets(mTextComponent)
+                    val margin = mTextComponent.margin.top + mTextComponent.margin.bottom + borderInsets.top + borderInsets.bottom
+                    val height = fm.height * lineCount + margin
                     if (height > MainUI.getInstance().height) {
                         MainUI.getInstance().height
                     }
