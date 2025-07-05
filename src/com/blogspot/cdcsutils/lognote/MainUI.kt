@@ -545,6 +545,13 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         }
 
         if (path == recentItem.mPath) {
+            val bookmarks = recentItem.mBookmarks.split(",")
+            for (bookmark in bookmarks) {
+                if (bookmark.isNotBlank()) {
+                    mBookmarkManager.addBookmark(bookmark.toInt() + startLine)
+                }
+            }
+
             if (startLine == 0) {
                 val result = JOptionPane.showConfirmDialog(this, Strings.APPLY_RECENT_FILE, Strings.RECENT_FILE, JOptionPane.YES_NO_OPTION)
                 if (result == JOptionPane.YES_OPTION) {
@@ -568,13 +575,6 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                     mBoldLogCombo.applyFilterText(true)
                     mFindPanel.mFindCombo.setFilterText(recentItem.mFindLog)
                     mFindPanel.mFindCombo.applyFilterText(true)
-                }
-            }
-
-            val bookmarks = recentItem.mBookmarks.split(",")
-            for (bookmark in bookmarks) {
-                if (bookmark.isNotBlank()) {
-                    mBookmarkManager.addBookmark(bookmark.toInt() + startLine)
                 }
             }
         }
