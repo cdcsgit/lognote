@@ -200,6 +200,8 @@ class StringsEn private constructor() {
                 , "Only numbers can be entered."
                 , "Single"
                 , "Multiple"
+                , "Show Cmd Toolbar"
+                , "Hide Cmd Toolbar"
 //            , ""
             )
 

@@ -97,6 +97,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     lateinit var mItemToolSelection: JCheckBoxMenuItem
     var mToolTestEnable = false
     lateinit var mItemToolTest: JCheckBoxMenuItem
+    private lateinit var mItemCmdToolbar: JMenuItem
     lateinit var mItemFull: JCheckBoxMenuItem
     lateinit var mItemFullLogToNewWindow: JCheckBoxMenuItem
     private lateinit var mItemColumnMode: JCheckBoxMenuItem
@@ -125,6 +126,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     private lateinit var mFilterLeftPanel: JPanel
 
     private lateinit var mLogToolBar: ButtonPanel
+    private lateinit var mCmdToolBarPanel: JPanel
     private lateinit var mStartBtn: ColorButton
     private lateinit var mRetryAdbToggle: ColorToggleButton
     private lateinit var mStopBtn: ColorButton
@@ -201,6 +203,16 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     private val mMouseHandler = MouseHandler()
     private val mComponentHandler = ComponentHandler()
     private val mStatusChangeListener = StatusChangeListener()
+
+    private val mCmdToolbarAction = object : AbstractAction() {
+        override fun actionPerformed(evt: ActionEvent?) {
+            if (evt != null) {
+                mCmdToolBarPanel.isVisible = !mCmdToolBarPanel.isVisible
+                mItemCmdToolbar.text = if (mCmdToolBarPanel.isVisible) Strings.HIDE_CMD_TOOLBAR else Strings.SHOW_CMD_TOOLBAR
+                mConfigManager.saveItem(ConfigManager.ITEM_CMD_TOOLBAR, mCmdToolBarPanel.isVisible.toString())
+            }
+        }
+    }
 
     private val mRecentFileManager = RecentFileManager.getInstance()
     private val mColorManager = ColorManager.getInstance()
@@ -661,6 +673,10 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mItemToolWindows.add(mItemToolTest)
         }
 
+        mItemCmdToolbar = JMenuItem(Strings.HIDE_CMD_TOOLBAR)
+        mItemCmdToolbar.addActionListener(mCmdToolbarAction)
+        mMenuView.add(mItemCmdToolbar)
+
         mMenuView.addSeparator()
 
         mItemFull = JCheckBoxMenuItem(Strings.VIEW_FULL)
@@ -1062,13 +1078,13 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         scrollbackPanel.add(mScrollbackApplyBtn)
         scrollbackPanel.add(mScrollbackKeepToggle)
 
-        val toolBarPanel = JPanel(FlowLayout(FlowLayout.LEFT, 0, 0))
-        toolBarPanel.layout = BorderLayout()
-        toolBarPanel.addMouseListener(mMouseHandler)
-        toolBarPanel.add(mLogToolBar, BorderLayout.CENTER)
-        toolBarPanel.add(scrollbackPanel, BorderLayout.EAST)
+        mCmdToolBarPanel = JPanel(FlowLayout(FlowLayout.LEFT, 0, 0))
+        mCmdToolBarPanel.layout = BorderLayout()
+        mCmdToolBarPanel.addMouseListener(mMouseHandler)
+        mCmdToolBarPanel.add(mLogToolBar, BorderLayout.CENTER)
+        mCmdToolBarPanel.add(scrollbackPanel, BorderLayout.EAST)
 
-        mFilterPanel.add(toolBarPanel)
+        mFilterPanel.add(mCmdToolBarPanel)
         mFilterPanel.add(mFilterLeftPanel)
         mFilterPanel.add(mFindPanel)
         mFilterPanel.add(mAgingTestManager.mTriggerPanel)
@@ -1543,6 +1559,14 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         } else {
             setBtnIconsTexts(true, true)
         }
+
+        check = mConfigManager.getItem(ConfigManager.ITEM_CMD_TOOLBAR)
+        if (!check.isNullOrEmpty()) {
+            mCmdToolBarPanel.isVisible = check.toBoolean()
+        } else {
+            mCmdToolBarPanel.isVisible = true
+        }
+        mItemCmdToolbar.text = if (mCmdToolBarPanel.isVisible) Strings.HIDE_CMD_TOOLBAR else Strings.SHOW_CMD_TOOLBAR
 
         add(mFilterPanel, BorderLayout.NORTH)
         add(mToolSplitPane, BorderLayout.CENTER)
@@ -2723,6 +2747,8 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         var mItemIconText: JMenuItem = JMenuItem("IconText")
         var mItemIcon: JMenuItem = JMenuItem("Icon")
         var mItemText: JMenuItem = JMenuItem("Text")
+        private var mItemCmdToolbar: JMenuItem = JMenuItem(if (mCmdToolBarPanel.isVisible) Strings.HIDE_CMD_TOOLBAR else Strings.SHOW_CMD_TOOLBAR)
+
         private val mActionHandler = ActionHandler()
 
         init {
@@ -2732,6 +2758,8 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             add(mItemIcon)
             mItemText.addActionListener(mActionHandler)
             add(mItemText)
+            mItemCmdToolbar.addActionListener(mCmdToolbarAction)
+            add(mItemCmdToolbar)
         }
         internal inner class ActionHandler : ActionListener {
             override fun actionPerformed(p0: ActionEvent?) {
@@ -4030,6 +4058,18 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                     val filter = mShowLogCombo.getItemAt(1)
                     setTextShowLogCombo(filter)
                     applyShowLogCombo(true)
+                }
+            }
+        }
+        rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(stroke, actionMapKey)
+        rootPane.actionMap.put(actionMapKey, action)
+
+        stroke = KeyStroke.getKeyStroke(KeyEvent.VK_E, InputEvent.CTRL_DOWN_MASK)
+        actionMapKey = javaClass.name + ":RELOAD_FILE"
+        action = object : AbstractAction() {
+            override fun actionPerformed(event: ActionEvent) {
+                if (mStatusReloadBtn.isVisible) {
+                    mStatusReloadBtn.doClick()
                 }
             }
         }

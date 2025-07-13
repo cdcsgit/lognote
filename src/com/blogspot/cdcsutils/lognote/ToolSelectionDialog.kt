@@ -20,6 +20,8 @@ class ToolSelectionDialog(mainUI: MainUI, log: Pair<String, Int>) : JDialog(main
         mToolSelection.preferredSize = Dimension(width, mToolSelection.getLogHeight(width))
         contentPane.add(mToolSelection)
         pack()
+
+        Utils.installKeyStrokeEscClosing(this)
     }
 
     internal inner class FocusHandler: FocusAdapter() {

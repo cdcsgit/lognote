@@ -200,6 +200,8 @@ class StringsKo private constructor() {
                 , "숫자만 입력할 수 있습니다."
                 , "단일"
                 , "다중"
+                , "Cmd 툴바 보이기"
+                , "Cmd 툴바 숨기기"
 //            , ""
             )
 

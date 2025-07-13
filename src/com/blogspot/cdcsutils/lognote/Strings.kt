@@ -410,5 +410,9 @@ class Strings private constructor() {
             get() { return currStrings[field]!! }
         val MULTIPLE: String = idx++.toString()
             get() { return currStrings[field]!! }
+        val SHOW_CMD_TOOLBAR: String = idx++.toString()
+            get() { return currStrings[field]!! }
+        val HIDE_CMD_TOOLBAR: String = idx++.toString()
+            get() { return currStrings[field]!! }
     }
 }

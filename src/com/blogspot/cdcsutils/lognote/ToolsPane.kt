@@ -328,6 +328,7 @@ class ToolsPane private constructor(): JTabbedPane() {
         }
 
         fun setSelectionLog(pair: Pair<String, Int>) {
+            mTextComponent.font = MainUI.getInstance().mFont
             if (mIsPlainText) {
                 mTextComponent.text = pair.first
             }

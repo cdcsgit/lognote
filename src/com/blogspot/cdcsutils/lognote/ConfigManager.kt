@@ -97,6 +97,8 @@ class ConfigManager private constructor() {
         const val VALUE_ICON_TEXT_I = "Icon"
         const val VALUE_ICON_TEXT_T = "Text"
 
+        const val ITEM_CMD_TOOLBAR = "CMD_TOOLBAR"
+
         const val ITEM_TOOL_PANEL = "TOOL_PANEL"
         const val ITEM_TOOL_SELECTION = "TOOL_SELECTION"
         const val ITEM_TOOL_SELECTION_RANGE_PREVIOUS = "TOOL_SELECTION_RANGE_PREVIOUS"
