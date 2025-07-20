@@ -142,7 +142,7 @@ Right click > Popup menu > Process info => Show all process list \
 
 # Log format setting
 In addition to logcat logs, you can also use other logs by setting the format \
-![Lognote_manage_format](https://github.com/cdcsgit/lognote/assets/75207513/56f6b18d-e56f-4da8-b56a-2a28a27c65d6)
+![Lognote_manage_format](https://github.com/user-attachments/assets/6dc7ad7c-8238-403a-8735-df27fed31047)
 
 
 <br/>
