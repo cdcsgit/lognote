@@ -1,6 +1,8 @@
 package com.blogspot.cdcsutils.lognote
 
 import java.awt.*
+import java.awt.datatransfer.Clipboard
+import java.awt.datatransfer.StringSelection
 import java.awt.event.*
 import javax.swing.*
 import javax.swing.event.DocumentEvent
@@ -83,7 +85,40 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
         mEditorComponent.toolTipText = toolTipText
         mEditorComponent.addKeyListener(KeyHandler())
         mEditorComponent.document.addDocumentListener(DocumentHandler())
-        mEditorComponent.getInputMap(WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, KeyEvent.CTRL_MASK), "none")
+
+        val inputMap = mEditorComponent.getInputMap(JComponent.WHEN_FOCUSED)
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, KeyEvent.CTRL_MASK), "none")
+
+        val copyActionKey = inputMap.get(KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_DOWN_MASK))
+        if (copyActionKey != null) {
+            mEditorComponent.actionMap.put(copyActionKey, CopyAction())
+        } else {
+            inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_DOWN_MASK), "FilterComboCopy")
+            mEditorComponent.actionMap.put("FilterComboCopy", CopyAction())
+        }
+    }
+
+    inner class CopyAction : AbstractAction() {
+        override fun actionPerformed(e: ActionEvent?) {
+            val selectedText = mEditorComponent.selectedText
+            val textToCopy: String
+
+            if (!selectedText.isNullOrEmpty()) {
+                textToCopy = selectedText
+            } else {
+                textToCopy = mEditorComponent.text
+                mEditorComponent.selectAll()
+            }
+
+            if (!textToCopy.isNullOrEmpty()) {
+                val stringSelection = StringSelection(textToCopy)
+                val clipboard: Clipboard = Toolkit.getDefaultToolkit().systemClipboard
+                clipboard.setContents(stringSelection, null)
+            }
+            else {
+                Utils.printlnLog("FilterComboBox : textToCopy is null or empty")
+            }
+        }
     }
 
     fun setEnabledFilter(enabled: Boolean) {
