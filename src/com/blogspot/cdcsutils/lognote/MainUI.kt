@@ -3956,7 +3956,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     }
 
     private fun registerTriggerKeyStroke() {
-        val stroke = KeyStroke.getKeyStroke(KeyEvent.VK_T, KeyEvent.CTRL_MASK)
+        val stroke = KeyStroke.getKeyStroke(KeyEvent.VK_T, InputEvent.CTRL_DOWN_MASK)
         val actionMapKey = javaClass.name + ":TRIGGER_OPENING_CLOSING"
         val action: Action = object : AbstractAction() {
             override fun actionPerformed(event: ActionEvent) {
@@ -3978,9 +3978,9 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     }
 
     private fun registerKeyStroke() {
-        mScrollbackTF.getInputMap(JTextField.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, KeyEvent.CTRL_MASK), "none")
+        mScrollbackTF.getInputMap(JTextField.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, InputEvent.CTRL_DOWN_MASK), "none")
 
-        var stroke = KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, KeyEvent.CTRL_MASK)
+        var stroke = KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, InputEvent.CTRL_DOWN_MASK)
         var actionMapKey = javaClass.name + ":GO_TO_LAST"
         var action: Action = object : AbstractAction() {
             override fun actionPerformed(event: ActionEvent) {
@@ -3991,7 +3991,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(stroke, actionMapKey)
         rootPane.actionMap.put(actionMapKey, action)
 
-        stroke = KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, KeyEvent.CTRL_MASK)
+        stroke = KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, InputEvent.CTRL_DOWN_MASK)
         actionMapKey = javaClass.name + ":GO_TO_FIRST"
         action = object : AbstractAction() {
             override fun actionPerformed(event: ActionEvent) {
@@ -4002,7 +4002,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(stroke, actionMapKey)
         rootPane.actionMap.put(actionMapKey, action)
 
-        stroke = KeyStroke.getKeyStroke(KeyEvent.VK_R, KeyEvent.CTRL_MASK)
+        stroke = KeyStroke.getKeyStroke(KeyEvent.VK_R, InputEvent.CTRL_DOWN_MASK)
         actionMapKey = javaClass.name + ":RECONNECT"
         action = object : AbstractAction() {
             override fun actionPerformed(event: ActionEvent) {
@@ -4012,7 +4012,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(stroke, actionMapKey)
         rootPane.actionMap.put(actionMapKey, action)
 
-        stroke = KeyStroke.getKeyStroke(KeyEvent.VK_G, KeyEvent.CTRL_MASK)
+        stroke = KeyStroke.getKeyStroke(KeyEvent.VK_G, InputEvent.CTRL_DOWN_MASK)
         actionMapKey = javaClass.name + ":GO_TO_LINE"
         action = object : AbstractAction() {
             override fun actionPerformed(event: ActionEvent) {
@@ -4029,7 +4029,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(stroke, actionMapKey)
         rootPane.actionMap.put(actionMapKey, action)
 
-        stroke = KeyStroke.getKeyStroke(KeyEvent.VK_BACK_QUOTE, KeyEvent.CTRL_MASK)
+        stroke = KeyStroke.getKeyStroke(KeyEvent.VK_BACK_QUOTE, InputEvent.CTRL_DOWN_MASK)
         actionMapKey = javaClass.name + ":FOCUS_LOG_COMBO"
         action = object : AbstractAction() {
             override fun actionPerformed(event: ActionEvent) {
@@ -4039,7 +4039,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(stroke, actionMapKey)
         rootPane.actionMap.put(actionMapKey, action)
 
-        stroke = KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, KeyEvent.CTRL_MASK)
+        stroke = KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, InputEvent.CTRL_DOWN_MASK)
         actionMapKey = javaClass.name + ":CLEAR_VIEWS"
         action = object : AbstractAction() {
             override fun actionPerformed(event: ActionEvent) {

@@ -87,7 +87,7 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
         mEditorComponent.document.addDocumentListener(DocumentHandler())
 
         val inputMap = mEditorComponent.getInputMap(JComponent.WHEN_FOCUSED)
-        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, KeyEvent.CTRL_MASK), "none")
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, InputEvent.CTRL_DOWN_MASK), "none")
 
         val copyActionKey = inputMap.get(KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_DOWN_MASK))
         if (copyActionKey != null) {

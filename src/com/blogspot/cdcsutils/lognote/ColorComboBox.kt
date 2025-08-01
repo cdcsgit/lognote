@@ -2,6 +2,7 @@ package com.blogspot.cdcsutils.lognote
 
 import java.awt.Component
 import java.awt.Dimension
+import java.awt.event.InputEvent
 import java.awt.event.ItemEvent
 import java.awt.event.KeyEvent
 import javax.swing.*
@@ -12,7 +13,7 @@ import kotlin.math.max
 class ColorComboBox<E>(autoResize:Boolean = false, minWidth:Int = 0) : JComboBox<E>() {
     init {
         val textField = editor.editorComponent as JTextField
-        textField.getInputMap(WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, KeyEvent.CTRL_MASK), "none")
+        textField.getInputMap(WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, InputEvent.CTRL_DOWN_MASK), "none")
 
         if (autoResize) {
             addItemListener { e ->

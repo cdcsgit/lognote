@@ -1240,7 +1240,7 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
             }
 
             private fun registerKeyStroke() {
-                val stroke = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, KeyEvent.CTRL_MASK)
+                val stroke = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.CTRL_DOWN_MASK)
                 val actionMapKey = javaClass.name + ":APPLY_SAMPLE"
                 val action: Action = object : AbstractAction() {
                     override fun actionPerformed(event: ActionEvent) {
