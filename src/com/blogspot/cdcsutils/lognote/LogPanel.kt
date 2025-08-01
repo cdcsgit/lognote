@@ -445,22 +445,22 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
     }
 
     internal inner class TableModelHandler : LogTableModelListener {
-        @Synchronized
         override fun tableChanged(event: LogTableModelEvent?) {
-            if (event?.mDataChange == LogTableModelEvent.EVENT_CLEARED) {
-                mOldLogVPos = -1
+            if (SwingUtilities.isEventDispatchThread()) {
+                tableChangedInternal(event)
             } else {
-                if (SwingUtilities.isEventDispatchThread()) {
+                SwingUtilities.invokeAndWait {
                     tableChangedInternal(event)
-                } else {
-                    SwingUtilities.invokeAndWait {
-                        tableChangedInternal(event)
-                    }
                 }
             }
         }
 
         private fun tableChangedInternal(event: LogTableModelEvent?) {
+            if (event?.mDataChange == LogTableModelEvent.EVENT_CLEARED) {
+                mOldLogVPos = -1
+                return
+            }
+
             mTable.revalidate()
             mTable.repaint()
 
