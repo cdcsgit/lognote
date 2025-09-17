@@ -533,6 +533,9 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
 
         for (row in rows) {
             value = getLogText(row)
+            if (row == targetRow) {
+                caretPos = log.length - value.length
+            }
             if (isPlaneText) {
                 if (log.isEmpty()) {
                     log.append(value)
