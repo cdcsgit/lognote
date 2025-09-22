@@ -10,6 +10,7 @@ import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
 import java.awt.event.*
 import javax.swing.*
+import javax.swing.text.DefaultHighlighter
 import javax.swing.text.JTextComponent
 import javax.swing.text.Utilities
 
@@ -265,10 +266,12 @@ class ToolsPane private constructor(): JTabbedPane() {
         private val mPopupMenu: PopUpLogViewDialog
         private val mIncludeAction: Action
         private val mAddIncludeKey = "add_include"
+        private var mSelectedBGPainter: DefaultHighlighter.DefaultHighlightPainter
         var mPrevLines = 2
         var mNextLines = 2
 
         init {
+            Utils.printlnLog("ToolSelection init")
             name = Strings.TOOL_SELECTION
             mTextComponent = if (mIsPlainText) {
                 JTextArea()
@@ -282,11 +285,14 @@ class ToolsPane private constructor(): JTabbedPane() {
             }
             else if (mTextComponent is JTextArea) {
                 mTextComponent.lineWrap = true
+                (mTextComponent.highlighter as DefaultHighlighter).drawsLayeredHighlights = false
             }
 
             mTextComponent.addMouseListener(MouseHandler())
             setViewportView(mTextComponent)
             horizontalScrollBarPolicy = HORIZONTAL_SCROLLBAR_NEVER
+
+            mSelectedBGPainter = DefaultHighlighter.DefaultHighlightPainter(mTextComponent.background)
 
             mIncludeAction = object : AbstractAction(mAddIncludeKey) {
                 override fun actionPerformed(evt: ActionEvent?) {
@@ -323,19 +329,24 @@ class ToolsPane private constructor(): JTabbedPane() {
             mPopupMenu = PopUpLogViewDialog()
         }
 
-        fun setBgColor(logBG: Color) {
+        fun setBgColor(logBG: Color, selectedBG: Color) {
             mTextComponent.background = logBG
+            mSelectedBGPainter = DefaultHighlighter.DefaultHighlightPainter(selectedBG)
         }
 
-        fun setSelectionLog(pair: Pair<String, Int>) {
+        fun setSelectionLog(param: Triple<String, Int, Int>) {
             mTextComponent.font = MainUI.getInstance().mFont
             if (mIsPlainText) {
-                mTextComponent.text = pair.first
+                mTextComponent.highlighter.removeAllHighlights()
+                mTextComponent.text = param.first
+                if (param.third > 0) {
+                    mTextComponent.highlighter.addHighlight(param.second, param.second + param.third, mSelectedBGPainter)
+                }
+                mTextComponent.caretPosition = param.second
             }
             else {
-                mTextComponent.text = "<html>${pair.first}</html>"
+                mTextComponent.text = "<html>${param.first}</html>"
             }
-            mTextComponent.caretPosition = pair.second
         }
 
         fun isVisiblePopupMenu(): Boolean {

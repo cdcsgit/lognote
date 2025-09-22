@@ -5,7 +5,7 @@ import java.awt.event.*
 import javax.swing.*
 
 
-class ToolSelectionDialog(mainUI: MainUI, log: Pair<String, Int>) : JDialog(mainUI, "Log", false) {
+class ToolSelectionDialog(mainUI: MainUI, log: Triple<String, Int, Int>) : JDialog(mainUI, "Log", false) {
     private val mToolSelection = ToolsPane.ToolSelection(true)
 
     init {

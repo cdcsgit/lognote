@@ -508,9 +508,10 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         return mTableModel.getValueAt(row, LogTableModel.COLUMN_LOG_START).toString()
     }
 
-    fun getSelectedLog(targetRow: Int, prevLines: Int, nextLines: Int, isPlaneText: Boolean): Pair<String, Int> {
+    fun getSelectedLog(targetRow: Int, prevLines: Int, nextLines: Int, isPlaneText: Boolean): Triple<String, Int, Int> {
         val log = StringBuilder("")
         var caretPos = 0
+        var selectedLen = 0
         var value:String
         var newValue:String
 
@@ -534,6 +535,15 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         for (row in rows) {
             value = getLogText(row)
             if (isPlaneText) {
+                if (selectedRowCount == 1) {
+                    if (row == targetRow) {
+                        caretPos = log.length
+                        if (log.isNotEmpty()) {
+                            caretPos += System.lineSeparator().length
+                        }
+                        selectedLen = value.length
+                    }
+                }
                 if (log.isEmpty()) {
                     log.append(value)
                 }
@@ -552,7 +562,7 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
             }
         }
 
-        return Pair(log.toString(), caretPos)
+        return Triple(log.toString(), caretPos, selectedLen)
     }
 
     private fun showSelected(targetRow:Int) {
@@ -562,9 +572,9 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
         }
         else {
             val toolSelection = ToolsPane.getInstance().mToolSelection
-            val selectedPair = getSelectedLog(targetRow, toolSelection.mPrevLines, toolSelection.mNextLines, toolSelection.mIsPlainText)
+            val selectedLog = getSelectedLog(targetRow, toolSelection.mPrevLines, toolSelection.mNextLines, toolSelection.mIsPlainText)
             val mainUI = MainUI.getInstance()
-            val toolSelectionDialog = ToolSelectionDialog(mainUI, selectedPair)
+            val toolSelectionDialog = ToolSelectionDialog(mainUI, selectedLog)
             toolSelectionDialog.setLocationRelativeTo(mainUI)
             toolSelectionDialog.isVisible = true
         }

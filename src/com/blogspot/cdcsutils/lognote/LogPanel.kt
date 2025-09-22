@@ -552,9 +552,9 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
                     }
                     if (ToolsPane.getInstance().isVisible && !getGoToLast()) {
                         val toolSelection = ToolsPane.getInstance().mToolSelection
-                        val pair = mTable.getSelectedLog(mTable.selectedRow, toolSelection.mPrevLines, toolSelection.mNextLines, toolSelection.mIsPlainText)
-                        toolSelection.setBgColor(mTable.mTableColor.mLogBG)
-                        toolSelection.setSelectionLog(pair)
+                        val param = mTable.getSelectedLog(mTable.selectedRow, toolSelection.mPrevLines, toolSelection.mNextLines, toolSelection.mIsPlainText)
+                        toolSelection.setBgColor(mTable.mTableColor.mLogBG, mTable.mTableColor.mSelectedBG)
+                        toolSelection.setSelectionLog(param)
                     }
                 }
             } else {
@@ -568,9 +568,9 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
                     }
                     if (ToolsPane.getInstance().isVisible && !getGoToLast()) {
                         val toolSelection = ToolsPane.getInstance().mToolSelection
-                        val pair = mTable.getSelectedLog(mTable.selectedRow, toolSelection.mPrevLines, toolSelection.mNextLines, toolSelection.mIsPlainText)
-                        toolSelection.setBgColor(mTable.mTableColor.mLogBG)
-                        toolSelection.setSelectionLog(pair)
+                        val param = mTable.getSelectedLog(mTable.selectedRow, toolSelection.mPrevLines, toolSelection.mNextLines, toolSelection.mIsPlainText)
+                        toolSelection.setBgColor(mTable.mTableColor.mLogBG, mTable.mTableColor.mSelectedBG)
+                        toolSelection.setSelectionLog(param)
                     }
                 }
             }
