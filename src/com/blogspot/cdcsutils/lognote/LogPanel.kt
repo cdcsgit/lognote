@@ -553,7 +553,7 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
                     if (ToolsPane.getInstance().isVisible && !getGoToLast()) {
                         val toolSelection = ToolsPane.getInstance().mToolSelection
                         val param = mTable.getSelectedLog(mTable.selectedRow, toolSelection.mPrevLines, toolSelection.mNextLines, toolSelection.mIsPlainText)
-                        toolSelection.setBgColor(mTable.mTableColor.mLogBG, mTable.mTableColor.mSelectedBG)
+                        toolSelection.setLogColor(Triple(mTable.mTableColor.mLogLevelNone, mTable.mTableColor.mLogBG, mTable.mTableColor.mSelectedBG))
                         toolSelection.setSelectionLog(param)
                     }
                 }
@@ -569,7 +569,7 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
                     if (ToolsPane.getInstance().isVisible && !getGoToLast()) {
                         val toolSelection = ToolsPane.getInstance().mToolSelection
                         val param = mTable.getSelectedLog(mTable.selectedRow, toolSelection.mPrevLines, toolSelection.mNextLines, toolSelection.mIsPlainText)
-                        toolSelection.setBgColor(mTable.mTableColor.mLogBG, mTable.mTableColor.mSelectedBG)
+                        toolSelection.setLogColor(Triple(mTable.mTableColor.mLogLevelNone, mTable.mTableColor.mLogBG, mTable.mTableColor.mSelectedBG))
                         toolSelection.setSelectionLog(param)
                     }
                 }

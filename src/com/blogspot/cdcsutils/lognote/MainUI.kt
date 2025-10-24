@@ -1455,7 +1455,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         }
 
         if (mToolsPane.isVisible) {
-            mToolsPane.mToolSelection.setBgColor(mFilteredLogPanel.mTable.mTableColor.mLogBG, mFilteredLogPanel.mTable.mTableColor.mSelectedBG)
+            mToolsPane.mToolSelection.setLogColor(Triple(mFilteredLogPanel.mTable.mTableColor.mLogLevelNone, mFilteredLogPanel.mTable.mTableColor.mLogBG, mFilteredLogPanel.mTable.mTableColor.mSelectedBG))
             mToolSplitPane.dividerSize = mLogSplitPane.dividerSize
         }
         else {

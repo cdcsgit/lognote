@@ -574,7 +574,7 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
             val toolSelection = ToolsPane.getInstance().mToolSelection
             val selectedLog = getSelectedLog(targetRow, toolSelection.mPrevLines, toolSelection.mNextLines, toolSelection.mIsPlainText)
             val mainUI = MainUI.getInstance()
-            val toolSelectionDialog = ToolSelectionDialog(mainUI, selectedLog)
+            val toolSelectionDialog = ToolSelectionDialog(mainUI, selectedLog, Triple(mTableColor.mLogLevelNone, mTableColor.mLogBG, mTableColor.mSelectedBG))
             toolSelectionDialog.setLocationRelativeTo(mainUI)
             toolSelectionDialog.isVisible = true
         }

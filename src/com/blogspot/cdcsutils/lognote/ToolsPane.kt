@@ -329,9 +329,10 @@ class ToolsPane private constructor(): JTabbedPane() {
             mPopupMenu = PopUpLogViewDialog()
         }
 
-        fun setBgColor(logBG: Color, selectedBG: Color) {
-            mTextComponent.background = logBG
-            mSelectedBGPainter = DefaultHighlighter.DefaultHighlightPainter(selectedBG)
+        fun setLogColor(colors: Triple<Color, Color, Color>) {
+            mTextComponent.foreground = colors.first
+            mTextComponent.background = colors.second
+            mSelectedBGPainter = DefaultHighlighter.DefaultHighlightPainter(colors.third)
         }
 
         fun setSelectionLog(param: Triple<String, Int, Int>) {
