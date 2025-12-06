@@ -3,6 +3,7 @@ package com.blogspot.cdcsutils.lognote
 import java.awt.*
 import java.awt.datatransfer.StringSelection
 import java.awt.event.*
+import java.text.BreakIterator
 import javax.swing.*
 import javax.swing.border.AbstractBorder
 import javax.swing.border.CompoundBorder
@@ -658,6 +659,17 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
                 }
             }
 
+            mCopyLineItem.addActionListener(mActionHandler)
+            add(mCopyLineItem)
+            mShowEntireItem.addActionListener(mActionHandler)
+            val toolsPane = ToolsPane.getInstance()
+            if (!toolsPane.isShowingTool(ToolsPane.Companion.ToolId.TOOL_ID_SELECTION)) {
+                add(mShowEntireItem)
+            }
+            mBookmarkItem.addActionListener(mActionHandler)
+            add(mBookmarkItem)
+            addSeparator()
+
             mIncludeAction = object : AbstractAction(mAddIncludeKey) {
                 override fun actionPerformed(evt: ActionEvent?) {
                     if (evt != null) {
@@ -748,16 +760,6 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
                 addSeparator()
             }
 
-            mCopyLineItem.addActionListener(mActionHandler)
-            add(mCopyLineItem)
-            mShowEntireItem.addActionListener(mActionHandler)
-            val toolsPane = ToolsPane.getInstance()
-            if (!toolsPane.isShowingTool(ToolsPane.Companion.ToolId.TOOL_ID_SELECTION)) {
-                add(mShowEntireItem)
-            }
-            mBookmarkItem.addActionListener(mActionHandler)
-            add(mBookmarkItem)
-            addSeparator()
             mReconnectItem.addActionListener(mActionHandler)
             add(mReconnectItem)
             mStartItem.addActionListener(mActionHandler)
@@ -781,15 +783,8 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
                     }
                 }
                 if (offset >= 0) {
-                    var start = offset
-                    var end = offset
-                    while (start > 0 && (Character.isLetterOrDigit(text[start - 1]) || text[start - 1] == '_' || text[start - 1] == '.')) {
-                        start--
-                    }
-
-                    while (end < text.length && (Character.isLetterOrDigit(text[end]) || text[end] == '_' || text[end] == '.')) {
-                        end++
-                    }
+                    var start = getWordStart(text, offset);
+                    var end = getWordEnd(text, offset)
                     ret = text.substring(start, end)
                 }
             } catch (ex: Exception) {
@@ -797,6 +792,42 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
             }
 
             return ret
+        }
+
+        private fun getWordStart(text: String, offset: Int): Int {
+            if (offset < 0 || offset > text.length) {
+                throw IndexOutOfBoundsException("Offset $offset is outside the text range [0, ${text.length}]")
+            }
+
+            val iterator = BreakIterator.getWordInstance()
+            iterator.setText(text)
+
+            var start = iterator.preceding(offset)
+            if (start == BreakIterator.DONE) {
+                return 0
+            }
+
+            val next = iterator.following(start)
+            if (next != BreakIterator.DONE && next < offset) {
+                start = next
+            }
+
+            return start
+        }
+
+        private fun getWordEnd(text: String, offset: Int): Int {
+            if (offset < 0 || offset > text.length) {
+                throw IndexOutOfBoundsException("Offset $offset is outside the text range [0, ${text.length}]")
+            }
+
+            val iterator = BreakIterator.getWordInstance()
+            iterator.setText(text)
+
+            val end = iterator.following(offset)
+            if (end == BreakIterator.DONE) {
+                return text.length
+            }
+            return end
         }
 
         internal inner class ActionHandler : ActionListener {
