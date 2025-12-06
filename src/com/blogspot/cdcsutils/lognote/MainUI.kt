@@ -2373,13 +2373,6 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         return mRetryAdbToggle.isSelected
     }
 
-    fun restartAdbLogcat() {
-        Utils.printlnLog("Restart Adb Logcat")
-        mLogCmdManager.stop()
-        mLogCmdManager.mTargetDevice = mDeviceCombo.selectedItem!!.toString()
-        mLogCmdManager.startLogcat()
-    }
-
     fun pauseAdbScan(pause: Boolean) {
         if (!mFilteredLogPanel.mTableModel.isScanning()) {
             Utils.printlnLog("pauseAdbScan : not adb scanning mode")
@@ -3419,7 +3412,9 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         override fun changedStatus(event: LogCmdManager.AdbEvent) {
             when (event.cmd) {
                 LogCmdManager.CMD_CONNECT -> {
-                    mLogCmdManager.getDevices()
+                    if (event.event == LogCmdManager.EVENT_SUCCESS) {
+                        mLogCmdManager.getDevices()
+                    }
                 }
                 LogCmdManager.CMD_GET_DEVICES -> {
                     if (IsCreatingUI) {

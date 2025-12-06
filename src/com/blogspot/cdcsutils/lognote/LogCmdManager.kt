@@ -16,6 +16,8 @@ class LogCmdManager private constructor(){
     private val mProcessList: ProcessList = ProcessList.getInstance()
     private val mPackageManager = PackageManager.getInstance()
 
+    private var mConnectResult = EVENT_NONE
+
     companion object {
         const val DEFAULT_PREFIX = Main.NAME
 
@@ -115,7 +117,8 @@ class LogCmdManager private constructor(){
                         e.printStackTrace()
                         val mainUI = MainUI.getInstance()
                         JOptionPane.showMessageDialog(mainUI, e.message, "Error", JOptionPane.ERROR_MESSAGE)
-                        val adbEvent = AdbEvent(CMD_CONNECT, EVENT_FAIL)
+                        mConnectResult = EVENT_FAIL
+                        val adbEvent = AdbEvent(CMD_CONNECT, mConnectResult)
                         sendEvent(adbEvent)
                         return@run
                     }
@@ -126,7 +129,8 @@ class LogCmdManager private constructor(){
                         line = scanner.nextLine()
                         if (line.contains("connected to")) {
                             Utils.printlnLog("Success connect to $mTargetDevice")
-                            val adbEvent = AdbEvent(CMD_CONNECT, EVENT_SUCCESS)
+                            mConnectResult = EVENT_SUCCESS
+                            val adbEvent = AdbEvent(CMD_CONNECT, mConnectResult)
                             sendEvent(adbEvent)
                             isSuccess = true
                             break
@@ -135,7 +139,8 @@ class LogCmdManager private constructor(){
 
                     if (!isSuccess) {
                         Utils.printlnLog("Failed connect to $mTargetDevice")
-                        val adbEvent = AdbEvent(CMD_CONNECT, EVENT_FAIL)
+                        mConnectResult = EVENT_FAIL
+                        val adbEvent = AdbEvent(CMD_CONNECT, mConnectResult)
                         sendEvent(adbEvent)
                     }
                 }
@@ -375,6 +380,16 @@ class LogCmdManager private constructor(){
 
     fun getPackages() {
         execute(makeExecuter(CMD_GET_PACKAGES))
+    }
+
+    fun restartLogcat() {
+        Utils.printlnLog("Restart Adb Logcat")
+        stop()
+        mConnectResult = EVENT_NONE
+        connect()
+        if (mConnectResult != EVENT_FAIL) {
+            startLogcat()
+        }
     }
 
     interface AdbEventListener {

@@ -1404,7 +1404,6 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                 var startNum = 0
 
                 var nextUpdateTime: Long = 0
-
                 val logLines: MutableList<String> = mutableListOf()
 
                 line = bufferedReader.readLine()
@@ -1418,12 +1417,13 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                             if (mLogCmdManager.mProcessLogcat == null || !mLogCmdManager.mProcessLogcat!!.isAlive) {
                                 if (mMainUI.isRestartAdbLogcat()) {
                                     Thread.sleep(5000)
-                                    mMainUI.restartAdbLogcat()
+                                    mLogCmdManager.restartLogcat()
                                     if (mLogCmdManager.mProcessLogcat?.inputStream != null) {
                                         bufferedReader =
                                             BufferedReader(InputStreamReader(mLogCmdManager.mProcessLogcat?.inputStream!!))
                                     } else {
-                                        Utils.printlnLog("startScan : inputStream is Null")
+                                        Utils.printlnLog("startScan : inputStream is Null, set empty reader")
+                                        bufferedReader = BufferedReader(StringReader(""))
                                     }
                                     line = "LogNote - RESTART LOGCAT"
                                 }
