@@ -9,6 +9,7 @@ import java.io.InputStreamReader
 import java.lang.management.ManagementFactory
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.regex.Pattern
 import javax.swing.*
 import javax.swing.border.AbstractBorder
 import kotlin.system.exitProcess
@@ -184,6 +185,26 @@ class Utils {
             return text
         }
 
+        fun compilePattern(regex: String, flags: Int): Pattern {
+            return compilePattern(regex, flags, null, null)
+        }
+
+        fun compilePattern(regex: String, flags: Int, prevPattern: Pattern?, comboBox: FilterComboBox?): Pattern {
+            var pattern = prevPattern ?: Pattern.compile("", flags)
+            try {
+                pattern = Pattern.compile(regex, flags)
+            } catch(ex: java.util.regex.PatternSyntaxException) {
+                ex.printStackTrace()
+                if (comboBox != null) {
+                    comboBox.mErrorMsg = ex.message.toString()
+                }
+                else {
+                    JOptionPane.showMessageDialog(MainUI.getInstance(), ex.message.toString(), "Error", JOptionPane.ERROR_MESSAGE)
+                }
+            }
+
+            return pattern
+        }
     }
 
     class CustomLineBorder(private val mColor: Color, private val mThickness: Int, private val mTarget: Int) :

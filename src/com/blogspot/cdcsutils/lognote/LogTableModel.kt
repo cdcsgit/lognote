@@ -68,9 +68,9 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
             val patterns = parsePattern(value, false)
             mFilterShowTokens[idx] = patterns[0]
             mFilterHideTokens[idx] = patterns[1]
-            mPatternShowTokens[idx] = compilePattern(mFilterShowTokens[idx], mPatternCase, mPatternShowTokens[idx], mMainUI.mTokenCombo[idx])
+            mPatternShowTokens[idx] = Utils.compilePattern(mFilterShowTokens[idx], mPatternCase, mPatternShowTokens[idx], mMainUI.mTokenCombo[idx])
             mBaseModel?.mPatternShowTokens?.set(idx, mPatternShowTokens[idx])
-            mPatternHideTokens[idx] = compilePattern(mFilterHideTokens[idx], mPatternCase, mPatternHideTokens[idx], mMainUI.mTokenCombo[idx])
+            mPatternHideTokens[idx] = Utils.compilePattern(mFilterHideTokens[idx], mPatternCase, mPatternHideTokens[idx], mMainUI.mTokenCombo[idx])
         }
     }
 
@@ -153,13 +153,13 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
     private var mFilterShowLog: String = ""
         set(value) {
             field = value
-            mPatternShowLog = compilePattern(value, mPatternCase, mPatternShowLog, mMainUI.mShowLogCombo)
+            mPatternShowLog = Utils.compilePattern(value, mPatternCase, mPatternShowLog, mMainUI.mShowLogCombo)
         }
 
     private var mFilterHideLog: String = ""
         set(value) {
             field = value
-            mPatternHideLog = compilePattern(value, mPatternCase, mPatternHideLog, mMainUI.mShowLogCombo)
+            mPatternHideLog = Utils.compilePattern(value, mPatternCase, mPatternHideLog, mMainUI.mShowLogCombo)
         }
 
     var mFilterHighlightLog: String = ""
@@ -201,7 +201,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
         }
 
         mMainUI.mFindPanel.mFindCombo.mErrorMsg = ""
-        mPatternFindLog = compilePattern(mRegexFindLog, mFindPatternCase, mPatternFindLog, mMainUI.mFindPanel.mFindCombo)
+        mPatternFindLog = Utils.compilePattern(mRegexFindLog, mFindPatternCase, mPatternFindLog, mMainUI.mFindPanel.mFindCombo)
         mMatcherFindLog = mPatternFindLog.matcher("")
 
         mNormalFindLogSplit = normalFindLog.split("|")
@@ -227,7 +227,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
     var mFilterTriggerLog: String = ""
         set(value) {
             field = value
-            mPatternTriggerLog = compilePattern(value, mTriggerPatternCase, mPatternTriggerLog, null)
+            mPatternTriggerLog = Utils.compilePattern(value, mTriggerPatternCase, mPatternTriggerLog, null)
         }
 
     var mFilterTokens = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { "" }
@@ -259,13 +259,13 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                 }
 
                 mMainUI.mShowLogCombo.mErrorMsg = ""
-                mPatternShowLog = compilePattern(mFilterShowLog, mPatternCase, mPatternShowLog, mMainUI.mShowLogCombo)
-                mPatternHideLog = compilePattern(mFilterHideLog, mPatternCase, mPatternHideLog, mMainUI.mShowLogCombo)
+                mPatternShowLog = Utils.compilePattern(mFilterShowLog, mPatternCase, mPatternShowLog, mMainUI.mShowLogCombo)
+                mPatternHideLog = Utils.compilePattern(mFilterHideLog, mPatternCase, mPatternHideLog, mMainUI.mShowLogCombo)
                 for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
                     mMainUI.mTokenCombo[idx].mErrorMsg = ""
-                    mPatternShowTokens[idx] = compilePattern(mFilterShowTokens[idx], mPatternCase, mPatternShowTokens[idx], mMainUI.mTokenCombo[idx])
+                    mPatternShowTokens[idx] = Utils.compilePattern(mFilterShowTokens[idx], mPatternCase, mPatternShowTokens[idx], mMainUI.mTokenCombo[idx])
                     mBaseModel?.mPatternShowTokens?.set(idx, mPatternShowTokens[idx])
-                    mPatternHideTokens[idx] = compilePattern(mFilterHideTokens[idx], mPatternCase, mPatternHideTokens[idx], mMainUI.mTokenCombo[idx])
+                    mPatternHideTokens[idx] = Utils.compilePattern(mFilterHideTokens[idx], mPatternCase, mPatternHideTokens[idx], mMainUI.mTokenCombo[idx])
                 }
 
                 mIsFilterUpdated = true
@@ -438,7 +438,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                             var patt: Pattern? = null
                             val hasIt: Boolean = key.uppercase().chars().anyMatch { c -> "\\.[]{}()*+?^$|".indexOf(c.toChar()) >= 0 }
                             if (hasIt) {
-                                patt = Pattern.compile(key.uppercase(), Pattern.CASE_INSENSITIVE)
+                                patt = Utils.compilePattern(key.uppercase(), Pattern.CASE_INSENSITIVE)
                             }
 
                             mFilteredFGMap[key.uppercase()] = FilteredColor(mTableColor.mStrFilteredFGs[item[1].digitToInt()], patt)
@@ -472,18 +472,6 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
         }
 
         return patterns
-    }
-
-    private fun compilePattern(regex: String, flags: Int, prevPattern: Pattern, comboBox: FilterComboBox?): Pattern {
-        var pattern = prevPattern
-        try {
-            pattern = Pattern.compile(regex, flags)
-        } catch(ex: java.util.regex.PatternSyntaxException) {
-            ex.printStackTrace()
-            comboBox?.mErrorMsg = ex.message.toString()
-        }
-
-        return pattern
     }
 
     private var mFilteredItemsThread:Thread? = null
@@ -1065,7 +1053,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
             }
 
             if (!skip) {
-                mPatternPrintFind = Pattern.compile(mFilterFindLog, mFindPatternCase)
+                mPatternPrintFind = Utils.compilePattern(mFilterFindLog, mFindPatternCase)
                 mBaseModel?.mPatternPrintFind = mPatternPrintFind
             }
         }
@@ -1089,7 +1077,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
             }
 
             if (!skip) {
-                mPatternPrintHighlight = Pattern.compile(mFilterHighlightLog, mPatternCase)
+                mPatternPrintHighlight = Utils.compilePattern(mFilterHighlightLog, mPatternCase)
                 mBaseModel?.mPatternPrintHighlight = mPatternPrintHighlight
             }
         }
@@ -1112,7 +1100,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
             }
 
             if (!skip) {
-                mPatternPrintFilter = Pattern.compile(mFilterShowLog, mPatternCase)
+                mPatternPrintFilter = Utils.compilePattern(mFilterShowLog, mPatternCase)
                 mBaseModel?.mPatternPrintFilter = mPatternPrintFilter
             }
         }
@@ -1195,7 +1183,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                         }
                     }
 
-                    val patternShowLog = Pattern.compile(regexShowLog, mPatternCase)
+                    val patternShowLog = Utils.compilePattern(regexShowLog, mPatternCase)
                     val matcherShowLog = patternShowLog.matcher("")
                     val normalShowLogSplit = normalShowLog.split("|")
 

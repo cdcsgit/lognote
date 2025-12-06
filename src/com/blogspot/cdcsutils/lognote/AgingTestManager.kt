@@ -245,7 +245,7 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
     inner class TriggerItem(val mName: String, val mFilter: String, val mAction: TriggerAction, val mActionParam: String, val mOnce: Boolean) {
         var mStatus: TriggerStatus = TriggerStatus.STOPPED
         var mRunCount: Int = 0
-        val mFilterPattern: Pattern = Pattern.compile(mFilter, Pattern.CASE_INSENSITIVE)
+        val mFilterPattern: Pattern = Utils.compilePattern(mFilter, Pattern.CASE_INSENSITIVE)
         private var mResultDialogImpl: ResultDialog? = null
         val mResultDialog: ResultDialog
             get() {
