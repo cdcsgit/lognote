@@ -15,11 +15,34 @@ abstract class PropertiesBase(fileName: String) {
     private var mXmlPath = fileName
 
     init {
-        if (LOGNOTE_HOME.isNotEmpty()) {
-            mXmlPath = "$LOGNOTE_HOME${File.separator}$mXmlPath"
-        }
+        mXmlPath = initializeXmlPath()
         Utils.printlnLog("Xml File Path : $mXmlPath")
     }
+
+    private fun initializeXmlPath(): String {
+        val osType = Utils.getOSType()
+        if(LOGNOTE_HOME.isEmpty()) {
+            return mXmlPath
+        }
+
+        // Windows OS and multiple entries in environment variables table
+        if(osType.contains("windows") && LOGNOTE_HOME.contains(";")) {
+            val firstPathExists = LOGNOTE_HOME
+                .split(";")
+                .filter(String::isNotEmpty)
+                .firstOrNull(Utils::pathExists)
+
+            return if(firstPathExists != null) {
+                "$firstPathExists${File.separator}$mXmlPath"
+            } else { // No valid path found same as empty LOGNOTE_HOME
+                mXmlPath
+            }
+        }
+
+        // Default behaviour
+        return "$LOGNOTE_HOME${File.separator}$mXmlPath"
+    }
+
 
     protected fun loadXml(): Boolean {
         var ret = true

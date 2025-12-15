@@ -9,9 +9,12 @@ import java.io.InputStreamReader
 import java.lang.management.ManagementFactory
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 import java.util.regex.Pattern
 import javax.swing.*
 import javax.swing.border.AbstractBorder
+import kotlin.io.path.Path
+import kotlin.io.path.exists
 import kotlin.system.exitProcess
 
 
@@ -204,6 +207,21 @@ class Utils {
             }
 
             return pattern
+        }
+
+        fun getOSType(): String {
+            return try {
+                // Get OS type if allowed
+                System.getProperty("os.name")
+                    .lowercase(Locale.ENGLISH)
+            } catch(ex: SecurityException) {
+                ex.printStackTrace()
+                ""
+            }
+        }
+
+        fun pathExists(path: String): Boolean {
+            return Path(path).exists()
         }
     }
 

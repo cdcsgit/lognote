@@ -120,11 +120,33 @@ class ConfigManager private constructor() {
     private var mConfigPath = CONFIG_FILE
 
     init {
-        if (LOGNOTE_HOME.isNotEmpty()) {
-            mConfigPath = "$LOGNOTE_HOME${File.separator}$CONFIG_FILE"
-        }
+        mConfigPath = initializeConfigPath()
         Utils.printlnLog("Config Path : $mConfigPath")
         manageVersion()
+    }
+
+    private fun initializeConfigPath(): String {
+        val osType = Utils.getOSType()
+        if(LOGNOTE_HOME.isEmpty()) {
+            return mConfigPath
+        }
+
+        // Windows OS and multiple entries in environment variables table
+        if(osType.contains("windows") && LOGNOTE_HOME.contains(";")) {
+            val firstPathExists = LOGNOTE_HOME
+                .split(";")
+                .filter(String::isNotEmpty)
+                .firstOrNull(Utils::pathExists)
+
+            return if(firstPathExists != null) {
+                "$firstPathExists${File.separator}$CONFIG_FILE"
+            } else { // No valid path found same as empty LOGNOTE_HOME
+                mConfigPath
+            }
+        }
+
+        // Default behaviour
+        return "${LOGNOTE_HOME}${File.separator}$CONFIG_FILE"
     }
 
     private fun setDefaultConfig() {
