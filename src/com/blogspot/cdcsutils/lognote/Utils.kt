@@ -209,17 +209,6 @@ class Utils {
             return pattern
         }
 
-        fun getOSType(): String {
-            return try {
-                // Get OS type if allowed
-                System.getProperty("os.name")
-                    .lowercase(Locale.ENGLISH)
-            } catch(ex: SecurityException) {
-                ex.printStackTrace()
-                ""
-            }
-        }
-
         fun pathExists(path: String): Boolean {
             return Path(path).exists()
         }

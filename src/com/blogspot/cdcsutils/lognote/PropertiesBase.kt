@@ -1,48 +1,18 @@
 package com.blogspot.cdcsutils.lognote
 
-import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
 import java.util.*
 
 abstract class PropertiesBase(fileName: String) {
-    companion object {
-        val LOGNOTE_HOME: String = System.getenv("LOGNOTE_HOME") ?: ""
-    }
-
     protected val mProperties = Properties()
     private var mXmlPath = fileName
 
     init {
-        mXmlPath = initializeXmlPath()
+        mXmlPath = ConfigManager.getHomePath(fileName)
         Utils.printlnLog("Xml File Path : $mXmlPath")
     }
-
-    private fun initializeXmlPath(): String {
-        val osType = Utils.getOSType()
-        if(LOGNOTE_HOME.isEmpty()) {
-            return mXmlPath
-        }
-
-        // Windows OS and multiple entries in environment variables table
-        if(osType.contains("windows") && LOGNOTE_HOME.contains(";")) {
-            val firstPathExists = LOGNOTE_HOME
-                .split(";")
-                .filter(String::isNotEmpty)
-                .firstOrNull(Utils::pathExists)
-
-            return if(firstPathExists != null) {
-                "$firstPathExists${File.separator}$mXmlPath"
-            } else { // No valid path found same as empty LOGNOTE_HOME
-                mXmlPath
-            }
-        }
-
-        // Default behaviour
-        return "$LOGNOTE_HOME${File.separator}$mXmlPath"
-    }
-
 
     protected fun loadXml(): Boolean {
         var ret = true
