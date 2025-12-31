@@ -1,23 +1,16 @@
 package com.blogspot.cdcsutils.lognote
 
-import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
 import java.util.*
 
 abstract class PropertiesBase(fileName: String) {
-    companion object {
-        val LOGNOTE_HOME: String = System.getenv("LOGNOTE_HOME") ?: ""
-    }
-
     protected val mProperties = Properties()
     private var mXmlPath = fileName
 
     init {
-        if (LOGNOTE_HOME.isNotEmpty()) {
-            mXmlPath = "$LOGNOTE_HOME${File.separator}$mXmlPath"
-        }
+        mXmlPath = ConfigManager.getHomePath(fileName)
         Utils.printlnLog("Xml File Path : $mXmlPath")
     }
 

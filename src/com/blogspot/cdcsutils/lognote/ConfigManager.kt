@@ -1,5 +1,6 @@
 package com.blogspot.cdcsutils.lognote
 
+import com.formdev.flatlaf.util.SystemInfo
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -114,15 +115,36 @@ class ConfigManager private constructor() {
         fun getInstance(): ConfigManager {
             return mInstance
         }
+
+        fun getHomePath(fileName: String): String {
+            if(LOGNOTE_HOME.isEmpty()) {
+                return fileName
+            }
+
+            // Windows OS and multiple entries in environment variables table
+            if(SystemInfo.isWindows) {
+                val firstPathExists = LOGNOTE_HOME
+                    .split(";")
+                    .filter(String::isNotEmpty)
+                    .firstOrNull(Utils::pathExists)
+
+                return if(firstPathExists != null) {
+                    "$firstPathExists${File.separator}$fileName"
+                } else { // No valid path found same as empty LOGNOTE_HOME
+                    fileName
+                }
+            }
+
+            // Default behaviour
+            return "${LOGNOTE_HOME}${File.separator}$fileName"
+        }
     }
 
     private val mProperties = Properties()
     private var mConfigPath = CONFIG_FILE
 
     init {
-        if (LOGNOTE_HOME.isNotEmpty()) {
-            mConfigPath = "$LOGNOTE_HOME${File.separator}$CONFIG_FILE"
-        }
+        mConfigPath = getHomePath(CONFIG_FILE)
         Utils.printlnLog("Config Path : $mConfigPath")
         manageVersion()
     }
