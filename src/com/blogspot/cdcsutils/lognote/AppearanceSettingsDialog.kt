@@ -13,6 +13,7 @@ import javax.swing.plaf.basic.BasicScrollBarUI
 class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARANCE, true), ActionListener, ItemListener, WindowListener {
     private val mMainUI = mainUI
     private val mConfigManager = ConfigManager.getInstance()
+    private val mAppDataManager = AppDataManager.getInstance()
     private val mFormatManager = FormatManager.getInstance()
 
     private val mSettingsPanel = JPanel()
@@ -565,6 +566,9 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
                 val tokenKeys = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { ConfigManager.ITEM_TOKEN_COMBO_STYLE + it }
                 val tokenValues = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { mTokenStyleComboArray[it]!!.selectedIndex.toString() }
                 mConfigManager.saveFilterStyle(keys, values, tokenKeys, tokenValues)
+
+                val tokenValuesInt = List(FormatManager.MAX_TOKEN_FILTER_COUNT) { mTokenStyleComboArray[it]!!.selectedIndex }
+                mAppDataManager.saveFilterStyle(mStyleComboArray[ComboIdx.LOG.value]!!.selectedIndex, mStyleComboArray[ComboIdx.BOLD.value]!!.selectedIndex, tokenValuesInt)
             }
         }
 
@@ -913,6 +917,7 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
             }
             else {
                 mConfigManager.saveFontColors(mMainUI.mFont.family, mMainUI.mFont.size)
+                mAppDataManager.saveFontColors(mMainUI.mFont.family, mMainUI.mFont.size, mColorManager.mFullTableColor.mColorArray, mColorManager.mFilterTableColor.mColorArray)
             }
         }
 
