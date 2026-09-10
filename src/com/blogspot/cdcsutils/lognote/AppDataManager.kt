@@ -1,14 +1,92 @@
 package com.blogspot.cdcsutils.lognote
 
-import com.blogspot.cdcsutils.lognote.MainUI.Companion.FLAT_LIGHT_LAF
-import com.blogspot.cdcsutils.lognote.MainUI.Companion.LAF_ACCENT_COLORS
-import com.blogspot.cdcsutils.lognote.MainUI.Companion.SYSTEM_LAF
-import com.formdev.flatlaf.FlatLaf
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import java.awt.Color
+import com.google.gson.TypeAdapter
+import com.google.gson.annotations.JsonAdapter
+import com.google.gson.stream.JsonReader
+import com.google.gson.stream.JsonToken
+import com.google.gson.stream.JsonWriter
 import java.io.File
 import java.util.*
+
+class InnerListCompactAdapter : TypeAdapter<List<List<Any>>?>() {
+    // Safely extract private indent field using reflection
+    private fun getIndent(out: JsonWriter): String {
+        return try {
+            val field = JsonWriter::class.java.getDeclaredField("indent")
+            field.isAccessible = true
+            (field.get(out) as? String) ?: ""
+        } catch (e: Exception) {
+            "  " // Default fallback indent
+        }
+    }
+
+    // Serialize object to JSON format
+    override fun write(out: JsonWriter, value: List<List<Any>>?) {
+        Utils.printlnLog("InnerListCompactAdapter write")
+        // Handle null values safely
+        if (value == null) {
+            out.nullValue()
+            return
+        }
+
+        val originalIndent = getIndent(out)
+
+        out.beginArray() // Open outer array (pretty-printed)
+        for (innerList in value) {
+            out.beginArray() // Open inner array (written inline)
+            out.setIndent("")
+            for (item in innerList) {
+                when (item) {
+                    is Number -> out.value(item)
+                    is Boolean -> out.value(item)
+                    is String -> out.value(item)
+                    else -> out.value(item.toString())
+                }
+            }
+            out.endArray() // Close inner array
+            out.setIndent(originalIndent)
+        }
+        out.endArray() // Close outer array
+    }
+
+    // Deserialize JSON format back to object
+    override fun read(reader: JsonReader): List<List<Any>>? {
+        // Return null if JSON token is NULL
+        if (reader.peek() == JsonToken.NULL) {
+            reader.nextNull()
+            return null
+        }
+
+        val result = mutableListOf<List<Any>>()
+        reader.beginArray() // Read outer array start
+        while (reader.hasNext()) {
+            val innerList = mutableListOf<Any>()
+            reader.beginArray() // Read inner array start
+            while (reader.hasNext()) {
+                when (reader.peek()) {
+                    JsonToken.NUMBER -> {
+                        val numberStr = reader.nextString()
+                        // Parse as Double if decimal point exists, otherwise Long
+                        if (numberStr.contains(".")) {
+                            innerList.add(numberStr.toDouble())
+                        } else {
+                            innerList.add(numberStr.toLong())
+                        }
+                    }
+                    JsonToken.BOOLEAN -> innerList.add(reader.nextBoolean())
+                    JsonToken.STRING -> innerList.add(reader.nextString())
+                    else -> reader.skipValue() // Skip unknown value types
+                }
+            }
+            reader.endArray() // Read inner array end
+            result.add(innerList)
+        }
+        reader.endArray() // Read outer array end
+        return result
+    }
+}
 
 data class AppearanceSettings(
     val frameX: Int? = null,
@@ -50,8 +128,10 @@ data class AppearanceSettings(
 )
 
 data class ColorSettings (
+    @JsonAdapter(InnerListCompactAdapter::class)
     val colorFullTable: List<List<Any>>? = null,
     val colorFullTableTag: List<String>? = null,
+    @JsonAdapter(InnerListCompactAdapter::class)
     val colorFilterTable: List<List<Any>>? = null,
     val colorFilterTableTag: List<String>? = null,
     val colorFilterStyle: List<String>? = null,
@@ -186,11 +266,11 @@ class AppDataManager private constructor() {
     fun saveFontColors(family: String, size: Int, fullColors: Array<ColorManager.ColorItem>, filterColors: Array<ColorManager.ColorItem>) {
         loadConfig()
 
-        val fullList: List<String> = fullColors.map { it.mStrColor }
-        val filterList: List<String> = filterColors.map { it.mStrColor }
-        // FIXME
-//        mAppData = mAppData.copy(appearance = mAppData.appearance.copy(fontName = family, fontSize = size),
-//            color = mAppData.color.copy(colorFullTable = fullList, colorFilterTable = filterList))
+        val fullList: List<List<Any>> = fullColors.map { listOf(it.mName, it.mStrColor, it.mOrder) }
+        val filterList: List<List<Any>> = filterColors.map { listOf(it.mName, it.mStrColor, it.mOrder) }
+
+        mAppData = mAppData.copy(appearance = mAppData.appearance.copy(fontName = family, fontSize = size),
+            color = mAppData.color.copy(colorFullTable = fullList, colorFilterTable = filterList))
 
         saveConfig(mAppData)
     }
