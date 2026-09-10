@@ -11,51 +11,49 @@ import java.io.File
 import java.util.*
 
 data class AppearanceSettings(
-    val frameX: String? = null,
-    val frameY: String? = null,
-    val frameWidth: String? = null,
-    val frameHeight: String? = null,
-    val frameExtendedState: String? = null,
-    val rotation: String? = null,
-    val dividerLocation: String? = null,
-    val lastDividerLocation: String? = null,
+    val frameX: Int? = null,
+    val frameY: Int? = null,
+    val frameWidth: Int? = null,
+    val frameHeight: Int? = null,
+    val frameExtendedState: Int? = null,
+    val rotation: Int? = null,
+    val dividerLocation: Int? = null,
+    val lastDividerLocation: Int? = null,
 
-    val toolRotation: String? = null,
-    val toolDividerLocation: String? = null,
-    val toolLastDividerLocation: String? = null,
+    val toolRotation: Int? = null,
+    val toolDividerLocation: Int? = null,
+    val toolLastDividerLocation: Int? = null,
 
-    val lang: String? = null,
+    val language: String? = null,
 
-    val logLevel: String? = null,
     val logFormat: String? = null,
+    val logLevel: String? = null,
 
     val lookAndFeel: String? = null,
     val lafAccentColor: String? = null,
-    val uiFontSize: String? = null,
-    val appearanceDividerSize: String? = null,
-    val logViewWidth: String? = null,
+    val uiFontSize: Int? = null,
+    val appearanceDividerSize: Int? = null,
+    val logViewWidth: Int? = null,
 
     val fontName: String? = null,
     val fontSize: Int? = null,
-    val viewFull: String? = null,
-    val viewColumnMode: String? = null,
+    val viewFull: Boolean? = null,
+    val viewColumnMode: Boolean? = null,
     val viewProcessName: String? = null,
 
-    val scrollback: String? = null,
-    val scrollbackSplitFile: String? = null,
-    val matchCase: String? = null,
+    val scrollback: Int? = null,
+    val scrollbackSplitFile: Boolean? = null,
 
     val iconText: String? = null,
-    val valueIconTextIT: String? = null,
-    val valueIconTextI: String? = null,
-    val valueIconTextT: String? = null,
 
-    val cmdToolbar: String? = null,
+    val cmdToolbar: Boolean? = null,
 )
 
 data class ColorSettings (
-    val colorFullTable: List<String>? = null,
-    val colorFilterTable: List<String>? = null,
+    val colorFullTable: List<List<Any>>? = null,
+    val colorFullTableTag: List<String>? = null,
+    val colorFilterTable: List<List<Any>>? = null,
+    val colorFilterTableTag: List<String>? = null,
     val colorFilterStyle: List<String>? = null,
 )
 
@@ -80,6 +78,7 @@ data class LogCmdSettings (
 
 data class FilterOptionSettings (
     val filterIncremental: String? = null,
+    val matchCase: Boolean? = null,
     val filterByFile: String? = null,
     val colorTagRegex: String? = null,
     val showLogStyle: Int? = null,
@@ -107,35 +106,27 @@ data class FilterValues (
     val itemHighlightLogCheck: String? = null,
 )
 
-data class PresetSettings (
-    val itemFiltersTitle: String? = null,
-    val itemFiltersFilter: String? = null,
-    val itemFiltersTablebar: String? = null,
-
-    val itemCmdsTitle: String? = null,
-    val itemCmdsCmd: String? = null,
-    val itemCmdsTablebar: String? = null,
-
-    val itemPackagesItem: String? = null,
+data class PresetElement (
+    val title: String? = null,
+    val value: String? = null,
+    val tableBar: String? = null,
 )
 
 data class AppData(
-    val version: String = "1",
+    val version: String = "",
     val appearance: AppearanceSettings = AppearanceSettings(),
     val color: ColorSettings = ColorSettings(),
     val tool: ToolSettings = ToolSettings(),
     val logCmd: LogCmdSettings = LogCmdSettings(),
     val filterOption: FilterOptionSettings = FilterOptionSettings(),
     val filter: FilterValues = FilterValues(),
-    val preset: PresetSettings = PresetSettings(),
-    val filterSnippets: List<CustomListManager.CustomElement>? = null,
-    val cmdAlias: List<CustomListManager.CustomElement>? = null,
+    val filterSnippets: List<PresetElement>? = null,
+    val cmdAlias: List<PresetElement>? = null,
     val targetPackages: List<String>? = null,
 )
 
 class AppDataManager private constructor() {
     companion object {
-        private const val CONFIG_FILE_OLD = "lognote.xml"
         private const val CONFIG_FILE = "lognote.json"
         val LOGNOTE_HOME: String = System.getenv("LOGNOTE_HOME") ?: ""
 
@@ -195,10 +186,11 @@ class AppDataManager private constructor() {
     fun saveFontColors(family: String, size: Int, fullColors: Array<ColorManager.ColorItem>, filterColors: Array<ColorManager.ColorItem>) {
         loadConfig()
 
-        mAppData = mAppData.copy(appearance = mAppData.appearance.copy(fontName = family, fontSize = size))
         val fullList: List<String> = fullColors.map { it.mStrColor }
         val filterList: List<String> = filterColors.map { it.mStrColor }
-        mAppData = mAppData.copy(color = mAppData.color.copy(colorFullTable = fullList, colorFilterTable = filterList))
+        // FIXME
+//        mAppData = mAppData.copy(appearance = mAppData.appearance.copy(fontName = family, fontSize = size),
+//            color = mAppData.color.copy(colorFullTable = fullList, colorFilterTable = filterList))
 
         saveConfig(mAppData)
     }
@@ -211,15 +203,15 @@ class AppDataManager private constructor() {
         saveConfig(mAppData)
     }
 
-    fun loadFilters() : ArrayList<CustomListManager.CustomElement> {
-        return if (mAppData.filterSnippets == null) {
-            ArrayList<CustomListManager.CustomElement>()
+    fun loadFilters() : ArrayList<PresetElement> {
+        return (if (mAppData.filterSnippets == null) {
+            ArrayList<PresetElement>()
         } else {
-            ArrayList(mAppData.filterSnippets)
-        }
+            mAppData.filterSnippets
+        }) as ArrayList<PresetElement>
     }
 
-    fun saveFilters(filters : ArrayList<CustomListManager.CustomElement>) {
+    fun saveFilters(filters : ArrayList<PresetElement>) {
         loadConfig()
 
         mAppData = mAppData.copy(filterSnippets = filters.take(FiltersManager.MAX_FILTERS))
@@ -228,15 +220,15 @@ class AppDataManager private constructor() {
         return
     }
 
-    fun loadCmds() : ArrayList<CustomListManager.CustomElement> {
-        return if (mAppData.cmdAlias == null) {
-            ArrayList<CustomListManager.CustomElement>()
+    fun loadCmds() : ArrayList<PresetElement> {
+        return (if (mAppData.cmdAlias == null) {
+            ArrayList<PresetElement>()
         } else {
-            ArrayList(mAppData.cmdAlias)
-        }
+            mAppData.cmdAlias
+        }) as ArrayList<PresetElement>
     }
 
-    fun saveCmds(cmds : ArrayList<CustomListManager.CustomElement>) {
+    fun saveCmds(cmds : ArrayList<PresetElement>) {
         loadConfig()
 
         mAppData = mAppData.copy(cmdAlias = cmds.take(CmdManager.MAX_CMD_COUNT))
@@ -246,11 +238,11 @@ class AppDataManager private constructor() {
     }
 
     fun loadPackages() : ArrayList<String> {
-        return if (mAppData.targetPackages == null) {
+        return (if (mAppData.targetPackages == null) {
             ArrayList<String>()
         } else {
-            ArrayList(mAppData.targetPackages)
-        }
+            mAppData.targetPackages
+        }) as ArrayList<String>
     }
 
     fun savePackages(packagess : ArrayList<String>) {
@@ -278,11 +270,88 @@ class AppDataManager private constructor() {
         saveConfig(mAppData)
     }
 
+    private fun getFromConfig(config: ConfigManager, key: String): String? {
+        val prop = config.getItem(key)
+        return prop
+    }
+
+    private fun getIntFromConfig(config: ConfigManager, key: String): Int? {
+        val prop = config.getItem(key)
+        return if (!prop.isNullOrEmpty()) {
+            prop.toInt()
+        } else {
+            null
+        }
+    }
+
+    private fun getBooleanFromConfig(config: ConfigManager, key: String): Boolean? {
+        val prop = config.getItem(key)
+        return if (!prop.isNullOrEmpty()) {
+            prop.toBoolean()
+        } else {
+            null
+        }
+    }
+
     private fun updateAppDataFromV0ToV1() {
         Utils.printlnLog("updateAppDataFromV0ToV1 : copy from config.xml ++")
 
+        val oldConfigPath = getHomePath("lognote.xml")
+        Utils.printlnLog("Config Path : $oldConfigPath")
+        val file = File(oldConfigPath)
 
-        mAppData = mAppData.copy(version = "1")
+        if (file.exists()) {
+            val configManager = ConfigManager.getInstance()
+
+            val frameX = getIntFromConfig(configManager, ConfigManager.ITEM_FRAME_X)
+            val frameY = getIntFromConfig(configManager, ConfigManager.ITEM_FRAME_Y)
+            val frameWidth = getIntFromConfig(configManager, ConfigManager.ITEM_FRAME_WIDTH)
+            val frameHeight = getIntFromConfig(configManager, ConfigManager.ITEM_FRAME_HEIGHT)
+            val frameExtendedState = getIntFromConfig(configManager, ConfigManager.ITEM_FRAME_EXTENDED_STATE)
+            val rotation = getIntFromConfig(configManager, ConfigManager.ITEM_ROTATION)
+            val lastDividerLocation = getIntFromConfig(configManager, ConfigManager.ITEM_LAST_DIVIDER_LOCATION)
+            val dividerLocation = getIntFromConfig(configManager, ConfigManager.ITEM_DIVIDER_LOCATION)
+
+            val toolRotation = getIntFromConfig(configManager, ConfigManager.ITEM_TOOL_ROTATION)
+            val toolLastDividerLocation = getIntFromConfig(configManager, ConfigManager.ITEM_TOOL_LAST_DIVIDER_LOCATION)
+            val toolDividerLocation = getIntFromConfig(configManager, ConfigManager.ITEM_TOOL_DIVIDER_LOCATION)
+
+            val language = getFromConfig(configManager, ConfigManager.ITEM_LANG)
+
+            val logFormat = getFromConfig(configManager, ConfigManager.ITEM_LOG_FORMAT)
+            val logLevel = getFromConfig(configManager, ConfigManager.ITEM_LOG_LEVEL)
+
+            val lookAndFeel = getFromConfig(configManager, ConfigManager.ITEM_LOOK_AND_FEEL)
+            val lafAccentColor = getFromConfig(configManager, ConfigManager.ITEM_LAF_ACCENT_COLOR)
+            val uiFontSize = getIntFromConfig(configManager, ConfigManager.ITEM_UI_FONT_SIZE)
+            val appearanceDividerSize = getIntFromConfig(configManager, ConfigManager.ITEM_APPEARANCE_DIVIDER_SIZE)
+            val logViewWidth = getIntFromConfig(configManager, ConfigManager.ITEM_LOG_VIEW_WIDTH)
+
+            val fontName = getFromConfig(configManager, ConfigManager.ITEM_FONT_NAME)
+            val fontSize = getIntFromConfig(configManager, ConfigManager.ITEM_FONT_SIZE)
+            val viewFull = getBooleanFromConfig(configManager, ConfigManager.ITEM_VIEW_FULL)
+            val viewColumnMode = getBooleanFromConfig(configManager, ConfigManager.ITEM_VIEW_COLUMN_MODE)
+            val viewProcessName = getFromConfig(configManager, ConfigManager.ITEM_VIEW_PROCESS_NAME)
+
+            val scrollback = getIntFromConfig(configManager, ConfigManager.ITEM_SCROLLBACK)
+            val scrollbackSplitFile = getBooleanFromConfig(configManager, ConfigManager.ITEM_SCROLLBACK_SPLIT_FILE)
+
+            val iconText = getFromConfig(configManager, ConfigManager.ITEM_ICON_TEXT)
+            val cmdToolbar = getBooleanFromConfig(configManager, ConfigManager.ITEM_CMD_TOOLBAR)
+
+            mAppData = mAppData.copy(appearance = mAppData.appearance.copy(frameX = frameX, frameY = frameY,
+                frameWidth = frameWidth, frameHeight = frameHeight, frameExtendedState = frameExtendedState,
+                rotation = rotation, lastDividerLocation = lastDividerLocation, dividerLocation = dividerLocation,
+                toolRotation = toolRotation, toolLastDividerLocation = toolLastDividerLocation, toolDividerLocation = toolDividerLocation,
+                language = language, logFormat = logFormat, logLevel = logLevel, lookAndFeel = lookAndFeel, lafAccentColor = lafAccentColor,
+                uiFontSize = uiFontSize, appearanceDividerSize = appearanceDividerSize, logViewWidth = logViewWidth,
+                fontName = fontName, fontSize = fontSize, viewFull = viewFull, viewColumnMode = viewColumnMode, viewProcessName = viewProcessName,
+                scrollback = scrollback, scrollbackSplitFile = scrollbackSplitFile, iconText = iconText, cmdToolbar = cmdToolbar))
+
+
+        }
+
+//        mAppData = mAppData.copy(version = "1")
         Utils.printlnLog("updateAppDataFromV0ToV1 : --")
     }
 }

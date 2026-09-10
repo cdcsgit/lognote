@@ -203,6 +203,10 @@ class ConfigManager private constructor() {
         return ret
     }
 
+    fun getProperties(): Properties {
+        return mProperties
+    }
+
     fun saveItem(key: String, value: String) {
         loadConfig()
         setItem(key, value)

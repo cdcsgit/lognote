@@ -71,6 +71,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     }
 
     private val mConfigManager = ConfigManager.getInstance()
+    private val mAppDataManager = AppDataManager.getInstance()
     init {
         val prop = mConfigManager.getItem(ConfigManager.ITEM_LANG)
         if (!prop.isNullOrEmpty()) {
