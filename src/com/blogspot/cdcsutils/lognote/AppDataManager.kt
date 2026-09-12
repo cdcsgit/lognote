@@ -1,5 +1,12 @@
 package com.blogspot.cdcsutils.lognote
 
+import com.blogspot.cdcsutils.lognote.AgingTestManager.Companion.ITEM_TRIGGER_ACTION
+import com.blogspot.cdcsutils.lognote.AgingTestManager.Companion.ITEM_TRIGGER_ACTION_PARAMETER
+import com.blogspot.cdcsutils.lognote.AgingTestManager.Companion.ITEM_TRIGGER_FILTER
+import com.blogspot.cdcsutils.lognote.AgingTestManager.Companion.ITEM_TRIGGER_NAME
+import com.blogspot.cdcsutils.lognote.AgingTestManager.Companion.ITEM_TRIGGER_ONCE
+import com.blogspot.cdcsutils.lognote.AgingTestManager.Companion.MAX_TRIGGER_COUNT
+import com.blogspot.cdcsutils.lognote.AgingTestManager.Companion.TriggerAction
 import com.blogspot.cdcsutils.lognote.ColorManager.TableColorType
 import com.blogspot.cdcsutils.lognote.ConfigManager.Companion.ITEM_CMDS_CMD
 import com.blogspot.cdcsutils.lognote.ConfigManager.Companion.ITEM_CMDS_TABLEBAR
@@ -24,6 +31,18 @@ import com.blogspot.cdcsutils.lognote.FormatManager.Companion.ITEM_TOKEN_UI_WIDT
 import com.blogspot.cdcsutils.lognote.FormatManager.Companion.MAX_TOKEN_FILTER_COUNT
 import com.blogspot.cdcsutils.lognote.FormatManager.Companion.TEXT_LEVEL
 import com.blogspot.cdcsutils.lognote.FormatManager.FormatItem
+import com.blogspot.cdcsutils.lognote.RecentFileManager.Companion.ITEM_BOOKMARKS
+import com.blogspot.cdcsutils.lognote.RecentFileManager.Companion.ITEM_FIND_LOG
+import com.blogspot.cdcsutils.lognote.RecentFileManager.Companion.ITEM_FIND_MATCH_CASE
+import com.blogspot.cdcsutils.lognote.RecentFileManager.Companion.ITEM_HIGHLIGHT_LOG
+import com.blogspot.cdcsutils.lognote.RecentFileManager.Companion.ITEM_HIGHLIGHT_LOG_CHECK
+import com.blogspot.cdcsutils.lognote.RecentFileManager.Companion.ITEM_PATH
+import com.blogspot.cdcsutils.lognote.RecentFileManager.Companion.ITEM_SHOW_LOG
+import com.blogspot.cdcsutils.lognote.RecentFileManager.Companion.ITEM_SHOW_LOG_CHECK
+import com.blogspot.cdcsutils.lognote.RecentFileManager.Companion.ITEM_TOKEN_CHECK
+import com.blogspot.cdcsutils.lognote.RecentFileManager.Companion.ITEM_TOKEN_FILTER
+import com.blogspot.cdcsutils.lognote.RecentFileManager.Companion.MAX_RECENT_FILE
+import com.blogspot.cdcsutils.lognote.RecentFileManager.RecentItem
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.TypeAdapter
@@ -265,13 +284,6 @@ data class TokenLogFilter(
     val filters: List<String>
 )
 
-data class RecentFilters (
-    val showLogFilters: List<String>? = null,
-    val tokenLogFilters: List<TokenLogFilter>? = null,
-    val highlightLogs: List<String>? = null,
-    val findLogs: List<String>? = null,
-)
-
 data class PresetElement (
     val name: String? = null,
     val value: String? = null,
@@ -302,6 +314,14 @@ data class LogFormat (
     val sampleText: String? = null,
 )
 
+data class TestTrigger (
+    val name: String? = null,
+    val filter: String? = null,
+    val action: Int? = null,
+    val actionParameter: String? = null,
+    val once: Boolean? = null,
+)
+
 data class AppData(
     val version: String = "",
     val appearance: AppearanceSettings = AppearanceSettings(),
@@ -309,12 +329,48 @@ data class AppData(
     val logCmd: LogCmdSettings = LogCmdSettings(),
     val filterOption: FilterOptionSettings = FilterOptionSettings(),
     val filter: FilterSettings = FilterSettings(),
-    val recentFilter: RecentFilters = RecentFilters(),
     val filterSnippet: List<PresetElement>? = null,
     val cmdAlias: List<PresetElement>? = null,
     val targetPackage: List<String>? = null,
     val tool: ToolSettings = ToolSettings(),
     val logFormats: List<LogFormat>? = null,
+    val testTriggers: List<TestTrigger>? = null,
+)
+
+data class RecentFilters (
+    val showLogFilters: List<String>? = null,
+    val tokenLogFilters: List<TokenLogFilter>? = null,
+    val highlightLogs: List<String>? = null,
+    val findLogs: List<String>? = null,
+)
+
+data class RecentFileTokenFilter(
+    val key: String,
+    val filter: String
+)
+
+data class RecentFileItem (
+    val path: String? = null,
+    val showLog: String? = null,
+    val tokenFilter: List<RecentFileTokenFilter>? = null,
+    val highlightLog: String? = null,
+    val findLog: String? = null,
+    val bookmarks: String? = null,
+
+    val showLogCheck: Boolean? = null,
+    val tokenCheck: List<Boolean>? = null,
+    val highlightLogCheck: Boolean? = null,
+    val findMatchCase: Boolean? = null,
+)
+
+data class RecentFiles (
+    val fileItems: List<RecentFileItem>? = null,
+)
+
+data class AppHistory(
+    val version: String = "",
+    val recentFilter: RecentFilters = RecentFilters(),
+    val recentFiles: RecentFiles = RecentFiles(),
 )
 
 object AppConstants {
@@ -328,6 +384,7 @@ object AppConstants {
 class AppDataManager private constructor() {
     companion object {
         private const val CONFIG_FILE = "lognote.json"
+        private const val HISTORY_FILE = "lognote-history.json"
         val LOGNOTE_HOME: String = System.getenv("LOGNOTE_HOME") ?: ""
 
         private val mInstance: AppDataManager = AppDataManager()
@@ -356,11 +413,16 @@ class AppDataManager private constructor() {
     var mAppData = AppData()
         private set
 
+    var mAppHistory = AppHistory()
+        private set
+
     private var mConfigPath = CONFIG_FILE
+    private var mHistoryPath = HISTORY_FILE
 
     init {
         mConfigPath = getHomePath(CONFIG_FILE)
-        Utils.printlnLog("Config Path : $mConfigPath")
+        mHistoryPath = getHomePath(HISTORY_FILE)
+        Utils.printlnLog("Config Path : $mConfigPath, History Path : $mHistoryPath")
         manageVersion()
     }
 
@@ -381,6 +443,25 @@ class AppDataManager private constructor() {
         mAppData = appData
         val jsonString = gson.toJson(mAppData)
         File(mConfigPath).writeText(jsonString)
+    }
+
+    fun loadHistory() {
+        val file = File(mHistoryPath)
+        if (!file.exists()) {
+            mAppHistory = AppHistory()
+        }
+        else {
+            val jsonString = file.readText()
+            mAppHistory = Gson().fromJson(jsonString, AppHistory::class.java)
+        }
+    }
+
+    fun saveHistory(appHistory: AppHistory) {
+        val gson = GsonBuilder().setPrettyPrinting().create()
+
+        mAppHistory = appHistory
+        val jsonString = gson.toJson(mAppHistory)
+        File(mHistoryPath).writeText(jsonString)
     }
 
     fun saveFont(family: String, size: Int) {
@@ -466,6 +547,7 @@ class AppDataManager private constructor() {
 
     private fun manageVersion() {
         loadConfig()
+        loadHistory()
 
         if (mAppData.version.isEmpty()) {
             updateAppDataFromV0ToV1()
@@ -478,6 +560,7 @@ class AppDataManager private constructor() {
 //        }
 
         saveConfig(mAppData)
+        saveHistory(mAppHistory)
     }
 
     private fun getFromProperties(src: PropertiesBase, key: String): String? {
@@ -527,6 +610,16 @@ class AppDataManager private constructor() {
         Utils.printlnLog("Format Path : $oldFormatPath")
         val formatFile = File(oldFormatPath)
         val formatReader = if (formatFile.exists()) PropertiesReader(oldFormatPath) else PropertiesReader("")
+
+        val oldRecentFilePath = getHomePath("lognote_recents.xml")
+        Utils.printlnLog("RecentFile Path : $oldRecentFilePath")
+        val recentFileFile = File(oldRecentFilePath)
+        val recentFileReader = if (recentFileFile.exists()) PropertiesReader(oldRecentFilePath) else PropertiesReader("")
+
+        val oldAgingTestPath = getHomePath("lognote_agingtests.xml")
+        Utils.printlnLog("AgingTest Path : $oldAgingTestPath")
+        val agingTestFile = File(oldAgingTestPath)
+        val agingTestReader = if (agingTestFile.exists()) PropertiesReader(oldAgingTestPath) else PropertiesReader("")
         
         if (formatFile.exists()) {
             val logFormats = mutableListOf<LogFormat>()
@@ -706,6 +799,9 @@ class AppDataManager private constructor() {
                     val tokenFilters = mAppData.logFormats!![idx].tokenFilters!!
                     val isSaveFilter = tokenFilters[tokIdx][2] as Boolean
                     val tokenName = tokenFilters[tokIdx][0] as String
+                    if (tokenName.isEmpty()) {
+                        continue
+                    }
                     val key = "${formatName}_${tokenName}"
                     if (isSaveFilter) {
                         val filters = mutableListOf<String>()
@@ -719,13 +815,10 @@ class AppDataManager private constructor() {
                         tokenLogFilters.add(TokenLogFilter(key, filters))
                     }
 
-                    val check = getFromProperties(configReader, "${ConfigManager.ITEM_TOKEN_CHECK}${key}")
-                    val checkStatus = if (!check.isNullOrEmpty()) {
-                        check.toBoolean()
-                    } else {
-                        false
+                    val checkStatus = getBooleanFromProperties(configReader, "${ConfigManager.ITEM_TOKEN_CHECK}${key}")
+                    checkStatus?.let {
+                        tokenCheckStatuses.add(TokenCheckStatus(key, it))
                     }
-                    tokenCheckStatuses.add(TokenCheckStatus(key, checkStatus))
                 }
             }
 
@@ -746,15 +839,15 @@ class AppDataManager private constructor() {
                 }
                 findLogs.add(filter)
             }
+            mAppHistory = mAppHistory.copy(recentFilter = mAppHistory.recentFilter.copy(showLogFilters = showLogFilters, tokenLogFilters = tokenLogFilters,
+                    highlightLogs = highlightLogs, findLogs = findLogs))
 
             val findMatchCase = getBooleanFromProperties(configReader, ConfigManager.ITEM_FIND_MATCH_CASE)
             val showLogCheck = getBooleanFromProperties(configReader, ConfigManager.ITEM_SHOW_LOG_CHECK)
             val highlightLogCheck = getBooleanFromProperties(configReader, ConfigManager.ITEM_HIGHLIGHT_LOG_CHECK)
 
             mAppData = mAppData.copy(filter = mAppData.filter.copy(findMatchCase = findMatchCase, showLogCheck = showLogCheck,
-                tokenCheckStatuses = tokenCheckStatuses, highlightLogCheck = highlightLogCheck),
-                recentFilter = mAppData.recentFilter.copy(showLogFilters = showLogFilters, tokenLogFilters = tokenLogFilters,
-                    highlightLogs = highlightLogs, findLogs = findLogs))
+                tokenCheckStatuses = tokenCheckStatuses, highlightLogCheck = highlightLogCheck))
 
             val filterSnippet = mutableListOf<PresetElement>()
             for (i in 0 until FiltersManager.MAX_FILTERS) {
@@ -798,6 +891,46 @@ class AppDataManager private constructor() {
 
             mAppData = mAppData.copy(tool = mAppData.tool.copy(toolPanel = toolPanel, toolSelection = toolSelection, toolSelectionRangePrevious = toolSelectionRangePrevious,
                 toolSelectionRangeNext = toolSelectionRangeNext, toolTestEnable = toolTestEnable, toolTest = toolTest))
+
+            val testTriggers = mutableListOf<TestTrigger>()
+            for (i in 0 until MAX_TRIGGER_COUNT) {
+                val name = getFromProperties(agingTestReader, "$i$ITEM_TRIGGER_NAME")
+                if (name.isNullOrEmpty()) {
+                    break
+                }
+                val filter = getFromProperties(agingTestReader, "$i$ITEM_TRIGGER_FILTER")
+                val action = getIntFromProperties(agingTestReader, "$i$ITEM_TRIGGER_ACTION")
+                val actionParameter = getFromProperties(agingTestReader, "$i$ITEM_TRIGGER_ACTION_PARAMETER")
+                val once = getBooleanFromProperties(agingTestReader, "$i$ITEM_TRIGGER_ONCE")
+
+                testTriggers.add(TestTrigger(name, filter, action, actionParameter, once))
+            }
+
+            mAppData = mAppData.copy(testTriggers = testTriggers)
+
+            val fileItems = mutableListOf<RecentFileItem>()
+            for (i in 0 until MAX_RECENT_FILE) {
+                val  path = getFromProperties(recentFileReader, "$i$ITEM_PATH")
+                if (path.isNullOrEmpty()) {
+                    break
+                }
+                val showLog = getFromProperties(recentFileReader, "$i$ITEM_SHOW_LOG")
+
+                val tokenFilter = mutableListOf<RecentFileTokenFilter>()
+                val highlightLog = getFromProperties(recentFileReader, "$i$ITEM_HIGHLIGHT_LOG")
+                val findLog = getFromProperties(recentFileReader, "$i$ITEM_FIND_LOG")
+                val bookmarks = getFromProperties(recentFileReader, "$i$ITEM_BOOKMARKS")
+
+                val showLogCheck = getBooleanFromProperties(recentFileReader, "$i$ITEM_SHOW_LOG_CHECK")
+                val tokenCheck = mutableListOf<Boolean>()
+
+                val highlightLogCheck = getBooleanFromProperties(recentFileReader, "$i$ITEM_HIGHLIGHT_LOG_CHECK")
+                val findMatchCase = getBooleanFromProperties(recentFileReader, "$i$ITEM_FIND_MATCH_CASE")
+
+                fileItems.add(RecentFileItem(path, showLog, tokenFilter, highlightLog, findLog, bookmarks, showLogCheck, tokenCheck, highlightLogCheck, findMatchCase))
+            }
+
+            mAppHistory = mAppHistory.copy(recentFiles = mAppHistory.recentFiles.copy(fileItems = fileItems))
         }
 
 //        mAppData = mAppData.copy(version = "1")
