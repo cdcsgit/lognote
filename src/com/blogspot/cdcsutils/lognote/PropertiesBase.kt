@@ -7,7 +7,7 @@ import java.util.*
 
 abstract class PropertiesBase(fileName: String) {
     protected val mProperties = Properties()
-    private var mXmlPath = fileName
+    protected var mXmlPath = fileName
 
     init {
         mXmlPath = ConfigManager.getHomePath(fileName)

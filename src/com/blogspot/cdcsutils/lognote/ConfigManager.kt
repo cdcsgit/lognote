@@ -7,7 +7,11 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.util.*
 
-class ConfigManager private constructor() {
+interface XmlSource {
+    fun getItem(key: String): String?
+}
+
+class ConfigManager private constructor() : XmlSource {
     companion object {
         private const val CONFIG_FILE = "lognote.xml"
         val LOGNOTE_HOME: String = System.getenv("LOGNOTE_HOME") ?: ""
@@ -219,7 +223,7 @@ class ConfigManager private constructor() {
         saveConfig()
     }
 
-    fun getItem(key: String): String? {
+    override fun getItem(key: String): String? {
         return mProperties[key] as String?
     }
 

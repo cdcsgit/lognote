@@ -1,5 +1,29 @@
 package com.blogspot.cdcsutils.lognote
 
+import com.blogspot.cdcsutils.lognote.ColorManager.TableColorType
+import com.blogspot.cdcsutils.lognote.ConfigManager.Companion.ITEM_CMDS_CMD
+import com.blogspot.cdcsutils.lognote.ConfigManager.Companion.ITEM_CMDS_TABLEBAR
+import com.blogspot.cdcsutils.lognote.ConfigManager.Companion.ITEM_CMDS_TITLE
+import com.blogspot.cdcsutils.lognote.ConfigManager.Companion.ITEM_FILTERS_FILTER
+import com.blogspot.cdcsutils.lognote.ConfigManager.Companion.ITEM_FILTERS_TABLEBAR
+import com.blogspot.cdcsutils.lognote.ConfigManager.Companion.ITEM_FILTERS_TITLE
+import com.blogspot.cdcsutils.lognote.ConfigManager.Companion.ITEM_PACKAGES_ITEM
+import com.blogspot.cdcsutils.lognote.FormatManager.Companion.ITEM_COLUMN_NAMES
+import com.blogspot.cdcsutils.lognote.FormatManager.Companion.ITEM_LEVEL
+import com.blogspot.cdcsutils.lognote.FormatManager.Companion.ITEM_LEVEL_POSITION
+import com.blogspot.cdcsutils.lognote.FormatManager.Companion.ITEM_LOG_POSITION
+import com.blogspot.cdcsutils.lognote.FormatManager.Companion.ITEM_NAME
+import com.blogspot.cdcsutils.lognote.FormatManager.Companion.ITEM_PID_TOK_IDX
+import com.blogspot.cdcsutils.lognote.FormatManager.Companion.ITEM_SAMPLE_TEXT
+import com.blogspot.cdcsutils.lognote.FormatManager.Companion.ITEM_SEPARATOR
+import com.blogspot.cdcsutils.lognote.FormatManager.Companion.ITEM_TOKEN_COUNT
+import com.blogspot.cdcsutils.lognote.FormatManager.Companion.ITEM_TOKEN_FILTER_NAME
+import com.blogspot.cdcsutils.lognote.FormatManager.Companion.ITEM_TOKEN_FILTER_POSITION
+import com.blogspot.cdcsutils.lognote.FormatManager.Companion.ITEM_TOKEN_SAVE_FILTER
+import com.blogspot.cdcsutils.lognote.FormatManager.Companion.ITEM_TOKEN_UI_WIDTH
+import com.blogspot.cdcsutils.lognote.FormatManager.Companion.MAX_TOKEN_FILTER_COUNT
+import com.blogspot.cdcsutils.lognote.FormatManager.Companion.TEXT_LEVEL
+import com.blogspot.cdcsutils.lognote.FormatManager.FormatItem
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.TypeAdapter
@@ -88,6 +112,74 @@ class InnerListCompactAdapter : TypeAdapter<List<List<Any>>?>() {
     }
 }
 
+class ListCompactAdapter : TypeAdapter<List<Any>?>() {
+    // Safely extract private indent field using reflection
+    private fun getIndent(out: JsonWriter): String {
+        return try {
+            val field = JsonWriter::class.java.getDeclaredField("indent")
+            field.isAccessible = true
+            (field.get(out) as? String) ?: ""
+        } catch (e: Exception) {
+            "  " // Default fallback indent
+        }
+    }
+
+    // Serialize object to JSON format
+    override fun write(out: JsonWriter, value: List<Any>?) {
+        Utils.printlnLog("ListCompactAdapter write")
+        // Handle null values safely
+        if (value == null) {
+            out.nullValue()
+            return
+        }
+
+        val originalIndent = getIndent(out)
+
+        out.beginArray() // Open outer array (pretty-printed)
+        for (item in value) {
+            out.setIndent("")
+            when (item) {
+                is Number -> out.value(item)
+                is Boolean -> out.value(item)
+                is String -> out.value(item)
+                else -> out.value(item.toString())
+            }
+        }
+        out.endArray() // Close outer array
+        out.setIndent(originalIndent)
+    }
+
+    // Deserialize JSON format back to object
+    override fun read(reader: JsonReader): List<Any>? {
+        // Return null if JSON token is NULL
+        if (reader.peek() == JsonToken.NULL) {
+            reader.nextNull()
+            return null
+        }
+
+        val result = mutableListOf<Any>()
+        reader.beginArray()
+        while (reader.hasNext()) {
+            when (reader.peek()) {
+                JsonToken.NUMBER -> {
+                    val numberStr = reader.nextString()
+                    // Parse as Double if decimal point exists, otherwise Long
+                    if (numberStr.contains(".")) {
+                        result.add(numberStr.toDouble())
+                    } else {
+                        result.add(numberStr.toLong())
+                    }
+                }
+                JsonToken.BOOLEAN -> result.add(reader.nextBoolean())
+                JsonToken.STRING -> result.add(reader.nextString())
+                else -> reader.skipValue() // Skip unknown value types
+            }
+        }
+        reader.endArray()
+        return result
+    }
+}
+
 data class AppearanceSettings(
     val frameX: Int? = null,
     val frameY: Int? = null,
@@ -129,81 +221,109 @@ data class AppearanceSettings(
 
 data class ColorSettings (
     @JsonAdapter(InnerListCompactAdapter::class)
-    val colorFullTable: List<List<Any>>? = null,
-    val colorFullTableTag: List<String>? = null,
+    val colorFullView: List<List<Any>>? = null,
     @JsonAdapter(InnerListCompactAdapter::class)
-    val colorFilterTable: List<List<Any>>? = null,
-    val colorFilterTableTag: List<String>? = null,
-    val colorFilterStyle: List<String>? = null,
-)
-
-data class ToolSettings (
-    val toolPanel: String? = null,
-    val toolSelection: String? = null,
-    val toolSelectionRangePrevious: String? = null,
-    val toolSelectionRangeNext: String? = null,
-    val toolTestEnable: String? = null,
-    val toolTest: String? = null,
+    val colorFilterView: List<List<Any>>? = null,
+    @JsonAdapter(InnerListCompactAdapter::class)
+    val colorFilterStyle: List<List<Any>>? = null,
 )
 
 data class LogCmdSettings (
-    val adbDevice: String? = null,
-    val adbCmd: String? = null,
-    val adbLogCmd: String? = null,
-    val adbLogSavePath: String? = null,
-    val adbPrefix: String? = null,
-    val adbOption_1: String? = null,
-    val retryAdb: String? = null,
+    val targetDevice: String? = null,
+    val adbPath: String? = null,
+    val logCmd: String? = null,
+    val logSavePath: String? = null,
+    val savePrefix: String? = null,
+    val adbOptionUpdatePidTimeout: Int? = null,
+    val retryLogCmd: Boolean? = null,
 )
 
 data class FilterOptionSettings (
-    val filterIncremental: String? = null,
+    val filterIncremental: Boolean? = null,
     val matchCase: Boolean? = null,
-    val filterByFile: String? = null,
-    val colorTagRegex: String? = null,
+    val filterByRecentFile: Boolean? = null,
+    val colorTagRegex: Boolean? = null,
     val showLogStyle: Int? = null,
     val boldLogStyle: Int? = null,
     val tokenComboStyles: List<Int>? = null,
 )
 
-data class FilterValues (
-    val itemShowLog: String? = null,
-    val countShowLog: Int? = null,
-    val itemTokenFilter: String? = null,
-    val countTokenFilter: Int? = null,
-    val saveFilterCount: Int? = null,
+data class TokenCheckStatus(
+    val key: String,
+    val checkUse: Boolean,
+)
 
-    val itemHighlightLog: String? = null,
-    val countHighlightLog: Int? = null,
+data class FilterSettings (
+    val findMatchCase: Boolean? = null,
+    val showLogCheck: Boolean? = null,
+    val tokenCheckStatuses: List<TokenCheckStatus>? = null,
+    val highlightLogCheck: Boolean? = null,
+)
 
-    val itemFindLog: String? = null,
-    val countFindLog: Int? = null,
-    val itemFindMatchCase: String? = null,
+data class TokenLogFilter(
+    val key: String,
+    val filters: List<String>
+)
 
-    val itemShowLogCheck: String? = null,
-    val itemTokenCheck: String? = null,
-
-    val itemHighlightLogCheck: String? = null,
+data class RecentFilters (
+    val showLogFilters: List<String>? = null,
+    val tokenLogFilters: List<TokenLogFilter>? = null,
+    val highlightLogs: List<String>? = null,
+    val findLogs: List<String>? = null,
 )
 
 data class PresetElement (
-    val title: String? = null,
+    val name: String? = null,
     val value: String? = null,
-    val tableBar: String? = null,
+    val tableBar: Boolean? = null,
+)
+
+data class ToolSettings (
+    val toolPanel: Boolean? = null,
+    val toolSelection: Boolean? = null,
+    val toolSelectionRangePrevious: Int? = null,
+    val toolSelectionRangeNext: Int? = null,
+    val toolTestEnable: Boolean? = null,
+    val toolTest: Boolean? = null,
+)
+
+data class LogFormat (
+    val name: String? = null,
+    val separator: String? = null,
+    val tokenCount: Int? = null,
+    val logPosition: Int? = null,
+    val columnNames: String? = null,
+    @JsonAdapter(ListCompactAdapter::class)
+    val level: List<String>? = null,
+    val levelPosition: Int? = null,
+    @JsonAdapter(InnerListCompactAdapter::class)
+    val tokenFilters: List<List<Any>>? = null,
+    val pidTokIdx: Int? = null,
+    val sampleText: String? = null,
 )
 
 data class AppData(
     val version: String = "",
     val appearance: AppearanceSettings = AppearanceSettings(),
     val color: ColorSettings = ColorSettings(),
-    val tool: ToolSettings = ToolSettings(),
     val logCmd: LogCmdSettings = LogCmdSettings(),
     val filterOption: FilterOptionSettings = FilterOptionSettings(),
-    val filter: FilterValues = FilterValues(),
-    val filterSnippets: List<PresetElement>? = null,
+    val filter: FilterSettings = FilterSettings(),
+    val recentFilter: RecentFilters = RecentFilters(),
+    val filterSnippet: List<PresetElement>? = null,
     val cmdAlias: List<PresetElement>? = null,
-    val targetPackages: List<String>? = null,
+    val targetPackage: List<String>? = null,
+    val tool: ToolSettings = ToolSettings(),
+    val logFormats: List<LogFormat>? = null,
 )
+
+object AppConstants {
+    const val COUNT_SHOW_LOG = 20
+    const val COUNT_TOKEN_FILTER = 10
+    const val COUNT_SAVE_FILTER = 4
+    const val COUNT_HIGHLIGHT_LOG = 10
+    const val COUNT_FIND_LOG = 10
+}
 
 class AppDataManager private constructor() {
     companion object {
@@ -263,38 +383,48 @@ class AppDataManager private constructor() {
         File(mConfigPath).writeText(jsonString)
     }
 
-    fun saveFontColors(family: String, size: Int, fullColors: Array<ColorManager.ColorItem>, filterColors: Array<ColorManager.ColorItem>) {
+    fun saveFont(family: String, size: Int) {
+        loadConfig()
+
+        mAppData = mAppData.copy(appearance = mAppData.appearance.copy(fontName = family, fontSize = size))
+
+        saveConfig(mAppData)
+    }
+
+    fun saveLogViewColors(fullColors: Array<ColorManager.ColorItem>, filterColors: Array<ColorManager.ColorItem>) {
         loadConfig()
 
         val fullList: List<List<Any>> = fullColors.map { listOf(it.mName, it.mStrColor, it.mOrder) }
         val filterList: List<List<Any>> = filterColors.map { listOf(it.mName, it.mStrColor, it.mOrder) }
 
-        mAppData = mAppData.copy(appearance = mAppData.appearance.copy(fontName = family, fontSize = size),
-            color = mAppData.color.copy(colorFullTable = fullList, colorFilterTable = filterList))
+        mAppData = mAppData.copy(color = mAppData.color.copy(colorFullView = fullList, colorFilterView = filterList))
 
         saveConfig(mAppData)
     }
 
-    fun saveFilterStyle(logStyle: Int, boldStyle: Int, tokenStyles: List<Int>) {
+    fun saveFilterStyle(logStyle: Int, boldStyle: Int, tokenStyles: List<Int>, filterStyle: Array<ColorManager.ColorItem>) {
         loadConfig()
 
-        mAppData = mAppData.copy(filterOption = mAppData.filterOption.copy(showLogStyle = logStyle, boldLogStyle = boldStyle, tokenComboStyles = tokenStyles))
+        val colorFilterStyleList: List<List<Any>> = filterStyle.map { listOf(it.mName, it.mStrColor, it.mOrder) }
+
+        mAppData = mAppData.copy(filterOption = mAppData.filterOption.copy(showLogStyle = logStyle, boldLogStyle = boldStyle, tokenComboStyles = tokenStyles),
+            color = mAppData.color.copy(colorFilterStyle = colorFilterStyleList))
 
         saveConfig(mAppData)
     }
 
     fun loadFilters() : ArrayList<PresetElement> {
-        return (if (mAppData.filterSnippets == null) {
+        return (if (mAppData.filterSnippet == null) {
             ArrayList<PresetElement>()
         } else {
-            mAppData.filterSnippets
+            mAppData.filterSnippet
         }) as ArrayList<PresetElement>
     }
 
     fun saveFilters(filters : ArrayList<PresetElement>) {
         loadConfig()
 
-        mAppData = mAppData.copy(filterSnippets = filters.take(FiltersManager.MAX_FILTERS))
+        mAppData = mAppData.copy(filterSnippet = filters.take(FiltersManager.MAX_FILTERS))
 
         saveConfig(mAppData)
         return
@@ -318,17 +448,17 @@ class AppDataManager private constructor() {
     }
 
     fun loadPackages() : ArrayList<String> {
-        return (if (mAppData.targetPackages == null) {
+        return (if (mAppData.targetPackage == null) {
             ArrayList<String>()
         } else {
-            mAppData.targetPackages
+            mAppData.targetPackage
         }) as ArrayList<String>
     }
 
     fun savePackages(packagess : ArrayList<String>) {
         loadConfig()
 
-        mAppData = mAppData.copy(targetPackages = packagess.take(PackageManager.MAX_PACKAGE_COUNT))
+        mAppData = mAppData.copy(targetPackage = packagess.take(PackageManager.MAX_PACKAGE_COUNT))
 
         saveConfig(mAppData)
         return
@@ -350,13 +480,13 @@ class AppDataManager private constructor() {
         saveConfig(mAppData)
     }
 
-    private fun getFromConfig(config: ConfigManager, key: String): String? {
-        val prop = config.getItem(key)
+    private fun getFromProperties(src: PropertiesBase, key: String): String? {
+        val prop = src.getItem(key)
         return prop
     }
 
-    private fun getIntFromConfig(config: ConfigManager, key: String): Int? {
-        val prop = config.getItem(key)
+    private fun getIntFromProperties(src: PropertiesBase, key: String): Int? {
+        val prop = src.getItem(key)
         return if (!prop.isNullOrEmpty()) {
             prop.toInt()
         } else {
@@ -364,8 +494,8 @@ class AppDataManager private constructor() {
         }
     }
 
-    private fun getBooleanFromConfig(config: ConfigManager, key: String): Boolean? {
-        val prop = config.getItem(key)
+    private fun getBooleanFromProperties(src: PropertiesBase, key: String): Boolean? {
+        val prop = src.getItem(key)
         return if (!prop.isNullOrEmpty()) {
             prop.toBoolean()
         } else {
@@ -376,48 +506,129 @@ class AppDataManager private constructor() {
     private fun updateAppDataFromV0ToV1() {
         Utils.printlnLog("updateAppDataFromV0ToV1 : copy from config.xml ++")
 
+        class PropertiesReader(fileName: String) : PropertiesBase(fileName) {
+            init {
+                mXmlPath = fileName
+                Utils.printlnLog("Xml File Path : $mXmlPath")
+                loadXml()
+            }
+            
+            override fun manageVersion() {
+                // do nothing
+            }
+        }
+        
         val oldConfigPath = getHomePath("lognote.xml")
         Utils.printlnLog("Config Path : $oldConfigPath")
-        val file = File(oldConfigPath)
+        val configFile = File(oldConfigPath)
+        val configReader = if (configFile.exists()) PropertiesReader(oldConfigPath) else PropertiesReader("")
 
-        if (file.exists()) {
-            val configManager = ConfigManager.getInstance()
+        val oldFormatPath = getHomePath("lognote_formats.xml")
+        Utils.printlnLog("Format Path : $oldFormatPath")
+        val formatFile = File(oldFormatPath)
+        val formatReader = if (formatFile.exists()) PropertiesReader(oldFormatPath) else PropertiesReader("")
+        
+        if (formatFile.exists()) {
+            val logFormats = mutableListOf<LogFormat>()
+            for (idx in 0 until FormatManager.MAX_FORMAT_COUNT) {
+                val name = getFromProperties(formatReader, "$idx$ITEM_NAME") ?: ""
+                if (name.trim().isEmpty()) {
+                    break
+                }
+                val separator = getFromProperties(formatReader, "$idx$ITEM_SEPARATOR") ?: ""
+                val tokenCount = try {
+                    (getFromProperties(formatReader, "$idx$ITEM_TOKEN_COUNT") ?: "").toInt()
+                } catch (ex: NumberFormatException) {
+                    1
+                }
+                val logPosition = try {
+                    (getFromProperties(formatReader, "$idx$ITEM_LOG_POSITION") ?: "").toInt()
+                } catch (ex: NumberFormatException) {
+                    0
+                }
+                val columnNames = getFromProperties(formatReader, "$idx$ITEM_COLUMN_NAMES") ?: ""
+                val level = mutableListOf<String>()
+                for (lvlIdx in TEXT_LEVEL.indices) {
+                    level.add(lvlIdx, (getFromProperties(formatReader, "$idx$ITEM_LEVEL$lvlIdx") ?: "").trim())
+                }
 
-            val frameX = getIntFromConfig(configManager, ConfigManager.ITEM_FRAME_X)
-            val frameY = getIntFromConfig(configManager, ConfigManager.ITEM_FRAME_Y)
-            val frameWidth = getIntFromConfig(configManager, ConfigManager.ITEM_FRAME_WIDTH)
-            val frameHeight = getIntFromConfig(configManager, ConfigManager.ITEM_FRAME_HEIGHT)
-            val frameExtendedState = getIntFromConfig(configManager, ConfigManager.ITEM_FRAME_EXTENDED_STATE)
-            val rotation = getIntFromConfig(configManager, ConfigManager.ITEM_ROTATION)
-            val lastDividerLocation = getIntFromConfig(configManager, ConfigManager.ITEM_LAST_DIVIDER_LOCATION)
-            val dividerLocation = getIntFromConfig(configManager, ConfigManager.ITEM_DIVIDER_LOCATION)
+                val levelPosition = try {
+                    (getFromProperties(formatReader, "$idx$ITEM_LEVEL_POSITION") ?: "").toInt()
+                } catch (ex: NumberFormatException) {
+                    -1
+                }
 
-            val toolRotation = getIntFromConfig(configManager, ConfigManager.ITEM_TOOL_ROTATION)
-            val toolLastDividerLocation = getIntFromConfig(configManager, ConfigManager.ITEM_TOOL_LAST_DIVIDER_LOCATION)
-            val toolDividerLocation = getIntFromConfig(configManager, ConfigManager.ITEM_TOOL_DIVIDER_LOCATION)
+                var tokenFilters: List<MutableList<Any>> = List(MAX_TOKEN_FILTER_COUNT) { mutableListOf("", 0, false, 120) }
+                for (tokIdx in 0 until MAX_TOKEN_FILTER_COUNT) {
+                    tokenFilters[tokIdx][0] = (getFromProperties(formatReader, "$idx$ITEM_TOKEN_FILTER_NAME$tokIdx") ?: "").trim()
+                    tokenFilters[tokIdx][1] = try {
+                        (getFromProperties(formatReader, "$idx$ITEM_TOKEN_FILTER_POSITION$tokIdx") ?: "").toInt()
+                    } catch (ex: NumberFormatException) {
+                        0
+                    }
+                    val check = getFromProperties(formatReader, "$idx$ITEM_TOKEN_SAVE_FILTER$tokIdx") ?: ""
+                    tokenFilters[tokIdx][2] = if (check.isNotEmpty()) {
+                        check.toBoolean()
+                    } else {
+                        false
+                    }
+                    tokenFilters[tokIdx][3] = try {
+                        (getFromProperties(formatReader, "$idx$ITEM_TOKEN_UI_WIDTH$tokIdx") ?: "").toInt()
+                    } catch (ex: NumberFormatException) {
+                        0
+                    }
+                }
 
-            val language = getFromConfig(configManager, ConfigManager.ITEM_LANG)
+                val pidTokIdx = try {
+                    (getFromProperties(formatReader, "$idx$ITEM_PID_TOK_IDX") ?: "").toInt()
+                } catch (ex: NumberFormatException) {
+                    -1
+                }
 
-            val logFormat = getFromConfig(configManager, ConfigManager.ITEM_LOG_FORMAT)
-            val logLevel = getFromConfig(configManager, ConfigManager.ITEM_LOG_LEVEL)
+                val sampleText = getFromProperties(formatReader, "$idx$ITEM_SAMPLE_TEXT") ?: ""
+                
+                logFormats.add(LogFormat(name, separator, tokenCount, logPosition, columnNames, level, levelPosition, tokenFilters, pidTokIdx, sampleText))
+            }
 
-            val lookAndFeel = getFromConfig(configManager, ConfigManager.ITEM_LOOK_AND_FEEL)
-            val lafAccentColor = getFromConfig(configManager, ConfigManager.ITEM_LAF_ACCENT_COLOR)
-            val uiFontSize = getIntFromConfig(configManager, ConfigManager.ITEM_UI_FONT_SIZE)
-            val appearanceDividerSize = getIntFromConfig(configManager, ConfigManager.ITEM_APPEARANCE_DIVIDER_SIZE)
-            val logViewWidth = getIntFromConfig(configManager, ConfigManager.ITEM_LOG_VIEW_WIDTH)
+            mAppData = mAppData.copy(logFormats = logFormats)
+        }
 
-            val fontName = getFromConfig(configManager, ConfigManager.ITEM_FONT_NAME)
-            val fontSize = getIntFromConfig(configManager, ConfigManager.ITEM_FONT_SIZE)
-            val viewFull = getBooleanFromConfig(configManager, ConfigManager.ITEM_VIEW_FULL)
-            val viewColumnMode = getBooleanFromConfig(configManager, ConfigManager.ITEM_VIEW_COLUMN_MODE)
-            val viewProcessName = getFromConfig(configManager, ConfigManager.ITEM_VIEW_PROCESS_NAME)
+        if (configFile.exists()) {
+            val frameX = getIntFromProperties(configReader, ConfigManager.ITEM_FRAME_X)
+            val frameY = getIntFromProperties(configReader, ConfigManager.ITEM_FRAME_Y)
+            val frameWidth = getIntFromProperties(configReader, ConfigManager.ITEM_FRAME_WIDTH)
+            val frameHeight = getIntFromProperties(configReader, ConfigManager.ITEM_FRAME_HEIGHT)
+            val frameExtendedState = getIntFromProperties(configReader, ConfigManager.ITEM_FRAME_EXTENDED_STATE)
+            val rotation = getIntFromProperties(configReader, ConfigManager.ITEM_ROTATION)
+            val lastDividerLocation = getIntFromProperties(configReader, ConfigManager.ITEM_LAST_DIVIDER_LOCATION)
+            val dividerLocation = getIntFromProperties(configReader, ConfigManager.ITEM_DIVIDER_LOCATION)
 
-            val scrollback = getIntFromConfig(configManager, ConfigManager.ITEM_SCROLLBACK)
-            val scrollbackSplitFile = getBooleanFromConfig(configManager, ConfigManager.ITEM_SCROLLBACK_SPLIT_FILE)
+            val toolRotation = getIntFromProperties(configReader, ConfigManager.ITEM_TOOL_ROTATION)
+            val toolLastDividerLocation = getIntFromProperties(configReader, ConfigManager.ITEM_TOOL_LAST_DIVIDER_LOCATION)
+            val toolDividerLocation = getIntFromProperties(configReader, ConfigManager.ITEM_TOOL_DIVIDER_LOCATION)
 
-            val iconText = getFromConfig(configManager, ConfigManager.ITEM_ICON_TEXT)
-            val cmdToolbar = getBooleanFromConfig(configManager, ConfigManager.ITEM_CMD_TOOLBAR)
+            val language = getFromProperties(configReader, ConfigManager.ITEM_LANG)
+
+            val logFormat = getFromProperties(configReader, ConfigManager.ITEM_LOG_FORMAT)
+            val logLevel = getFromProperties(configReader, ConfigManager.ITEM_LOG_LEVEL)
+
+            val lookAndFeel = getFromProperties(configReader, ConfigManager.ITEM_LOOK_AND_FEEL)
+            val lafAccentColor = getFromProperties(configReader, ConfigManager.ITEM_LAF_ACCENT_COLOR)
+            val uiFontSize = getIntFromProperties(configReader, ConfigManager.ITEM_UI_FONT_SIZE)
+            val appearanceDividerSize = getIntFromProperties(configReader, ConfigManager.ITEM_APPEARANCE_DIVIDER_SIZE)
+            val logViewWidth = getIntFromProperties(configReader, ConfigManager.ITEM_LOG_VIEW_WIDTH)
+
+            val fontName = getFromProperties(configReader, ConfigManager.ITEM_FONT_NAME)
+            val fontSize = getIntFromProperties(configReader, ConfigManager.ITEM_FONT_SIZE)
+            val viewFull = getBooleanFromProperties(configReader, ConfigManager.ITEM_VIEW_FULL)
+            val viewColumnMode = getBooleanFromProperties(configReader, ConfigManager.ITEM_VIEW_COLUMN_MODE)
+            val viewProcessName = getFromProperties(configReader, ConfigManager.ITEM_VIEW_PROCESS_NAME)
+
+            val scrollback = getIntFromProperties(configReader, ConfigManager.ITEM_SCROLLBACK)
+            val scrollbackSplitFile = getBooleanFromProperties(configReader, ConfigManager.ITEM_SCROLLBACK_SPLIT_FILE)
+
+            val iconText = getFromProperties(configReader, ConfigManager.ITEM_ICON_TEXT)
+            val cmdToolbar = getBooleanFromProperties(configReader, ConfigManager.ITEM_CMD_TOOLBAR)
 
             mAppData = mAppData.copy(appearance = mAppData.appearance.copy(frameX = frameX, frameY = frameY,
                 frameWidth = frameWidth, frameHeight = frameHeight, frameExtendedState = frameExtendedState,
@@ -428,7 +639,165 @@ class AppDataManager private constructor() {
                 fontName = fontName, fontSize = fontSize, viewFull = viewFull, viewColumnMode = viewColumnMode, viewProcessName = viewProcessName,
                 scrollback = scrollback, scrollbackSplitFile = scrollbackSplitFile, iconText = iconText, cmdToolbar = cmdToolbar))
 
+            val colorManager = ColorManager.getInstance()
+            for (idx in colorManager.mFullTableColor.mColorArray.indices) {
+                getFromProperties(configReader, "${ConfigManager.ITEM_COLOR_MANAGER}${TableColorType.FULL_LOG_TABLE}_$idx")?.let {
+                    colorManager.mFullTableColor.mColorArray[idx].mStrColor = it
+                }
+            }
+            val colorFullView: List<List<Any>> = colorManager.mFullTableColor.mColorArray.map { listOf(it.mName, it.mStrColor, it.mOrder) }
+            for (idx in colorManager.mFilterTableColor.mColorArray.indices) {
+                getFromProperties(configReader, "${ConfigManager.ITEM_COLOR_MANAGER}${TableColorType.FILTER_LOG_TABLE}_$idx")?.let {
+                    colorManager.mFilterTableColor.mColorArray[idx].mStrColor = it
+                }
+            }
+            val colorFilterView: List<List<Any>> = colorManager.mFilterTableColor.mColorArray.map { listOf(it.mName, it.mStrColor, it.mOrder) }
+            for (idx in colorManager.mFilterStyle.indices) {
+                getFromProperties(configReader, ConfigManager.ITEM_COLOR_FILTER_STYLE + idx)?.let {
+                    colorManager.mFilterStyle[idx].mStrColor = it
+                }
+            }
+            val colorFilterStyle: List<List<Any>> = colorManager.mFilterStyle.map { listOf(it.mName, it.mStrColor, it.mOrder) }
 
+            mAppData = mAppData.copy(color = mAppData.color.copy(colorFullView = colorFullView, colorFilterView = colorFilterView, colorFilterStyle = colorFilterStyle))
+
+            val targetDevice = getFromProperties(configReader, ConfigManager.ITEM_ADB_DEVICE)
+            val adbPath = getFromProperties(configReader, ConfigManager.ITEM_ADB_CMD)
+            val logCmd = getFromProperties(configReader, ConfigManager.ITEM_ADB_LOG_CMD)
+            val logSavePath = getFromProperties(configReader, ConfigManager.ITEM_ADB_LOG_SAVE_PATH)
+            val savePrefix = getFromProperties(configReader, ConfigManager.ITEM_ADB_PREFIX)
+            val adbOptionUpdatePidTimeout = getIntFromProperties(configReader, ConfigManager.ITEM_ADB_OPTION_1)
+            val retryLogCmd = getBooleanFromProperties(configReader, ConfigManager.ITEM_RETRY_ADB)
+
+            mAppData = mAppData.copy(logCmd = mAppData.logCmd.copy(targetDevice = targetDevice, adbPath = adbPath, logCmd = logCmd,
+                logSavePath = logSavePath, savePrefix = savePrefix, adbOptionUpdatePidTimeout = adbOptionUpdatePidTimeout, retryLogCmd = retryLogCmd))
+
+            val filterIncremental = getBooleanFromProperties(configReader, ConfigManager.ITEM_FILTER_INCREMENTAL)
+            val matchCase = getBooleanFromProperties(configReader, ConfigManager.ITEM_MATCH_CASE)
+            val filterByRecentFile = getBooleanFromProperties(configReader, ConfigManager.ITEM_FILTER_BY_FILE)
+            val colorTagRegex = getBooleanFromProperties(configReader, ConfigManager.ITEM_COLOR_TAG_REGEX)
+            val showLogStyle = getIntFromProperties(configReader, ConfigManager.ITEM_SHOW_LOG_STYLE)
+            val boldLogStyle = getIntFromProperties(configReader, ConfigManager.ITEM_BOLD_LOG_STYLE)
+            val tokenComboStyles: MutableList<Int> = List(FormatManager.MAX_TOKEN_FILTER_COUNT) { FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT.value }.toMutableList()
+            for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+                getIntFromProperties(configReader, ConfigManager.ITEM_TOKEN_COMBO_STYLE + idx)?.let { tokenComboStyles[idx] = it }
+            }
+
+            mAppData = mAppData.copy(filterOption = mAppData.filterOption.copy(filterIncremental = filterIncremental, matchCase = matchCase,
+                filterByRecentFile = filterByRecentFile, colorTagRegex = colorTagRegex, showLogStyle = showLogStyle, boldLogStyle = boldLogStyle,
+                tokenComboStyles = tokenComboStyles.toList()
+            ))
+
+            var filter: String?
+            val showLogFilters = mutableListOf<String>()
+            for (idx in 0 until ConfigManager.COUNT_SHOW_LOG) {
+                filter = getFromProperties(configReader, ConfigManager.ITEM_SHOW_LOG + idx)
+                if (filter == null) {
+                    break
+                }
+                showLogFilters.add(filter)
+            }
+
+            val tokenLogFilters = mutableListOf<TokenLogFilter>()
+            val tokenCheckStatuses = mutableListOf<TokenCheckStatus>()
+            for (idx in 0 until (mAppData.logFormats?.size ?: 0)) {
+                val formatName = mAppData.logFormats!![idx].name
+                for (tokIdx in 0 until MAX_TOKEN_FILTER_COUNT) {
+                    val tokenFilters = mAppData.logFormats!![idx].tokenFilters!!
+                    val isSaveFilter = tokenFilters[tokIdx][2] as Boolean
+                    val tokenName = tokenFilters[tokIdx][0] as String
+                    val key = "${formatName}_${tokenName}"
+                    if (isSaveFilter) {
+                        val filters = mutableListOf<String>()
+                        for (i in 0 until ConfigManager.COUNT_TOKEN_FILTER) {
+                            val item = getFromProperties(configReader, "${ConfigManager.ITEM_TOKEN_FILTER}${key}_$i")
+                            if (item == null) {
+                                break
+                            }
+                            filters.add(item)
+                        }
+                        tokenLogFilters.add(TokenLogFilter(key, filters))
+                    }
+
+                    val check = getFromProperties(configReader, "${ConfigManager.ITEM_TOKEN_CHECK}${key}")
+                    val checkStatus = if (!check.isNullOrEmpty()) {
+                        check.toBoolean()
+                    } else {
+                        false
+                    }
+                    tokenCheckStatuses.add(TokenCheckStatus(key, checkStatus))
+                }
+            }
+
+            val highlightLogs = mutableListOf<String>()
+            for (idx in 0 until ConfigManager.COUNT_HIGHLIGHT_LOG) {
+                filter = getFromProperties(configReader, ConfigManager.ITEM_HIGHLIGHT_LOG + idx)
+                if (filter == null) {
+                    break
+                }
+                highlightLogs.add(filter)
+            }
+
+            val findLogs = mutableListOf<String>()
+            for (idx in 0 until ConfigManager.COUNT_FIND_LOG) {
+                filter = getFromProperties(configReader, ConfigManager.ITEM_FIND_LOG + idx)
+                if (filter == null) {
+                    break
+                }
+                findLogs.add(filter)
+            }
+
+            val findMatchCase = getBooleanFromProperties(configReader, ConfigManager.ITEM_FIND_MATCH_CASE)
+            val showLogCheck = getBooleanFromProperties(configReader, ConfigManager.ITEM_SHOW_LOG_CHECK)
+            val highlightLogCheck = getBooleanFromProperties(configReader, ConfigManager.ITEM_HIGHLIGHT_LOG_CHECK)
+
+            mAppData = mAppData.copy(filter = mAppData.filter.copy(findMatchCase = findMatchCase, showLogCheck = showLogCheck,
+                tokenCheckStatuses = tokenCheckStatuses, highlightLogCheck = highlightLogCheck),
+                recentFilter = mAppData.recentFilter.copy(showLogFilters = showLogFilters, tokenLogFilters = tokenLogFilters,
+                    highlightLogs = highlightLogs, findLogs = findLogs))
+
+            val filterSnippet = mutableListOf<PresetElement>()
+            for (i in 0 until FiltersManager.MAX_FILTERS) {
+                val name = getFromProperties(configReader, ITEM_FILTERS_TITLE + i)
+                if (name.isNullOrEmpty()) {
+                    break
+                }
+                val value = getFromProperties(configReader, ITEM_FILTERS_FILTER + i) ?: "null"
+                val tableBar = getBooleanFromProperties(configReader, ITEM_FILTERS_TABLEBAR + i) ?: false
+                filterSnippet.add(PresetElement(name, value, tableBar))
+            }
+
+            val cmdAlias = mutableListOf<PresetElement>()
+            for (i in 0 until CmdManager.MAX_CMD_COUNT) {
+                val name = getFromProperties(configReader, ITEM_CMDS_TITLE + i)
+                if (name.isNullOrEmpty()) {
+                    break
+                }
+                val value = getFromProperties(configReader, ITEM_CMDS_CMD + i) ?: "null"
+                val tableBar = getBooleanFromProperties(configReader, ITEM_CMDS_TABLEBAR + i) ?: false
+                cmdAlias.add(PresetElement(name, value, tableBar))
+            }
+
+            val targetPackage = mutableListOf<String>()
+            for (i in 0 until PackageManager.MAX_PACKAGE_COUNT) {
+                val packageName = getFromProperties(configReader, ITEM_PACKAGES_ITEM + i)
+                if (packageName.isNullOrEmpty()) {
+                    break
+                }
+                targetPackage.add(packageName)
+            }
+
+            mAppData = mAppData.copy(filterSnippet = filterSnippet, cmdAlias = cmdAlias, targetPackage = targetPackage)
+
+            val toolPanel = getBooleanFromProperties(configReader, ConfigManager.ITEM_TOOL_PANEL)
+            val toolSelection = getBooleanFromProperties(configReader, ConfigManager.ITEM_TOOL_SELECTION)
+            val toolSelectionRangePrevious = getIntFromProperties(configReader, ConfigManager.ITEM_TOOL_SELECTION_RANGE_PREVIOUS)
+            val toolSelectionRangeNext = getIntFromProperties(configReader, ConfigManager.ITEM_TOOL_SELECTION_RANGE_NEXT)
+            val toolTestEnable = getBooleanFromProperties(configReader, ConfigManager.ITEM_TOOL_TEST_ENABLE)
+            val toolTest = getBooleanFromProperties(configReader, ConfigManager.ITEM_TOOL_TEST)
+
+            mAppData = mAppData.copy(tool = mAppData.tool.copy(toolPanel = toolPanel, toolSelection = toolSelection, toolSelectionRangePrevious = toolSelectionRangePrevious,
+                toolSelectionRangeNext = toolSelectionRangeNext, toolTestEnable = toolTestEnable, toolTest = toolTest))
         }
 
 //        mAppData = mAppData.copy(version = "1")

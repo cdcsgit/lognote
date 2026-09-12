@@ -568,7 +568,8 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
                 mConfigManager.saveFilterStyle(keys, values, tokenKeys, tokenValues)
 
                 val tokenValuesInt = List(FormatManager.MAX_TOKEN_FILTER_COUNT) { mTokenStyleComboArray[it]!!.selectedIndex }
-                mAppDataManager.saveFilterStyle(mStyleComboArray[ComboIdx.LOG.value]!!.selectedIndex, mStyleComboArray[ComboIdx.BOLD.value]!!.selectedIndex, tokenValuesInt)
+                mAppDataManager.saveFilterStyle(mStyleComboArray[ComboIdx.LOG.value]!!.selectedIndex, mStyleComboArray[ComboIdx.BOLD.value]!!.selectedIndex,
+                    tokenValuesInt, mColorManager.mFilterStyle)
             }
         }
 
@@ -917,7 +918,8 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
             }
             else {
                 mConfigManager.saveFontColors(mMainUI.mFont.family, mMainUI.mFont.size)
-                mAppDataManager.saveFontColors(mMainUI.mFont.family, mMainUI.mFont.size, mColorManager.mFullTableColor.mColorArray, mColorManager.mFilterTableColor.mColorArray)
+                mAppDataManager.saveFont(mMainUI.mFont.family, mMainUI.mFont.size)
+                mAppDataManager.saveLogViewColors(mColorManager.mFullTableColor.mColorArray, mColorManager.mFilterTableColor.mColorArray)
             }
         }
 
