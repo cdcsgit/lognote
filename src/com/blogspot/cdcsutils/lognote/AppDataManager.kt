@@ -6,7 +6,6 @@ import com.blogspot.cdcsutils.lognote.AgingTestManager.Companion.ITEM_TRIGGER_FI
 import com.blogspot.cdcsutils.lognote.AgingTestManager.Companion.ITEM_TRIGGER_NAME
 import com.blogspot.cdcsutils.lognote.AgingTestManager.Companion.ITEM_TRIGGER_ONCE
 import com.blogspot.cdcsutils.lognote.AgingTestManager.Companion.MAX_TRIGGER_COUNT
-import com.blogspot.cdcsutils.lognote.AgingTestManager.Companion.TriggerAction
 import com.blogspot.cdcsutils.lognote.ColorManager.TableColorType
 import com.blogspot.cdcsutils.lognote.ConfigManager.Companion.ITEM_CMDS_CMD
 import com.blogspot.cdcsutils.lognote.ConfigManager.Companion.ITEM_CMDS_TABLEBAR
@@ -30,7 +29,6 @@ import com.blogspot.cdcsutils.lognote.FormatManager.Companion.ITEM_TOKEN_SAVE_FI
 import com.blogspot.cdcsutils.lognote.FormatManager.Companion.ITEM_TOKEN_UI_WIDTH
 import com.blogspot.cdcsutils.lognote.FormatManager.Companion.MAX_TOKEN_FILTER_COUNT
 import com.blogspot.cdcsutils.lognote.FormatManager.Companion.TEXT_LEVEL
-import com.blogspot.cdcsutils.lognote.FormatManager.FormatItem
 import com.blogspot.cdcsutils.lognote.RecentFileManager.Companion.ITEM_BOOKMARKS
 import com.blogspot.cdcsutils.lognote.RecentFileManager.Companion.ITEM_FIND_LOG
 import com.blogspot.cdcsutils.lognote.RecentFileManager.Companion.ITEM_FIND_MATCH_CASE
@@ -39,11 +37,7 @@ import com.blogspot.cdcsutils.lognote.RecentFileManager.Companion.ITEM_HIGHLIGHT
 import com.blogspot.cdcsutils.lognote.RecentFileManager.Companion.ITEM_PATH
 import com.blogspot.cdcsutils.lognote.RecentFileManager.Companion.ITEM_SHOW_LOG
 import com.blogspot.cdcsutils.lognote.RecentFileManager.Companion.ITEM_SHOW_LOG_CHECK
-import com.blogspot.cdcsutils.lognote.RecentFileManager.Companion.ITEM_TOKEN_CHECK
-import com.blogspot.cdcsutils.lognote.RecentFileManager.Companion.ITEM_TOKEN_FILTER
 import com.blogspot.cdcsutils.lognote.RecentFileManager.Companion.MAX_RECENT_FILE
-import com.blogspot.cdcsutils.lognote.RecentFileManager.RecentItem
-import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.TypeAdapter
 import com.google.gson.annotations.JsonAdapter
@@ -51,6 +45,8 @@ import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
 import com.google.gson.stream.JsonWriter
 import java.io.File
+import java.io.RandomAccessFile
+import java.nio.charset.StandardCharsets
 import java.util.*
 
 class InnerListCompactAdapter : TypeAdapter<List<List<Any>>?>() {
@@ -228,7 +224,7 @@ data class AppearanceSettings(
     val fontSize: Int? = null,
     val viewFull: Boolean? = null,
     val viewColumnMode: Boolean? = null,
-    val viewProcessName: String? = null,
+    val viewProcessName: Int? = null,
 
     val scrollback: Int? = null,
     val scrollbackSplitFile: Boolean? = null,
@@ -252,7 +248,7 @@ data class LogCmdSettings (
     val adbPath: String? = null,
     val logCmd: String? = null,
     val logSavePath: String? = null,
-    val savePrefix: String? = null,
+    val logFilePrefix: String? = null,
     val adbOptionUpdatePidTimeout: Int? = null,
     val retryLogCmd: Boolean? = null,
 )
@@ -267,21 +263,11 @@ data class FilterOptionSettings (
     val tokenComboStyles: List<Int>? = null,
 )
 
-data class TokenCheckStatus(
-    val key: String,
-    val checkUse: Boolean,
-)
-
 data class FilterSettings (
     val findMatchCase: Boolean? = null,
     val showLogCheck: Boolean? = null,
-    val tokenCheckStatuses: List<TokenCheckStatus>? = null,
+    val tokenCheckStatuses: Map<String, Boolean>? = null,
     val highlightLogCheck: Boolean? = null,
-)
-
-data class TokenLogFilter(
-    val key: String,
-    val filters: List<String>
 )
 
 data class PresetElement (
@@ -339,20 +325,15 @@ data class AppData(
 
 data class RecentFilters (
     val showLogFilters: List<String>? = null,
-    val tokenLogFilters: List<TokenLogFilter>? = null,
+    val tokenLogFilters: Map<String, List<String>>? = null,
     val highlightLogs: List<String>? = null,
     val findLogs: List<String>? = null,
-)
-
-data class RecentFileTokenFilter(
-    val key: String,
-    val filter: String
 )
 
 data class RecentFileItem (
     val path: String? = null,
     val showLog: String? = null,
-    val tokenFilter: List<RecentFileTokenFilter>? = null,
+    val tokenFilter: Map<String, String>? = null,
     val highlightLog: String? = null,
     val findLog: String? = null,
     val bookmarks: String? = null,
@@ -369,22 +350,31 @@ data class RecentFiles (
 
 data class AppHistory(
     val version: String = "",
-    val recentFilter: RecentFilters = RecentFilters(),
+    val recentFilters: RecentFilters = RecentFilters(),
     val recentFiles: RecentFiles = RecentFiles(),
 )
 
 object AppConstants {
-    const val COUNT_SHOW_LOG = 20
-    const val COUNT_TOKEN_FILTER = 10
-    const val COUNT_SAVE_FILTER = 4
-    const val COUNT_HIGHLIGHT_LOG = 10
-    const val COUNT_FIND_LOG = 10
+    const val MAX_SHOW_LOG = 20
+    const val MAX_TOKEN_FILTER = 10
+    const val MAX_SAVE_FILTER = 4
+    const val MAX_HIGHLIGHT_LOG = 10
+    const val MAX_FIND_LOG = 10
+}
+
+enum class SaveFileType(val value: Int) {
+    APP_DATA(0),
+    APP_HISTORY(1);
+
+    companion object {
+        fun fromInt(value: Int) = entries.first { it.value == value }
+    }
 }
 
 class AppDataManager private constructor() {
     companion object {
-        private const val CONFIG_FILE = "lognote.json"
-        private const val HISTORY_FILE = "lognote-history.json"
+        private const val APP_DATA_FILE = "lognote.json"
+        private const val APP_HISTORY_FILE = "lognote-history.json"
         val LOGNOTE_HOME: String = System.getenv("LOGNOTE_HOME") ?: ""
 
         private val mInstance: AppDataManager = AppDataManager()
@@ -410,88 +400,187 @@ class AppDataManager private constructor() {
         }
     }
 
+    val mGson = GsonBuilder().setPrettyPrinting().create()
+    val mAppDataFile: File
+    val mAppHistoryFile: File
     var mAppData = AppData()
         private set
 
     var mAppHistory = AppHistory()
         private set
 
-    private var mConfigPath = CONFIG_FILE
-    private var mHistoryPath = HISTORY_FILE
+    private var mAppDataPath = APP_DATA_FILE
+    private var mAppHistoryPath = APP_HISTORY_FILE
 
     init {
-        mConfigPath = getHomePath(CONFIG_FILE)
-        mHistoryPath = getHomePath(HISTORY_FILE)
-        Utils.printlnLog("Config Path : $mConfigPath, History Path : $mHistoryPath")
+        mAppDataPath = getHomePath(APP_DATA_FILE)
+        mAppDataFile = File(mAppDataPath)
+        mAppHistoryPath = getHomePath(APP_HISTORY_FILE)
+        mAppHistoryFile = File(mAppHistoryPath)
+        Utils.printlnLog("Config Path : $mAppDataPath, History Path : $mAppHistoryPath")
         manageVersion()
     }
 
-    fun loadConfig() {
-        val file = File(mConfigPath)
+    fun loadJson(saveFileType: SaveFileType) {
+        val file = when (saveFileType) {
+            SaveFileType.APP_DATA -> {
+                mAppDataFile
+            }
+            SaveFileType.APP_HISTORY -> {
+                mAppHistoryFile
+            }
+        }
+
         if (!file.exists()) {
-            mAppData = AppData()
+            save(saveFileType)
+            return
         }
-        else {
-            val jsonString = file.readText()
-            mAppData = Gson().fromJson(jsonString, AppData::class.java)
-        }
-    }
-
-    fun saveConfig(appData: AppData) {
-        val gson = GsonBuilder().setPrettyPrinting().create()
-
-        mAppData = appData
-        val jsonString = gson.toJson(mAppData)
-        File(mConfigPath).writeText(jsonString)
-    }
-
-    fun loadHistory() {
-        val file = File(mHistoryPath)
-        if (!file.exists()) {
-            mAppHistory = AppHistory()
-        }
-        else {
-            val jsonString = file.readText()
-            mAppHistory = Gson().fromJson(jsonString, AppHistory::class.java)
+        try {
+            RandomAccessFile(file, "r").use { raf ->
+                val bytes = ByteArray(raf.length().toInt())
+                raf.readFully(bytes)
+                val json = String(bytes, StandardCharsets.UTF_8)
+                if (saveFileType == SaveFileType.APP_DATA) {
+                    mAppData = mGson.fromJson(json, AppData::class.java) ?: AppData()
+                }
+                else if (saveFileType == SaveFileType.APP_HISTORY) {
+                    mAppHistory = mGson.fromJson(json, AppHistory::class.java) ?: AppHistory()
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
-    fun saveHistory(appHistory: AppHistory) {
-        val gson = GsonBuilder().setPrettyPrinting().create()
+    @Synchronized
+    fun updateAppData(transform: (AppData) -> AppData) {
+        mAppData = transform(mAppData)
+    }
 
-        mAppHistory = appHistory
-        val jsonString = gson.toJson(mAppHistory)
-        File(mHistoryPath).writeText(jsonString)
+    @Synchronized
+    fun updateAppHistory(transform: (AppHistory) -> AppHistory) {
+        mAppHistory = transform(mAppHistory)
+    }
+
+    @Synchronized
+    fun updateAndSaveAppData(transform: (AppData) -> AppData) {
+        val file = mAppDataFile
+
+        try {
+            RandomAccessFile(file, "rw").use { raf ->
+                raf.channel.use { channel ->
+                    channel.lock().use {
+                        val latestData = if (raf.length() > 0) {
+                            val bytes = ByteArray(raf.length().toInt())
+                            raf.readFully(bytes)
+                            val json = String(bytes, StandardCharsets.UTF_8)
+                            mGson.fromJson(json, AppData::class.java) ?: AppData()
+                        } else {
+                            AppData()
+                        }
+
+                        val updatedData = transform(latestData)
+
+                        raf.setLength(0)
+                        raf.seek(0)
+                        val updatedJson = mGson.toJson(updatedData)
+                        raf.write(updatedJson.toByteArray(StandardCharsets.UTF_8))
+
+                        mAppData = updatedData
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    @Synchronized
+    fun updateAndSaveAppHistory(transform: (AppHistory) -> AppHistory) {
+        val file = mAppHistoryFile
+
+        try {
+            RandomAccessFile(file, "rw").use { raf ->
+                raf.channel.use { channel ->
+                    channel.lock().use {
+                        val latestData = if (raf.length() > 0) {
+                            val bytes = ByteArray(raf.length().toInt())
+                            raf.readFully(bytes)
+                            val json = String(bytes, StandardCharsets.UTF_8)
+                            mGson.fromJson(json, AppHistory::class.java) ?: AppHistory()
+                        } else {
+                            AppHistory()
+                        }
+
+                        val updatedData = transform(latestData)
+
+                        raf.setLength(0)
+                        raf.seek(0)
+                        val updatedJson = mGson.toJson(updatedData)
+                        raf.write(updatedJson.toByteArray(StandardCharsets.UTF_8))
+
+                        mAppHistory = updatedData
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    fun save(saveFileType: SaveFileType) {
+        if (saveFileType == SaveFileType.APP_DATA) {
+            updateAndSaveAppData { it }
+        }
+        else if (saveFileType == SaveFileType.APP_HISTORY) {
+            updateAndSaveAppHistory { it }
+        }
+    }
+
+    fun loadAppData() {
+        loadJson(SaveFileType.APP_DATA)
+    }
+
+    fun saveAppData() {
+        save(SaveFileType.APP_DATA)
+    }
+
+    fun loadAppHistory() {
+        loadJson(SaveFileType.APP_HISTORY)
+    }
+
+    fun saveAppHistory() {
+        save(SaveFileType.APP_HISTORY)
     }
 
     fun saveFont(family: String, size: Int) {
-        loadConfig()
+        loadAppData()
 
         mAppData = mAppData.copy(appearance = mAppData.appearance.copy(fontName = family, fontSize = size))
 
-        saveConfig(mAppData)
+        saveAppData()
     }
 
     fun saveLogViewColors(fullColors: Array<ColorManager.ColorItem>, filterColors: Array<ColorManager.ColorItem>) {
-        loadConfig()
+        loadAppData()
 
         val fullList: List<List<Any>> = fullColors.map { listOf(it.mName, it.mStrColor, it.mOrder) }
         val filterList: List<List<Any>> = filterColors.map { listOf(it.mName, it.mStrColor, it.mOrder) }
 
         mAppData = mAppData.copy(color = mAppData.color.copy(colorFullView = fullList, colorFilterView = filterList))
 
-        saveConfig(mAppData)
+        saveAppData()
     }
 
     fun saveFilterStyle(logStyle: Int, boldStyle: Int, tokenStyles: List<Int>, filterStyle: Array<ColorManager.ColorItem>) {
-        loadConfig()
+        loadAppData()
 
         val colorFilterStyleList: List<List<Any>> = filterStyle.map { listOf(it.mName, it.mStrColor, it.mOrder) }
 
         mAppData = mAppData.copy(filterOption = mAppData.filterOption.copy(showLogStyle = logStyle, boldLogStyle = boldStyle, tokenComboStyles = tokenStyles),
             color = mAppData.color.copy(colorFilterStyle = colorFilterStyleList))
 
-        saveConfig(mAppData)
+        saveAppData()
     }
 
     fun loadFilters() : ArrayList<PresetElement> {
@@ -503,11 +592,11 @@ class AppDataManager private constructor() {
     }
 
     fun saveFilters(filters : ArrayList<PresetElement>) {
-        loadConfig()
+        loadAppData()
 
         mAppData = mAppData.copy(filterSnippet = filters.take(FiltersManager.MAX_FILTERS))
 
-        saveConfig(mAppData)
+        saveAppData()
         return
     }
 
@@ -520,11 +609,11 @@ class AppDataManager private constructor() {
     }
 
     fun saveCmds(cmds : ArrayList<PresetElement>) {
-        loadConfig()
+        loadAppData()
 
         mAppData = mAppData.copy(cmdAlias = cmds.take(CmdManager.MAX_CMD_COUNT))
 
-        saveConfig(mAppData)
+        saveAppData()
         return
     }
 
@@ -537,17 +626,17 @@ class AppDataManager private constructor() {
     }
 
     fun savePackages(packagess : ArrayList<String>) {
-        loadConfig()
+        loadAppData()
 
         mAppData = mAppData.copy(targetPackage = packagess.take(PackageManager.MAX_PACKAGE_COUNT))
 
-        saveConfig(mAppData)
+        saveAppData()
         return
     }
 
     private fun manageVersion() {
-        loadConfig()
-        loadHistory()
+        loadAppData()
+        loadAppHistory()
 
         if (mAppData.version.isEmpty()) {
             updateAppDataFromV0ToV1()
@@ -559,8 +648,8 @@ class AppDataManager private constructor() {
 //            Utils.printlnLog("manageVersion : ${mAppData.version} applied")
 //        }
 
-        saveConfig(mAppData)
-        saveHistory(mAppHistory)
+        saveAppData()
+        saveAppHistory()
     }
 
     private fun getFromProperties(src: PropertiesBase, key: String): String? {
@@ -715,7 +804,7 @@ class AppDataManager private constructor() {
             val fontSize = getIntFromProperties(configReader, ConfigManager.ITEM_FONT_SIZE)
             val viewFull = getBooleanFromProperties(configReader, ConfigManager.ITEM_VIEW_FULL)
             val viewColumnMode = getBooleanFromProperties(configReader, ConfigManager.ITEM_VIEW_COLUMN_MODE)
-            val viewProcessName = getFromProperties(configReader, ConfigManager.ITEM_VIEW_PROCESS_NAME)
+            val viewProcessName = getIntFromProperties(configReader, ConfigManager.ITEM_VIEW_PROCESS_NAME)
 
             val scrollback = getIntFromProperties(configReader, ConfigManager.ITEM_SCROLLBACK)
             val scrollbackSplitFile = getBooleanFromProperties(configReader, ConfigManager.ITEM_SCROLLBACK_SPLIT_FILE)
@@ -763,7 +852,7 @@ class AppDataManager private constructor() {
             val retryLogCmd = getBooleanFromProperties(configReader, ConfigManager.ITEM_RETRY_ADB)
 
             mAppData = mAppData.copy(logCmd = mAppData.logCmd.copy(targetDevice = targetDevice, adbPath = adbPath, logCmd = logCmd,
-                logSavePath = logSavePath, savePrefix = savePrefix, adbOptionUpdatePidTimeout = adbOptionUpdatePidTimeout, retryLogCmd = retryLogCmd))
+                logSavePath = logSavePath, logFilePrefix = savePrefix, adbOptionUpdatePidTimeout = adbOptionUpdatePidTimeout, retryLogCmd = retryLogCmd))
 
             val filterIncremental = getBooleanFromProperties(configReader, ConfigManager.ITEM_FILTER_INCREMENTAL)
             val matchCase = getBooleanFromProperties(configReader, ConfigManager.ITEM_MATCH_CASE)
@@ -791,8 +880,8 @@ class AppDataManager private constructor() {
                 showLogFilters.add(filter)
             }
 
-            val tokenLogFilters = mutableListOf<TokenLogFilter>()
-            val tokenCheckStatuses = mutableListOf<TokenCheckStatus>()
+            val tokenLogFilters = mutableMapOf<String, List<String>>()
+            val tokenCheckStatuses = mutableMapOf<String, Boolean>()
             for (idx in 0 until (mAppData.logFormats?.size ?: 0)) {
                 val formatName = mAppData.logFormats!![idx].name
                 for (tokIdx in 0 until MAX_TOKEN_FILTER_COUNT) {
@@ -812,12 +901,12 @@ class AppDataManager private constructor() {
                             }
                             filters.add(item)
                         }
-                        tokenLogFilters.add(TokenLogFilter(key, filters))
+                        tokenLogFilters[key] = filters
                     }
 
                     val checkStatus = getBooleanFromProperties(configReader, "${ConfigManager.ITEM_TOKEN_CHECK}${key}")
                     checkStatus?.let {
-                        tokenCheckStatuses.add(TokenCheckStatus(key, it))
+                        tokenCheckStatuses[key] = it
                     }
                 }
             }
@@ -839,7 +928,7 @@ class AppDataManager private constructor() {
                 }
                 findLogs.add(filter)
             }
-            mAppHistory = mAppHistory.copy(recentFilter = mAppHistory.recentFilter.copy(showLogFilters = showLogFilters, tokenLogFilters = tokenLogFilters,
+            mAppHistory = mAppHistory.copy(recentFilters = mAppHistory.recentFilters.copy(showLogFilters = showLogFilters, tokenLogFilters = tokenLogFilters,
                     highlightLogs = highlightLogs, findLogs = findLogs))
 
             val findMatchCase = getBooleanFromProperties(configReader, ConfigManager.ITEM_FIND_MATCH_CASE)
@@ -916,7 +1005,7 @@ class AppDataManager private constructor() {
                 }
                 val showLog = getFromProperties(recentFileReader, "$i$ITEM_SHOW_LOG")
 
-                val tokenFilter = mutableListOf<RecentFileTokenFilter>()
+                val tokenFilter = mutableMapOf<String, String>()
                 val highlightLog = getFromProperties(recentFileReader, "$i$ITEM_HIGHLIGHT_LOG")
                 val findLog = getFromProperties(recentFileReader, "$i$ITEM_FIND_LOG")
                 val bookmarks = getFromProperties(recentFileReader, "$i$ITEM_BOOKMARKS")

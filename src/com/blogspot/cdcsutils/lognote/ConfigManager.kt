@@ -7,11 +7,7 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.util.*
 
-interface XmlSource {
-    fun getItem(key: String): String?
-}
-
-class ConfigManager private constructor() : XmlSource {
+class ConfigManager private constructor() {
     companion object {
         private const val CONFIG_FILE = "lognote.xml"
         val LOGNOTE_HOME: String = System.getenv("LOGNOTE_HOME") ?: ""
@@ -153,15 +149,6 @@ class ConfigManager private constructor() : XmlSource {
         manageVersion()
     }
 
-    private fun setDefaultConfig() {
-        mProperties[ITEM_LOG_LEVEL] = FormatManager.LEVEL_VERBOSE.toString()
-        mProperties[ITEM_SHOW_LOG_CHECK] = "true"
-        for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
-            mProperties["$ITEM_TOKEN_CHECK$idx"] = "false"
-        }
-        mProperties[ITEM_HIGHLIGHT_LOG_CHECK] = "false"
-    }
-
     fun loadConfig(): Boolean {
         var ret = true
         var fileInput: FileInputStream? = null
@@ -171,7 +158,7 @@ class ConfigManager private constructor() : XmlSource {
             mProperties.loadFromXML(fileInput)
         } catch (ex: Exception) {
             ex.printStackTrace()
-            setDefaultConfig()
+//            setDefaultConfig()
             ret = false
         } finally {
             if (null != fileInput) {
@@ -207,207 +194,6 @@ class ConfigManager private constructor() : XmlSource {
         return ret
     }
 
-    fun getProperties(): Properties {
-        return mProperties
-    }
-
-    fun saveItem(key: String, value: String) {
-        loadConfig()
-        setItem(key, value)
-        saveConfig()
-    }
-
-    fun saveItems(keys: Array<String>, values: Array<String>) {
-        loadConfig()
-        setItems(keys, values)
-        saveConfig()
-    }
-
-    override fun getItem(key: String): String? {
-        return mProperties[key] as String?
-    }
-
-    fun setItem(key: String, value: String) {
-        mProperties[key] = value
-    }
-
-    private fun setItems(keys: Array<String>, values: Array<String>) {
-        if (keys.size != values.size) {
-            Utils.printlnLog("saveItem : size not match ${keys.size}, ${values.size}")
-            return
-        }
-        for (idx in keys.indices) {
-            mProperties[keys[idx]] = values[idx]
-        }
-    }
-
-    fun removeConfigItem(key: String) {
-        mProperties.remove(key)
-    }
-
-    fun saveFontColors(family: String, size: Int) {
-        loadConfig()
-
-        mProperties[ITEM_FONT_NAME] = family
-        mProperties[ITEM_FONT_SIZE] = size.toString()
-        ColorManager.getInstance().mFullTableColor.putConfig()
-        ColorManager.getInstance().mFilterTableColor.putConfig()
-
-        saveConfig()
-    }
-
-    fun saveFilterStyle(
-        keys: Array<String>,
-        values: Array<String>,
-        tokenKeys: Array<String>,
-        tokenValues: Array<String>
-    ) {
-        loadConfig()
-        setItems(keys, values)
-        setItems(tokenKeys, tokenValues)
-        ColorManager.getInstance().putConfigFilterStyle()
-        saveConfig()
-    }
-
-    fun loadFilters() : ArrayList<CustomListManager.CustomElement> {
-        val filters = ArrayList<CustomListManager.CustomElement>()
-
-        var title: String
-        var filter: String
-        var check: String
-        var tableBar: Boolean
-        for (i in 0 until FiltersManager.MAX_FILTERS) {
-            title = (mProperties[ITEM_FILTERS_TITLE + i] ?: "") as String
-            if (title.isEmpty()) {
-                break
-            }
-            filter = (mProperties[ITEM_FILTERS_FILTER + i] ?: "null") as String
-            check = (mProperties[ITEM_FILTERS_TABLEBAR + i] ?: "false") as String
-            tableBar = check.toBoolean()
-
-            filters.add(CustomListManager.CustomElement(title, filter, tableBar))
-        }
-
-        return filters
-    }
-
-    fun saveFilters(filters : ArrayList<CustomListManager.CustomElement>) {
-        loadConfig()
-
-        var nCount = filters.size
-        if (nCount > FiltersManager.MAX_FILTERS) {
-            nCount = FiltersManager.MAX_FILTERS
-        }
-
-        for (i in 0 until FiltersManager.MAX_FILTERS) {
-            val title: String = (mProperties[ITEM_FILTERS_TITLE + i] ?: "") as String
-            if (title.isEmpty()) {
-                break
-            }
-            mProperties.remove(ITEM_FILTERS_TITLE + i)
-            mProperties.remove(ITEM_FILTERS_FILTER + i)
-            mProperties.remove(ITEM_FILTERS_TABLEBAR + i)
-        }
-
-        for (i in 0 until nCount) {
-            mProperties[ITEM_FILTERS_TITLE + i] = filters[i].mTitle
-            mProperties[ITEM_FILTERS_FILTER + i] = filters[i].mValue
-            mProperties[ITEM_FILTERS_TABLEBAR + i] = filters[i].mTableBar.toString()
-        }
-
-        saveConfig()
-        return
-    }
-
-    fun loadCmds() : ArrayList<CustomListManager.CustomElement> {
-        val cmds = ArrayList<CustomListManager.CustomElement>()
-
-        var title: String
-        var cmd: String
-        var check: String
-        var tableBar: Boolean
-        for (i in 0 until CmdManager.MAX_CMD_COUNT) {
-            title = (mProperties[ITEM_CMDS_TITLE + i] ?: "") as String
-            if (title.isEmpty()) {
-                break
-            }
-            cmd = (mProperties[ITEM_CMDS_CMD + i] ?: "null") as String
-            check = (mProperties[ITEM_CMDS_TABLEBAR + i] ?: "false") as String
-            tableBar = check.toBoolean()
-
-            cmds.add(CustomListManager.CustomElement(title, cmd, tableBar))
-        }
-
-        return cmds
-    }
-
-    fun saveCmds(cmds : ArrayList<CustomListManager.CustomElement>) {
-        loadConfig()
-
-        var nCount = cmds.size
-        if (nCount > CmdManager.MAX_CMD_COUNT) {
-            nCount = CmdManager.MAX_CMD_COUNT
-        }
-
-        for (i in 0 until CmdManager.MAX_CMD_COUNT) {
-            val title: String = (mProperties[ITEM_CMDS_TITLE + i] ?: "") as String
-            if (title.isEmpty()) {
-                break
-            }
-            mProperties.remove(ITEM_CMDS_TITLE + i)
-            mProperties.remove(ITEM_CMDS_CMD + i)
-            mProperties.remove(ITEM_CMDS_TABLEBAR + i)
-        }
-
-        for (i in 0 until nCount) {
-            mProperties[ITEM_CMDS_TITLE + i] = cmds[i].mTitle
-            mProperties[ITEM_CMDS_CMD + i] = cmds[i].mValue
-            mProperties[ITEM_CMDS_TABLEBAR + i] = cmds[i].mTableBar.toString()
-        }
-
-        saveConfig()
-        return
-    }
-
-    fun loadPackages() : ArrayList<String> {
-        val packages = ArrayList<String>()
-
-        var packageItem: String
-        for (i in 0 until PackageManager.MAX_PACKAGE_COUNT) {
-            packageItem = (mProperties[ITEM_PACKAGES_ITEM + i] ?: "") as String
-            if (packageItem.isEmpty()) {
-                break
-            }
-            packages.add(packageItem)
-        }
-
-        return packages
-    }
-
-    fun savePackages(packagess : ArrayList<String>) {
-        loadConfig()
-
-        var nCount = packagess.size
-        if (nCount > PackageManager.MAX_PACKAGE_COUNT) {
-            nCount = PackageManager.MAX_PACKAGE_COUNT
-        }
-
-        for (i in 0 until PackageManager.MAX_PACKAGE_COUNT) {
-            val packageItem: String = (mProperties[ITEM_PACKAGES_ITEM + i] ?: "") as String
-            if (packageItem.isEmpty()) {
-                break
-            }
-            mProperties.remove(ITEM_PACKAGES_ITEM + i)
-        }
-
-        for (i in 0 until nCount) {
-            mProperties[ITEM_PACKAGES_ITEM + i] = packagess[i]
-        }
-
-        saveConfig()
-        return
-    }
-
     private fun manageVersion() {
         val isLoaded = loadConfig()
 
@@ -435,13 +221,12 @@ class ConfigManager private constructor() : XmlSource {
                 updateConfigFromV3ToV4()
                 confVer = (mProperties[ITEM_CONFIG_VERSION] ?: "") as String
                 Utils.printlnLog("manageVersion : $confVer applied")
+                saveConfig()
             }
         }
         else {
             mProperties[ITEM_CONFIG_VERSION] = "4"
         }
-
-        saveConfig()
     }
 
     private fun updateConfigFromV0ToV1() {
