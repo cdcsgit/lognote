@@ -14,7 +14,7 @@ import javax.swing.table.DefaultTableModel
 data class PackageItem(val mPackageName: String, var mUid: String, var mIsShow: Boolean, var mIsSelected: Boolean)
 
 class PackageManager private constructor() {
-    private val mConfigManager = ConfigManager.getInstance()
+    private val mAppDataManager = AppDataManager.getInstance()
 
     private val mPackageMap: MutableMap<String, PackageItem> = mutableMapOf()
     var mPackageArray = Array(0) { arrayOfNulls<Any>(4) }
@@ -36,7 +36,7 @@ class PackageManager private constructor() {
     }
 
     init {
-        loadConfigPackages()
+        loadPackages()
     }
 
     fun clear() {
@@ -146,8 +146,8 @@ class PackageManager private constructor() {
         }
     }
 
-    fun loadConfigPackages() {
-        val packages = mConfigManager.loadPackages()
+    fun loadPackages() {
+        val packages = mAppDataManager.loadPackages()
         mShowPackageList.clear()
         for (item in packages) {
             val textSplited = item.split("|")
@@ -159,20 +159,22 @@ class PackageManager private constructor() {
         }
     }
 
-    fun saveConfigPackages() {
+    fun getSavePackages(): ArrayList<String> {
         val packages = ArrayList<String>()
 
         var packageItem: String
-        var count = 0
-        for (item in mShowPackageList) {
+        for ((count, item) in mShowPackageList.withIndex()) {
             if (count >= MAX_PACKAGE_COUNT) {
                 break
             }
             packageItem = "${item.mPackageName}|${item.mIsSelected}"
             packages.add(packageItem)
-            count++
         }
-        mConfigManager.savePackages(packages)
+        return packages
+    }
+
+    fun savePackages() {
+        mAppDataManager.savePackages(getSavePackages())
     }
 
     inner class PackageSelectDialog(mainUI: MainUI) : JDialog(mainUI, Strings.SELECT_PACKAGE, true), ActionListener {
@@ -308,7 +310,7 @@ class PackageManager private constructor() {
                     }
                 }
 
-                saveConfigPackages()
+                savePackages()
 
                 mPackageMap.clear()
                 mPackageArray = emptyArray()

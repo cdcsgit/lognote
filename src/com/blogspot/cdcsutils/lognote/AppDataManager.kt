@@ -217,7 +217,7 @@ data class AppearanceSettings(
     val lookAndFeel: String? = null,
     val lafAccentColor: String? = null,
     val uiFontSize: Int? = null,
-    val appearanceDividerSize: Int? = null,
+    val dividerSize: Int? = null,
     val logViewWidth: Int? = null,
 
     val fontName: String? = null,
@@ -266,7 +266,7 @@ data class FilterOptionSettings (
 data class FilterSettings (
     val findMatchCase: Boolean? = null,
     val showLogCheck: Boolean? = null,
-    val tokenCheckStatuses: Map<String, Boolean>? = null,
+    val tokenCheckStatusMap: Map<String, Boolean>? = null,
     val highlightLogCheck: Boolean? = null,
 )
 
@@ -325,7 +325,7 @@ data class AppData(
 
 data class RecentFilters (
     val showLogFilters: List<String>? = null,
-    val tokenLogFilters: Map<String, List<String>>? = null,
+    val tokenLogFilterMap: Map<String, List<String>>? = null,
     val highlightLogs: List<String>? = null,
     val findLogs: List<String>? = null,
 )
@@ -333,7 +333,7 @@ data class RecentFilters (
 data class RecentFileItem (
     val path: String? = null,
     val showLog: String? = null,
-    val tokenFilter: Map<String, String>? = null,
+    val tokenFilterMap: Map<String, String>? = null,
     val highlightLog: String? = null,
     val findLog: String? = null,
     val bookmarks: String? = null,
@@ -376,6 +376,9 @@ class AppDataManager private constructor() {
         private const val APP_DATA_FILE = "lognote.json"
         private const val APP_HISTORY_FILE = "lognote-history.json"
         val LOGNOTE_HOME: String = System.getenv("LOGNOTE_HOME") ?: ""
+
+        var LaF = ""
+        var LaFAccentColor = ""
 
         private val mInstance: AppDataManager = AppDataManager()
         fun getInstance(): AppDataManager {
@@ -625,10 +628,10 @@ class AppDataManager private constructor() {
         }) as ArrayList<String>
     }
 
-    fun savePackages(packagess : ArrayList<String>) {
+    fun savePackages(packages : ArrayList<String>) {
         loadAppData()
 
-        mAppData = mAppData.copy(targetPackage = packagess.take(PackageManager.MAX_PACKAGE_COUNT))
+        mAppData = mAppData.copy(targetPackage = packages.take(PackageManager.MAX_PACKAGE_COUNT))
 
         saveAppData()
         return
@@ -817,7 +820,7 @@ class AppDataManager private constructor() {
                 rotation = rotation, lastDividerLocation = lastDividerLocation, dividerLocation = dividerLocation,
                 toolRotation = toolRotation, toolLastDividerLocation = toolLastDividerLocation, toolDividerLocation = toolDividerLocation,
                 language = language, logFormat = logFormat, logLevel = logLevel, lookAndFeel = lookAndFeel, lafAccentColor = lafAccentColor,
-                uiFontSize = uiFontSize, appearanceDividerSize = appearanceDividerSize, logViewWidth = logViewWidth,
+                uiFontSize = uiFontSize, dividerSize = appearanceDividerSize, logViewWidth = logViewWidth,
                 fontName = fontName, fontSize = fontSize, viewFull = viewFull, viewColumnMode = viewColumnMode, viewProcessName = viewProcessName,
                 scrollback = scrollback, scrollbackSplitFile = scrollbackSplitFile, iconText = iconText, cmdToolbar = cmdToolbar))
 
@@ -872,7 +875,7 @@ class AppDataManager private constructor() {
 
             var filter: String?
             val showLogFilters = mutableListOf<String>()
-            for (idx in 0 until ConfigManager.COUNT_SHOW_LOG) {
+            for (idx in 0 until AppConstants.MAX_SHOW_LOG) {
                 filter = getFromProperties(configReader, ConfigManager.ITEM_SHOW_LOG + idx)
                 if (filter == null) {
                     break
@@ -894,7 +897,7 @@ class AppDataManager private constructor() {
                     val key = "${formatName}_${tokenName}"
                     if (isSaveFilter) {
                         val filters = mutableListOf<String>()
-                        for (i in 0 until ConfigManager.COUNT_TOKEN_FILTER) {
+                        for (i in 0 until AppConstants.MAX_TOKEN_FILTER) {
                             val item = getFromProperties(configReader, "${ConfigManager.ITEM_TOKEN_FILTER}${key}_$i")
                             if (item == null) {
                                 break
@@ -912,7 +915,7 @@ class AppDataManager private constructor() {
             }
 
             val highlightLogs = mutableListOf<String>()
-            for (idx in 0 until ConfigManager.COUNT_HIGHLIGHT_LOG) {
+            for (idx in 0 until AppConstants.MAX_HIGHLIGHT_LOG) {
                 filter = getFromProperties(configReader, ConfigManager.ITEM_HIGHLIGHT_LOG + idx)
                 if (filter == null) {
                     break
@@ -921,14 +924,14 @@ class AppDataManager private constructor() {
             }
 
             val findLogs = mutableListOf<String>()
-            for (idx in 0 until ConfigManager.COUNT_FIND_LOG) {
+            for (idx in 0 until AppConstants.MAX_FIND_LOG) {
                 filter = getFromProperties(configReader, ConfigManager.ITEM_FIND_LOG + idx)
                 if (filter == null) {
                     break
                 }
                 findLogs.add(filter)
             }
-            mAppHistory = mAppHistory.copy(recentFilters = mAppHistory.recentFilters.copy(showLogFilters = showLogFilters, tokenLogFilters = tokenLogFilters,
+            mAppHistory = mAppHistory.copy(recentFilters = mAppHistory.recentFilters.copy(showLogFilters = showLogFilters, tokenLogFilterMap = tokenLogFilters,
                     highlightLogs = highlightLogs, findLogs = findLogs))
 
             val findMatchCase = getBooleanFromProperties(configReader, ConfigManager.ITEM_FIND_MATCH_CASE)
@@ -936,7 +939,7 @@ class AppDataManager private constructor() {
             val highlightLogCheck = getBooleanFromProperties(configReader, ConfigManager.ITEM_HIGHLIGHT_LOG_CHECK)
 
             mAppData = mAppData.copy(filter = mAppData.filter.copy(findMatchCase = findMatchCase, showLogCheck = showLogCheck,
-                tokenCheckStatuses = tokenCheckStatuses, highlightLogCheck = highlightLogCheck))
+                tokenCheckStatusMap = tokenCheckStatuses, highlightLogCheck = highlightLogCheck))
 
             val filterSnippet = mutableListOf<PresetElement>()
             for (i in 0 until FiltersManager.MAX_FILTERS) {

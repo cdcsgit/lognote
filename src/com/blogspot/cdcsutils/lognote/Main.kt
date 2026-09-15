@@ -12,6 +12,13 @@ class Main {
 
         @JvmStatic
         fun main(args: Array<String>) {
+            when {
+                SystemInfo.isWindows -> Utils.printlnLog("Current OS: Windows (${SystemInfo.osVersion})")
+                SystemInfo.isMacOS -> Utils.printlnLog("Current OS: macOS (${SystemInfo.osVersion})")
+                SystemInfo.isLinux -> Utils.printlnLog("Current OS: Linux (${SystemInfo.osVersion})")
+                else -> Utils.printlnLog("Current OS: Unknown")
+            }
+
             System.setProperty("awt.useSystemAAFontSettings", "on")
             System.setProperty("swing.aatext", "true")
 

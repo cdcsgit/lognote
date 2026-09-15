@@ -1,6 +1,7 @@
 package com.blogspot.cdcsutils.lognote
 
 import com.formdev.flatlaf.*
+import com.formdev.flatlaf.util.SystemInfo
 import com.formdev.flatlaf.themes.FlatMacDarkLaf
 import com.formdev.flatlaf.themes.FlatMacLightLaf
 import java.awt.*
@@ -255,64 +256,33 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         val laf = mAppDataManager.mAppData.appearance.lookAndFeel
 
         if (laf == null || laf == SYSTEM_LAF) {
-            ConfigManager.LaF = FLAT_LIGHT_LAF
+            AppDataManager.LaF = FLAT_LIGHT_LAF
         }
         else {
-            ConfigManager.LaF = laf
+            AppDataManager.LaF = laf
         }
 
-        val lafAccentColor = mAppDataManager.mAppData.appearance.lafAccentColor
-
-        if (lafAccentColor == null) {
-            ConfigManager.LaFAccentColor = LAF_ACCENT_COLORS[0]
-        }
-        else {
-            ConfigManager.LaFAccentColor = lafAccentColor
-        }
-        FlatLaf.setSystemColorGetter { name: String -> if (name == "accent") Color.decode(ConfigManager.LaFAccentColor) else null }
-
+        AppDataManager.LaFAccentColor = mAppDataManager.mAppData.appearance.lafAccentColor ?: LAF_ACCENT_COLORS[0]
+        FlatLaf.setSystemColorGetter { name: String -> if (name == "accent") Color.decode(AppDataManager.LaFAccentColor) else null }
         setLaF()
 
         val cmd = mAppDataManager.mAppData.logCmd.adbPath
         if (!cmd.isNullOrEmpty()) {
             mLogCmdManager.mAdbCmd = cmd
         } else {
-            val os = System.getProperty("os.name")
-            Utils.printlnLog("OS : $os")
-            if (os.lowercase().contains("windows")) {
+            if (SystemInfo.isWindows) {
                 mLogCmdManager.mAdbCmd = "adb.exe"
             } else {
                 mLogCmdManager.mAdbCmd = "adb"
             }
         }
+
         mLogCmdManager.addEventListener(AdbHandler())
-        val logSavePath = mAppDataManager.mAppData.logCmd.logSavePath
-        if (logSavePath.isNullOrEmpty()) {
-            mLogCmdManager.mLogSavePath = "."
-        } else {
-            mLogCmdManager.mLogSavePath = logSavePath
-        }
 
-        val logCmd = mAppDataManager.mAppData.logCmd.logCmd
-        if (logCmd.isNullOrEmpty()) {
-            mLogCmdManager.mLogCmd = LogCmdManager.DEFAULT_LOGCAT
-        } else {
-            mLogCmdManager.mLogCmd = logCmd
-        }
-
-        val prefix = mAppDataManager.mAppData.logCmd.logFilePrefix
-        if (prefix.isNullOrEmpty()) {
-            mLogCmdManager.mPrefix = LogCmdManager.DEFAULT_PREFIX
-        } else {
-            mLogCmdManager.mPrefix = prefix
-        }
-
-        val adbOptionUpdatePidTimeout = mAppDataManager.mAppData.logCmd.adbOptionUpdatePidTimeout
-        if (adbOptionUpdatePidTimeout == null) {
-            ProcessList.UpdateTime = ProcessList.DEFAULT_UPDATE_TIME
-        } else {
-            ProcessList.UpdateTime = adbOptionUpdatePidTimeout
-        }
+        mLogCmdManager.mLogSavePath = mAppDataManager.mAppData.logCmd.logSavePath ?: "."
+        mLogCmdManager.mLogCmd = mAppDataManager.mAppData.logCmd.logCmd ?: LogCmdManager.DEFAULT_LOGCAT
+        mLogCmdManager.mPrefix = mAppDataManager.mAppData.logCmd.logFilePrefix ?: LogCmdManager.DEFAULT_PREFIX
+        ProcessList.UpdateTime = mAppDataManager.mAppData.logCmd.adbOptionUpdatePidTimeout ?: ProcessList.DEFAULT_UPDATE_TIME
 
         var propInt = mAppDataManager.mAppData.appearance.frameX
         if (propInt != null) {
@@ -386,12 +356,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             LogTableModel.TypeShowProcessName = LogTableModel.SHOW_PROCESS_SHOW_WITH_BGCOLOR
         }
 
-        propBoolean = mAppDataManager.mAppData.tool.toolTestEnable
-        if (propBoolean != null) {
-            mToolTestEnable = propBoolean
-        } else {
-            mToolTestEnable = false
-        }
+        mToolTestEnable = mAppDataManager.mAppData.tool.toolTestEnable ?: false
 
         createUI()
 
@@ -452,88 +417,77 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     }
 
     private fun saveConfigOnDestroy() {
-        mConfigManager.loadConfig()
-
-        try {
-            mConfigManager.setItem(ConfigManager.ITEM_FRAME_X, location.x.toString())
-        } catch (e: NullPointerException) {
-            mConfigManager.setItem(ConfigManager.ITEM_FRAME_X, "0")
-        }
-
-        try {
-            mConfigManager.setItem(ConfigManager.ITEM_FRAME_Y, location.y.toString())
-        } catch (e: NullPointerException) {
-            mConfigManager.setItem(ConfigManager.ITEM_FRAME_Y, "0")
-        }
-
-        try {
-            mConfigManager.setItem(ConfigManager.ITEM_FRAME_WIDTH, size.width.toString())
-        } catch (e: NullPointerException) {
-            mConfigManager.setItem(ConfigManager.ITEM_FRAME_WIDTH, "1280")
-        }
-
-        try {
-            mConfigManager.setItem(ConfigManager.ITEM_FRAME_HEIGHT, size.height.toString())
-        } catch (e: NullPointerException) {
-            mConfigManager.setItem(ConfigManager.ITEM_FRAME_HEIGHT, "720")
-        }
-
-        mConfigManager.setItem(ConfigManager.ITEM_FRAME_EXTENDED_STATE, extendedState.toString())
+        mAppDataManager.loadAppData()
+        mAppDataManager.loadAppHistory()
 
         mShowLogCombo.resetComboItem(mShowLogCombo.editor.item.toString())
 
-        var recentFilters = updateRecentFilters(mShowLogCombo, mAppDataManager.mAppHistory.recentFilters.showLogFilters, AppConstants.MAX_SAVE_FILTER,
+        val showLogFilters = updateRecentFilters(mShowLogCombo, mAppDataManager.mAppHistory.recentFilters.showLogFilters, AppConstants.MAX_SAVE_FILTER,
             AppConstants.MAX_SHOW_LOG)
-        mAppDataManager.updateAppHistory { current -> current.copy(recentFilters = current.recentFilters.copy(showLogFilters = recentFilters)) }
 
         val formatName = mFormatManager.mCurrFormat.mName
         val tokenFilters = mFormatManager.mCurrFormat.mTokenFilters
-
+        val tokenLogFilterMap = mutableMapOf<String, List<String>>()
         for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
             if (mFormatManager.mCurrFormat.mTokenFilters[idx].mIsSaveFilter) {
                 val key = "${formatName}_${tokenFilters[idx].mToken}"
-                recentFilters = updateRecentFilters(mTokenCombo[idx],
-                    mAppDataManager.mAppHistory.recentFilters.tokenLogFilters?.get(key), AppConstants.MAX_SAVE_FILTER,
+                val tokenLogFilters = updateRecentFilters(mTokenCombo[idx],
+                    mAppDataManager.mAppHistory.recentFilters.tokenLogFilterMap?.get(key), AppConstants.MAX_SAVE_FILTER,
                     AppConstants.MAX_TOKEN_FILTER)
-                mAppDataManager.updateAppHistory { current -> current.copy(recentFilters = current.recentFilters.copy(
-                    tokenLogFilters = current.recentFilters.tokenLogFilters?.plus((key to recentFilters))
-                ) }
+                tokenLogFilterMap[key] = tokenLogFilters
             }
         }
 
-        recentFilters = updateRecentFilters(mBoldLogCombo, mAppDataManager.mAppHistory.recentFilters.highlightLogs, AppConstants.MAX_SAVE_FILTER,
+        val highlightLogs = updateRecentFilters(mBoldLogCombo, mAppDataManager.mAppHistory.recentFilters.highlightLogs, AppConstants.MAX_SAVE_FILTER,
             AppConstants.MAX_HIGHLIGHT_LOG)
-        mAppDataManager.updateAppHistory { current -> current.copy(recentFilters = current.recentFilters.copy(highlightLogs = recentFilters)) }
-        recentFilters = updateRecentFilters(mFindPanel.mFindCombo, mAppDataManager.mAppHistory.recentFilters.findLogs, AppConstants.MAX_SAVE_FILTER,
+        val findLogs = updateRecentFilters(mFindPanel.mFindCombo, mAppDataManager.mAppHistory.recentFilters.findLogs, AppConstants.MAX_SAVE_FILTER,
             AppConstants.MAX_FIND_LOG)
-        mAppDataManager.updateAppHistory { current -> current.copy(recentFilters = current.recentFilters.copy(findLogs = recentFilters)) }
 
-        try {
-            mConfigManager.setItem(ConfigManager.ITEM_ADB_DEVICE, mLogCmdManager.mTargetDevice)
+        val targetDevice = try {
+            mLogCmdManager.mTargetDevice
         } catch (e: NullPointerException) {
-            mConfigManager.setItem(ConfigManager.ITEM_ADB_DEVICE, "0.0.0.0")
+            "0.0.0.0"
         }
 
-        try {
-            mConfigManager.setItem(ConfigManager.ITEM_ADB_LOG_CMD, mLogCmdCombo.editor.item.toString())
+        val logCmd = try {
+            mLogCmdCombo.editor.item.toString()
         } catch (e: NullPointerException) {
-            mConfigManager.setItem(ConfigManager.ITEM_ADB_LOG_CMD, LogCmdManager.DEFAULT_LOGCAT)
+            LogCmdManager.DEFAULT_LOGCAT
         }
 
-        mConfigManager.setItem(ConfigManager.ITEM_DIVIDER_LOCATION, mLogSplitPane.dividerLocation.toString())
-        if (mLogSplitPane.lastDividerLocation != -1) {
-            mConfigManager.setItem(ConfigManager.ITEM_LAST_DIVIDER_LOCATION, mLogSplitPane.lastDividerLocation.toString())
+        val lastDividerLocation = if (mLogSplitPane.lastDividerLocation != -1) {
+            mLogSplitPane.lastDividerLocation
+        }
+        else {
+            mAppDataManager.mAppData.appearance.lastDividerLocation
         }
 
-        mConfigManager.setItem(ConfigManager.ITEM_TOOL_DIVIDER_LOCATION, mToolSplitDividerLocation.toString())
-        if (mToolSplitLastDividerLocation != -1) {
-            mConfigManager.setItem(ConfigManager.ITEM_TOOL_LAST_DIVIDER_LOCATION, mToolSplitLastDividerLocation.toString())
+        val toolLastDividerLocation = if (mToolSplitLastDividerLocation != -1) {
+            mToolSplitLastDividerLocation
+        }
+        else {
+            mAppDataManager.mAppData.appearance.toolLastDividerLocation
         }
 
-//            mProperties.put(ITEM_LANG, Strings.lang.toString())
+        val packages = PackageManager.getInstance().getSavePackages()
 
-        mConfigManager.saveConfig()
-        PackageManager.getInstance().saveConfigPackages()
+        mAppDataManager.updateAppData { current -> current.copy(
+            appearance = current.appearance.copy(
+                frameX = location.x, frameY = location.y, frameWidth = size.width, frameHeight = size.height, frameExtendedState = extendedState,
+                dividerLocation = mLogSplitPane.dividerLocation, lastDividerLocation = lastDividerLocation,
+                toolDividerLocation = mToolSplitDividerLocation, toolLastDividerLocation = toolLastDividerLocation),
+            logCmd = current.logCmd.copy(
+                targetDevice = targetDevice, logCmd = logCmd),
+            targetPackage = packages.take(PackageManager.MAX_PACKAGE_COUNT),
+        ) }
+
+
+        mAppDataManager.updateAppHistory { current -> current.copy(recentFilters = current.recentFilters.copy(
+            showLogFilters = showLogFilters, highlightLogs = highlightLogs, tokenLogFilterMap = tokenLogFilterMap, findLogs = findLogs
+        )) }
+
+        mAppDataManager.saveAppData()
+        mAppDataManager.saveAppHistory()
     }
 
     private fun updateRecentFiles() {
@@ -1136,15 +1090,15 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             }
         }
 
-        val dividerSize = mAppDataManager.mAppData.appearance ConfigManager.ITEM_APPEARANCE_DIVIDER_SIZE)
-        if (!dividerSize.isNullOrEmpty()) {
-            mLogSplitPane.dividerSize = dividerSize.toInt()
+        val dividerSize = mAppDataManager.mAppData.appearance.dividerSize
+        if (dividerSize != null) {
+            mLogSplitPane.dividerSize = dividerSize
         }
         mLogSplitPane.isOneTouchExpandable = false
 
-        val logWidth = mAppDataManager.mAppData.appearance ConfigManager.ITEM_LOG_VIEW_WIDTH)
-        if (!logWidth.isNullOrEmpty()) {
-            LogTable.LogWidth = logWidth.toInt()
+        val logWidth = mAppDataManager.mAppData.appearance.logViewWidth
+        if (logWidth != null) {
+            LogTable.LogWidth = logWidth
             if (LogTable.LogWidth < LogTable.MIN_LOG_WIDTH) {
                 LogTable.LogWidth = LogTable.MIN_LOG_WIDTH
             }
@@ -1235,19 +1189,13 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mLogLevelCombo.addItem(item)
         }
 
-        val logLevel = mAppDataManager.mAppData.appearance ConfigManager.ITEM_LOG_LEVEL)
+        val logLevel = mAppDataManager.mAppData.appearance.logLevel
         if (!logLevel.isNullOrEmpty()) {
             mLogLevelCombo.selectedIndex = logLevel.toInt()
             mFilteredLogPanel.mTableModel.mFilterLevel = mLogLevelCombo.selectedIndex
         }
 
-        var item: String?
-        for (i in 0 until ConfigManager.COUNT_SHOW_LOG) {
-            item = mAppDataManager.mAppData.appearance ConfigManager.ITEM_SHOW_LOG + i)
-            if (item == null) {
-                break
-            }
-
+        mAppDataManager.mAppHistory.recentFilters.showLogFilters?.forEach { item ->
             if (mShowLogCombo.getItemIdx(item) < 0) {
                 mShowLogCombo.addItem(item)
             }
@@ -1259,23 +1207,16 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mShowLogCombo.selectedIndex = 0
         }
 
-        var check = mAppDataManager.mAppData.appearance ConfigManager.ITEM_SHOW_LOG_CHECK)
-        if (!check.isNullOrEmpty()) {
-            mShowLogToggle.isSelected = check.toBoolean()
-        } else {
-            mShowLogToggle.isSelected = true
-        }
+        mShowLogToggle.isSelected = mAppDataManager.mAppData.filter.showLogCheck ?: true
         mShowLogCombo.isEnabled = mShowLogToggle.isSelected
 
         val formatName = mFormatManager.mCurrFormat.mName
         val tokens = mFormatManager.mCurrFormat.mTokenFilters
         for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+            val key = "${formatName}_${tokens[idx].mToken}"
             if (tokens[idx].mIsSaveFilter) {
-                for (i in 0 until ConfigManager.COUNT_TOKEN_FILTER) {
-                    item = mAppDataManager.mAppData.appearance "${ConfigManager.ITEM_TOKEN_FILTER}${formatName}_${tokens[idx].mToken}_$i")
-                    if (item == null) {
-                        break
-                    }
+                val tokenLogList = mAppDataManager.mAppHistory.recentFilters.tokenLogFilterMap?.get(key)
+                tokenLogList?.forEachIndexed { i, item ->
                     mTokenCombo[idx].insertItemAt(item, i)
                     if (i == 0) {
                         mTokenCombo[idx].selectedIndex = 0
@@ -1284,53 +1225,42 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
                 mTokenCombo[idx].updateTooltip()
             }
-            
-            check = mAppDataManager.mAppData.appearance "${ConfigManager.ITEM_TOKEN_CHECK}${formatName}_${tokens[idx].mToken}")
-            if (!check.isNullOrEmpty()) {
-                mTokenToggle[idx].isSelected = check.toBoolean()
-            } else {
-                mTokenToggle[idx].isSelected = false
-            }
+
+            val tokenCheckStatus = mAppDataManager.mAppData.filter.tokenCheckStatusMap?.get(key)
+            mTokenToggle[idx].isSelected = tokenCheckStatus ?: false
             mTokenCombo[idx].setEnabledFilter(mTokenToggle[idx].isSelected)
         }
 
-        for (i in 0 until ConfigManager.COUNT_HIGHLIGHT_LOG) {
-            item = mAppDataManager.mAppData.appearance ConfigManager.ITEM_HIGHLIGHT_LOG + i)
-            if (item == null) {
-                break
-            }
-            mBoldLogCombo.insertItemAt(item, i)
-            if (i == 0) {
-                mBoldLogCombo.selectedIndex = 0
+        mAppDataManager.mAppHistory.recentFilters.highlightLogs?.forEach { item ->
+            if (mBoldLogCombo.getItemIdx(item) < 0) {
+                mBoldLogCombo.addItem(item)
             }
         }
 
         mBoldLogCombo.updateTooltip()
 
-        check = mAppDataManager.mAppData.appearance ConfigManager.ITEM_HIGHLIGHT_LOG_CHECK)
-        if (!check.isNullOrEmpty()) {
-            mBoldLogToggle.isSelected = check.toBoolean()
-        } else {
-            mBoldLogToggle.isSelected = false
+        if (mBoldLogCombo.itemCount > 0) {
+            mBoldLogCombo.selectedIndex = 0
         }
+
+        mBoldLogToggle.isSelected = mAppDataManager.mAppData.filter.highlightLogCheck ?: true
         mBoldLogCombo.setEnabledFilter(mBoldLogToggle.isSelected)
 
-        for (i in 0 until ConfigManager.COUNT_FIND_LOG) {
-            item = mAppDataManager.mAppData.appearance ConfigManager.ITEM_FIND_LOG + i)
-            if (item == null) {
-                break
-            }
-            mFindPanel.mFindCombo.insertItemAt(item, i)
-            if (i == 0) {
-                mFindPanel.mFindCombo.selectedIndex = 0
+        mAppDataManager.mAppHistory.recentFilters.findLogs?.forEach { item ->
+            if (mFindPanel.mFindCombo.getItemIdx(item) < 0) {
+                mFindPanel.mFindCombo.addItem(item)
             }
         }
 
         mFindPanel.mFindCombo.updateTooltip()
 
+        if (mFindPanel.mFindCombo.itemCount > 0) {
+            mFindPanel.mFindCombo.selectedIndex = 0
+        }
+
         updateLogCmdCombo(true)
 
-        val targetDevice = mAppDataManager.mAppData.appearance ConfigManager.ITEM_ADB_DEVICE)
+        val targetDevice = mAppDataManager.mAppData.logCmd.targetDevice ?: ""
         mDeviceCombo.insertItemAt(targetDevice, 0)
         mDeviceCombo.selectedIndex = 0
 
@@ -1340,29 +1270,25 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             setDeviceComboColor(false)
         }
 
-        var fontName = mAppDataManager.mAppData.appearance ConfigManager.ITEM_FONT_NAME)
+        var fontName = mAppDataManager.mAppData.appearance.fontName
         if (fontName.isNullOrEmpty()) {
             fontName = DEFAULT_FONT_NAME
         }
 
-        var fontSize = 12
-        check = mAppDataManager.mAppData.appearance ConfigManager.ITEM_FONT_SIZE)
-        if (!check.isNullOrEmpty()) {
-            fontSize = check.toInt()
-        }
+        val fontSize = mAppDataManager.mAppData.appearance.fontSize ?: 12
 
         mFont = Font(fontName, Font.PLAIN, fontSize)
         mFilteredLogPanel.mFont = mFont
         mFullLogPanel.mFont = mFont
 
-        var divider = mAppDataManager.mAppData.appearance ConfigManager.ITEM_LAST_DIVIDER_LOCATION)
-        if (!divider.isNullOrEmpty()) {
-            mLogSplitPane.lastDividerLocation = divider.toInt()
+        mAppDataManager.mAppData.appearance.lastDividerLocation?.let {
+            mLogSplitPane.lastDividerLocation = it
         }
 
-        divider = mAppDataManager.mAppData.appearance ConfigManager.ITEM_DIVIDER_LOCATION)
-        if (!divider.isNullOrEmpty() && mLogSplitPane.lastDividerLocation != -1) {
-            mLogSplitPane.dividerLocation = divider.toInt()
+        mAppDataManager.mAppData.appearance.dividerLocation?.let {
+            if (mLogSplitPane.lastDividerLocation != -1) {
+                mLogSplitPane.dividerLocation = it
+            }
         }
 
         if (mLogLevelCombo.selectedIndex >= 0) {
@@ -1393,12 +1319,8 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             }
         }
 
-        check = mAppDataManager.mAppData.appearance ConfigManager.ITEM_VIEW_FULL)
-        if (!check.isNullOrEmpty()) {
-            mItemFull.state = check.toBoolean()
-        } else {
-            mItemFull.state = true
-        }
+        mItemFull.state = mAppDataManager.mAppData.appearance.viewFull ?: true
+
         if (!mItemFull.state) {
             windowedModeLogPanel(mFullLogPanel)
             mItemFullLogToNewWindow.state = true
@@ -1408,25 +1330,17 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
         mToolsPane = ToolsPane.getInstance()
 
-        check = mAppDataManager.mAppData.appearance ConfigManager.ITEM_TOOL_SELECTION)
-        if (!check.isNullOrEmpty()) {
-            mItemToolSelection.state = check.toBoolean()
-        } else {
-            mItemToolSelection.state = false
-        }
-
+        mItemToolSelection.state = mAppDataManager.mAppData.tool.toolSelection ?: false
         if (mItemToolSelection.state) {
             mToolsPane.addTab(ToolsPane.Companion.ToolId.TOOL_ID_SELECTION)
         }
 
-        check = mAppDataManager.mAppData.appearance ConfigManager.ITEM_TOOL_SELECTION_RANGE_PREVIOUS)
-        if (!check.isNullOrEmpty()) {
-            mToolsPane.mToolSelection.mPrevLines = check.toInt()
+        mAppDataManager.mAppData.tool.toolSelectionRangePrevious?.let {
+            mToolsPane.mToolSelection.mPrevLines = it
         }
 
-        check = mAppDataManager.mAppData.appearance ConfigManager.ITEM_TOOL_SELECTION_RANGE_NEXT)
-        if (!check.isNullOrEmpty()) {
-            mToolsPane.mToolSelection.mNextLines = check.toInt()
+        mAppDataManager.mAppData.tool.toolSelectionRangeNext?.let {
+            mToolsPane.mToolSelection.mNextLines = it
         }
 
         check = mAppDataManager.mAppData.appearance ConfigManager.ITEM_TOOL_TEST)
@@ -4122,7 +4036,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         var check: String?
         for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
             if (tokenFilters[idx].mIsSaveFilter) {
-                for (i in 0 until ConfigManager.COUNT_TOKEN_FILTER) {
+                for (i in 0 until AppConstants.MAX_TOKEN_FILTER) {
                     item = mAppDataManager.mAppData.appearance "${ConfigManager.ITEM_TOKEN_FILTER}${formatName}_${tokenFilters[idx].mToken}_$i")
                     if (item == null) {
                         break

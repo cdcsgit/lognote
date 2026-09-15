@@ -28,16 +28,12 @@ class ConfigManager private constructor() {
         const val ITEM_LANG = "LANG"
 
         const val ITEM_SHOW_LOG = "SHOW_LOG_"
-        const val COUNT_SHOW_LOG = 20
         const val ITEM_TOKEN_FILTER = "TOKEN_FILTER_"
         const val COUNT_TOKEN_FILTER = 10
-        const val SAVE_FILTER_COUNT = 4
 
         const val ITEM_HIGHLIGHT_LOG = "HIGHLIGHT_LOG_"
-        const val COUNT_HIGHLIGHT_LOG = 10
 
         const val ITEM_FIND_LOG = "SEARCH_LOG_"
-        const val COUNT_FIND_LOG = 10
         const val ITEM_FIND_MATCH_CASE = "SEARCH_MATCH_CASE"
 
         const val ITEM_SHOW_LOG_CHECK = "SHOW_LOG_CHECK"
@@ -106,9 +102,6 @@ class ConfigManager private constructor() {
         const val ITEM_TOOL_SELECTION_RANGE_NEXT = "TOOL_SELECTION_RANGE_NEXT"
         const val ITEM_TOOL_TEST_ENABLE = "TOOL_TEST_ENABLE"
         const val ITEM_TOOL_TEST = "TOOL_TEST"
-
-        var LaF = ""
-        var LaFAccentColor = ""
 
         private val mInstance: ConfigManager = ConfigManager()
 
