@@ -268,9 +268,9 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
             row: Int,
             col: Int
         ): Component {
-            return if (LogTableModel.TypeShowProcessName == LogTableModel.SHOW_PROCESS_SHOW_WITH_BGCOLOR) {
+            return if (LogTableModel.ProcessNameDisplayMode == LogTableModel.SHOW_PROCESS_NAME_WITH_BGCOLOR) {
                 mColorRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col) as JLabel
-            } else if  (LogTableModel.TypeShowProcessName == LogTableModel.SHOW_PROCESS_SHOW) {
+            } else if  (LogTableModel.ProcessNameDisplayMode == LogTableModel.SHOW_PROCESS_NAME) {
                 mLogRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col) as JLabel
             } else {
                 super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col) as JLabel
@@ -903,7 +903,7 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
     }
 
     private fun getProcessInfo(point: Point): String {
-        if (LogTableModel.TypeShowProcessName != LogTableModel.SHOW_PROCESS_NONE) {
+        if (LogTableModel.ProcessNameDisplayMode != LogTableModel.HIDE_PROCESS_NAME) {
             return ""
         }
 

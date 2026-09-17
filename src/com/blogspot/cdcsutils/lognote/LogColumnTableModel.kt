@@ -44,7 +44,7 @@ class LogColumnTableModel(mainUI: MainUI, baseModel: LogTableModel?) : LogTableM
                 if (columnIndex == COLUMN_NUM) {
                     return logItem.mNum + " "
                 } else if (columnIndex == COLUMN_PROCESS_NAME) {
-                    if (TypeShowProcessName != SHOW_PROCESS_NONE) {
+                    if (ProcessNameDisplayMode != HIDE_PROCESS_NAME) {
                         if (logItem.mProcessName == null) {
                             if (mSortedPidTokIdx >= 0 && logItem.mTokenFilterLogs.size > mSortedPidTokIdx) {
                                 return if (logItem.mTokenFilterLogs[mSortedPidTokIdx] == "0") {
@@ -114,7 +114,7 @@ class LogColumnTableModel(mainUI: MainUI, baseModel: LogTableModel?) : LogTableM
             tokenLogs = null
         }
 
-        val processName = if (TypeShowProcessName != SHOW_PROCESS_NONE && mSortedPidTokIdx >= 0 && tokenFilterLogs.size > mSortedPidTokIdx) {
+        val processName = if (ProcessNameDisplayMode != HIDE_PROCESS_NAME && mSortedPidTokIdx >= 0 && tokenFilterLogs.size > mSortedPidTokIdx) {
             ProcessList.getInstance().getProcessName(tokenFilterLogs[mSortedPidTokIdx])
         } else {
             null
@@ -130,7 +130,7 @@ class LogColumnTableModel(mainUI: MainUI, baseModel: LogTableModel?) : LogTableM
         }
         else {
             val tokenNth = mColumnItems[col]?.mNth ?: -1
-            for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+            for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
                 if (tokenNth == mTokenFilters[idx].mPosition) {
                     pattern = mPatternShowTokens[idx]
                     break

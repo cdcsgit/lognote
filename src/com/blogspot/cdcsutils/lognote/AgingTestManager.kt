@@ -12,22 +12,12 @@ import javax.swing.table.DefaultTableModel
 import javax.swing.table.TableCellEditor
 
 
-class AgingTestManager private constructor(fileName: String) : PropertiesBase(fileName) {
+class AgingTestManager private constructor() {
     companion object {
-        val AGING_TESTS_LIST_FILE = "lognote_agingtests.xml"
-        val ITEM_VERSION = "AGING_TEST_VERSION"
-
-        const val ITEM_TRIGGER_NAME = "_TRIGGER_NAME"
-        const val ITEM_TRIGGER_FILTER = "_TRIGGER_FILTER"
-        const val ITEM_TRIGGER_ACTION = "_TRIGGER_ACTION"
-        const val ITEM_TRIGGER_ACTION_PARAMETER = "_TRIGGER_ACTION_PARAMETER"
-        const val ITEM_TRIGGER_ONCE = "_TRIGGER_ONCE"
-
-        const val MAX_TRIGGER_COUNT = 30
-
         const val MAX_RESULT_LOG = 30
 
-        private val mInstance: AgingTestManager = AgingTestManager(AGING_TESTS_LIST_FILE)
+        private val mAppDataManager = AppDataManager.getInstance()
+        private val mInstance: AgingTestManager = AgingTestManager()
         fun getInstance(): AgingTestManager {
             return mInstance
         }
@@ -73,55 +63,39 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
         }
 
     init {
-        manageVersion()
         loadList()
     }
 
     private fun loadList() {
-        loadXml()
         mTriggerList.clear()
-        for (i in 0 until MAX_TRIGGER_COUNT) {
-            val name = (mProperties["$i${ITEM_TRIGGER_NAME}"] ?: "") as String
-            if (name.trim().isEmpty()) {
-                break
-            }
-            val filter = (mProperties["$i${ITEM_TRIGGER_FILTER}"] ?: "") as String
-            val action = try {
-                ((mProperties["$i${ITEM_TRIGGER_ACTION}"] ?: "") as String).toInt()
-            } catch (ex: NumberFormatException) {
-                0
-            }
-            val actionParameter = (mProperties["$i${ITEM_TRIGGER_ACTION_PARAMETER}"] ?: "") as String
+        mAppDataManager.mAppData.testTriggers?.let {
+            for ((idx, item) in it.withIndex()) {
+                if (idx >= AppConstants.MAX_TRIGGER_COUNT) {
+                    break
+                }
+                if (item.name.isBlank()) {
+                    break
+                }
 
-            val once = try {
-                ((mProperties["$i${ITEM_TRIGGER_ONCE}"] ?: "true") as String).toBoolean()
-            } catch (ex: Exception) {
-                true
+                mTriggerList.add(TriggerItem(item.name, item.filter, TriggerAction.fromInt(item.action),
+                    item.actionParameter, item.once))
             }
-
-            mTriggerList.add(TriggerItem(name, filter, TriggerAction.fromInt(action), actionParameter, once))
         }
     }
 
     private fun saveList() {
-        mProperties.clear()
-        var trigger: TriggerItem
-        for (i in 0 until mTriggerList.size) {
-            trigger = mTriggerList[i]
-            mProperties["$i${ITEM_TRIGGER_NAME}"] = trigger.mName
-            mProperties["$i${ITEM_TRIGGER_FILTER}"] = trigger.mFilter
-            mProperties["$i${ITEM_TRIGGER_ACTION}"] = trigger.mAction.value.toString()
-            mProperties["$i${ITEM_TRIGGER_ACTION_PARAMETER}"] = trigger.mActionParam
-            mProperties["$i${ITEM_TRIGGER_ONCE}"] = trigger.mOnce.toString()
+        val testTriggers = mutableListOf<TestTrigger>()
+
+        for ((idx, item) in mTriggerList.withIndex()) {
+            if (idx >= AppConstants.MAX_TRIGGER_COUNT) {
+                break
+            }
+            testTriggers.add(TestTrigger(item.mName, item.mFilter, item.mAction.value, item.mActionParam, item.mOnce))
         }
 
-        saveXml()
+        mAppDataManager.updateAndSaveAppData { current -> current.copy(testTriggers = testTriggers) }
     }
     
-    override fun manageVersion() {
-
-    }
-
     fun pullTheTrigger(log: String) {
         for (item in mTriggerList) {
             if (item.mFilterPattern.matcher(log).find()) {
@@ -576,8 +550,8 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
                         }
                     }
                     "COPY" -> {
-                        if (mTriggerList.size >= MAX_TRIGGER_COUNT) {
-                            JOptionPane.showMessageDialog(MainUI.getInstance(), "${Strings.TRIGGER_CANNOT_ADD} : $MAX_TRIGGER_COUNT", Strings.ERROR, JOptionPane.ERROR_MESSAGE)
+                        if (mTriggerList.size >= AppConstants.MAX_TRIGGER_COUNT) {
+                            JOptionPane.showMessageDialog(MainUI.getInstance(), "${Strings.TRIGGER_CANNOT_ADD} : $AppConstants.MAX_TRIGGER_COUNT", Strings.ERROR, JOptionPane.ERROR_MESSAGE)
                             return
                         }
 
@@ -688,8 +662,8 @@ class AgingTestManager private constructor(fileName: String) : PropertiesBase(fi
         }
 
         fun showAddDialog() {
-            if (mTriggerList.size >= MAX_TRIGGER_COUNT) {
-                JOptionPane.showMessageDialog(MainUI.getInstance(), "${Strings.TRIGGER_CANNOT_ADD} : $MAX_TRIGGER_COUNT", Strings.ERROR, JOptionPane.ERROR_MESSAGE)
+            if (mTriggerList.size >= AppConstants.MAX_TRIGGER_COUNT) {
+                JOptionPane.showMessageDialog(MainUI.getInstance(), "${Strings.TRIGGER_CANNOT_ADD} : $AppConstants.MAX_TRIGGER_COUNT", Strings.ERROR, JOptionPane.ERROR_MESSAGE)
                 return
             }
             val editDialog = EditDialog(MainUI.getInstance(), TRIGGER_NEW, TriggerItem("", "", TriggerAction.SHOW_DIALOG, "", true))

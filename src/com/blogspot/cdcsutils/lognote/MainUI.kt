@@ -130,7 +130,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     private lateinit var mLogToolBar: ButtonPanel
     private lateinit var mCmdToolBarPanel: JPanel
     private lateinit var mStartBtn: ColorButton
-    private lateinit var mRetryAdbToggle: ColorToggleButton
+    private lateinit var mRetryLogCmdToggle: ColorToggleButton
     private lateinit var mStopBtn: ColorButton
     private lateinit var mPauseToggle: ColorToggleButton
     private lateinit var mClearViewsBtn: ColorButton
@@ -280,81 +280,45 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mLogCmdManager.addEventListener(AdbHandler())
 
         mLogCmdManager.mLogSavePath = mAppDataManager.mAppData.logCmd.logSavePath ?: "."
-        mLogCmdManager.mLogCmd = mAppDataManager.mAppData.logCmd.logCmd ?: LogCmdManager.DEFAULT_LOGCAT
-        mLogCmdManager.mPrefix = mAppDataManager.mAppData.logCmd.logFilePrefix ?: LogCmdManager.DEFAULT_PREFIX
+        mLogCmdManager.mLogCmd = mAppDataManager.mAppData.logCmd.lastLogCmd ?: LogCmdManager.DEFAULT_LOGCAT
+        mLogCmdManager.mLogFilePrefix = mAppDataManager.mAppData.logCmd.logFilePrefix ?: LogCmdManager.DEFAULT_PREFIX
         ProcessList.UpdateTime = mAppDataManager.mAppData.logCmd.adbOptionUpdatePidTimeout ?: ProcessList.DEFAULT_UPDATE_TIME
 
-        var propInt = mAppDataManager.mAppData.appearance.frameX
-        if (propInt != null) {
-            mFrameX = propInt
+        mAppDataManager.mAppData.appearance.frameX?.let {
+            mFrameX = it
         }
-        propInt = mAppDataManager.mAppData.appearance.frameY
-        if (propInt != null) {
-            mFrameY = propInt
+        mAppDataManager.mAppData.appearance.frameY?.let {
+            mFrameY = it
         }
-        propInt = mAppDataManager.mAppData.appearance.frameWidth
-        if (propInt != null) {
-            mFrameWidth = propInt
+        mAppDataManager.mAppData.appearance.frameWidth?.let {
+            mFrameWidth = it
         }
-        propInt = mAppDataManager.mAppData.appearance.frameHeight
-        if (propInt != null) {
-            mFrameHeight = propInt
+        mAppDataManager.mAppData.appearance.frameHeight?.let {
+            mFrameHeight = it
         }
-        propInt = mAppDataManager.mAppData.appearance.frameExtendedState
-        if (propInt != null) {
-            mFrameExtendedState = propInt
+        mAppDataManager.mAppData.appearance.frameExtendedState?.let {
+            mFrameExtendedState = it
         }
-        propInt = mAppDataManager.mAppData.appearance.rotation
-        if (propInt != null) {
-            mRotationStatus = propInt
+        mAppDataManager.mAppData.appearance.rotation?.let {
+            mRotationStatus = it
+        }
+        mAppDataManager.mAppData.appearance.toolRotation?.let {
+            mToolRotationStatus = it
         }
 
-        propInt = mAppDataManager.mAppData.appearance.toolRotation
-        if (propInt != null) {
-            mToolRotationStatus = propInt
-        }
+        mShowLogComboStyle = FilterComboBox.Mode.fromInt(mAppDataManager.mAppData.filterOption.showLogStyle ?: FilterComboBox.Mode.MULTI_LINE_HIGHLIGHT.value)
+        mBoldLogComboStyle = FilterComboBox.Mode.fromInt(mAppDataManager.mAppData.filterOption.boldLogStyle ?: FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT.value)
 
-        propInt = mAppDataManager.mAppData.filterOption.showLogStyle
-        mShowLogComboStyle = if (propInt != null) {
-            FilterComboBox.Mode.fromInt(propInt)
-        }
-        else {
-            FilterComboBox.Mode.MULTI_LINE_HIGHLIGHT
-        }
-
-        propInt = mAppDataManager.mAppData.filterOption.boldLogStyle
-        mBoldLogComboStyle = if (propInt != null) {
-            FilterComboBox.Mode.fromInt(propInt)
-        }
-        else {
-            FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT
-        }
-
-        mTokenComboStyle = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT }
-        for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
-            propInt = mAppDataManager.mAppData.filterOption.tokenComboStyles?.get(idx)
-            if (propInt != null) {
-                mTokenComboStyle[idx] = FilterComboBox.Mode.fromInt(propInt)
+        mTokenComboStyle = Array(AppConstants.MAX_TOKEN_COUNT) { FilterComboBox.Mode.SINGLE_LINE_HIGHLIGHT }
+        for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
+            mAppDataManager.mAppData.filterOption.tokenComboStyles?.get(idx)?.let {
+                mTokenComboStyle[idx] = FilterComboBox.Mode.fromInt(it)
             }
         }
 
-        var propBoolean = mAppDataManager.mAppData.appearance.viewColumnMode
-        if (propBoolean != null) {
-            mColumnMode = propBoolean
-        } else {
-            mColumnMode = false
-        }
+        mColumnMode = mAppDataManager.mAppData.appearance.viewColumnMode ?: false
 
-        propInt = mAppDataManager.mAppData.appearance.viewProcessName
-        if (propInt != null) {
-            LogTableModel.TypeShowProcessName = try {
-                    propInt
-                } catch (ex: NumberFormatException) {
-                    LogTableModel.SHOW_PROCESS_SHOW_WITH_BGCOLOR
-                }
-        } else {
-            LogTableModel.TypeShowProcessName = LogTableModel.SHOW_PROCESS_SHOW_WITH_BGCOLOR
-        }
+        LogTableModel.ProcessNameDisplayMode = mAppDataManager.mAppData.appearance.viewProcessName ?: LogTableModel.SHOW_PROCESS_NAME_WITH_BGCOLOR
 
         mToolTestEnable = mAppDataManager.mAppData.tool.toolTestEnable ?: false
 
@@ -381,11 +345,11 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
     private fun loadConfigOnCreate() {
         mConfigManager.loadConfig()
-        mColorManager.mFullTableColor.getConfig()
+        mColorManager.mFullTableColor.getAppData()
         mColorManager.mFullTableColor.applyColor()
-        mColorManager.mFilterTableColor.getConfig()
+        mColorManager.mFilterTableColor.getAppData()
         mColorManager.mFilterTableColor.applyColor()
-        mColorManager.getConfigFilterStyle()
+        mColorManager.getAppDataFilterStyle()
         mConfigManager.saveConfig()
     }
 
@@ -428,7 +392,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         val formatName = mFormatManager.mCurrFormat.mName
         val tokenFilters = mFormatManager.mCurrFormat.mTokenFilters
         val tokenLogFilterMap = mutableMapOf<String, List<String>>()
-        for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+        for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
             if (mFormatManager.mCurrFormat.mTokenFilters[idx].mIsSaveFilter) {
                 val key = "${formatName}_${tokenFilters[idx].mToken}"
                 val tokenLogFilters = updateRecentFilters(mTokenCombo[idx],
@@ -438,8 +402,8 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             }
         }
 
-        val highlightLogs = updateRecentFilters(mBoldLogCombo, mAppDataManager.mAppHistory.recentFilters.highlightLogs, AppConstants.MAX_SAVE_FILTER,
-            AppConstants.MAX_HIGHLIGHT_LOG)
+        val highlightLogs = updateRecentFilters(mBoldLogCombo, mAppDataManager.mAppHistory.recentFilters.boldLogs, AppConstants.MAX_SAVE_FILTER,
+            AppConstants.MAX_BOLD_LOG)
         val findLogs = updateRecentFilters(mFindPanel.mFindCombo, mAppDataManager.mAppHistory.recentFilters.findLogs, AppConstants.MAX_SAVE_FILTER,
             AppConstants.MAX_FIND_LOG)
 
@@ -449,7 +413,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             "0.0.0.0"
         }
 
-        val logCmd = try {
+        val lastLogCmd = try {
             mLogCmdCombo.editor.item.toString()
         } catch (e: NullPointerException) {
             LogCmdManager.DEFAULT_LOGCAT
@@ -477,13 +441,13 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                 dividerLocation = mLogSplitPane.dividerLocation, lastDividerLocation = lastDividerLocation,
                 toolDividerLocation = mToolSplitDividerLocation, toolLastDividerLocation = toolLastDividerLocation),
             logCmd = current.logCmd.copy(
-                targetDevice = targetDevice, logCmd = logCmd),
+                targetDevice = targetDevice, lastLogCmd = lastLogCmd),
             targetPackage = packages.take(PackageManager.MAX_PACKAGE_COUNT),
         ) }
 
 
         mAppDataManager.updateAppHistory { current -> current.copy(recentFilters = current.recentFilters.copy(
-            showLogFilters = showLogFilters, highlightLogs = highlightLogs, tokenLogFilterMap = tokenLogFilterMap, findLogs = findLogs
+            showLogFilters = showLogFilters, boldLogs = highlightLogs, tokenLogFilterMap = tokenLogFilterMap, findLogs = findLogs
         )) }
 
         mAppDataManager.saveAppData()
@@ -530,21 +494,21 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                 if (result == JOptionPane.YES_OPTION) {
                     mShowLogToggle.isSelected = recentItem.mShowLogCheck
                     mShowLogCombo.setEnabledFilter(mShowLogToggle.isSelected)
-                    for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+                    for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
                         mTokenToggle[idx].isSelected = recentItem.mTokenCheck[idx]
                         mTokenCombo[idx].setEnabledFilter(mTokenToggle[idx].isSelected)
                     }
                     
-                    mBoldLogToggle.isSelected = recentItem.mHighlightLogCheck
+                    mBoldLogToggle.isSelected = recentItem.mBoldLogCheck
                     mBoldLogCombo.setEnabledFilter(mBoldLogToggle.isSelected)
                     mFindPanel.mFindMatchCaseToggle.isSelected = recentItem.mFindMatchCase
 
                     mShowLogCombo.setFilterText(recentItem.mShowLog)
                     mShowLogCombo.applyFilterText(true)
-                    for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+                    for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
                         mTokenCombo[idx].setFilterText(recentItem.mTokenFilter[idx])
                     }
-                    mBoldLogCombo.setFilterText(recentItem.mHighlightLog)
+                    mBoldLogCombo.setFilterText(recentItem.mBoldLog)
                     mBoldLogCombo.applyFilterText(true)
                     mFindPanel.mFindCombo.setFilterText(recentItem.mFindLog)
                     mFindPanel.mFindCombo.applyFilterText(true)
@@ -663,21 +627,21 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mItemProcessNameNone = JRadioButtonMenuItem(Strings.NONE)
         mItemProcessName.add(mItemProcessNameNone)
         buttonGroup.add(mItemProcessNameNone)
-        if (LogTableModel.TypeShowProcessName == LogTableModel.SHOW_PROCESS_NONE) {
+        if (LogTableModel.ProcessNameDisplayMode == LogTableModel.HIDE_PROCESS_NAME) {
             mItemProcessNameNone.isSelected = true
         }
 
         mItemProcessNameShow = JRadioButtonMenuItem(Strings.SHOW)
         mItemProcessName.add(mItemProcessNameShow)
         buttonGroup.add(mItemProcessNameShow)
-        if (LogTableModel.TypeShowProcessName == LogTableModel.SHOW_PROCESS_SHOW) {
+        if (LogTableModel.ProcessNameDisplayMode == LogTableModel.SHOW_PROCESS_NAME) {
             mItemProcessNameShow.isSelected = true
         }
 
         mItemProcessNameColor = JRadioButtonMenuItem(Strings.SHOW_WITH_COLORBG)
         mItemProcessName.add(mItemProcessNameColor)
         buttonGroup.add(mItemProcessNameColor)
-        if (LogTableModel.TypeShowProcessName == LogTableModel.SHOW_PROCESS_SHOW_WITH_BGCOLOR) {
+        if (LogTableModel.ProcessNameDisplayMode == LogTableModel.SHOW_PROCESS_NAME_WITH_BGCOLOR) {
             mItemProcessNameColor.isSelected = true
         }
 
@@ -810,11 +774,11 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mStartBtn.icon = ImageIcon(this.javaClass.getResource("/images/start.png"))
         mStartBtn.addActionListener(mActionHandler)
         mStartBtn.addMouseListener(mMouseHandler)
-        mRetryAdbToggle = ColorToggleButton(Strings.RETRY_ADB)
-        mRetryAdbToggle.toolTipText = TooltipStrings.RETRY_ADB_TOGGLE
-        mRetryAdbToggle.margin = btnMargin
+        mRetryLogCmdToggle = ColorToggleButton(Strings.RETRY_ADB)
+        mRetryLogCmdToggle.toolTipText = TooltipStrings.RETRY_ADB_TOGGLE
+        mRetryLogCmdToggle.margin = btnMargin
 //        mRetryAdbToggle.margin = Insets(mRetryAdbToggle.margin.top, 0, mRetryAdbToggle.margin.bottom, 0)
-        mRetryAdbToggle.addItemListener(mItemHandler)
+        mRetryLogCmdToggle.addItemListener(mItemHandler)
 
         mPauseToggle = ColorToggleButton(Strings.PAUSE)
         mPauseToggle.toolTipText = TooltipStrings.PAUSE_BTN
@@ -877,12 +841,12 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mBoldLogToggle.addItemListener(mItemHandler)
 
 
-        mTokenPanel = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { JPanel() }
-        mTokenCombo = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { FilterComboBox(mTokenComboStyle[it], false) }
-        mTokenToggle = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { FilterToggleButton(mFormatManager.mCurrFormat.mTokenFilters[it].mToken) }
-        mTokenTogglePanel = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { JPanel(GridLayout(1, 1)) }
+        mTokenPanel = Array(AppConstants.MAX_TOKEN_COUNT) { JPanel() }
+        mTokenCombo = Array(AppConstants.MAX_TOKEN_COUNT) { FilterComboBox(mTokenComboStyle[it], false) }
+        mTokenToggle = Array(AppConstants.MAX_TOKEN_COUNT) { FilterToggleButton(mFormatManager.mCurrFormat.mTokenFilters[it].mToken) }
+        mTokenTogglePanel = Array(AppConstants.MAX_TOKEN_COUNT) { JPanel(GridLayout(1, 1)) }
 
-        for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+        for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
             mTokenCombo[idx].toolTipText = TooltipStrings.TOKEN_COMBO
             mTokenCombo[idx].isEditable = true
             mTokenCombo[idx].renderer = FilterComboBox.ComboBoxRenderer()
@@ -947,7 +911,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mBoldLogPanel.add(mBoldLogCombo, BorderLayout.CENTER)
 
 
-        for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+        for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
             mTokenPanel[idx].layout = BorderLayout()
             mTokenPanel[idx].add(mTokenTogglePanel[idx], BorderLayout.WEST)
             mTokenCombo[idx].preferredSize = Dimension(mFormatManager.mCurrFormat.mTokenFilters[idx].mUiWidth, mTokenCombo[idx].preferredSize.height)
@@ -985,7 +949,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
         val itemFilterPanel = JPanel(FlowLayout(FlowLayout.LEADING, 0, 0))
         itemFilterPanel.border = BorderFactory.createEmptyBorder(0, 0, 0, 0)
-        for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+        for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
             itemFilterPanel.add(mTokenPanel[idx])
             if (mTokenToggle[idx].text.isNullOrEmpty()) {
                 mTokenPanel[idx].isVisible = false
@@ -1008,7 +972,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         changeToolBtnColor()
 
         mLogToolBar.add(mStartBtn)
-        mLogToolBar.add(mRetryAdbToggle)
+        mLogToolBar.add(mRetryLogCmdToggle)
         addVSeparator2(mLogToolBar)
         mLogToolBar.add(mPauseToggle)
         mLogToolBar.add(mStopBtn)
@@ -1064,7 +1028,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         FilterComboBox.IsFilterIncremental = { mItemFilterIncremental.state }
         mShowLogCombo.setApplyFilter { filter -> mFilteredLogPanel.mTableModel.mFilterLog = filter }
         mBoldLogCombo.setApplyFilter { filter -> mFilteredLogPanel.mTableModel.mFilterHighlightLog = filter }
-        for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+        for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
             mTokenCombo[idx].setApplyFilter { filter -> mFilteredLogPanel.mTableModel.mFilterTokenMgr.set(idx, filter) }
         }
 
@@ -1189,9 +1153,8 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mLogLevelCombo.addItem(item)
         }
 
-        val logLevel = mAppDataManager.mAppData.appearance.logLevel
-        if (!logLevel.isNullOrEmpty()) {
-            mLogLevelCombo.selectedIndex = logLevel.toInt()
+        mAppDataManager.mAppData.logCmd.logLevel?.let {
+            mLogLevelCombo.selectedIndex = it
             mFilteredLogPanel.mTableModel.mFilterLevel = mLogLevelCombo.selectedIndex
         }
 
@@ -1212,7 +1175,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
         val formatName = mFormatManager.mCurrFormat.mName
         val tokens = mFormatManager.mCurrFormat.mTokenFilters
-        for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+        for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
             val key = "${formatName}_${tokens[idx].mToken}"
             if (tokens[idx].mIsSaveFilter) {
                 val tokenLogList = mAppDataManager.mAppHistory.recentFilters.tokenLogFilterMap?.get(key)
@@ -1231,7 +1194,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mTokenCombo[idx].setEnabledFilter(mTokenToggle[idx].isSelected)
         }
 
-        mAppDataManager.mAppHistory.recentFilters.highlightLogs?.forEach { item ->
+        mAppDataManager.mAppHistory.recentFilters.boldLogs?.forEach { item ->
             if (mBoldLogCombo.getItemIdx(item) < 0) {
                 mBoldLogCombo.addItem(item)
             }
@@ -1243,7 +1206,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mBoldLogCombo.selectedIndex = 0
         }
 
-        mBoldLogToggle.isSelected = mAppDataManager.mAppData.filter.highlightLogCheck ?: true
+        mBoldLogToggle.isSelected = mAppDataManager.mAppData.filter.boldLogCheck ?: true
         mBoldLogCombo.setEnabledFilter(mBoldLogToggle.isSelected)
 
         mAppDataManager.mAppHistory.recentFilters.findLogs?.forEach { item ->
@@ -1311,7 +1274,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mFilteredLogPanel.mTableModel.mFilterFindLog = ""
         }
         
-        for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+        for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
             if (mTokenToggle[idx].isSelected && mTokenCombo[idx].selectedItem != null) {
                 mFilteredLogPanel.mTableModel.mFilterTokenMgr.set(idx, mTokenCombo[idx].selectedItem!!.toString())
             } else {
@@ -1343,10 +1306,8 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mToolsPane.mToolSelection.mNextLines = it
         }
 
-        check = mAppDataManager.mAppData.appearance ConfigManager.ITEM_TOOL_TEST)
-        if (mToolTestEnable && !check.isNullOrEmpty()) {
-            mItemToolTest.state = check.toBoolean()
-        } else {
+        mItemToolTest.state = mAppDataManager.mAppData.tool.toolTest ?: false
+        if (!mToolTestEnable) {
             mItemToolTest.state = false
         }
 
@@ -1354,9 +1315,9 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mToolsPane.addTab(ToolsPane.Companion.ToolId.TOOL_ID_TEST)
         }
 
-        check = mAppDataManager.mAppData.appearance ConfigManager.ITEM_TOOL_PANEL)
-        if (!check.isNullOrEmpty()) {
-            mToolsPane.updateVisible(check.toBoolean())
+        val checkToolPanel = mAppDataManager.mAppData.tool.toolPanel
+        if (checkToolPanel != null) {
+            mToolsPane.updateVisible(checkToolPanel)
         } else {
             mToolsPane.isVisible = false
         }
@@ -1383,16 +1344,16 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mToolSplitPane.dividerSize = 0
         }
 
-        divider = mAppDataManager.mAppData.appearance ConfigManager.ITEM_TOOL_LAST_DIVIDER_LOCATION)
-        if (!divider.isNullOrEmpty()) {
-            mToolSplitLastDividerLocation = divider.toInt()
+        mAppDataManager.mAppData.appearance.lastDividerLocation?.let {
+            mToolSplitLastDividerLocation = it
             mToolSplitPane.lastDividerLocation = mToolSplitLastDividerLocation
         }
 
-        divider = mAppDataManager.mAppData.appearance ConfigManager.ITEM_TOOL_DIVIDER_LOCATION)
-        if (!divider.isNullOrEmpty() && mToolSplitLastDividerLocation != -1) {
-            mToolSplitDividerLocation = divider.toInt()
-            mToolSplitPane.dividerLocation = mToolSplitDividerLocation
+        mAppDataManager.mAppData.appearance.toolDividerLocation?.let {
+            if (mToolSplitLastDividerLocation != -1) {
+                mToolSplitDividerLocation = it
+                mToolSplitPane.dividerLocation = mToolSplitDividerLocation
+            }
         }
 
         mToolSplitPane.addPropertyChangeListener(JSplitPane.DIVIDER_LOCATION_PROPERTY) { evt ->
@@ -1405,72 +1366,33 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
         mToolSplitPane.isOneTouchExpandable = false
 
-        check = mAppDataManager.mAppData.appearance ConfigManager.ITEM_FILTER_INCREMENTAL)
-        if (!check.isNullOrEmpty()) {
-            mItemFilterIncremental.state = check.toBoolean()
-        } else {
-            mItemFilterIncremental.state = false
-        }
+        mItemFilterIncremental.state = mAppDataManager.mAppData.filterOption.filterIncremental ?: false
+        mItemFilterByFile.state = mAppDataManager.mAppData.filterOption.filterByRecentFile ?: true
+        mFilteredLogPanel.mTableModel.mScrollback = mAppDataManager.mAppData.appearance.scrollback ?: 100000
+        mScrollbackTF.text = mFilteredLogPanel.mTableModel.mScrollback.toString()
 
-        check = mAppDataManager.mAppData.appearance ConfigManager.ITEM_FILTER_BY_FILE)
-        if (!check.isNullOrEmpty()) {
-            mItemFilterByFile.state = check.toBoolean()
-        } else {
-            mItemFilterByFile.state = true
-        }
-
-        check = mAppDataManager.mAppData.appearance ConfigManager.ITEM_SCROLLBACK)
-        if (!check.isNullOrEmpty()) {
-            mScrollbackTF.text = check
-        } else {
-            mScrollbackTF.text = "100000"
-        }
-        mFilteredLogPanel.mTableModel.mScrollback = mScrollbackTF.text.toInt()
-
-        check = mAppDataManager.mAppData.appearance ConfigManager.ITEM_SCROLLBACK_SPLIT_FILE)
-        if (!check.isNullOrEmpty()) {
-            mScrollbackSplitFileToggle.isSelected = check.toBoolean()
-        } else {
-            mScrollbackSplitFileToggle.isSelected = true
-        }
+        mScrollbackSplitFileToggle.isSelected = mAppDataManager.mAppData.appearance.scrollbackSplitFile ?: true
         mFilteredLogPanel.mTableModel.mScrollbackSplitFile = mScrollbackSplitFileToggle.isSelected
 
-        check = mAppDataManager.mAppData.appearance ConfigManager.ITEM_MATCH_CASE)
-        if (!check.isNullOrEmpty()) {
-            mMatchCaseToggle.isSelected = check.toBoolean()
-        } else {
-            mMatchCaseToggle.isSelected = false
-        }
+        mMatchCaseToggle.isSelected = mAppDataManager.mAppData.filterOption.matchCase ?: false
         mFilteredLogPanel.mTableModel.mMatchCase = mMatchCaseToggle.isSelected
 
-        check = mAppDataManager.mAppData.appearance ConfigManager.ITEM_FIND_MATCH_CASE)
-        if (!check.isNullOrEmpty()) {
-            mFindPanel.mFindMatchCaseToggle.isSelected = check.toBoolean()
-        } else {
-            mFindPanel.mFindMatchCaseToggle.isSelected = false
-        }
+        mFindPanel.mFindMatchCaseToggle.isSelected = mAppDataManager.mAppData.filterOption.findMatchCase ?: false
         mFilteredLogPanel.mTableModel.mFindMatchCase = mFindPanel.mFindMatchCaseToggle.isSelected
 
-        check = mAppDataManager.mAppData.appearance ConfigManager.ITEM_COLOR_TAG_REGEX)
-        if (!check.isNullOrEmpty()) {
-            LogTableModel.IsColorTagRegex = check.toBoolean()
+        mAppDataManager.mAppData.filterOption.colorTagRegex?.let {
+            LogTableModel.IsColorTagRegex = it
         }
         mItemColorTagRegex.state = LogTableModel.IsColorTagRegex
 
-        check = mAppDataManager.mAppData.appearance ConfigManager.ITEM_RETRY_ADB)
-        if (!check.isNullOrEmpty()) {
-            mRetryAdbToggle.isSelected = check.toBoolean()
-        } else {
-            mRetryAdbToggle.isSelected = false
-        }
-
-        check = mAppDataManager.mAppData.appearance ConfigManager.ITEM_ICON_TEXT)
-        if (!check.isNullOrEmpty()) {
-            when (check) {
-                ConfigManager.VALUE_ICON_TEXT_I -> {
+        mRetryLogCmdToggle.isSelected = mAppDataManager.mAppData.logCmd.retryLogCmd ?: false
+        val iconText = mAppDataManager.mAppData.appearance.iconText
+        if (!iconText.isNullOrEmpty()) {
+            when (iconText) {
+                AppDataManager.VALUE_ICON_TEXT_I -> {
                     setBtnIconsTexts(true, false)
                 }
-                ConfigManager.VALUE_ICON_TEXT_T -> {
+                AppDataManager.VALUE_ICON_TEXT_T -> {
                     setBtnIconsTexts(false, true)
                 }
                 else -> {
@@ -1481,12 +1403,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             setBtnIconsTexts(true, true)
         }
 
-        check = mAppDataManager.mAppData.appearance ConfigManager.ITEM_CMD_TOOLBAR)
-        if (!check.isNullOrEmpty()) {
-            mCmdToolBarPanel.isVisible = check.toBoolean()
-        } else {
-            mCmdToolBarPanel.isVisible = true
-        }
+        mCmdToolBarPanel.isVisible = mAppDataManager.mAppData.appearance.cmdToolbar ?: true
         mItemCmdToolbar.text = if (mCmdToolBarPanel.isVisible) Strings.HIDE_CMD_TOOLBAR else Strings.SHOW_CMD_TOOLBAR
 
         add(mFilterPanel, BorderLayout.NORTH)
@@ -1502,7 +1419,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
     private fun changeToolBtnColor() {
         mStartBtn.background = mLogToolBar.background
-        mRetryAdbToggle.background = mLogToolBar.background
+        mRetryLogCmdToggle.background = mLogToolBar.background
         mPauseToggle.background = mLogToolBar.background
         mStopBtn.background = mLogToolBar.background
         mSaveBtn.background = mLogToolBar.background
@@ -1524,7 +1441,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
         mStartBtn.border = ColorButtonBorder(mLogToolBar.background)
         mStartBtn.background = mLogToolBar.background
-        mRetryAdbToggle.border = ColorButtonBorder(mLogToolBar.background)
+        mRetryLogCmdToggle.border = ColorButtonBorder(mLogToolBar.background)
         mPauseToggle.border = ColorButtonBorder(mLogToolBar.background)
         mStopBtn.border = ColorButtonBorder(mLogToolBar.background)
         mSaveBtn.border = ColorButtonBorder(mLogToolBar.background)
@@ -1576,7 +1493,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
         mShowLogCombo.setApplyFilter { filter -> mFilteredLogPanel.mTableModel.mFilterLog = filter }
         mBoldLogCombo.setApplyFilter { filter -> mFilteredLogPanel.mTableModel.mFilterHighlightLog = filter }
-        for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+        for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
             mTokenCombo[idx].setApplyFilter { filter -> mFilteredLogPanel.mTableModel.mFilterTokenMgr.set(idx, filter) }
         }
 
@@ -1608,7 +1525,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mFilteredLogPanel.mTableModel.mFilterFindLog = ""
         }
 
-        for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+        for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
             if (mTokenToggle[idx].isSelected && mTokenCombo[idx].selectedItem != null) {
                 mFilteredLogPanel.mTableModel.mFilterTokenMgr.set(idx, mTokenCombo[idx].selectedItem!!.toString())
             } else {
@@ -1705,7 +1622,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             }
         }
 
-        mConfigManager.saveItem(ConfigManager.ITEM_TOOL_ROTATION, mToolRotationStatus.toString())
+        mAppDataManager.updateAndSaveAppData { current-> current.copy(appearance = current.appearance.copy(toolRotation = mToolRotationStatus )) }
     }
 
     private fun setBtnIconsTexts(isShowIcons: Boolean, isShowTexts: Boolean) {
@@ -1725,7 +1642,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mAdbRefreshBtn.preferredSize = null
             mAdbDisconnectBtn.preferredSize = null
             mScrollbackApplyBtn.preferredSize = null
-            mRetryAdbToggle.preferredSize = null
+            mRetryLogCmdToggle.preferredSize = null
             mPauseToggle.preferredSize = null
             mScrollbackKeepToggle.preferredSize = null
             mScrollbackSplitFileToggle.preferredSize = null
@@ -1740,7 +1657,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mAdbRefreshBtn.preferredSize = Dimension(mAdbRefreshBtn.preferredSize.width, preferredHeight)
             mAdbDisconnectBtn.preferredSize = Dimension(mAdbDisconnectBtn.preferredSize.width, preferredHeight)
             mScrollbackApplyBtn.preferredSize = Dimension(mScrollbackApplyBtn.preferredSize.width, preferredHeight)
-            mRetryAdbToggle.preferredSize = Dimension(mRetryAdbToggle.preferredSize.width, preferredHeight)
+            mRetryLogCmdToggle.preferredSize = Dimension(mRetryLogCmdToggle.preferredSize.width, preferredHeight)
             mPauseToggle.preferredSize = Dimension(mPauseToggle.preferredSize.width, preferredHeight)
             mScrollbackKeepToggle.preferredSize = Dimension(mScrollbackKeepToggle.preferredSize.width, preferredHeight)
             mScrollbackSplitFileToggle.preferredSize = Dimension(mScrollbackSplitFileToggle.preferredSize.width, preferredHeight)
@@ -1759,19 +1676,19 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mAdbDisconnectBtn.icon = ImageIcon(this.javaClass.getResource("/images/disconnect.png"))
             mScrollbackApplyBtn.icon = ImageIcon(this.javaClass.getResource("/images/apply.png"))
 
-            mRetryAdbToggle.icon = ImageIcon(this.javaClass.getResource("/images/retry_off.png"))
+            mRetryLogCmdToggle.icon = ImageIcon(this.javaClass.getResource("/images/retry_off.png"))
             mPauseToggle.icon = ImageIcon(this.javaClass.getResource("/images/pause_off.png"))
             mScrollbackKeepToggle.icon = ImageIcon(this.javaClass.getResource("/images/keeplog_off.png"))
             mScrollbackSplitFileToggle.icon = ImageIcon(this.javaClass.getResource("/images/splitfile_off.png"))
 
             if (IsFlatLaf && !IsFlatLightLaf) {
-                mRetryAdbToggle.selectedIcon = ImageIcon(this.javaClass.getResource("/images/retry_on_dark.png"))
+                mRetryLogCmdToggle.selectedIcon = ImageIcon(this.javaClass.getResource("/images/retry_on_dark.png"))
                 mPauseToggle.selectedIcon = ImageIcon(this.javaClass.getResource("/images/pause_on_dark.png"))
                 mScrollbackKeepToggle.selectedIcon = ImageIcon(this.javaClass.getResource("/images/keeplog_on_dark.png"))
                 mScrollbackSplitFileToggle.selectedIcon = ImageIcon(this.javaClass.getResource("/images/splitfile_on_dark.png"))
             }
             else {
-                mRetryAdbToggle.selectedIcon = ImageIcon(this.javaClass.getResource("/images/retry_on.png"))
+                mRetryLogCmdToggle.selectedIcon = ImageIcon(this.javaClass.getResource("/images/retry_on.png"))
                 mPauseToggle.selectedIcon = ImageIcon(this.javaClass.getResource("/images/pause_on.png"))
                 mScrollbackKeepToggle.selectedIcon = ImageIcon(this.javaClass.getResource("/images/keeplog_on.png"))
                 mScrollbackSplitFileToggle.selectedIcon = ImageIcon(this.javaClass.getResource("/images/splitfile_on.png"))
@@ -1789,8 +1706,8 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mAdbDisconnectBtn.icon = null
             mScrollbackApplyBtn.icon = null
 
-            mRetryAdbToggle.icon = ImageIcon(this.javaClass.getResource("/images/toggle_off.png"))
-            mRetryAdbToggle.selectedIcon = ImageIcon(this.javaClass.getResource("/images/toggle_on.png"))
+            mRetryLogCmdToggle.icon = ImageIcon(this.javaClass.getResource("/images/toggle_off.png"))
+            mRetryLogCmdToggle.selectedIcon = ImageIcon(this.javaClass.getResource("/images/toggle_on.png"))
             mPauseToggle.icon = ImageIcon(this.javaClass.getResource("/images/toggle_off.png"))
             mPauseToggle.selectedIcon = ImageIcon(this.javaClass.getResource("/images/toggle_on.png"))
             mScrollbackKeepToggle.icon = ImageIcon(this.javaClass.getResource("/images/toggle_off.png"))
@@ -1805,7 +1722,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     private fun setBtnTexts(isShow:Boolean) {
         if (isShow) {
             mStartBtn.text = Strings.START
-            mRetryAdbToggle.text = Strings.RETRY_ADB
+            mRetryLogCmdToggle.text = Strings.RETRY_ADB
             mPauseToggle.text = Strings.PAUSE
             mStopBtn.text = Strings.STOP
             mClearViewsBtn.text = Strings.CLEAR_VIEWS
@@ -1827,7 +1744,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mAdbRefreshBtn.text = null
             mAdbDisconnectBtn.text = null
             mScrollbackApplyBtn.text = null
-            mRetryAdbToggle.text = null
+            mRetryLogCmdToggle.text = null
             mPauseToggle.text = null
             mScrollbackKeepToggle.text = null
             mScrollbackSplitFileToggle.text = null
@@ -1874,7 +1791,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     }
 
     fun setLaF() {
-        when (ConfigManager.LaF) {
+        when (AppDataManager.LaF) {
             SYSTEM_LAF->{
                 IsFlatLaf = false
                 IsFlatLightLaf = true
@@ -1888,15 +1805,14 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                 IsFlatLightLaf = false
             }
             else-> {
-                ConfigManager.LaF = FLAT_LIGHT_LAF
+                AppDataManager.LaF = FLAT_LIGHT_LAF
                 IsFlatLaf = true
                 IsFlatLightLaf = true
             }
         }
 
-        val uiFontSize = mAppDataManager.mAppData.appearance ConfigManager.ITEM_UI_FONT_SIZE)
-        if (!uiFontSize.isNullOrEmpty()) {
-            mUIFontPercent = uiFontSize.toInt()
+        mAppDataManager.mAppData.appearance.uiFontSize?.let {
+            mUIFontPercent = it
         }
 
         if (IsFlatLaf) {
@@ -1906,7 +1822,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             initFontSize(mUIFontPercent)
         }
 
-        when (ConfigManager.LaF) {
+        when (AppDataManager.LaF) {
             SYSTEM_LAF->{
                 try {
                     UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
@@ -2148,10 +2064,10 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             item.mPath = openItem.mPath
 
             item.mShowLogCheck = mShowLogToggle.isSelected
-            for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+            for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
                 item.mTokenCheck[idx] = mTokenToggle[idx].isSelected
             }
-            item.mHighlightLogCheck = mBoldLogToggle.isSelected
+            item.mBoldLogCheck = mBoldLogToggle.isSelected
             item.mFindMatchCase = mFindPanel.mFindMatchCaseToggle.isSelected
 
             for (bookmark in mBookmarkManager.mBookmarks) {
@@ -2161,10 +2077,10 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             }
 
             item.mShowLog = mShowLogCombo.selectedItem?.toString() ?: ""
-            for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+            for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
                 item.mTokenFilter[idx] = mTokenCombo[idx].selectedItem?.toString() ?: ""
             }
-            item.mHighlightLog = mBoldLogCombo.selectedItem?.toString() ?: ""
+            item.mBoldLog = mBoldLogCombo.selectedItem?.toString() ?: ""
             item.mFindLog = mFindPanel.mFindCombo.selectedItem?.toString() ?: ""
 
             mRecentFileManager.mRecentList.add(0, item)
@@ -2181,17 +2097,17 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         item.mPath = path
 
         item.mShowLogCheck = mShowLogToggle.isSelected
-        for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+        for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
             item.mTokenCheck[idx] = mTokenToggle[idx].isSelected
         }
-        item.mHighlightLogCheck = mBoldLogToggle.isSelected
+        item.mBoldLogCheck = mBoldLogToggle.isSelected
         item.mFindMatchCase = mFindPanel.mFindMatchCaseToggle.isSelected
 
         item.mShowLog = mShowLogCombo.selectedItem?.toString() ?: ""
-        for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+        for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
             item.mTokenFilter[idx] = mTokenCombo[idx].selectedItem?.toString() ?: ""
         }
-        item.mHighlightLog = mBoldLogCombo.selectedItem?.toString() ?: ""
+        item.mBoldLog = mBoldLogCombo.selectedItem?.toString() ?: ""
         item.mFindLog = mFindPanel.mFindCombo.selectedItem?.toString() ?: ""
 
         mRecentFileManager.mRecentList.add(0, item)
@@ -2215,11 +2131,11 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         val dtf = DateTimeFormatter.ofPattern("yyyyMMdd_HH.mm.ss")
         var device = mDeviceCombo.selectedItem!!.toString()
         device = device.substringBefore(":")
-        if (mLogCmdManager.mPrefix.isEmpty()) {
-            mLogCmdManager.mPrefix = LogCmdManager.DEFAULT_PREFIX
+        if (mLogCmdManager.mLogFilePrefix.isEmpty()) {
+            mLogCmdManager.mLogFilePrefix = LogCmdManager.DEFAULT_PREFIX
         }
 
-        val fileName = sanitizeFileName("${mLogCmdManager.mPrefix}_${device}_${dtf.format(LocalDateTime.now())}.txt")
+        val fileName = sanitizeFileName("${mLogCmdManager.mLogFilePrefix}_${device}_${dtf.format(LocalDateTime.now())}.txt")
         val filePath = "${mLogCmdManager.mLogSavePath}/$fileName"
         var file = File(filePath)
         var idx = 1
@@ -2248,7 +2164,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         }
         else {
             setCurrentMethod(METHOD_ADB)
-            updateTablePNameColumn(LogTableModel.TypeShowProcessName != LogTableModel.SHOW_PROCESS_NONE)
+            updateTablePNameColumn(LogTableModel.ProcessNameDisplayMode != LogTableModel.HIDE_PROCESS_NAME)
         }
 
         mPauseToggle.isSelected = false
@@ -2291,7 +2207,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     }
 
     fun isRestartAdbLogcat(): Boolean {
-        return mRetryAdbToggle.isSelected
+        return mRetryLogCmdToggle.isSelected
     }
 
     fun pauseAdbScan(pause: Boolean) {
@@ -2376,7 +2292,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
         if (prevVisible != mToolsPane.isVisible || mItemToolPanel.state != mToolsPane.isVisible) {
             mItemToolPanel.state = mToolsPane.isVisible
-            mConfigManager.saveItem(ConfigManager.ITEM_TOOL_PANEL, mItemToolPanel.state.toString())
+            mAppDataManager.updateAndSaveAppData { current -> current.copy(tool = current.tool.copy(toolPanel = mItemToolPanel.state)) }
         }
     }
 
@@ -2488,7 +2404,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                     mItemFullLogToNewWindow.state = !mItemFull.state
                     mItemFullLogToNewWindow.isEnabled = mItemFull.state
 
-                    mConfigManager.saveItem(ConfigManager.ITEM_VIEW_FULL, mItemFull.state.toString())
+                    mAppDataManager.updateAndSaveAppData { current -> current.copy(appearance = current.appearance.copy(viewFull = mItemFull.state)) }
                 }
 
                 mItemToolPanel -> {
@@ -2497,12 +2413,12 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
                 mItemToolSelection -> {
                     performToolsMenu(mItemToolSelection.state, ToolsPane.Companion.ToolId.TOOL_ID_SELECTION)
-                    mConfigManager.saveItem(ConfigManager.ITEM_TOOL_SELECTION, mItemToolSelection.state.toString())
+                    mAppDataManager.updateAndSaveAppData { current -> current.copy(tool = current.tool.copy(toolSelection = mItemToolSelection.state)) }
                 }
 
                 mItemToolTest -> {
                     performToolsMenu(mItemToolTest.state, ToolsPane.Companion.ToolId.TOOL_ID_TEST)
-                    mConfigManager.saveItem(ConfigManager.ITEM_TOOL_TEST, mItemToolTest.state.toString())
+                    mAppDataManager.updateAndSaveAppData { current -> current.copy(tool = current.tool.copy(toolTest = mItemToolTest.state)) }
                 }
 
                 mItemFullLogToNewWindow -> {
@@ -2516,7 +2432,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                 }
 
                 mItemColumnMode -> {
-                    mConfigManager.saveItem(ConfigManager.ITEM_VIEW_COLUMN_MODE, mItemColumnMode.state.toString())
+                    mAppDataManager.updateAndSaveAppData { current -> current.copy(appearance = current.appearance.copy(viewColumnMode = mItemColumnMode.state)) }
                     resetLogPanel(true)
                 }
 
@@ -2540,16 +2456,16 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                 }
 
                 mItemFilterIncremental -> {
-                    mConfigManager.saveItem(ConfigManager.ITEM_FILTER_INCREMENTAL, mItemFilterIncremental.state.toString())
+                    mAppDataManager.updateAndSaveAppData { current -> current.copy(filterOption = current.filterOption.copy(filterIncremental = mItemFilterIncremental.state)) }
                 }
 
                 mItemFilterByFile -> {
-                    mConfigManager.saveItem(ConfigManager.ITEM_FILTER_BY_FILE, mItemFilterByFile.state.toString())
+                    mAppDataManager.updateAndSaveAppData { current -> current.copy(filterOption = current.filterOption.copy(filterByRecentFile = mItemFilterByFile.state)) }
                 }
 
                 mItemColorTagRegex -> {
                     LogTableModel.IsColorTagRegex = mItemColorTagRegex.state
-                    mConfigManager.saveItem(ConfigManager.ITEM_COLOR_TAG_REGEX, mItemColorTagRegex.state.toString())
+                    mAppDataManager.updateAndSaveAppData { current -> current.copy(filterOption = current.filterOption.copy(colorTagRegex = mItemColorTagRegex.state)) }
                     repaint()
                 }
 
@@ -2599,8 +2515,8 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                     }
                     mFilteredLogPanel.mTableModel.mScrollbackSplitFile = mScrollbackSplitFileToggle.isSelected
 
-                    mConfigManager.saveItem(ConfigManager.ITEM_SCROLLBACK, mScrollbackTF.text)
-                    mConfigManager.saveItem(ConfigManager.ITEM_SCROLLBACK_SPLIT_FILE, mScrollbackSplitFileToggle.isSelected.toString())
+                    mAppDataManager.updateAndSaveAppData { current -> current.copy(appearance = current.appearance.copy(scrollback = mFilteredLogPanel.mTableModel.mScrollback)) }
+                    mAppDataManager.updateAndSaveAppData { current -> current.copy(appearance = current.appearance.copy(scrollbackSplitFile = mScrollbackSplitFileToggle.isSelected)) }
                 }
                 mStartBtn -> {
                     startAdbScan(true)
@@ -2631,7 +2547,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                         mRotationStatus = Companion.ROTATION_LEFT_RIGHT
                     }
 
-                    mConfigManager.saveItem(ConfigManager.ITEM_ROTATION, mRotationStatus.toString())
+                    mAppDataManager.updateAndSaveAppData { current -> current.copy(appearance = current.appearance.copy(rotation = mRotationStatus)) }
                     rotateLogSplitPane(true)
                 }
 //                mFiltersBtn -> {
@@ -2680,15 +2596,15 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                 when (p0?.source) {
                     mItemIconText -> {
                         setBtnIconsTexts(true, true)
-                        mConfigManager.saveItem(ConfigManager.ITEM_ICON_TEXT, ConfigManager.VALUE_ICON_TEXT_I_T)
+                        mAppDataManager.updateAndSaveAppData { current -> current.copy(appearance = current.appearance.copy(iconText = AppDataManager.VALUE_ICON_TEXT_I_T)) }
                     }
                     mItemIcon -> {
                         setBtnIconsTexts(true, false)
-                        mConfigManager.saveItem(ConfigManager.ITEM_ICON_TEXT, ConfigManager.VALUE_ICON_TEXT_I)
+                        mAppDataManager.updateAndSaveAppData { current -> current.copy(appearance = current.appearance.copy(iconText = AppDataManager.VALUE_ICON_TEXT_I)) }
                     }
                     mItemText -> {
                         setBtnIconsTexts(false, true)
-                        mConfigManager.saveItem(ConfigManager.ITEM_ICON_TEXT, ConfigManager.VALUE_ICON_TEXT_I)
+                        mAppDataManager.updateAndSaveAppData { current -> current.copy(appearance = current.appearance.copy(iconText = AppDataManager.VALUE_ICON_TEXT_T)) }
                     }
                 }
             }
@@ -2919,7 +2835,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
             if (SwingUtilities.isRightMouseButton(p0)) {
                 var isNeedCheck = true
-                for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+                for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
                     if (p0.source == mTokenCombo[idx].editor.editorComponent) {
                         popupMenu = PopUpFilterCombobox(mTokenCombo[idx])
                         popupMenu?.show(p0.component, p0.x, p0.y)
@@ -3146,14 +3062,11 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             var logCmd: String?
             val currLogCmd = mLogCmdCombo.editor.item.toString()
             mLogCmdCombo.removeAllItems()
-            for (i in 0 until LogCmdManager.LOG_CMD_MAX) {
-                logCmd = mAppDataManager.mAppData.appearance "${ConfigManager.ITEM_ADB_LOG_CMD}_$i")
-                if (logCmd.isNullOrBlank()) {
-                    continue
-                }
 
-                mLogCmdCombo.addItem(logCmd)
+            mAppDataManager.mAppData.logCmd.logCmds?.forEach { item ->
+                mLogCmdCombo.addItem(item)
             }
+
             mLogCmdCombo.selectedIndex = -1
             if (currLogCmd.isBlank()) {
                 mLogCmdCombo.editor.item = mLogCmdManager.mLogCmd
@@ -3219,7 +3132,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     internal inner class ItemHandler : ItemListener {
         override fun itemStateChanged(p0: ItemEvent?) {
             var isNeedCheck = true
-            for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+            for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
                 if (p0?.source == mTokenToggle[idx]) {
                     mTokenCombo[idx].setEnabledFilter(mTokenToggle[idx].isSelected)
                     isNeedCheck = false
@@ -3246,17 +3159,28 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             isNeedCheck = true
             val formatName = mFormatManager.mCurrFormat.mName
             val tokens = mFormatManager.mCurrFormat.mTokenFilters
-            for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
-                if (p0?.source == mTokenToggle[idx]) {
-                    if (mTokenToggle[idx].isSelected && mTokenCombo[idx].selectedItem != null) {
-                        mFilteredLogPanel.mTableModel.mFilterTokenMgr.set(idx, mTokenCombo[idx].selectedItem!!.toString())
-                    } else {
-                        mFilteredLogPanel.mTableModel.mFilterTokenMgr.set(idx, "")
+            if (p0?.source in mTokenToggle) {
+                mAppDataManager.loadAppHistory()
+                val tokenCheckStatusMap =
+                    mAppDataManager.mAppData.filter.tokenCheckStatusMap?.toMutableMap() ?: mutableMapOf()
+                for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
+                    if (p0?.source == mTokenToggle[idx]) {
+                        if (mTokenToggle[idx].isSelected && mTokenCombo[idx].selectedItem != null) {
+                            mFilteredLogPanel.mTableModel.mFilterTokenMgr.set(
+                                idx,
+                                mTokenCombo[idx].selectedItem!!.toString()
+                            )
+                        } else {
+                            mFilteredLogPanel.mTableModel.mFilterTokenMgr.set(idx, "")
+                        }
+                        val key = "${formatName}_${tokens[idx].mToken}"
+                        tokenCheckStatusMap[key] = mTokenToggle[idx].isSelected
+                        isNeedCheck = false
+                        break
                     }
-                    mConfigManager.saveItem("${ConfigManager.ITEM_TOKEN_CHECK}${formatName}_${tokens[idx].mToken}", mTokenToggle[idx].isSelected.toString())
-                    isNeedCheck = false
-                    break
                 }
+                mAppDataManager.updateAppData { current -> current.copy(filter = current.filter.copy(tokenCheckStatusMap = tokenCheckStatusMap)) }
+                mAppDataManager.saveAppHistory()
             }
             if (isNeedCheck) {
                 when (p0?.source) {
@@ -3266,7 +3190,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                         } else {
                             mFilteredLogPanel.mTableModel.mFilterLog = ""
                         }
-                        mConfigManager.saveItem(ConfigManager.ITEM_SHOW_LOG_CHECK, mShowLogToggle.isSelected.toString())
+                        mAppDataManager.updateAndSaveAppData { current -> current.copy(filter = current.filter.copy(showLogCheck = mShowLogToggle.isSelected)) }
                     }
 
                     mBoldLogToggle -> {
@@ -3275,23 +3199,20 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                         } else {
                             mFilteredLogPanel.mTableModel.mFilterHighlightLog = ""
                         }
-                        mConfigManager.saveItem(
-                            ConfigManager.ITEM_HIGHLIGHT_LOG_CHECK,
-                            mBoldLogToggle.isSelected.toString()
-                        )
+                        mAppDataManager.updateAndSaveAppData { current -> current.copy(filter = current.filter.copy(boldLogCheck = mBoldLogToggle.isSelected)) }
                     }
 
                     mMatchCaseToggle -> {
                         mFilteredLogPanel.mTableModel.mMatchCase = mMatchCaseToggle.isSelected
-                        mConfigManager.saveItem(ConfigManager.ITEM_MATCH_CASE, mMatchCaseToggle.isSelected.toString())
+                        mAppDataManager.updateAndSaveAppData { current -> current.copy(filterOption = current.filterOption.copy(matchCase = mMatchCaseToggle.isSelected)) }
                     }
 
                     mScrollbackKeepToggle -> {
                         mFilteredLogPanel.mTableModel.mScrollbackKeep = mScrollbackKeepToggle.isSelected
                     }
 
-                    mRetryAdbToggle -> {
-                        mConfigManager.saveItem(ConfigManager.ITEM_RETRY_ADB, mRetryAdbToggle.isSelected.toString())
+                    mRetryLogCmdToggle -> {
+                        mAppDataManager.updateAndSaveAppData { current -> current.copy(logCmd = current.logCmd.copy(retryLogCmd = mRetryLogCmdToggle.isSelected)) }
                     }
 
                     mPauseToggle -> {
@@ -3303,23 +3224,23 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                     }
                     mItemProcessNameNone -> {
                         if (mItemProcessNameNone.isSelected) {
-                            mConfigManager.saveItem(ConfigManager.ITEM_VIEW_PROCESS_NAME, LogTableModel.SHOW_PROCESS_NONE.toString())
-                            LogTableModel.TypeShowProcessName = LogTableModel.SHOW_PROCESS_NONE
+                            mAppDataManager.updateAndSaveAppData { current -> current.copy(appearance = current.appearance.copy(viewProcessName = LogTableModel.HIDE_PROCESS_NAME)) }
+                            LogTableModel.ProcessNameDisplayMode = LogTableModel.HIDE_PROCESS_NAME
                             updateTablePNameColumn(false)
                         }
                     }
                     mItemProcessNameShow -> {
                         if (mItemProcessNameShow.isSelected) {
-                            mConfigManager.saveItem(ConfigManager.ITEM_VIEW_PROCESS_NAME, LogTableModel.SHOW_PROCESS_SHOW.toString())
-                            LogTableModel.TypeShowProcessName = LogTableModel.SHOW_PROCESS_SHOW
+                            mAppDataManager.updateAndSaveAppData { current -> current.copy(appearance = current.appearance.copy(viewProcessName = LogTableModel.SHOW_PROCESS_NAME)) }
+                            LogTableModel.ProcessNameDisplayMode = LogTableModel.SHOW_PROCESS_NAME
                             updateTablePNameColumn(false)
                             updateTablePNameColumn(CurrentMethod == METHOD_ADB)
                         }
                     }
                     mItemProcessNameColor -> {
                         if (mItemProcessNameColor.isSelected) {
-                            mConfigManager.saveItem(ConfigManager.ITEM_VIEW_PROCESS_NAME, LogTableModel.SHOW_PROCESS_SHOW_WITH_BGCOLOR.toString())
-                            LogTableModel.TypeShowProcessName = LogTableModel.SHOW_PROCESS_SHOW_WITH_BGCOLOR
+                            mAppDataManager.updateAndSaveAppData { current -> current.copy(appearance = current.appearance.copy(viewProcessName = LogTableModel.SHOW_PROCESS_NAME_WITH_BGCOLOR)) }
+                            LogTableModel.ProcessNameDisplayMode = LogTableModel.SHOW_PROCESS_NAME_WITH_BGCOLOR
                             updateTablePNameColumn(false)
                             updateTablePNameColumn(CurrentMethod == METHOD_ADB)
                         }
@@ -3385,7 +3306,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                 return
             }
             var isNeedCheck = true
-            for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+            for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
                 if (p0?.source == mTokenCombo[idx]) {
                     if (mTokenCombo[idx].selectedIndex < 0) {
                         return
@@ -3441,7 +3362,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                             return
                         }
                         mFilteredLogPanel.mTableModel.mFilterLevel = mLogLevelCombo.selectedIndex
-                        mConfigManager.saveItem(ConfigManager.ITEM_LOG_LEVEL, mLogLevelCombo.selectedIndex.toString())
+                        mAppDataManager.updateAndSaveAppData { current -> current.copy(logCmd = current.logCmd.copy(logLevel = mLogLevelCombo.selectedIndex)) }
                     }
 
                     mLogFormatCombo -> {
@@ -3449,7 +3370,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                             return
                         }
                         mLogFormatCombo.selectedItem?.let { mFormatManager.setCurrFormat(it.toString()) }
-                        mConfigManager.saveItem(ConfigManager.ITEM_LOG_FORMAT, mFormatManager.mCurrFormat.mName)
+                        mAppDataManager.updateAndSaveAppData { current -> current.copy(logCmd = current.logCmd.copy(logFormat = mFormatManager.mCurrFormat.mName)) }
                     }
                 }
             }
@@ -3545,7 +3466,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mShowLogCombo.parent.repaint()
         }
         
-        for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+        for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
             if (mFormatManager.mCurrFormat.mTokenFilters[idx].mIsSaveFilter
                 && mTokenCombo[idx].selectedIndex >= 0
                 && (mTokenComboStyle[idx] == FilterComboBox.Mode.MULTI_LINE || mTokenComboStyle[idx] == FilterComboBox.Mode.MULTI_LINE_HIGHLIGHT)) {
@@ -3566,7 +3487,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mColorManager.applyFilterStyle()
 
         mShowLogCombo.mEnabledTfTooltip = true
-        for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+        for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
             mTokenCombo[idx].mEnabledTfTooltip = true
         }
 
@@ -3827,7 +3748,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                 when (p0?.source) {
                     mFindMatchCaseToggle -> {
                         mFilteredLogPanel.mTableModel.mFindMatchCase = mFindMatchCaseToggle.isSelected
-                        mConfigManager.saveItem(ConfigManager.ITEM_FIND_MATCH_CASE, mFindMatchCaseToggle.isSelected.toString())
+                        mAppDataManager.updateAndSaveAppData { current -> current.copy(filterOption = current.filterOption.copy(findMatchCase = mFindMatchCaseToggle.isSelected)) }
                     }
                 }
             }
@@ -4034,28 +3955,26 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         val tokenFilters = mFormatManager.mCurrFormat.mTokenFilters
         var item: String?
         var check: String?
-        for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+        for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
+            mTokenCombo[idx].removeAll()
+            val key = "${formatName}_${tokenFilters[idx].mToken}"
             if (tokenFilters[idx].mIsSaveFilter) {
                 for (i in 0 until AppConstants.MAX_TOKEN_FILTER) {
-                    item = mAppDataManager.mAppData.appearance "${ConfigManager.ITEM_TOKEN_FILTER}${formatName}_${tokenFilters[idx].mToken}_$i")
-                    if (item == null) {
-                        break
-                    }
-                    mTokenCombo[idx].insertItemAt(item, i)
-                    if (i == 0) {
-                        mTokenCombo[idx].selectedIndex = 0
+                    mAppDataManager.mAppHistory.recentFilters.tokenLogFilterMap?.get(key)?.let {
+                        for (item in it) {
+                            mTokenCombo[idx].addItem(item)
+                        }
+                        if (mTokenCombo[idx].itemCount > 0) {
+                            mTokenCombo[idx].selectedIndex = 0
+                        }
                     }
                 }
 
                 mTokenCombo[idx].updateTooltip()
             }
 
-            check = mAppDataManager.mAppData.appearance "${ConfigManager.ITEM_TOKEN_CHECK}${formatName}_${tokenFilters[idx].mToken}")
-            if (!check.isNullOrEmpty()) {
-                mTokenToggle[idx].isSelected = check.toBoolean()
-            } else {
-                mTokenToggle[idx].isSelected = false
-            }
+            mTokenToggle[idx].isSelected = mAppDataManager.mAppData.filter.tokenCheckStatusMap?.get(key) ?: false
+
             mTokenCombo[idx].setEnabledFilter(mTokenToggle[idx].isSelected)
             mTokenCombo[idx].preferredSize = Dimension(tokenFilters[idx].mUiWidth, mTokenCombo[idx].preferredSize.height)
 
@@ -4081,10 +4000,10 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     }
 
     fun updateLogPanelTableBar() {
-        updateLogPanelTableBar(mConfigManager.loadFilters(), mConfigManager.loadCmds())
+        updateLogPanelTableBar(mAppDataManager.loadFilters(), mAppDataManager.loadCmds())
     }
 
-    private fun updateLogPanelTableBar(filters: ArrayList<CustomListManager.CustomElement>?, cmds: ArrayList<CustomListManager.CustomElement>?) {
+    private fun updateLogPanelTableBar(filters: ArrayList<PresetManager.PresetElement>?, cmds: ArrayList<PresetManager.PresetElement>?) {
         mFullLogPanel.updateTableBar(filters, cmds)
         mFilteredLogPanel.updateTableBar(filters, cmds)
     }
@@ -4122,7 +4041,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mFindPanel.updateColor()
 
         changeToolBtnColor()
-        updateLogPanelTableBar(mConfigManager.loadFilters(), mConfigManager.loadCmds())
+        updateLogPanelTableBar(mAppDataManager.loadFilters(), mAppDataManager.loadCmds())
     }
 }
 

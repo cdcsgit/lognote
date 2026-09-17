@@ -12,8 +12,8 @@ class FilterToggleButton(title:String) : JToggleButton(title){
     var mSelectedBg: Color? = null
 
     override fun updateUI() {
-        icon = Icons.ToggleOffIcon(ConfigManager.LaFAccentColor)
-        selectedIcon = Icons.ToggleOnIcon(ConfigManager.LaFAccentColor)
+        icon = Icons.ToggleOffIcon(AppDataManager.LaFAccentColor)
+        selectedIcon = Icons.ToggleOnIcon(AppDataManager.LaFAccentColor)
         super.updateUI()
     }
 }
@@ -44,12 +44,12 @@ class PackageToggleButton(title:String) : JToggleButton(title), ChangeListener {
 
     private fun updateIcon() {
         selectedIcon = if (mIsValid) {
-            Icons.PackageToggleOnIcon(ConfigManager.LaFAccentColor)
+            Icons.PackageToggleOnIcon(AppDataManager.LaFAccentColor)
         } else {
             Icons.PackageToggleInvalidIcon("#FF0000")
         }
 
-        icon = Icons.PackageToggleOffIcon(ConfigManager.LaFAccentColor)
+        icon = Icons.PackageToggleOffIcon(AppDataManager.LaFAccentColor)
     }
 
     override fun updateUI() {

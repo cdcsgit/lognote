@@ -7,7 +7,7 @@ import javax.swing.*
 
 class ToolSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.TOOL, true), ActionListener {
     private val mMainUI = mainUI
-    private val mConfigManager = ConfigManager.getInstance()
+    private val mAppDataManager = AppDataManager.getInstance()
 
     private val mToolsPanel = JPanel()
     private val mScrollPane = JScrollPane()
@@ -118,8 +118,8 @@ class ToolSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.TOOL, true), 
             if (mIsNeedRestore) {
                 // nothing
             } else {
-                mConfigManager.saveItem(ConfigManager.ITEM_TOOL_SELECTION_RANGE_PREVIOUS, mToolSelection.mPrevLines.toString())
-                mConfigManager.saveItem(ConfigManager.ITEM_TOOL_SELECTION_RANGE_NEXT, mToolSelection.mNextLines.toString())
+                mAppDataManager.updateAndSaveAppData { current -> current.copy(tool = current.tool.copy(
+                    toolSelectionRangePrevious = mToolSelection.mPrevLines, toolSelectionRangeNext = mToolSelection.mNextLines)) }
             }
         }
 

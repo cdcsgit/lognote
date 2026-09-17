@@ -51,19 +51,19 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
         mCtrlMainPanel = ButtonPanel()
         mFirstBtn = ColorButton("")
         mFirstBtn.border = ColorButtonBorder(mCtrlMainPanel.background)
-        mFirstBtn.icon = Icons.TopIcon(ConfigManager.LaFAccentColor)
+        mFirstBtn.icon = Icons.TopIcon(AppDataManager.LaFAccentColor)
         mFirstBtn.toolTipText = TooltipStrings.VIEW_FIRST_BTN
         mFirstBtn.margin = Insets(2, 3, 1, 3)
         mFirstBtn.addActionListener(mActionHandler)
 
         mLastBtn = ColorButton("")
         mLastBtn.border = ColorButtonBorder(mCtrlMainPanel.background)
-        mLastBtn.icon = Icons.BottomIcon(ConfigManager.LaFAccentColor)
+        mLastBtn.icon = Icons.BottomIcon(AppDataManager.LaFAccentColor)
         mLastBtn.toolTipText = TooltipStrings.VIEW_LAST_BTN
         mLastBtn.margin = Insets(2, 3, 1, 3)
         mLastBtn.addActionListener(mActionHandler)
-        mTokenBtns = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { FilterToggleButton(mFormatManager.mCurrFormat.mTokenFilters[it].mToken) }
-        for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+        mTokenBtns = Array(AppConstants.MAX_TOKEN_COUNT) { FilterToggleButton(mFormatManager.mCurrFormat.mTokenFilters[it].mToken) }
+        for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
             mTokenBtns[idx].toolTipText = TooltipStrings.TOKEN_VIEW_TOGGLE
             mTokenBtns[idx].margin = Insets(0, 3, 0, 3)
             mTokenBtns[idx].addActionListener(mActionHandler)
@@ -87,7 +87,7 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
             mTableModel.addLogTableModelListener(mTableModelHandler)
             mTable = LogColumnTable(mTableModel)
             mTable.addFocusListener(mFocusHandler)
-            for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+            for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
                 mTokenBtns[idx].isVisible = false
             }
         }
@@ -154,11 +154,11 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
         panel.add(Box.createHorizontalStrut(2))
     }
 
-    private fun updateTableBarFilters(customArray: ArrayList<CustomListManager.CustomElement>?) {
+    private fun updateTableBarFilters(customArray: ArrayList<PresetManager.PresetElement>?) {
         val filtersBtn = TableBarButton(Strings.FILTERS)
         filtersBtn.border = ColorButtonBorder(mCtrlMainPanel.background)
         filtersBtn.background = mCtrlMainPanel.background
-        filtersBtn.icon = Icons.FiltersCmdsIcon(ConfigManager.LaFAccentColor)
+        filtersBtn.icon = Icons.FiltersCmdsIcon(AppDataManager.LaFAccentColor)
         filtersBtn.toolTipText = TooltipStrings.ADD_FILTER_BTN
         filtersBtn.margin = Insets(0, 3, 0, 3)
         filtersBtn.addActionListener {
@@ -166,18 +166,18 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
         }
         mCtrlMainPanel.add(filtersBtn)
 
-        val icon = Icons.FiltersCmdsItemIcon(ConfigManager.LaFAccentColor)
+        val icon = Icons.FiltersCmdsItemIcon(AppDataManager.LaFAccentColor)
         if (customArray != null) {
             for (item in customArray) {
-                if (!item.mTableBar) {
+                if (!item.showInLogViewBar) {
                     continue
                 }
-                val button = TableBarButton(item.mTitle)
+                val button = TableBarButton(item.name)
                 button.border = ColorButtonBorder(mCtrlMainPanel.background)
                 button.background = mCtrlMainPanel.background
                 button.icon = icon
-                button.mValue = item.mValue
-                button.toolTipText = "<html>${item.mTitle} : <b>\"${item.mValue}\"</b><br><br>* Append : Ctrl + Click</html>"
+                button.mValue = item.value
+                button.toolTipText = "<html>${item.name} : <b>\"${item.value}\"</b><br><br>* Append : Ctrl + Click</html>"
                 button.margin = Insets(0, 3, 0, 3)
                 button.addActionListener { e: ActionEvent? ->
                     if ((ActionEvent.CTRL_MASK and e!!.modifiers) != 0) {
@@ -201,11 +201,11 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
         }
     }
 
-    private fun updateTableBarCmds(customArray: ArrayList<CustomListManager.CustomElement>?) {
+    private fun updateTableBarCmds(customArray: ArrayList<PresetManager.PresetElement>?) {
         val cmdsBtn = TableBarButton(Strings.CMDS)
         cmdsBtn.border = ColorButtonBorder(mCtrlMainPanel.background)
         cmdsBtn.background = mCtrlMainPanel.background
-        cmdsBtn.icon = Icons.FiltersCmdsIcon(ConfigManager.LaFAccentColor)
+        cmdsBtn.icon = Icons.FiltersCmdsIcon(AppDataManager.LaFAccentColor)
         cmdsBtn.toolTipText = TooltipStrings.ADD_CMD_BTN
         cmdsBtn.margin = Insets(0, 3, 0, 3)
         cmdsBtn.addActionListener {
@@ -213,18 +213,18 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
         }
         mCtrlMainPanel.add(cmdsBtn)
 
-        val icon = Icons.FiltersCmdsItemIcon(ConfigManager.LaFAccentColor)
+        val icon = Icons.FiltersCmdsItemIcon(AppDataManager.LaFAccentColor)
         if (customArray != null) {
             for (item in customArray) {
-                if (!item.mTableBar) {
+                if (!item.showInLogViewBar) {
                     continue
                 }
-                val button = TableBarButton(item.mTitle)
+                val button = TableBarButton(item.name)
                 button.border = ColorButtonBorder(mCtrlMainPanel.background)
                 button.background = mCtrlMainPanel.background
                 button.icon = icon
-                button.mValue = item.mValue
-                button.toolTipText = "${item.mTitle} : ${item.mValue}"
+                button.mValue = item.value
+                button.toolTipText = "${item.name} : ${item.value}"
                 button.margin = Insets(0, 3, 0, 3)
                 button.addActionListener { e: ActionEvent? ->
                     var cmd = (e?.source as TableBarButton).mValue
@@ -244,7 +244,7 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
         val packagesBtn = TableBarButton(Strings.PACKAGES)
         packagesBtn.border = ColorButtonBorder(mCtrlMainPanel.background)
         packagesBtn.background = mCtrlMainPanel.background
-        packagesBtn.icon = Icons.FiltersCmdsIcon(ConfigManager.LaFAccentColor)
+        packagesBtn.icon = Icons.FiltersCmdsIcon(AppDataManager.LaFAccentColor)
         packagesBtn.toolTipText = TooltipStrings.ADD_PACKAGE_BTN
         packagesBtn.margin = Insets(0, 3, 0, 3)
         packagesBtn.addActionListener {
@@ -276,18 +276,18 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
         }
     }
 
-    fun updateTableBar(filters: ArrayList<CustomListManager.CustomElement>?, cmds: ArrayList<CustomListManager.CustomElement>?) {
+    fun updateTableBar(filters: ArrayList<PresetManager.PresetElement>?, cmds: ArrayList<PresetManager.PresetElement>?) {
         mCtrlMainPanel.removeAll()
         mFirstBtn.background = mCtrlMainPanel.background
         mFirstBtn.border = ColorButtonBorder(mCtrlMainPanel.background)
 
-        mFirstBtn.icon = Icons.TopIcon(ConfigManager.LaFAccentColor)
+        mFirstBtn.icon = Icons.TopIcon(AppDataManager.LaFAccentColor)
         mLastBtn.background = mCtrlMainPanel.background
         mLastBtn.border = ColorButtonBorder(mCtrlMainPanel.background)
-        mLastBtn.icon = Icons.BottomIcon(ConfigManager.LaFAccentColor)
+        mLastBtn.icon = Icons.BottomIcon(AppDataManager.LaFAccentColor)
         mCtrlMainPanel.add(mFirstBtn)
         mCtrlMainPanel.add(mLastBtn)
-        for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+        for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
             mTokenBtns[idx].background = mCtrlMainPanel.background
             mCtrlMainPanel.add(mTokenBtns[idx])
             if (mTokenBtns[idx].text.isNullOrEmpty()) {
@@ -582,9 +582,9 @@ class LogPanel(mainUI: MainUI, basePanel: LogPanel?, focusHandler: MainUI.FocusH
     internal inner class ActionHandler : ActionListener {
         override fun actionPerformed(p0: ActionEvent?) {
             var isNeedCheck = true
-            for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+            for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
                 if (p0?.source == mTokenBtns[idx]) {
-                    for (sortIdx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+                    for (sortIdx in 0 until AppConstants.MAX_TOKEN_COUNT) {
                         if (mTokenBtns[idx].text == mFormatManager.mCurrFormat.mSortedTokenFilters[sortIdx].mToken) {
                             mTable.mTableModel.mBoldTokens[sortIdx] = mTokenBtns[idx].model.isSelected
                             break

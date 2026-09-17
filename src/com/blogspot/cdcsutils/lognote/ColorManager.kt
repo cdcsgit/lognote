@@ -32,7 +32,7 @@ class ColorManager private constructor(){
 
     data class ColorItem(val mOrder: Int, val mName: String, var mStrColor: String)
 
-    private val mConfigManager = ConfigManager.getInstance()
+    private val mAppDataManager = AppDataManager.getInstance()
 
     enum class TableColorType(val value: Int) {
         FULL_LOG_TABLE(0),
@@ -459,18 +459,33 @@ class ColorManager private constructor(){
                 ColorItem(25, "Find BG", mColorSchemeLight[43]),
         )
 
-        fun getConfig() {
-            for (idx in mColorArray.indices) {
-                val item = mConfigManager.getItem("${ConfigManager.ITEM_COLOR_MANAGER}${mType}_$idx")
-                if (item != null) {
-                    mColorArray[idx].mStrColor = item
+        fun getAppData() {
+            val colorList = if (mType == TableColorType.FULL_LOG_TABLE) {
+                mAppDataManager.mAppData.color.colorFullView
+            }
+            else {
+                mAppDataManager.mAppData.color.colorFilterView
+            }
+
+            colorList?.let {
+                if (it.size != mColorArray.size) {
+                    Utils.printlnLog("Warn : invalid color, type - $mType,  colorList size = ${it.size}")
+                }
+                else {
+                    for (idx in mColorArray.indices) {
+                        mColorArray[idx].mStrColor = it[idx][1].toString()
+                    }
                 }
             }
         }
 
-        fun putConfig() {
-            for (idx in mColorArray.indices) {
-                mConfigManager.setItem("${ConfigManager.ITEM_COLOR_MANAGER}${mType}_$idx", mColorArray[idx].mStrColor)
+        fun putAppData() {
+            val colorArray: List<List<Any>> = mColorArray.map { listOf(it.mName, it.mStrColor, it.mOrder) }
+            if (mType == TableColorType.FULL_LOG_TABLE) {
+                mAppDataManager.updateAndSaveAppData { current -> current.copy(color = current.color.copy(colorFullView = colorArray)) }
+            }
+            else {
+                mAppDataManager.updateAndSaveAppData { current -> current.copy(color = current.color.copy(colorFilterView = colorArray)) }
             }
         }
 
@@ -551,19 +566,22 @@ class ColorManager private constructor(){
         }
     }
 
-    fun getConfigFilterStyle() {
-        for (idx in mFilterStyle.indices) {
-            val item = mConfigManager.getItem(ConfigManager.ITEM_COLOR_FILTER_STYLE + idx)
-            if (item != null) {
-                mFilterStyle[idx].mStrColor = item
+    fun getAppDataFilterStyle() {
+        mAppDataManager.mAppData.color.colorFilterStyle?.let {
+            if (it.size != mFilterStyle.size) {
+                Utils.printlnLog("Warn : invalid color, style colorList size = ${it.size}")
+            }
+            else {
+                for (idx in mFilterStyle.indices) {
+                    mFilterStyle[idx].mStrColor = it[idx][1].toString()
+                }
             }
         }
     }
 
-    fun putConfigFilterStyle() {
-        for (idx in mFilterStyle.indices) {
-            mConfigManager.setItem(ConfigManager.ITEM_COLOR_FILTER_STYLE + idx, mFilterStyle[idx].mStrColor)
-        }
+    fun putAppDataFilterStyle() {
+        val filterStyle: List<List<Any>> = mFilterStyle.map { listOf(it.mName, it.mStrColor, it.mOrder) }
+        mAppDataManager.updateAndSaveAppData { current -> current.copy(color = current.color.copy(colorFilterStyle = filterStyle)) }
     }
 
     fun addFilterStyleEventListener(listener:ColorEventListener) {

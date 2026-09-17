@@ -9,7 +9,7 @@ import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.DefaultTableModel
 
 
-class FormatManager private constructor(fileName: String) : PropertiesBase(fileName) {
+class FormatManager private constructor() {
     interface FormatEventListener {
         fun formatChanged(format: FormatItem)
         fun formatListChanged()
@@ -53,7 +53,7 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
 
         val mSortedTokenFilters: Array<out TokenFilterItem> =
             mTokenFilters.sortedArrayWith { t1: TokenFilterItem, t2: TokenFilterItem -> t1.mPosition - t2.mPosition }
-        val mSortedTokensIdxs = Array(MAX_TOKEN_FILTER_COUNT) { -1 }
+        val mSortedTokensIdxs = Array(AppConstants.MAX_TOKEN_COUNT) { -1 }
         val mSortedPidTokIdx: Int
 
         init {
@@ -63,7 +63,7 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                 val tokenFilterPosition = mTokenFilters[mPidTokIdx].mPosition
                 var tokIdx = -1
                 if (tokenFilterPosition >= 0) {
-                    for (idx in 0 until MAX_TOKEN_FILTER_COUNT) {
+                    for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
                         if (tokenFilterPosition == mSortedTokenFilters[idx].mPosition) {
                             tokIdx = idx
                             break
@@ -73,8 +73,8 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                 mSortedPidTokIdx = tokIdx
             }
 
-            for (idx in 0 until MAX_TOKEN_FILTER_COUNT) {
-                for (idxSorted in 0 until MAX_TOKEN_FILTER_COUNT) {
+            for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
+                for (idxSorted in 0 until AppConstants.MAX_TOKEN_COUNT) {
                     if (mTokenFilters[idx].mToken == mSortedTokenFilters[idxSorted].mToken) {
                         mSortedTokensIdxs[idx] = idxSorted
                         break
@@ -98,26 +98,6 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
     }
 
     companion object {
-        private const val FORMATS_LIST_FILE = "lognote_formats.xml"
-        const val ITEM_VERSION = "FORMAT_VERSION"
-
-        const val ITEM_NAME = "_NAME"
-        const val ITEM_SEPARATOR = "_SEPARATOR"
-        const val ITEM_TOKEN_COUNT = "_TOKEN_COUNT"
-        const val ITEM_LOG_POSITION = "_LOG_NTH"
-        const val ITEM_COLUMN_NAMES = "_COLUMN_NAMES"
-        const val ITEM_LEVEL = "_LEVEL_"
-        const val ITEM_LEVEL_POSITION = "_LEVEL_NTH"
-        const val ITEM_TOKEN_FILTER_NAME = "_TOKEN_NAME_"
-        const val ITEM_TOKEN_FILTER_POSITION = "_TOKEN_NTH_"
-        const val ITEM_TOKEN_SAVE_FILTER = "_TOKEN_SAVE_FILTER_"
-        const val ITEM_TOKEN_UI_WIDTH = "_TOKEN_UI_WIDTH_"
-        const val ITEM_PID_TOK_IDX = "_PID_TOK_IDX"
-        const val ITEM_SAMPLE_TEXT = "_SAMPLE_TEXT"
-
-        const val MAX_FORMAT_COUNT = 50
-        const val MAX_TOKEN_FILTER_COUNT = 3
-
         val TEXT_LEVEL = arrayOf("None", "Verbose", "Debug", "Info", "Warning", "Error", "Fatal")
         const val LEVEL_NONE = 0
         const val LEVEL_VERBOSE = 1
@@ -152,7 +132,7 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
             }
         }
 
-        private val mInstance: FormatManager = FormatManager(FORMATS_LIST_FILE)
+        private val mInstance: FormatManager = FormatManager()
         fun getInstance(): FormatManager {
             return mInstance
         }
@@ -161,10 +141,9 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
     val mFormatList = mutableListOf<FormatItem>()
     var mCurrFormat: FormatItem
 
-    private val mConfigManager = ConfigManager.getInstance()
+    private val mAppDataManager = AppDataManager.getInstance()
 
     init {
-        manageVersion()
         loadList()
 
         if (mFormatList.isEmpty()) {
@@ -174,12 +153,8 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
         verifyRepairFormats()
 
         mCurrFormat = mFormatList[0]
-        val logFormat = mConfigManager.getItem(ConfigManager.ITEM_LOG_FORMAT)
-        if (logFormat != null) {
-            setCurrFormat(logFormat.toString().trim())
-        } else {
-            setCurrFormat("")
-        }
+        val logFormat = mAppDataManager.mAppData.logCmd.logFormat ?: ""
+        setCurrFormat(logFormat.trim())
     }
 
     private fun verifyRepairFormats() {
@@ -430,83 +405,48 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
     }
 
     private fun loadList() {
-        loadXml()
         mFormatList.clear()
 
-        for (i in 0 until MAX_FORMAT_COUNT) {
-            val name = (mProperties["$i$ITEM_NAME"] ?: "") as String
-            if (name.trim().isEmpty()) {
-                break
-            }
-            val separator = (mProperties["$i$ITEM_SEPARATOR"] ?: "") as String
-            val tokenCount = try {
-                ((mProperties["$i$ITEM_TOKEN_COUNT"] ?: "") as String).toInt()
-            } catch (ex: NumberFormatException) {
-                1
-            }
-            val logPosition = try {
-                ((mProperties["$i$ITEM_LOG_POSITION"] ?: "") as String).toInt()
-            } catch (ex: NumberFormatException) {
-                0
-            }
-            val columnNames = (mProperties["$i$ITEM_COLUMN_NAMES"] ?: "") as String
-            val levels = emptyMap<String, Int>().toMutableMap()
-            for (idx in 1 until TEXT_LEVEL.size) {
-                val level = ((mProperties["$i$ITEM_LEVEL$idx"] ?: "") as String).trim()
-                if (level.isNotEmpty()) {
-                    levels[level] = idx
+        mAppDataManager.mAppData.logFormats?.let {
+            for (item in it) {
+                if (item.name.isBlank()) {
+                    break
                 }
-            }
 
-            val levelPosition = try {
-                ((mProperties["$i$ITEM_LEVEL_POSITION"] ?: "") as String).toInt()
-            } catch (ex: NumberFormatException) {
-                -1
-            }
-
-            var tokenFilters: Array<FormatItem.TokenFilterItem>
-            try {
-                tokenFilters = Array(MAX_TOKEN_FILTER_COUNT) {
-                    val tokenName = ((mProperties["$i$ITEM_TOKEN_FILTER_NAME$it"] ?: "") as String).trim()
-                    val position = try {
-                        ((mProperties["$i$ITEM_TOKEN_FILTER_POSITION$it"] ?: "") as String).toInt()
-                    } catch (ex: NumberFormatException) {
-                        0
+                val levels = emptyMap<String, Int>().toMutableMap()
+                for (idx in 1 until TEXT_LEVEL.size) {
+                    val level = item.level[idx].trim()
+                    if (level.isNotEmpty()) {
+                        levels[level] = idx
                     }
-                    val check = (mProperties["$i$ITEM_TOKEN_SAVE_FILTER$it"] ?: "") as String
-                    val isSaveFilter = if (check.isNotEmpty()) {
-                        check.toBoolean()
-                    } else {
-                        false
-                    }
-                    val uiWidth = try {
-                        ((mProperties["$i$ITEM_TOKEN_UI_WIDTH$it"] ?: "") as String).toInt()
-                    } catch (ex: NumberFormatException) {
-                        0
-                    }
-
-                    FormatItem.TokenFilterItem(tokenName, position, isSaveFilter, uiWidth)
                 }
-            } catch (ex: Exception) {
-                Utils.printlnLog("Failed load format($name) tokens")
-                ex.printStackTrace()
-                tokenFilters = arrayOf(
-                    FormatItem.TokenFilterItem("", 0, false, 120),
-                    FormatItem.TokenFilterItem("", 0, false, 120),
-                    FormatItem.TokenFilterItem("", 0, false, 120),
-                )
+
+                var tokenFilters: Array<FormatItem.TokenFilterItem>
+                try {
+                    tokenFilters = Array(AppConstants.MAX_TOKEN_COUNT) {
+                        val tokenName = (item.tokenFilters[it][0] as String).trim()
+                        val position = item.tokenFilters[it][1] as Int
+                        val isSaveFilter = item.tokenFilters[it][2] as Boolean
+                        val uiWidth = item.tokenFilters[it][3] as Int
+
+                        FormatItem.TokenFilterItem(tokenName, position, isSaveFilter, uiWidth)
+                    }
+                } catch (ex: Exception) {
+                    Utils.printlnLog("Failed load format(${item.name}) tokens")
+                    ex.printStackTrace()
+                    tokenFilters = arrayOf(
+                        FormatItem.TokenFilterItem("", 0, false, 120),
+                        FormatItem.TokenFilterItem("", 0, false, 120),
+                        FormatItem.TokenFilterItem("", 0, false, 120),
+                    )
+                }
+
+                mFormatList.add(FormatItem(item.name, item.separator, item.tokenCount,
+                    item.logPosition, item.columnNames, item.levelPosition, levels,
+                    tokenFilters, item.pidTokIdx, item.sampleText))
             }
-
-            val pidTokIdx = try {
-                ((mProperties["$i$ITEM_PID_TOK_IDX"] ?: "") as String).toInt()
-            } catch (ex: NumberFormatException) {
-                -1
-            }
-
-            val sampleText = (mProperties["$i$ITEM_SAMPLE_TEXT"] ?: "") as String
-
-            mFormatList.add(FormatItem(name, separator, tokenCount, logPosition, columnNames, levelPosition, levels, tokenFilters, pidTokIdx, sampleText))
         }
+
     }
 
     private fun isEqualFormatItem(format1: FormatItem, format2: FormatItem): Boolean {
@@ -531,7 +471,7 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
         if (format1.mLevelPosition != format2.mLevelPosition) {
             return false
         }
-        for (idxTok in 0 until MAX_TOKEN_FILTER_COUNT) {
+        for (idxTok in 0 until AppConstants.MAX_TOKEN_COUNT) {
             if (format1.mTokenFilters[idxTok].mToken != format2.mTokenFilters[idxTok].mToken) {
                 return false
             }
@@ -572,76 +512,46 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
     }
 
     private fun saveList() {
-        mProperties.clear()
+        val logFormats = mutableListOf<LogFormat>()
         var format: FormatItem
         for (i in 0 until mFormatList.size) {
+            if (i >= AppConstants.MAX_FORMAT_COUNT) {
+                break
+            }
             format = mFormatList[i]
-            mProperties["$i$ITEM_NAME"] = format.mName
-            mProperties["$i$ITEM_SEPARATOR"] = format.mSeparator
-            mProperties["$i$ITEM_TOKEN_COUNT"] = format.mTokenCount.toString()
-            mProperties["$i$ITEM_LOG_POSITION"] = format.mLogPosition.toString()
-            mProperties["$i$ITEM_COLUMN_NAMES"] = format.mColumnNames
+            val name = format.mName
+            val separator = format.mSeparator
+            val tokenCount = format.mTokenCount
+            val logPosition = format.mLogPosition
+            val columnNames = format.mColumnNames
+            val levels = mutableListOf<String>()
+
             val keyList = format.mLevels.keys.toList()
             for (key in keyList) {
                 val level = format.mLevels[key]
                 if (level != null) {
-                    mProperties["$i$ITEM_LEVEL$level"] = key
+                    levels.add(key)
                 }
             }
 
-            mProperties["$i$ITEM_LEVEL_POSITION"] = format.mLevelPosition.toString()
+            val levelPosition = format.mLevelPosition
 
-            for (idx in 0 until MAX_TOKEN_FILTER_COUNT) {
-                mProperties["$i$ITEM_TOKEN_FILTER_NAME$idx"] = format.mTokenFilters[idx].mToken
-                mProperties["$i$ITEM_TOKEN_FILTER_POSITION$idx"] = format.mTokenFilters[idx].mPosition.toString()
-                mProperties["$i$ITEM_TOKEN_SAVE_FILTER$idx"] = format.mTokenFilters[idx].mIsSaveFilter.toString()
-                mProperties["$i$ITEM_TOKEN_UI_WIDTH$idx"] = format.mTokenFilters[idx].mUiWidth.toString()
+            val tokenFilters: List<MutableList<Any>> = List(AppConstants.MAX_TOKEN_COUNT) { mutableListOf("", 0, false, 120) }
+            for (tokIdx in 0 until AppConstants.MAX_TOKEN_COUNT) {
+                tokenFilters[tokIdx][0] = format.mTokenFilters[tokIdx].mToken
+                tokenFilters[tokIdx][1] = format.mTokenFilters[tokIdx].mPosition
+                tokenFilters[tokIdx][2] = format.mTokenFilters[tokIdx].mIsSaveFilter
+                tokenFilters[tokIdx][3] = format.mTokenFilters[tokIdx].mUiWidth
             }
 
-            mProperties["$i$ITEM_PID_TOK_IDX"] = format.mPidTokIdx.toString()
-            mProperties["$i$ITEM_SAMPLE_TEXT"] = format.mSampleText
+            val pidTokIdx = format.mPidTokIdx
+            val sampleText = format.mSampleText
+
+            logFormats.add(LogFormat(name, separator, tokenCount, logPosition, columnNames, levels, levelPosition, tokenFilters, pidTokIdx, sampleText))
         }
 
-        saveXml()
+        mAppDataManager.updateAndSaveAppData { current -> current.copy(logFormats = logFormats) }
         notifyFormatListChanged()
-    }
-
-    override fun manageVersion() {
-        val isLoaded = loadXml()
-
-        if (isLoaded) {
-            var confVer: String = (mProperties[ITEM_VERSION] ?: "") as String
-            if (confVer.isEmpty()) {
-                updateFromV0ToV1()
-                confVer = (mProperties[ITEM_VERSION] ?: "") as String
-                Utils.printlnLog("manageVersion : $confVer applied")
-            }
-        }
-        else {
-            mProperties[ITEM_VERSION] = "1"
-        }
-
-        saveXml()
-    }
-
-    private fun updateFromV0ToV1() {
-        Utils.printlnLog("FormatManager : updateFromV0ToV1 : add sample text ++")
-        val formatList = mutableListOf<FormatItem>()
-        addDefaultFormats(formatList)
-        for (i in 0 until MAX_FORMAT_COUNT) {
-            val name = (mProperties["$i$ITEM_NAME"] ?: "") as String
-            if (name.trim().isEmpty()) {
-                break
-            }
-
-            for (format in formatList) {
-                if (format.mName == name) {
-                    mProperties["$i$ITEM_SAMPLE_TEXT"] = format.mSampleText
-                }
-            }
-        }
-        mProperties[ITEM_VERSION] = "1"
-        Utils.printlnLog("FormatManager : updateFromV0ToV1 : --")
     }
 
     fun clear() {
@@ -960,7 +870,7 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
             private val mLevelsLabelArr = Array(TEXT_LEVEL.size) { JLabel(TEXT_LEVEL[it]) }
             private val mLevelsTFArr = Array(TEXT_LEVEL.size) { JTextField() }
             private val mLevelsPanel = JPanel()
-            private val mTokenFilterArr = Array(MAX_TOKEN_FILTER_COUNT) { TokenFilterPanel(it) }
+            private val mTokenFilterArr = Array(AppConstants.MAX_TOKEN_COUNT) { TokenFilterPanel(it) }
             private val mTokenFiltersPanel = JPanel()
             val mTextFieldBg: Color
             private val mColumnNamesPanel = JPanel()
@@ -1032,7 +942,7 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                 mLevelPositionLabel.text = "${Strings.LEVEL} ${Strings.POSITION}"
                 mLevelPositionTF.text = "-1"
                 mPidTokIdxLabel.text = "${Strings.PID_TOKEN_FILTER}(${Strings.PID_TOKEN_FILTER_OPTIONAL})"
-                for (idx in -1 until MAX_TOKEN_FILTER_COUNT) {
+                for (idx in -1 until AppConstants.MAX_TOKEN_COUNT) {
                     mPidTokIdxCombo.addItem("$idx")
                 }
 
@@ -1089,7 +999,7 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                 }
 
                 mTokenFiltersPanel.layout = BoxLayout(mTokenFiltersPanel, BoxLayout.Y_AXIS)
-                for (idx in 0 until MAX_TOKEN_FILTER_COUNT) {
+                for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
                     mTokenFiltersPanel.add(mTokenFilterArr[idx])
                 }
 
@@ -1125,7 +1035,7 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                     mTokenCountTF.isEditable = false
                     mLogPositionTF.isEditable = false
                     mColumnNamesTF.isEditable = false
-                    for (idx in 0 until MAX_TOKEN_FILTER_COUNT) {
+                    for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
                         mTokenFilterArr[idx].setIsEditable(false)
                     }
                 }
@@ -1228,7 +1138,7 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                         mLevelsTFArr[idx].text = ""
                     }
                     format.mLevels.forEach { mLevelsTFArr[it.value].text = it.key }
-                    for (idx in 0 until MAX_TOKEN_FILTER_COUNT) {
+                    for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
                         mTokenFilterArr[idx].setToken(format.mTokenFilters[idx])
                     }
                     mSampleTextArea.text = format.mSampleText
@@ -1274,7 +1184,7 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                     isValid = false
                 }
 
-                for (idx in 0 until MAX_TOKEN_FILTER_COUNT) {
+                for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
                     try {
                         mTokenFilterArr[idx].getToken()
                     } catch (ex: Exception) {
@@ -1304,7 +1214,7 @@ class FormatManager private constructor(fileName: String) : PropertiesBase(fileN
                 }
 
                 val levelPosition = mLevelPositionTF.text.toInt()
-                val tokens = Array(MAX_TOKEN_FILTER_COUNT) { mTokenFilterArr[it].getToken() }
+                val tokens = Array(AppConstants.MAX_TOKEN_COUNT) { mTokenFilterArr[it].getToken() }
                 val pidTokIdx: Int = if (mPidTokIdxCombo.selectedItem == null) {
                     -1
                 } else {

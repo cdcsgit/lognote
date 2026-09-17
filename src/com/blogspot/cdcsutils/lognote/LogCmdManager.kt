@@ -6,7 +6,7 @@ import javax.swing.JOptionPane
 
 
 class LogCmdManager private constructor(){
-    var mPrefix: String = DEFAULT_PREFIX
+    var mLogFilePrefix: String = DEFAULT_PREFIX
     var mAdbCmd = "adb"
     var mLogSavePath:String = "."
     var mTargetDevice: String = ""
@@ -33,7 +33,6 @@ class LogCmdManager private constructor(){
         const val CMD_GET_PACKAGES = 6
 
         const val DEFAULT_LOGCAT = "logcat -v threadtime"
-        const val LOG_CMD_MAX = 10
 
         const val TYPE_CMD_PREFIX = "CMD:"
         const val TYPE_CMD_PREFIX_LEN = 4

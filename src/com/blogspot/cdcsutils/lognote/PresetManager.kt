@@ -8,22 +8,28 @@ import javax.swing.event.DocumentListener
 import javax.swing.event.ListSelectionListener
 
 
-abstract class CustomListManager(mainUI: MainUI, logPanel: LogPanel) {
+abstract class PresetManager(mainUI: MainUI, logPanel: LogPanel) {
     companion object {
         const val CMD_NEW = 1
         const val CMD_COPY = 2
         const val CMD_EDIT = 3
     }
 
+    data class PresetElement (
+        val name: String,
+        val value: String,
+        val showInLogViewBar: Boolean,
+    )
+
     protected val mMainUI = mainUI
     private val mLogPanel = logPanel
     var mDialogTitle = "Custom List"
-    private var mFirstElement: CustomElement? = null
+    private var mFirstElement: PresetElement? = null
     private var mCustomDialog: CustomDialog? = null
 
-    abstract fun loadList(): ArrayList<CustomElement>
-    abstract fun saveList(list: ArrayList<CustomElement>)
-    abstract fun getFirstElement(): CustomElement
+    abstract fun loadList(): ArrayList<PresetElement>
+    abstract fun saveList(list: ArrayList<PresetElement>)
+    abstract fun getFirstElement(): PresetElement
     abstract fun getListSelectionListener(): ListSelectionListener
     abstract fun getListMouseListener(): MouseListener
     abstract fun getListKeyListener(): KeyListener
@@ -37,15 +43,9 @@ abstract class CustomListManager(mainUI: MainUI, logPanel: LogPanel) {
         mCustomDialog?.isVisible = true
     }
 
-    class CustomElement(title: String, value: String, tableBar: Boolean) {
-        var mTitle = title
-        var mValue = value
-        var mTableBar = tableBar
-    }
-
     internal inner class CustomDialog (mainUI: MainUI) : JDialog(mainUI, mDialogTitle, true), ActionListener {
         private var mScrollPane: JScrollPane
-        var mList = JList<CustomElement>()
+        var mList = JList<PresetElement>()
         private var mFirstBtn: JButton
         private var mPrevBtn: JButton
         private var mNextBtn: JButton
@@ -56,10 +56,10 @@ abstract class CustomListManager(mainUI: MainUI, logPanel: LogPanel) {
         private var mDeleteBtn: JButton
         private var mSaveBtn: JButton
         private var mCloseBtn: JButton
-        private var mModel = DefaultListModel<CustomElement>()
+        private var mModel = DefaultListModel<PresetElement>()
 
         init {
-            mList = JList<CustomElement>()
+            mList = JList<PresetElement>()
             mList.model = mModel
 
             val selectionListener = getListSelectionListener()
@@ -149,16 +149,16 @@ abstract class CustomListManager(mainUI: MainUI, logPanel: LogPanel) {
                 value: Any?, index: Int, isSelected: Boolean,
                 hasFocus: Boolean
             ): Component {
-                val element = value as CustomElement
-                titleLabel.text = element.mTitle
-                if (mFirstElement != null && mFirstElement!!.mTitle == element.mTitle) {
+                val element = value as PresetElement
+                titleLabel.text = element.name
+                if (mFirstElement != null && mFirstElement!!.name == element.name) {
                     if (MainUI.IsFlatLaf && !MainUI.IsFlatLightLaf) {
                         titleLabel.foreground = Color(0xC05050)
                     }
                     else {
                         titleLabel.foreground = Color(0x900000)
                     }
-                } else if (element.mTableBar) {
+                } else if (element.showInLogViewBar) {
                     titleLabel.text += " - TableBar"
                     if (MainUI.IsFlatLaf && !MainUI.IsFlatLightLaf) {
                         titleLabel.foreground = Color(0x50C050)
@@ -175,7 +175,7 @@ abstract class CustomListManager(mainUI: MainUI, logPanel: LogPanel) {
                         titleLabel.foreground = Color(0x000090)
                     }
                 }
-                valueTA.text = element.mValue
+                valueTA.text = element.value
 
                 valueTA.updateUI()
 
@@ -227,7 +227,7 @@ abstract class CustomListManager(mainUI: MainUI, logPanel: LogPanel) {
                     val selectedIdx = mList.selectedIndex
                     if (mModel.size >= (3 - startIdx)) {
                         val selection = mList.selectedValue
-                        if (mFirstElement == null || mFirstElement!!.mTitle != selection.mTitle) {
+                        if (mFirstElement == null || mFirstElement!!.name != selection.name) {
                             mModel.remove(selectedIdx)
                             mModel.add(startIdx, selection)
                             mList.selectedIndex = startIdx
@@ -241,7 +241,7 @@ abstract class CustomListManager(mainUI: MainUI, logPanel: LogPanel) {
                     val selectedIdx = mList.selectedIndex
                     if (mModel.size >= (3 - startIdx) && selectedIdx > startIdx) {
                         val selection = mList.selectedValue
-                        if (mFirstElement == null || mFirstElement!!.mTitle != selection.mTitle) {
+                        if (mFirstElement == null || mFirstElement!!.name != selection.name) {
                             mModel.remove(selectedIdx)
                             mModel.add(selectedIdx - 1, selection)
                             mList.selectedIndex = selectedIdx - 1
@@ -255,7 +255,7 @@ abstract class CustomListManager(mainUI: MainUI, logPanel: LogPanel) {
                     val selectedIdx = mList.selectedIndex
                     if (mModel.size >= (3 - startIdx) && selectedIdx >= startIdx && selectedIdx < (mModel.size() - 1)) {
                         val selection = mList.selectedValue
-                        if (mFirstElement == null || mFirstElement!!.mTitle != selection.mTitle) {
+                        if (mFirstElement == null || mFirstElement!!.name != selection.name) {
                             mModel.remove(selectedIdx)
                             mModel.add(selectedIdx + 1, selection)
                             mList.selectedIndex = selectedIdx + 1
@@ -269,7 +269,7 @@ abstract class CustomListManager(mainUI: MainUI, logPanel: LogPanel) {
                     val selectedIdx = mList.selectedIndex
                     if (mModel.size >= (3 - startIdx)) {
                         val selection = mList.selectedValue
-                        if (mFirstElement == null || mFirstElement!!.mTitle != selection.mTitle) {
+                        if (mFirstElement == null || mFirstElement!!.name != selection.name) {
                             mModel.remove(selectedIdx)
                             mModel.add(mModel.size(), selection)
                             mList.selectedIndex = mModel.size() - 1
@@ -285,7 +285,7 @@ abstract class CustomListManager(mainUI: MainUI, logPanel: LogPanel) {
                 mCopyBtn -> {
                     if (mList.selectedIndex >= 0) {
                         val selection = mList.selectedValue
-                        val editDialog = EditDialog(this, CMD_COPY, selection.mTitle, selection.mValue, selection.mTableBar)
+                        val editDialog = EditDialog(this, CMD_COPY, selection.name, selection.value, selection.showInLogViewBar)
                         editDialog.setLocationRelativeTo(this)
                         editDialog.isVisible = true
                     }
@@ -293,12 +293,12 @@ abstract class CustomListManager(mainUI: MainUI, logPanel: LogPanel) {
                 mEditBtn -> {
                     if (mList.selectedIndex >= 0) {
                         val selection = mList.selectedValue
-                        val cmd = if (mFirstElement == null || mFirstElement!!.mTitle != selection.mTitle) {
+                        val cmd = if (mFirstElement == null || mFirstElement!!.name != selection.name) {
                             CMD_EDIT
                         } else {
                             CMD_COPY
                         }
-                        val editDialog = EditDialog(this, cmd, selection.mTitle, selection.mValue, selection.mTableBar)
+                        val editDialog = EditDialog(this, cmd, selection.name, selection.value, selection.showInLogViewBar)
                         editDialog.setLocationRelativeTo(this)
                         editDialog.isVisible = true
                     }
@@ -315,9 +315,9 @@ abstract class CustomListManager(mainUI: MainUI, logPanel: LogPanel) {
                     }
                 }
                 mSaveBtn -> {
-                    val customListArray = ArrayList<CustomElement>()
+                    val customListArray = ArrayList<PresetElement>()
                     for (item in mModel.elements()) {
-                        if (mFirstElement == null || mFirstElement!!.mTitle != item.mTitle) {
+                        if (mFirstElement == null || mFirstElement!!.name != item.name) {
                             customListArray.add(item)
                         }
                     }
@@ -332,23 +332,24 @@ abstract class CustomListManager(mainUI: MainUI, logPanel: LogPanel) {
             }
         }
 
-        private fun updateElement(cmd: Int, prevTitle: String, element: CustomElement) {
+        private fun updateElement(cmd: Int, prevTitle: String, presetElement: PresetElement) {
             if (cmd == CMD_EDIT) {
-                for (item in mModel.elements()) {
-                    if (item.mTitle == title) {
-                        item.mValue = element.mValue
+                for (idx in 0 until mModel.size) {
+                    if (mModel.get(idx).name == title) {
+                        mModel.set(idx, presetElement)
                         return
                     }
                 }
+
                 mList.valueIsAdjusting = true
                 val selectedIdx = mList.selectedIndex
                 mModel.remove(selectedIdx)
-                mModel.add(selectedIdx, element)
+                mModel.add(selectedIdx, presetElement)
                 mList.selectedIndex = selectedIdx
                 mList.valueIsAdjusting = false
             }
             else {
-                mModel.addElement(element)
+                mModel.addElement(presetElement)
             }
         }
 
@@ -447,8 +448,8 @@ abstract class CustomListManager(mainUI: MainUI, logPanel: LogPanel) {
                     mTitleStatusLabel.text = "Empty"
                     isValid = false
                 }
-                else if (mFirstElement != null && mFirstElement!!.mTitle == mTitleTF.text.trim()) {
-                    mTitleStatusLabel.text = "Not allow : ${mFirstElement!!.mTitle}"
+                else if (mFirstElement != null && mFirstElement!!.name == mTitleTF.text.trim()) {
+                    mTitleStatusLabel.text = "Not allow : ${mFirstElement!!.name}"
                     isValid = false
                 }
                 else if (cmd == CMD_COPY) {
@@ -497,7 +498,7 @@ abstract class CustomListManager(mainUI: MainUI, logPanel: LogPanel) {
 
             override fun actionPerformed(e: ActionEvent?) {
                 if (e?.source == mOkBtn) {
-                    mParent.updateElement(mCmd, mPrevTitle, CustomElement(mTitleTF.text, mValueTF.text, mTableBarCheck.isSelected))
+                    mParent.updateElement(mCmd, mPrevTitle, PresetElement(mTitleTF.text, mValueTF.text, mTableBarCheck.isSelected))
                     dispose()
                 } else if (e?.source == mCancelBtn) {
                     dispose()
@@ -523,13 +524,13 @@ abstract class CustomListManager(mainUI: MainUI, logPanel: LogPanel) {
                         mTitleStatusLabel.text = "Empty"
                         isValid = false
                     }
-                    else if (mFirstElement != null && mFirstElement!!.mTitle == title) {
-                        mTitleStatusLabel.text = "Not allow : ${mFirstElement!!.mTitle}"
+                    else if (mFirstElement != null && mFirstElement!!.name == title) {
+                        mTitleStatusLabel.text = "Not allow : ${mFirstElement!!.name}"
                         isValid = false
                     }
                     else {
                         for (item in mModel.elements()) {
-                            if (item.mTitle == title) {
+                            if (item.name == title) {
                                 if (mCmd != CMD_EDIT || mPrevTitle != title) {
                                     mTitleStatusLabel.text = "Duplicated"
                                     isValid = false

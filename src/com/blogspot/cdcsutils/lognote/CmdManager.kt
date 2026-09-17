@@ -6,8 +6,8 @@ import javax.swing.JOptionPane
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
 
-class CmdManager(mainUI: MainUI, logPanel: LogPanel): CustomListManager (mainUI, logPanel){
-    private val mConfigManager = ConfigManager.getInstance()
+class CmdManager(mainUI: MainUI, logPanel: LogPanel): PresetManager (mainUI, logPanel){
+    private val mAppDataManager = AppDataManager.getInstance()
     private val mListSelectionHandler = ListSelectionHandler()
     private val mMouseHandler = MouseHandler()
     private val mKeyHandler = KeyHandler()
@@ -20,16 +20,16 @@ class CmdManager(mainUI: MainUI, logPanel: LogPanel): CustomListManager (mainUI,
         mDialogTitle = "Cmd Manager"
     }
 
-    override fun loadList(): ArrayList<CustomElement> {
-        return mConfigManager.loadCmds()
+    override fun loadList(): ArrayList<PresetElement> {
+        return mAppDataManager.loadCmds()
     }
 
-    override fun saveList(list: ArrayList<CustomElement>) {
-        mConfigManager.saveCmds(list)
+    override fun saveList(list: ArrayList<PresetElement>) {
+        mAppDataManager.saveCmds(list)
     }
 
-    override fun getFirstElement(): CustomElement {
-        return CustomElement("Example", "adb shell input keyevent POWER", false)
+    override fun getFirstElement(): PresetElement {
+        return PresetElement("Example", "adb shell input keyevent POWER", false)
     }
 
     override fun getListSelectionListener(): ListSelectionListener {
@@ -44,9 +44,9 @@ class CmdManager(mainUI: MainUI, logPanel: LogPanel): CustomListManager (mainUI,
         return mKeyHandler
     }
 
-    private fun runCmd(list: JList<CustomElement>) {
+    private fun runCmd(list: JList<PresetElement>) {
         val selection = list.selectedValue
-        var cmd = selection.mValue
+        var cmd = selection.value
         cmd = Utils.replaceCmd(cmd)
 
         if (cmd.isNotEmpty()) {
@@ -75,7 +75,7 @@ class CmdManager(mainUI: MainUI, logPanel: LogPanel): CustomListManager (mainUI,
         override fun mouseClicked(p0: MouseEvent?) {
             super.mouseClicked(p0)
             if (p0?.clickCount == 2) {
-                val list = p0.source as JList<CustomElement>
+                val list = p0.source as JList<PresetElement>
                 runCmd(list)
             }
         }
@@ -85,7 +85,7 @@ class CmdManager(mainUI: MainUI, logPanel: LogPanel): CustomListManager (mainUI,
     internal inner class KeyHandler: KeyAdapter() {
         override fun keyPressed(p0: KeyEvent?) {
             if (p0?.keyCode == KeyEvent.VK_ENTER) {
-                val list = p0.source as JList<CustomElement>
+                val list = p0.source as JList<PresetElement>
                 runCmd(list)
             }
         }

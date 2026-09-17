@@ -1,5 +1,6 @@
 package com.blogspot.cdcsutils.lognote
 
+import com.blogspot.cdcsutils.lognote.MainUI.Companion.FLAT_LIGHT_LAF
 import java.awt.*
 import java.awt.event.*
 import javax.swing.*
@@ -12,7 +13,6 @@ import javax.swing.plaf.basic.BasicScrollBarUI
 
 class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARANCE, true), ActionListener, ItemListener, WindowListener {
     private val mMainUI = mainUI
-    private val mConfigManager = ConfigManager.getInstance()
     private val mAppDataManager = AppDataManager.getInstance()
     private val mFormatManager = FormatManager.getInstance()
 
@@ -24,8 +24,8 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
 
     private val mOkBtn = JButton(Strings.OK)
     private val mCancelBtn = JButton(Strings.CANCEL)
-    private val mPrevLaf = ConfigManager.LaF
-    private val mPrevLafAccentColor = ConfigManager.LaFAccentColor
+    private val mPrevLaf = AppDataManager.LaF
+    private val mPrevLafAccentColor = AppDataManager.LaFAccentColor
 
     private var mLognoteRestart = false
 
@@ -115,13 +115,13 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
                 }
 
                 if (rgbPanel != null) {
-                    colorChooser.color = Color.decode(ConfigManager.LaFAccentColor)
+                    colorChooser.color = Color.decode(AppDataManager.LaFAccentColor)
 
                     val ret = JOptionPane.showConfirmDialog(this@AppearanceSettingsDialog, rgbPanel, "Color Chooser", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
                     if (ret == JOptionPane.OK_OPTION) {
                         val hex = "#" + Integer.toHexString(colorChooser.color.rgb).substring(2).uppercase()
-                        ConfigManager.LaFAccentColor = hex
-                        mLaFAccentColorCustomBtn.icon = Icons.AccentColorIcon(ConfigManager.LaFAccentColor)
+                        AppDataManager.LaFAccentColor = hex
+                        mLaFAccentColorCustomBtn.icon = Icons.AccentColorIcon(AppDataManager.LaFAccentColor)
                         mMainUI.setLaF()
                         mMainUI.updateUI()
                         mLognoteRestart = true
@@ -131,7 +131,7 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
             else {
                 for (idx in 0 until MainUI.LAF_ACCENT_COLORS.size) {
                     if (e?.source == mLaFAccentColorBtns[idx]) {
-                        ConfigManager.LaFAccentColor = MainUI.LAF_ACCENT_COLORS[idx]
+                        AppDataManager.LaFAccentColor = MainUI.LAF_ACCENT_COLORS[idx]
                         mMainUI.setLaF()
                         mMainUI.updateUI()
                         mLognoteRestart = true
@@ -176,7 +176,7 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
             lafPanel.add(lafItem)
 
             for (item in mLaFGroup.elements) {
-                if (ConfigManager.LaF == item.text) {
+                if (AppDataManager.LaF == item.text) {
                     item.isSelected = true
                 }
                 item.addItemListener(this@AppearanceSettingsDialog)
@@ -192,12 +192,12 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
                 mLaFAccentColorBtns[idx]!!.addActionListener(this)
                 lafAccentColorPanel.add(mLaFAccentColorBtns[idx])
                 mLaFAccentColorGroup.add(mLaFAccentColorBtns[idx])
-                if (ConfigManager.LaFAccentColor == MainUI.LAF_ACCENT_COLORS[idx]) {
+                if (AppDataManager.LaFAccentColor == MainUI.LAF_ACCENT_COLORS[idx]) {
                     mLaFAccentColorBtns[idx]!!.isSelected = true
                     isSelectedAccentColor = true
                 }
             }
-            mLaFAccentColorCustomBtn = JToggleButton("Custom", Icons.AccentColorIcon(ConfigManager.LaFAccentColor))
+            mLaFAccentColorCustomBtn = JToggleButton("Custom", Icons.AccentColorIcon(AppDataManager.LaFAccentColor))
             mLaFAccentColorCustomBtn.margin = mLaFAccentColorBtns[0]!!.insets
             mLaFAccentColorCustomBtn.addActionListener(this)
             lafAccentColorPanel.add(mLaFAccentColorCustomBtn)
@@ -303,21 +303,22 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
 
             if (mIsNeedRestore) {
                 mMainUI.mLogSplitPane.dividerSize = mPrevDividerSize
-                ConfigManager.LaF = mPrevLaf
-                ConfigManager.LaFAccentColor = mPrevLafAccentColor
+                AppDataManager.LaF = mPrevLaf
+                AppDataManager.LaFAccentColor = mPrevLafAccentColor
                 mMainUI.setLaF()
                 mMainUI.updateUI()
             } else {
+                var laf = FLAT_LIGHT_LAF
                 for (item in mLaFGroup.elements) {
                     if (item.isSelected) {
-                        ConfigManager.getInstance().saveItem(ConfigManager.ITEM_LOOK_AND_FEEL, item.text)
+                        laf = item.text
                         break
                     }
                 }
-                ConfigManager.getInstance().saveItem(ConfigManager.ITEM_LAF_ACCENT_COLOR, ConfigManager.LaFAccentColor)
+                val laFAccentColor = AppDataManager.LaFAccentColor
 
-                ConfigManager.getInstance().saveItem(ConfigManager.ITEM_UI_FONT_SIZE, mFontSlider.value.toString())
-                ConfigManager.getInstance().saveItem(ConfigManager.ITEM_APPEARANCE_DIVIDER_SIZE, mMainUI.mLogSplitPane.dividerSize.toString())
+                val uiFontSize = mFontSlider.value
+                val dividerSize = mMainUI.mLogSplitPane.dividerSize
 
                 LogTable.LogWidth = try {
                     mLogWidthTF.text.trim().toInt()
@@ -328,7 +329,12 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
                 if (LogTable.LogWidth < LogTable.MIN_LOG_WIDTH) {
                     LogTable.LogWidth = LogTable.MIN_LOG_WIDTH
                 }
-                ConfigManager.getInstance().saveItem(ConfigManager.ITEM_LOG_VIEW_WIDTH, LogTable.LogWidth.toString())
+
+                val logViewWidth = LogTable.LogWidth
+
+                mAppDataManager.updateAndSaveAppData { current -> current.copy(appearance = current.appearance.copy(
+                    lookAndFeel = laf, lafAccentColor = laFAccentColor, uiFontSize = uiFontSize, dividerSize = dividerSize,
+                    logViewWidth = logViewWidth,)) }
                 mMainUI.updateLogViewWidth()
             }
         }
@@ -372,8 +378,8 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
         private val mComboLabelArray = arrayOfNulls<ColorLabel>(ComboIdx.SIZE.value)
         private val mStyleComboArray = arrayOfNulls<ColorComboBox<String>>(ComboIdx.SIZE.value)
 
-        private val mTokenComboLabelArray = arrayOfNulls<ColorLabel>(FormatManager.MAX_TOKEN_FILTER_COUNT)
-        private val mTokenStyleComboArray = arrayOfNulls<ColorComboBox<String>>(FormatManager.MAX_TOKEN_FILTER_COUNT)
+        private val mTokenComboLabelArray = arrayOfNulls<ColorLabel>(AppConstants.MAX_TOKEN_COUNT)
+        private val mTokenStyleComboArray = arrayOfNulls<ColorComboBox<String>>(AppConstants.MAX_TOKEN_COUNT)
 
         private val mStyleLabelPanel: JPanel
         private val mStyleComboPanel: JPanel
@@ -411,9 +417,9 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
             mComboLabelArray[ComboIdx.BOLD.value]!!.text = "Combo Style : BOLD"
             mStyleComboArray[ComboIdx.BOLD.value]!!.selectedIndex = mMainUI.mBoldLogComboStyle.value
 
-            addStyleCombos(mTokenComboLabelArray, mTokenStyleComboArray, FormatManager.MAX_TOKEN_FILTER_COUNT)
+            addStyleCombos(mTokenComboLabelArray, mTokenStyleComboArray, AppConstants.MAX_TOKEN_COUNT)
 
-            for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+            for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
                 mTokenComboLabelArray[idx]!!.text = "Combo Style : ${mFormatManager.mCurrFormat.mTokenFilters[idx].mToken}"
                 mTokenStyleComboArray[idx]!!.selectedIndex = mMainUI.mTokenComboStyle[idx].value
             }
@@ -560,16 +566,9 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
                 mColorManager.applyFilterStyle()
             }
             else {
-                val keys = arrayOf(ConfigManager.ITEM_SHOW_LOG_STYLE, ConfigManager.ITEM_BOLD_LOG_STYLE)
-                val values = arrayOf(mStyleComboArray[ComboIdx.LOG.value]!!.selectedIndex.toString(), mStyleComboArray[ComboIdx.BOLD.value]!!.selectedIndex.toString())
-
-                val tokenKeys = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { ConfigManager.ITEM_TOKEN_COMBO_STYLE + it }
-                val tokenValues = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { mTokenStyleComboArray[it]!!.selectedIndex.toString() }
-                mConfigManager.saveFilterStyle(keys, values, tokenKeys, tokenValues)
-
-                val tokenValuesInt = List(FormatManager.MAX_TOKEN_FILTER_COUNT) { mTokenStyleComboArray[it]!!.selectedIndex }
+                val tokenValues = List(AppConstants.MAX_TOKEN_COUNT) { mTokenStyleComboArray[it]!!.selectedIndex }
                 mAppDataManager.saveFilterStyle(mStyleComboArray[ComboIdx.LOG.value]!!.selectedIndex, mStyleComboArray[ComboIdx.BOLD.value]!!.selectedIndex,
-                    tokenValuesInt, mColorManager.mFilterStyle)
+                    tokenValues, mColorManager.mFilterStyle)
             }
         }
 
@@ -917,7 +916,6 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
                 mMainUI.mFont = mPrevFont
             }
             else {
-                mConfigManager.saveFontColors(mMainUI.mFont.family, mMainUI.mFont.size)
                 mAppDataManager.saveFont(mMainUI.mFont.family, mMainUI.mFont.size)
                 mAppDataManager.saveLogViewColors(mColorManager.mFullTableColor.mColorArray, mColorManager.mFilterTableColor.mColorArray)
             }
@@ -1225,7 +1223,7 @@ class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARA
 
     override fun itemStateChanged(p0: ItemEvent?) {
         if (p0 != null) {
-            ConfigManager.LaF = (p0.source as JRadioButton).text
+            AppDataManager.LaF = (p0.source as JRadioButton).text
         }
         mMainUI.setLaF()
         mMainUI.updateUI()

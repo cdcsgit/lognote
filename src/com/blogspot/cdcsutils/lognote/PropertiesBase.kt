@@ -10,11 +10,14 @@ abstract class PropertiesBase(fileName: String) {
     protected var mXmlPath = fileName
 
     init {
-        mXmlPath = ConfigManager.getHomePath(fileName)
         Utils.printlnLog("Xml File Path : $mXmlPath")
     }
 
     protected fun loadXml(): Boolean {
+        if (mXmlPath.isEmpty()) {
+            return false
+        }
+
         var ret = true
         var fileInput: FileInputStream? = null
 
@@ -22,7 +25,6 @@ abstract class PropertiesBase(fileName: String) {
             fileInput = FileInputStream(mXmlPath)
             mProperties.loadFromXML(fileInput)
         } catch (ex: Exception) {
-            ex.printStackTrace()
             ret = false
         } finally {
             if (null != fileInput) {
@@ -38,13 +40,16 @@ abstract class PropertiesBase(fileName: String) {
     }
 
     protected fun saveXml(): Boolean {
+        if (mXmlPath.isEmpty()) {
+            return false
+        }
+
         var ret = true
         var fileOutput: FileOutputStream? = null
         try {
             fileOutput = FileOutputStream(mXmlPath)
             mProperties.storeToXML(fileOutput, "")
         } catch (ex: Exception) {
-            ex.printStackTrace()
             ret = false
         } finally {
             if (null != fileOutput) {

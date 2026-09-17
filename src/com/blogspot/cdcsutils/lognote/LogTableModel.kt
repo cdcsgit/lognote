@@ -47,11 +47,11 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
         const val LEVEL_ERROR = FormatManager.LEVEL_ERROR
         const val LEVEL_FATAL = FormatManager.LEVEL_FATAL
 
-        const val SHOW_PROCESS_NONE = 0
-        const val SHOW_PROCESS_SHOW = 1
-        const val SHOW_PROCESS_SHOW_WITH_BGCOLOR = 2
+        const val HIDE_PROCESS_NAME = 0
+        const val SHOW_PROCESS_NAME = 1
+        const val SHOW_PROCESS_NAME_WITH_BGCOLOR = 2
 
-        var TypeShowProcessName = SHOW_PROCESS_SHOW_WITH_BGCOLOR
+        var ProcessNameDisplayMode = SHOW_PROCESS_NAME_WITH_BGCOLOR
     }
 
     private val mAgingTestManager = AgingTestManager.getInstance()
@@ -230,16 +230,16 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
             mPatternTriggerLog = Utils.compilePattern(value, mTriggerPatternCase, mPatternTriggerLog, null)
         }
 
-    var mFilterTokens = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { "" }
-    var mFilterShowTokens = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { "" }
-    var mFilterHideTokens = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { "" }
-    var mPatternShowTokens = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { Pattern.compile("", Pattern.CASE_INSENSITIVE) }
-    var mPatternHideTokens = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { Pattern.compile("", Pattern.CASE_INSENSITIVE) }
-    var mBoldTokens = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { false }
+    var mFilterTokens = Array(AppConstants.MAX_TOKEN_COUNT) { "" }
+    var mFilterShowTokens = Array(AppConstants.MAX_TOKEN_COUNT) { "" }
+    var mFilterHideTokens = Array(AppConstants.MAX_TOKEN_COUNT) { "" }
+    var mPatternShowTokens = Array(AppConstants.MAX_TOKEN_COUNT) { Pattern.compile("", Pattern.CASE_INSENSITIVE) }
+    var mPatternHideTokens = Array(AppConstants.MAX_TOKEN_COUNT) { Pattern.compile("", Pattern.CASE_INSENSITIVE) }
+    var mBoldTokens = Array(AppConstants.MAX_TOKEN_COUNT) { false }
     var mBoldTokenEndIdx = -1
         set(value) {
             field = -1
-            for(idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+            for(idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
                 if (mBoldTokens[idx]) {
                     field = idx
                 }
@@ -261,7 +261,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                 mMainUI.mShowLogCombo.mErrorMsg = ""
                 mPatternShowLog = Utils.compilePattern(mFilterShowLog, mPatternCase, mPatternShowLog, mMainUI.mShowLogCombo)
                 mPatternHideLog = Utils.compilePattern(mFilterHideLog, mPatternCase, mPatternHideLog, mMainUI.mShowLogCombo)
-                for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+                for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
                     mMainUI.mTokenCombo[idx].mErrorMsg = ""
                     mPatternShowTokens[idx] = Utils.compilePattern(mFilterShowTokens[idx], mPatternCase, mPatternShowTokens[idx], mMainUI.mTokenCombo[idx])
                     mBaseModel?.mPatternShowTokens?.set(idx, mPatternShowTokens[idx])
@@ -610,7 +610,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                         return logItem.mNum + " "
                     }
                     COLUMN_PROCESS_NAME -> {
-                        if (TypeShowProcessName != SHOW_PROCESS_NONE) {
+                        if (ProcessNameDisplayMode != HIDE_PROCESS_NAME) {
                             if (logItem.mProcessName == null) {
                                 if ((mSortedPidTokIdx >= 0) && (logItem.mTokenFilterLogs.size > mSortedPidTokIdx)) {
                                     return if (logItem.mTokenFilterLogs[mSortedPidTokIdx] == "0") {
@@ -750,8 +750,8 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
 
         val tokenStarts: Queue<Int> = LinkedList()
         val tokenEnds: Queue<Int> = LinkedList()
-        val boldStartTokens = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { -1 }
-        val boldEndTokens = Array(FormatManager.MAX_TOKEN_FILTER_COUNT) { -1 }
+        val boldStartTokens = Array(AppConstants.MAX_TOKEN_COUNT) { -1 }
+        val boldEndTokens = Array(AppConstants.MAX_TOKEN_COUNT) { -1 }
 
         if (mBoldTokenEndIdx >= 0) {
             val textSplited = FormatManager.splitLog(stringBuilder.toString(), mTokenCount, mSeparator, mSeparatorList)
@@ -1020,7 +1020,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
             tokenFilterLogs = mEmptyTokenFilters
         }
 
-        val processName = if (TypeShowProcessName != SHOW_PROCESS_NONE && mSortedPidTokIdx >= 0 && tokenFilterLogs.size > mSortedPidTokIdx) {
+        val processName = if (ProcessNameDisplayMode != HIDE_PROCESS_NAME && mSortedPidTokIdx >= 0 && tokenFilterLogs.size > mSortedPidTokIdx) {
             ProcessList.getInstance().getProcessName(tokenFilterLogs[mSortedPidTokIdx])
         } else {
             null
@@ -1110,7 +1110,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
 
     private fun isMatchHideToken(item: LogItem): Boolean {
         var isMatch = false
-        for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+        for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
             if (mFilterHideTokens[idx].isNotEmpty() && mPatternHideTokens[idx].matcher(item.mTokenFilterLogs[mSortedTokensIdxs[idx]]).find()) {
                 isMatch = true
                 break
@@ -1121,7 +1121,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
 
     private fun isNotMatchShowToken(item: LogItem): Boolean {
         var isNotMatch = false
-        for (idx in 0 until FormatManager.MAX_TOKEN_FILTER_COUNT) {
+        for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
             if (mFilterShowTokens[idx].isNotEmpty() && mSortedTokensIdxs[idx] >= 0 && !mPatternShowTokens[idx].matcher(item.mTokenFilterLogs[mSortedTokensIdxs[idx]]).find()) {
                 isNotMatch = true
                 break
@@ -1386,7 +1386,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                 makePattenPrintValue()
 
                 try {
-                    if (MainUI.CurrentMethod == MainUI.METHOD_ADB && TypeShowProcessName != SHOW_PROCESS_NONE) {
+                    if (MainUI.CurrentMethod == MainUI.METHOD_ADB && ProcessNameDisplayMode != HIDE_PROCESS_NAME) {
                         ProcessList.getInstance().getProcessName("0")
                     }
                 } catch (e: Exception) {

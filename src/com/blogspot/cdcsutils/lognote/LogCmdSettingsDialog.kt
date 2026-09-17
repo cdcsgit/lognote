@@ -55,7 +55,7 @@ class LogCmdSettingsDialog(mainUI: MainUI) :JDialog(mainUI, "${Strings.LOG_CMD} 
     }
 
     private val mLogCmdManager = LogCmdManager.getInstance()
-    private val mConfigManager = ConfigManager.getInstance()
+    private val mAppDataManager = AppDataManager.getInstance()
     private val mMainUI = mainUI
 
     init {
@@ -106,7 +106,7 @@ class LogCmdSettingsDialog(mainUI: MainUI) :JDialog(mainUI, "${Strings.LOG_CMD} 
         mAdbCmdTF.preferredSize = Dimension(488, rowHeight)
         mAdbSaveTF = JTextField(mLogCmdManager.mLogSavePath)
         mAdbSaveTF.preferredSize = Dimension(488, rowHeight)
-        mPrefixTF = JTextField(mLogCmdManager.mPrefix)
+        mPrefixTF = JTextField(mLogCmdManager.mLogFilePrefix)
         mPrefixTF.preferredSize = Dimension(300, rowHeight)
 
         val columnNames = arrayOf("Num", "Cmd")
@@ -125,9 +125,14 @@ class LogCmdSettingsDialog(mainUI: MainUI) :JDialog(mainUI, "${Strings.LOG_CMD} 
                 arrayOf<Any>("10", ""),
         )
 
-        for (idx in logCmds.indices) {
-            val item = mConfigManager.getItem("${ConfigManager.ITEM_ADB_LOG_CMD}_$idx")
-            if (idx != 0 && item != null) {
+        mAppDataManager.mAppData.logCmd.logCmds?.let {
+            for ((idx, item) in it.withIndex()) {
+                if (idx >= AppConstants.MAX_LOG_CMD) {
+                    break
+                }
+                if (idx == 0) {
+                    continue
+                }
                 logCmds[idx][1] = item
             }
         }
@@ -143,7 +148,7 @@ class LogCmdSettingsDialog(mainUI: MainUI) :JDialog(mainUI, "${Strings.LOG_CMD} 
         mLogCmdTable.columnModel.getColumn(0).cellRenderer = renderer
         mLogCmdTable.addMouseListener(LogCmdMouseHandler())
 
-        mLogCmdTableModel.rowCount = LogCmdManager.LOG_CMD_MAX
+        mLogCmdTableModel.rowCount = AppConstants.MAX_LOG_CMD
         mLogCmdTable.columnModel.getColumn(0).preferredWidth = 70
         mLogCmdTable.columnModel.getColumn(1).preferredWidth = 330
 
@@ -258,10 +263,10 @@ class LogCmdSettingsDialog(mainUI: MainUI) :JDialog(mainUI, "${Strings.LOG_CMD} 
             }
 
             if (prefix.isEmpty()) {
-                mLogCmdManager.mPrefix = LogCmdManager.DEFAULT_PREFIX
+                mLogCmdManager.mLogFilePrefix = LogCmdManager.DEFAULT_PREFIX
             }
             else {
-                mLogCmdManager.mPrefix = prefix
+                mLogCmdManager.mLogFilePrefix = prefix
             }
 
             val option1 = mOption1TF.text.trim()
@@ -272,23 +277,15 @@ class LogCmdSettingsDialog(mainUI: MainUI) :JDialog(mainUI, "${Strings.LOG_CMD} 
                 ProcessList.UpdateTime = option1.toInt() * 1000
             }
 
+            val logCmds = mutableListOf<String>()
             for (idx in 0 until mLogCmdTable.rowCount) {
-                mConfigManager.setItem("${ConfigManager.ITEM_ADB_LOG_CMD}_$idx", mLogCmdTableModel.getValueAt(idx, 1).toString())
+                logCmds.add(mLogCmdTableModel.getValueAt(idx, 1).toString())
             }
-            mConfigManager.saveConfig()
 
-            val keys = arrayOf(ConfigManager.ITEM_ADB_CMD,
-                ConfigManager.ITEM_ADB_LOG_SAVE_PATH,
-                ConfigManager.ITEM_ADB_PREFIX,
-                ConfigManager.ITEM_ADB_LOG_CMD,
-                ConfigManager.ITEM_ADB_OPTION_1)
-            val values = arrayOf(mLogCmdManager.mAdbCmd,
-                mLogCmdManager.mLogSavePath,
-                mLogCmdManager.mPrefix,
-                mLogCmdManager.mLogCmd,
-                ProcessList.UpdateTime.toString())
-
-            mConfigManager.saveItems(keys, values)
+            mAppDataManager.updateAndSaveAppData { current -> current.copy(logCmd = current.logCmd.copy(
+                adbPath = mLogCmdManager.mAdbCmd, logSavePath = mLogCmdManager.mLogSavePath, logFilePrefix = mLogCmdManager.mLogFilePrefix,
+                lastLogCmd = mLogCmdManager.mLogCmd, adbOptionUpdatePidTimeout = ProcessList.UpdateTime, logCmds = logCmds,
+            )) }
             mMainUI.updateLogCmdCombo(true)
 
             dispose()
