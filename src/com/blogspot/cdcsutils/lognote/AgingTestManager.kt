@@ -16,7 +16,7 @@ class AgingTestManager private constructor() {
     companion object {
         const val MAX_RESULT_LOG = 30
 
-        private val mAppDataManager = AppDataManager.getInstance()
+        private val mAppDataManager = AppDataManager.getInstance(Companion::class.java.name)
         private val mInstance: AgingTestManager = AgingTestManager()
         fun getInstance(): AgingTestManager {
             return mInstance

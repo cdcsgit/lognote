@@ -12,9 +12,13 @@ class ColorManager private constructor(){
     }
 
     companion object {
+        private var mAppDataManager: AppDataManager = AppDataManager.getInstance(Companion::class.java.name)
         private val mInstance: ColorManager = ColorManager()
 
         fun getInstance(): ColorManager {
+            if (mAppDataManager == null) {
+                mAppDataManager = AppDataManager.getInstance(Companion::class.java.name)
+            }
             return mInstance
         }
     }
@@ -31,8 +35,6 @@ class ColorManager private constructor(){
     }
 
     data class ColorItem(val mOrder: Int, val mName: String, var mStrColor: String)
-
-    private val mAppDataManager = AppDataManager.getInstance()
 
     enum class TableColorType(val value: Int) {
         FULL_LOG_TABLE(0),
@@ -461,6 +463,22 @@ class ColorManager private constructor(){
 
         fun getAppData() {
             val colorList = if (mType == TableColorType.FULL_LOG_TABLE) {
+                if (mAppDataManager == null) {
+                    Utils.printlnLog("TEST TEST 1 $mAppDataManager")
+                }
+
+                if (mAppDataManager.mAppData == null) {
+                    Utils.printlnLog("TEST TEST 2 ${mAppDataManager.mAppData}")
+                }
+
+                if (mAppDataManager.mAppData.color == null) {
+                    Utils.printlnLog("TEST TEST 3 ${mAppDataManager.mAppData.color}")
+                }
+
+                if (mAppDataManager.mAppData.color.colorFullView == null) {
+                    Utils.printlnLog("TEST TEST 4 ${mAppDataManager.mAppData.color.colorFullView}")
+                }
+
                 mAppDataManager.mAppData.color.colorFullView
             }
             else {

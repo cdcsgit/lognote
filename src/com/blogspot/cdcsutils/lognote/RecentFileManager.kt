@@ -12,7 +12,7 @@ class RecentFileManager private constructor() {
     val mRecentList = mutableListOf<RecentItem>()
     val mOpenList = mutableListOf<OpenItem>()
     private val mFormatManager = FormatManager.getInstance()
-    private val mAppDataManager = AppDataManager.getInstance()
+    private val mAppDataManager = AppDataManager.getInstance(Companion::class.java.name)
 
     init {
         loadList()
@@ -39,101 +39,78 @@ class RecentFileManager private constructor() {
         val tokens = mFormatManager.mCurrFormat.mTokenFilters
 
         mRecentList.clear()
-        for (i in 0 until AppConstants.MAX_RECENT_FILE) {
-            val recentItem = RecentItem()
-            val fileItem = mAppDataManager.mAppHistory.recentFiles.fileItems?.get(i)
-            if (fileItem == null) {
-                break
-            }
-            recentItem.mPath = fileItem.path
-            if (recentItem.mPath.isBlank()) {
-                break
-            }
-            recentItem.mShowLog = fileItem.showLog
-            for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
-                val key = "${formatName}_${tokens[idx].mToken}"
-                if (tokens[idx].mToken.isEmpty()) {
-                    recentItem.mTokenFilter[idx] = ""
+        mAppDataManager.mAppHistory.recentFiles.fileItems?.let {
+            for ((idx, fileItem) in it.withIndex()) {
+                if (idx >= AppConstants.MAX_RECENT_FILE) {
+                    break
                 }
-                else {
-                    recentItem.mTokenFilter[idx] = fileItem.tokenFilterMap[key] ?: ""
+                val recentItem = RecentItem()
+                recentItem.mPath = fileItem.path
+                if (recentItem.mPath.isBlank()) {
+                    break
                 }
-            }
-            recentItem.mBoldLog = fileItem.boldLog
-            recentItem.mFindLog = fileItem.findLog
-            recentItem.mBookmarks = fileItem.bookmarks
+                recentItem.mShowLog = fileItem.showLog
+                for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
+                    val key = "${formatName}_${tokens[idx].mToken}"
+                    if (tokens[idx].mToken.isEmpty()) {
+                        recentItem.mTokenFilter[idx] = ""
+                    }
+                    else {
+                        recentItem.mTokenFilter[idx] = fileItem.tokenFilterMap[key] ?: ""
+                    }
+                }
+                recentItem.mBoldLog = fileItem.boldLog
+                recentItem.mFindLog = fileItem.findLog
+                recentItem.mBookmarks = fileItem.bookmarks
 
-            recentItem.mShowLogCheck = fileItem.showLogCheck
-            for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
-                val key = "${formatName}_${tokens[idx].mToken}"
-                if (tokens[idx].mToken.isEmpty()) {
-                    recentItem.mTokenCheck[idx] = false
+                recentItem.mShowLogCheck = fileItem.showLogCheck
+                for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
+                    val key = "${formatName}_${tokens[idx].mToken}"
+                    if (tokens[idx].mToken.isEmpty()) {
+                        recentItem.mTokenCheck[idx] = false
+                    }
+                    else {
+                        recentItem.mTokenCheck[idx] = fileItem.tokenCheckMap[key] ?: false
+                    }
                 }
-                else {
-                    recentItem.mTokenCheck[idx] = fileItem.tokenCheckMap[key] ?: false
-                }
-            }
-            recentItem.mBoldLogCheck = fileItem.boldLogCheck
-            recentItem.mFindMatchCase = fileItem.findMatchCase
+                recentItem.mBoldLogCheck = fileItem.boldLogCheck
+                recentItem.mFindMatchCase = fileItem.findMatchCase
 
-            mRecentList.add(recentItem)
+                mRecentList.add(recentItem)
+            }
         }
     }
 
     fun saveList() {
         val formatName = mFormatManager.mCurrFormat.mName
         val tokens = mFormatManager.mCurrFormat.mTokenFilters
-        for (i in 0 until AppConstants.MAX_RECENT_FILE) {
-            mProperties.remove("$i$ITEM_PATH")
-            mProperties.remove("$i$ITEM_SHOW_LOG")
-            for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
-                mProperties.remove("$i$ITEM_TOKEN_FILTER${formatName}_${tokens[idx].mToken}")
-            }
-            mProperties.remove("$i$ITEM_HIGHLIGHT_LOG")
-            mProperties.remove("$i$ITEM_FIND_LOG")
-            mProperties.remove("$i$ITEM_BOOKMARKS")
 
-            mProperties.remove("$i$ITEM_SHOW_LOG_CHECK")
-            for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
-                mProperties.remove("$i$ITEM_TOKEN_CHECK${formatName}_${tokens[idx].mToken}")
-            }
-            mProperties.remove("$i$ITEM_HIGHLIGHT_LOG_CHECK")
-            mProperties.remove("$i$ITEM_FIND_MATCH_CASE")
-        }
-
-        val mSaveList = mutableListOf<String>()
-        for (i in 0 until AppConstants.MAX_RECENT_FILE) {
-            if (i >= mRecentList.size) {
+        val savedList = mutableListOf<String>()
+        val fileItems = mutableListOf<RecentFileItem>()
+        for ((idx, item) in mRecentList.withIndex()) {
+            if (idx >= AppConstants.MAX_RECENT_FILE) {
                 break
             }
-            val recentItem = mRecentList[i]
-            if (!mSaveList.contains(recentItem.mPath)) {
-                mSaveList.add(recentItem.mPath)
-                mProperties["$i$ITEM_PATH"] = recentItem.mPath
-                mProperties["$i$ITEM_SHOW_LOG"] = recentItem.mShowLog
-                for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
-                    if (tokens[idx].mToken.isNotEmpty()) {
-                        mProperties["$i$ITEM_TOKEN_FILTER${formatName}_${tokens[idx].mToken}"] =
-                            recentItem.mTokenFilter[idx]
-                    }
-                }
-                mProperties["$i$ITEM_HIGHLIGHT_LOG"] = recentItem.mBoldLog
-                mProperties["$i$ITEM_FIND_LOG"] = recentItem.mFindLog
-                mProperties["$i$ITEM_BOOKMARKS"] = recentItem.mBookmarks
 
-                mProperties["$i$ITEM_SHOW_LOG_CHECK"] = recentItem.mShowLogCheck.toString()
-                for (idx in 0 until AppConstants.MAX_TOKEN_COUNT) {
+            if (!savedList.contains(item.mPath)) {
+                savedList.add(item.mPath)
+
+                val tokenFilterMap= mutableMapOf<String, String>()
+                val tokenCheckMap= mutableMapOf<String, Boolean>()
+                for (tokIdx in 0 until AppConstants.MAX_TOKEN_COUNT) {
                     if (tokens[idx].mToken.isNotEmpty()) {
-                        mProperties["$i$ITEM_TOKEN_CHECK${formatName}_${tokens[idx].mToken}"] =
-                            recentItem.mTokenCheck[idx].toString()
+                        val key = "${formatName}_${tokens[tokIdx].mToken}"
+                        tokenFilterMap[key] = item.mTokenFilter[tokIdx]
+                        tokenCheckMap[key] = item.mTokenCheck[tokIdx]
                     }
                 }
-                mProperties["$i$ITEM_HIGHLIGHT_LOG_CHECK"] = recentItem.mBoldLogCheck.toString()
-                mProperties["$i$ITEM_FIND_MATCH_CASE"] = recentItem.mFindMatchCase.toString()
+
+                fileItems.add(RecentFileItem(item.mPath, item.mShowLog, tokenFilterMap, item.mBoldLog, item.mFindLog, item.mBookmarks,
+                    item.mShowLogCheck, tokenCheckMap, item.mBoldLogCheck, item.mFindMatchCase))
             }
         }
 
-        saveXml()
+        mAppDataManager.updateAndSaveAppHistory { current -> current.copy(recentFiles = current.recentFiles.copy(fileItems = fileItems)) }
     }
 
     fun addOpenFile(openItem: OpenItem) {

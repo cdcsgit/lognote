@@ -1,5 +1,6 @@
 package com.blogspot.cdcsutils.lognote
 
+import com.blogspot.cdcsutils.lognote.ColorManager.Companion
 import com.blogspot.cdcsutils.lognote.MainUI.Companion.FLAT_LIGHT_LAF
 import java.awt.*
 import java.awt.event.*
@@ -13,7 +14,7 @@ import javax.swing.plaf.basic.BasicScrollBarUI
 
 class AppearanceSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.APPEARANCE, true), ActionListener, ItemListener, WindowListener {
     private val mMainUI = mainUI
-    private val mAppDataManager = AppDataManager.getInstance()
+    private val mAppDataManager = AppDataManager.getInstance(Companion::class.java.name)
     private val mFormatManager = FormatManager.getInstance()
 
     private val mSettingsPanel = JPanel()

@@ -7,7 +7,7 @@ import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
 
 class CmdManager(mainUI: MainUI, logPanel: LogPanel): PresetManager (mainUI, logPanel){
-    private val mAppDataManager = AppDataManager.getInstance()
+    private val mAppDataManager = AppDataManager.getInstance(Companion::class.java.name)
     private val mListSelectionHandler = ListSelectionHandler()
     private val mMouseHandler = MouseHandler()
     private val mKeyHandler = KeyHandler()

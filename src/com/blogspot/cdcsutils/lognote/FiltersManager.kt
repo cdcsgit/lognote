@@ -6,7 +6,7 @@ import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
 
 class FiltersManager (mainUI: MainUI, logPanel: LogPanel): PresetManager (mainUI, logPanel){
-    private val mAppDataManager = AppDataManager.getInstance()
+    private val mAppDataManager = AppDataManager.getInstance(Companion::class.java.name)
     private val CURRENT_FILTER = "Current"
 
     private val mListSelectionHandler = ListSelectionHandler()

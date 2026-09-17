@@ -1,5 +1,6 @@
 package com.blogspot.cdcsutils.lognote
 
+import com.blogspot.cdcsutils.lognote.FormatManager.Companion
 import java.awt.*
 import java.awt.event.*
 import javax.swing.*
@@ -7,7 +8,7 @@ import javax.swing.*
 
 class ToolSettingsDialog(mainUI: MainUI) : JDialog(mainUI, Strings.TOOL, true), ActionListener {
     private val mMainUI = mainUI
-    private val mAppDataManager = AppDataManager.getInstance()
+    private val mAppDataManager = AppDataManager.getInstance(Companion::class.java.name)
 
     private val mToolsPanel = JPanel()
     private val mScrollPane = JScrollPane()

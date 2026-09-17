@@ -27,6 +27,7 @@ import kotlin.system.exitProcess
 
 class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener {
     companion object {
+        private val mAppDataManager = AppDataManager.getInstance(Companion::class.java.name)
         private const val SPLIT_WEIGHT = 0.7
 
         private const val ROTATION_LEFT_RIGHT = 0
@@ -71,8 +72,6 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         }
     }
 
-    private val mConfigManager = ConfigManager.getInstance()
-    private val mAppDataManager = AppDataManager.getInstance()
     init {
         val prop = mAppDataManager.mAppData.appearance.language
         if (!prop.isNullOrEmpty()) {
@@ -344,13 +343,11 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     }
 
     private fun loadConfigOnCreate() {
-        mConfigManager.loadConfig()
         mColorManager.mFullTableColor.getAppData()
         mColorManager.mFullTableColor.applyColor()
         mColorManager.mFilterTableColor.getAppData()
         mColorManager.mFilterTableColor.applyColor()
         mColorManager.getAppDataFilterStyle()
-        mConfigManager.saveConfig()
     }
 
     private fun updateRecentFilters(combo: FilterComboBox, history: List<String>?, saveCount: Int, maxCount: Int): List<String> {
@@ -365,15 +362,19 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             }
         }
 
-        var item: String?
-        for (i in 0 until maxCount) {
-            item = history?.get(i)
-            if (item == null || filterList.size == maxCount) {
-                break
-            }
+        history?.let {
+            for (item in it) {
+                if (filterList.size == maxCount) {
+                    break
+                }
 
-            if (!filterList.contains(item)) {
-                filterList.add(item)
+                if (item.isEmpty()) {
+                    continue
+                }
+
+                if (!filterList.contains(item)) {
+                    filterList.add(item)
+                }
             }
         }
 
@@ -1149,7 +1150,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
 
         mLogFormatCombo.selectedItem = mFormatManager.mCurrFormat.mName
 
-        for (item in FormatManager.TEXT_LEVEL) {
+        for (item in FormatConstants.TEXT_LEVEL) {
             mLogLevelCombo.addItem(item)
         }
 

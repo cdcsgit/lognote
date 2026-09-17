@@ -14,7 +14,7 @@ import javax.swing.table.DefaultTableModel
 data class PackageItem(val mPackageName: String, var mUid: String, var mIsShow: Boolean, var mIsSelected: Boolean)
 
 class PackageManager private constructor() {
-    private val mAppDataManager = AppDataManager.getInstance()
+    private val mAppDataManager = AppDataManager.getInstance(Companion::class.java.name)
 
     private val mPackageMap: MutableMap<String, PackageItem> = mutableMapOf()
     var mPackageArray = Array(0) { arrayOfNulls<Any>(4) }

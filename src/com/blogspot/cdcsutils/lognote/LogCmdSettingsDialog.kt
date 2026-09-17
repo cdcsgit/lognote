@@ -1,5 +1,6 @@
 package com.blogspot.cdcsutils.lognote
 
+import com.blogspot.cdcsutils.lognote.FormatManager.Companion
 import java.awt.*
 import java.awt.event.*
 import java.io.File
@@ -55,7 +56,7 @@ class LogCmdSettingsDialog(mainUI: MainUI) :JDialog(mainUI, "${Strings.LOG_CMD} 
     }
 
     private val mLogCmdManager = LogCmdManager.getInstance()
-    private val mAppDataManager = AppDataManager.getInstance()
+    private val mAppDataManager = AppDataManager.getInstance(Companion::class.java.name)
     private val mMainUI = mainUI
 
     init {

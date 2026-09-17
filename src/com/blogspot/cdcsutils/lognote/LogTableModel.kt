@@ -1,6 +1,5 @@
 package com.blogspot.cdcsutils.lognote
 
-import com.blogspot.cdcsutils.lognote.FormatManager.Companion.SEPARATOR_DELIMITER
 import java.awt.Color
 import java.io.*
 import java.util.*
@@ -39,13 +38,13 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
         internal const val COLUMN_PROCESS_NAME = 1
         internal const val COLUMN_LOG_START = 2
         private const val COLUMN_COUNT = 3
-        const val LEVEL_NONE = FormatManager.LEVEL_NONE
-        const val LEVEL_VERBOSE = FormatManager.LEVEL_VERBOSE
-        const val LEVEL_DEBUG = FormatManager.LEVEL_DEBUG
-        const val LEVEL_INFO = FormatManager.LEVEL_INFO
-        const val LEVEL_WARNING = FormatManager.LEVEL_WARNING
-        const val LEVEL_ERROR = FormatManager.LEVEL_ERROR
-        const val LEVEL_FATAL = FormatManager.LEVEL_FATAL
+        const val LEVEL_NONE = FormatConstants.LEVEL_NONE
+        const val LEVEL_VERBOSE = FormatConstants.LEVEL_VERBOSE
+        const val LEVEL_DEBUG = FormatConstants.LEVEL_DEBUG
+        const val LEVEL_INFO = FormatConstants.LEVEL_INFO
+        const val LEVEL_WARNING = FormatConstants.LEVEL_WARNING
+        const val LEVEL_ERROR = FormatConstants.LEVEL_ERROR
+        const val LEVEL_FATAL = FormatConstants.LEVEL_FATAL
 
         const val HIDE_PROCESS_NAME = 0
         const val SHOW_PROCESS_NAME = 1
@@ -366,8 +365,8 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
         if (mSeparator.isEmpty()) {
             mFilterLevel = LEVEL_NONE
         }
-        mSeparatorList = if (mSeparator.contains(SEPARATOR_DELIMITER)) {
-            mSeparator.split(SEPARATOR_DELIMITER)
+        mSeparatorList = if (mSeparator.contains(FormatConstants.SEPARATOR_DELIMITER)) {
+            mSeparator.split(FormatConstants.SEPARATOR_DELIMITER)
         }
         else {
             null

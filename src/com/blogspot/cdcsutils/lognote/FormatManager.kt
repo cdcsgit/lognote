@@ -8,6 +8,18 @@ import javax.swing.event.ListSelectionListener
 import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.DefaultTableModel
 
+object FormatConstants {
+    val TEXT_LEVEL = arrayOf("None", "Verbose", "Debug", "Info", "Warning", "Error", "Fatal")
+    const val LEVEL_NONE = 0
+    const val LEVEL_VERBOSE = 1
+    const val LEVEL_DEBUG = 2
+    const val LEVEL_INFO = 3
+    const val LEVEL_WARNING = 4
+    const val LEVEL_ERROR = 5
+    const val LEVEL_FATAL = 6
+
+    const val SEPARATOR_DELIMITER = ":::SEPARATOR:::"
+}
 
 class FormatManager private constructor() {
     interface FormatEventListener {
@@ -98,17 +110,6 @@ class FormatManager private constructor() {
     }
 
     companion object {
-        val TEXT_LEVEL = arrayOf("None", "Verbose", "Debug", "Info", "Warning", "Error", "Fatal")
-        const val LEVEL_NONE = 0
-        const val LEVEL_VERBOSE = 1
-        const val LEVEL_DEBUG = 2
-        const val LEVEL_INFO = 3
-        const val LEVEL_WARNING = 4
-        const val LEVEL_ERROR = 5
-        const val LEVEL_FATAL = 6
-
-        const val SEPARATOR_DELIMITER = ":::SEPARATOR:::"
-
         fun splitLog(line: String, tokenCount: Int, separator: String, separatorList: List<String>?): List<String> {
             if (separatorList == null) {
                 return line.split(Regex(separator), tokenCount)
@@ -132,6 +133,7 @@ class FormatManager private constructor() {
             }
         }
 
+        private val mAppDataManager = AppDataManager.getInstance(Companion::class.java.name)
         private val mInstance: FormatManager = FormatManager()
         fun getInstance(): FormatManager {
             return mInstance
@@ -141,7 +143,6 @@ class FormatManager private constructor() {
     val mFormatList = mutableListOf<FormatItem>()
     var mCurrFormat: FormatItem
 
-    private val mAppDataManager = AppDataManager.getInstance()
 
     init {
         loadList()
@@ -232,12 +233,12 @@ class FormatManager private constructor() {
         val logPosition = 6
         val columnNames = "Date,0,50|Time,1,100|PID,2,50|TID,3,50|Level,4,15|Tag,5,150|Log,6,-1"
         val levels = mapOf(
-            "V" to LEVEL_VERBOSE,
-            "D" to LEVEL_DEBUG,
-            "I" to LEVEL_INFO,
-            "W" to LEVEL_WARNING,
-            "E" to LEVEL_ERROR,
-            "F" to LEVEL_FATAL
+            "V" to FormatConstants.LEVEL_VERBOSE,
+            "D" to FormatConstants.LEVEL_DEBUG,
+            "I" to FormatConstants.LEVEL_INFO,
+            "W" to FormatConstants.LEVEL_WARNING,
+            "E" to FormatConstants.LEVEL_ERROR,
+            "F" to FormatConstants.LEVEL_FATAL
         )
         val levelPosition = 4
 
@@ -264,12 +265,12 @@ class FormatManager private constructor() {
         var logPosition = 6
         var columnNames = "Date,0,50|Time,1,100|PID,2,50|TID,3,50|Level,4,15|Tag,5,150|Log,6,-1"
         var levels = mapOf(
-            "V" to LEVEL_VERBOSE,
-            "D" to LEVEL_DEBUG,
-            "I" to LEVEL_INFO,
-            "W" to LEVEL_WARNING,
-            "E" to LEVEL_ERROR,
-            "F" to LEVEL_FATAL
+            "V" to FormatConstants.LEVEL_VERBOSE,
+            "D" to FormatConstants.LEVEL_DEBUG,
+            "I" to FormatConstants.LEVEL_INFO,
+            "W" to FormatConstants.LEVEL_WARNING,
+            "E" to FormatConstants.LEVEL_ERROR,
+            "F" to FormatConstants.LEVEL_FATAL
         )
         var levelPosition = 4
 
@@ -317,12 +318,12 @@ class FormatManager private constructor() {
         logPosition = 6
         columnNames = "Date,0,100|Time,1,120|PID,2,120|Tag,3,50|Package,4,100|Level,5,15|Log,6,-1"
         levels = mapOf(
-            "V" to LEVEL_VERBOSE,
-            "D" to LEVEL_DEBUG,
-            "I" to LEVEL_INFO,
-            "W" to LEVEL_WARNING,
-            "E" to LEVEL_ERROR,
-            "F" to LEVEL_FATAL
+            "V" to FormatConstants.LEVEL_VERBOSE,
+            "D" to FormatConstants.LEVEL_DEBUG,
+            "I" to FormatConstants.LEVEL_INFO,
+            "W" to FormatConstants.LEVEL_WARNING,
+            "E" to FormatConstants.LEVEL_ERROR,
+            "F" to FormatConstants.LEVEL_FATAL
         )
         levelPosition = 5
 
@@ -348,12 +349,12 @@ class FormatManager private constructor() {
         logPosition = 5
         columnNames = "Date,0,50|Time,1,100|Level,2,15|Tag,3,150|PID,4,50|Log,5,-1"
         levels = mapOf(
-            "V" to LEVEL_VERBOSE,
-            "D" to LEVEL_DEBUG,
-            "I" to LEVEL_INFO,
-            "W" to LEVEL_WARNING,
-            "E" to LEVEL_ERROR,
-            "F" to LEVEL_FATAL
+            "V" to FormatConstants.LEVEL_VERBOSE,
+            "D" to FormatConstants.LEVEL_DEBUG,
+            "I" to FormatConstants.LEVEL_INFO,
+            "W" to FormatConstants.LEVEL_WARNING,
+            "E" to FormatConstants.LEVEL_ERROR,
+            "F" to FormatConstants.LEVEL_FATAL
         )
         levelPosition = 2
 
@@ -378,12 +379,12 @@ class FormatManager private constructor() {
         logPosition = 6
         columnNames = "Date,0,50|Time,1,100|PID,2,50|TID,3,50|Level,4,15|Tag,5,150|Log,6,-1"
         levels = mapOf(
-            "V" to LEVEL_VERBOSE,
-            "D" to LEVEL_DEBUG,
-            "I" to LEVEL_INFO,
-            "W" to LEVEL_WARNING,
-            "E" to LEVEL_ERROR,
-            "F" to LEVEL_FATAL
+            "V" to FormatConstants.LEVEL_VERBOSE,
+            "D" to FormatConstants.LEVEL_DEBUG,
+            "I" to FormatConstants.LEVEL_INFO,
+            "W" to FormatConstants.LEVEL_WARNING,
+            "E" to FormatConstants.LEVEL_ERROR,
+            "F" to FormatConstants.LEVEL_FATAL
         )
         levelPosition = 4
 
@@ -407,14 +408,14 @@ class FormatManager private constructor() {
     private fun loadList() {
         mFormatList.clear()
 
-        mAppDataManager.mAppData.logFormats?.let {
-            for (item in it) {
+        mAppDataManager.mAppData.logFormats?.let { logFormats ->
+            for (item in logFormats) {
                 if (item.name.isBlank()) {
                     break
                 }
 
                 val levels = emptyMap<String, Int>().toMutableMap()
-                for (idx in 1 until TEXT_LEVEL.size) {
+                for (idx in 1 until FormatConstants.TEXT_LEVEL.size) {
                     val level = item.level[idx].trim()
                     if (level.isNotEmpty()) {
                         levels[level] = idx
@@ -425,9 +426,9 @@ class FormatManager private constructor() {
                 try {
                     tokenFilters = Array(AppConstants.MAX_TOKEN_COUNT) {
                         val tokenName = (item.tokenFilters[it][0] as String).trim()
-                        val position = item.tokenFilters[it][1] as Int
+                        val position = (item.tokenFilters[it][1] as Number).toInt()
                         val isSaveFilter = item.tokenFilters[it][2] as Boolean
-                        val uiWidth = item.tokenFilters[it][3] as Int
+                        val uiWidth = (item.tokenFilters[it][3] as Number).toInt()
 
                         FormatItem.TokenFilterItem(tokenName, position, isSaveFilter, uiWidth)
                     }
@@ -867,8 +868,8 @@ class FormatManager private constructor() {
             private val mSeparatorSingleRadio = JRadioButton(Strings.SINGLE)
             private val mSeparatorMultipleRadio = JRadioButton(Strings.MULTIPLE)
 
-            private val mLevelsLabelArr = Array(TEXT_LEVEL.size) { JLabel(TEXT_LEVEL[it]) }
-            private val mLevelsTFArr = Array(TEXT_LEVEL.size) { JTextField() }
+            private val mLevelsLabelArr = Array(FormatConstants.TEXT_LEVEL.size) { JLabel(FormatConstants.TEXT_LEVEL[it]) }
+            private val mLevelsTFArr = Array(FormatConstants.TEXT_LEVEL.size) { JTextField() }
             private val mLevelsPanel = JPanel()
             private val mTokenFilterArr = Array(AppConstants.MAX_TOKEN_COUNT) { TokenFilterPanel(it) }
             private val mTokenFiltersPanel = JPanel()
@@ -992,7 +993,7 @@ class FormatManager private constructor() {
 
                 mLevelsPanel.layout = FlowLayout(FlowLayout.LEFT)
                 mLevelsPanel.add(JLabel("   "))
-                for (idx in 1 until TEXT_LEVEL.size) {
+                for (idx in 1 until FormatConstants.TEXT_LEVEL.size) {
                     mLevelsPanel.add(mLevelsLabelArr[idx])
                     mLevelsPanel.add(mLevelsTFArr[idx])
                     mLevelsPanel.add(JLabel("   "))
@@ -1029,7 +1030,7 @@ class FormatManager private constructor() {
                     mNameTF.isEditable = false
                     mLevelPositionTF.isEditable = false
                     mPidTokIdxCombo.isEnabled = false
-                    for (idx in TEXT_LEVEL.indices) {
+                    for (idx in FormatConstants.TEXT_LEVEL.indices) {
                         mLevelsTFArr[idx].isEditable = false
                     }
                     mTokenCountTF.isEditable = false
@@ -1087,7 +1088,7 @@ class FormatManager private constructor() {
 
                 mSeparatorListPanel.layout = GridLayout(1, separatorCount)
 
-                val separatorList = mSeparator.split(SEPARATOR_DELIMITER)
+                val separatorList = mSeparator.split(FormatConstants.SEPARATOR_DELIMITER)
                 for (idx in 0 until separatorCount) {
                     val tf = JTextField()
                     if (tokenCount == 1) {
@@ -1111,7 +1112,7 @@ class FormatManager private constructor() {
                 var separator = ""
                 for (tf in mSeparatorTfList) {
                     if (separator.isNotEmpty()) {
-                        separator += SEPARATOR_DELIMITER
+                        separator += FormatConstants.SEPARATOR_DELIMITER
                     }
                     separator += tf.text
                 }
@@ -1123,7 +1124,7 @@ class FormatManager private constructor() {
                     mNameTF.text = format.mName
                     mTokenCountTF.text = format.mTokenCount.toString()
                     mSeparator = format.mSeparator
-                    if (mSeparator.contains(SEPARATOR_DELIMITER)) {
+                    if (mSeparator.contains(FormatConstants.SEPARATOR_DELIMITER)) {
                         mSeparatorMultipleRadio.isSelected = true
                     }
                     else {
@@ -1134,7 +1135,7 @@ class FormatManager private constructor() {
                     mColumnNamesTF.text = format.mColumnNames
                     mLevelPositionTF.text = format.mLevelPosition.toString()
                     mPidTokIdxCombo.selectedItem = format.mPidTokIdx.toString()
-                    for (idx in TEXT_LEVEL.indices) {
+                    for (idx in FormatConstants.TEXT_LEVEL.indices) {
                         mLevelsTFArr[idx].text = ""
                     }
                     format.mLevels.forEach { mLevelsTFArr[it.value].text = it.key }
@@ -1206,7 +1207,7 @@ class FormatManager private constructor() {
                 val logPosition = mLogPositionTF.text.toInt()
                 val columnNames = mColumnNamesTF.text
                 val levels = emptyMap<String, Int>().toMutableMap()
-                for (idx in 1 until TEXT_LEVEL.size) {
+                for (idx in 1 until FormatConstants.TEXT_LEVEL.size) {
                     val level = mLevelsTFArr[idx].text.trim()
                     if (level.isNotEmpty()) {
                         levels[level] = idx
@@ -1227,22 +1228,22 @@ class FormatManager private constructor() {
 
             private fun getFgStrColor(level: Int) : String {
                 return when (level) {
-                    LEVEL_VERBOSE -> {
+                    FormatConstants.LEVEL_VERBOSE -> {
                         mTableColor.mStrLogLevelVerbose
                     }
-                    LEVEL_DEBUG -> {
+                    FormatConstants.LEVEL_DEBUG -> {
                         mTableColor.mStrLogLevelDebug
                     }
-                    LEVEL_INFO -> {
+                    FormatConstants.LEVEL_INFO -> {
                         mTableColor.mStrLogLevelInfo
                     }
-                    LEVEL_WARNING -> {
+                    FormatConstants.LEVEL_WARNING -> {
                         mTableColor.mStrLogLevelWarning
                     }
-                    LEVEL_ERROR -> {
+                    FormatConstants.LEVEL_ERROR -> {
                         mTableColor.mStrLogLevelError
                     }
-                    LEVEL_FATAL -> {
+                    FormatConstants.LEVEL_FATAL -> {
                         mTableColor.mStrLogLevelFatal
                     }
                     else -> mTableColor.mStrLogLevelNone
@@ -1264,8 +1265,8 @@ class FormatManager private constructor() {
                 mSampleDataList.clear()
                 val lines: List<String> = mSampleTextArea.text.split("\n")
                 val separator = getSeparator()
-                val separatorList = if (separator.contains(SEPARATOR_DELIMITER)) {
-                    separator.split(SEPARATOR_DELIMITER)
+                val separatorList = if (separator.contains(FormatConstants.SEPARATOR_DELIMITER)) {
+                    separator.split(FormatConstants.SEPARATOR_DELIMITER)
                 }
                 else {
                     null
@@ -1303,8 +1304,8 @@ class FormatManager private constructor() {
                         }
 
                         val levelColor = if (levelIdx > 0 && levelIdx < lineList.size) {
-                            var level = LEVEL_NONE
-                            for (idx in 1 until TEXT_LEVEL.size) {
+                            var level = FormatConstants.LEVEL_NONE
+                            for (idx in 1 until FormatConstants.TEXT_LEVEL.size) {
                                 if (mLevelsTFArr[idx].text.isNotEmpty() && mLevelsTFArr[idx].text == lineList[levelIdx]) {
                                     level = idx
                                 }
@@ -1312,7 +1313,7 @@ class FormatManager private constructor() {
                             getFgStrColor(level)
                         }
                         else {
-                            getFgStrColor(LEVEL_NONE)
+                            getFgStrColor(FormatConstants.LEVEL_NONE)
                         }
 
                         "<html><nobr><font color=$levelColor>${lineList[column]}</font></nobr></html>"
@@ -1360,8 +1361,8 @@ class FormatManager private constructor() {
                         }
 
                         val levelColor = if (levelIdx > 0 && levelIdx < lineList.size) {
-                            var level = LEVEL_NONE
-                            for (idx in 1 until TEXT_LEVEL.size) {
+                            var level = FormatConstants.LEVEL_NONE
+                            for (idx in 1 until FormatConstants.TEXT_LEVEL.size) {
                                 if (mLevelsTFArr[idx].text.isNotEmpty() && mLevelsTFArr[idx].text == lineList[levelIdx]) {
                                     level = idx
                                 }
@@ -1369,7 +1370,7 @@ class FormatManager private constructor() {
                             getFgStrColor(level)
                         }
                         else {
-                            getFgStrColor(LEVEL_NONE)
+                            getFgStrColor(FormatConstants.LEVEL_NONE)
                         }
 
                         "<html><nobr><font color=$levelColor>${lineList[mIdxList[column]]}</font></nobr></html>"

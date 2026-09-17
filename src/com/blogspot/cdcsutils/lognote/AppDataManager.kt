@@ -25,7 +25,6 @@ class InnerListCompactAdapter : TypeAdapter<List<List<Any>>?>() {
 
     // Serialize object to JSON format
     override fun write(out: JsonWriter, value: List<List<Any>>?) {
-        Utils.printlnLog("InnerListCompactAdapter write")
         // Handle null values safely
         if (value == null) {
             out.nullValue()
@@ -103,7 +102,6 @@ class ListCompactAdapter : TypeAdapter<List<Any>?>() {
 
     // Serialize object to JSON format
     override fun write(out: JsonWriter, value: List<Any>?) {
-        Utils.printlnLog("ListCompactAdapter write")
         // Handle null values safely
         if (value == null) {
             out.nullValue()
@@ -346,7 +344,8 @@ class AppDataManager private constructor() {
         var LaFAccentColor = ""
 
         private val mInstance: AppDataManager = AppDataManager()
-        fun getInstance(): AppDataManager {
+        fun getInstance(caller: String): AppDataManager {
+            Utils.printlnLog("TEST TEST AppDataManager.getInstance(), caller: $caller")
             return mInstance
         }
 
@@ -498,10 +497,10 @@ class AppDataManager private constructor() {
 
     fun save(saveFileType: SaveFileType) {
         if (saveFileType == SaveFileType.APP_DATA) {
-            updateAndSaveAppData { it }
+            updateAndSaveAppData { mAppData }
         }
         else if (saveFileType == SaveFileType.APP_HISTORY) {
-            updateAndSaveAppHistory { it }
+            updateAndSaveAppHistory { mAppHistory }
         }
     }
 
@@ -815,7 +814,7 @@ class AppDataManager private constructor() {
                 }
                 val columnNames = getFromProperties(formatReader, "$idx$FORMAT_ITEM_COLUMN_NAMES") ?: ""
                 val level = mutableListOf<String>()
-                for (lvlIdx in FormatManager.TEXT_LEVEL.indices) {
+                for (lvlIdx in FormatConstants.TEXT_LEVEL.indices) {
                     level.add(lvlIdx, (getFromProperties(formatReader, "$idx$FORMAT_ITEM_LEVEL$lvlIdx") ?: "").trim())
                 }
 
@@ -979,6 +978,9 @@ class AppDataManager private constructor() {
                 if (filter == null) {
                     break
                 }
+                if (filter.isEmpty()) {
+                    continue
+                }
                 showLogFilters.add(filter)
             }
 
@@ -1085,7 +1087,7 @@ class AppDataManager private constructor() {
             val testTriggers = mutableListOf<TestTrigger>()
             for (i in 0 until AppConstants.MAX_TRIGGER_COUNT) {
                 val name = getFromProperties(agingTestReader, "$i$TRIGGER_ITEM_TRIGGER_NAME") ?: ""
-                if (name.isNullOrEmpty()) {
+                if (name.isEmpty()) {
                     break
                 }
                 val filter = getFromProperties(agingTestReader, "$i$TRIGGER_ITEM_TRIGGER_FILTER") ?: ""
@@ -1123,7 +1125,8 @@ class AppDataManager private constructor() {
             mAppHistory = mAppHistory.copy(recentFiles = mAppHistory.recentFiles.copy(fileItems = fileItems))
         }
 
-//        mAppData = mAppData.copy(version = "1")
+        mAppData = mAppData.copy(version = "1")
+        mAppHistory = mAppHistory.copy(version = "1")
         Utils.printlnLog("updateAppDataFromV0ToV1 : --")
     }
 }
