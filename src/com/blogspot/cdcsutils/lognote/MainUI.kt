@@ -2692,6 +2692,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         var mCopyItem: JMenuItem
         var mPasteItem: JMenuItem
         var mRemoveItem: JMenuItem
+        var mEditItem: JMenuItem
         var mRemoveOthersItem: JMenuItem
         var mRemoveColorTagsItem: JMenuItem
         lateinit var mRemoveOneColorTagItem: JMenuItem
@@ -2725,6 +2726,10 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             mPasteItem = JMenuItem(Strings.PASTE)
             mPasteItem.addActionListener(mActionHandler)
             add(mPasteItem)
+            addSeparator()
+            mEditItem = JMenuItem(Strings.EDIT)
+            mEditItem.addActionListener(mActionHandler)
+            add(mEditItem)
             addSeparator()
             mRemoveItem = JMenuItem(Strings.REMOVE)
             mRemoveItem.addActionListener(mActionHandler)
@@ -2776,6 +2781,13 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
                     mPasteItem -> {
                         val editorCom = mCombo.editor?.editorComponent as JTextComponent
                         editorCom.paste()
+                    }
+                    mEditItem -> {
+                        val editorCom = mCombo.editor?.editorComponent as JTextComponent
+                        editorCom.replaceSelection("")
+                        if (mCombo == mShowLogCombo) {
+                            applyShowLogComboEditor()
+                        }
                     }
                     mRemoveItem -> {
                         val editorCom = mCombo.editor?.editorComponent as JTextComponent

@@ -303,9 +303,9 @@ class AgingTestManager private constructor() {
             mTriggerTable.autoResizeMode = JTable.AUTO_RESIZE_LAST_COLUMN
             mTriggerTable.tableHeader.reorderingAllowed = false
             mTriggerTable.columnModel.getColumn(0).preferredWidth = 40
-            mTriggerTable.columnModel.getColumn(1).preferredWidth = 400
+            mTriggerTable.columnModel.getColumn(1).preferredWidth = 300
             mTriggerTable.columnModel.getColumn(2).preferredWidth = 60
-            mTriggerTable.columnModel.getColumn(3).preferredWidth = 450
+            mTriggerTable.columnModel.getColumn(3).preferredWidth = 300
             mTriggerTable.columnModel.getColumn(4).preferredWidth = 15
             mTriggerTable.columnModel.getColumn(5).preferredWidth = 25
             mTriggerTable.addMouseListener(TableMouseHandler())

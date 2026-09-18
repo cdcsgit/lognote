@@ -305,59 +305,74 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
         return
     }
 
-    private fun parsePattern(pattern: String) : Array<String> {
-        val patterns: Array<String> = Array(2) { "" }
+    private fun parsePattern(pattern: String) : Pair<List<String>, List<String>> {
+        val patterns: Pair<MutableList<String>, MutableList<String>> = Pair(mutableListOf(), mutableListOf())
 
+//        val patternSplit = pattern.split(Regex("(?<!\\\\)\\|"))
         val patternSplit = pattern.split("|")
-        var prevPatternIdx = -1
 
         for (item in patternSplit) {
-            if (prevPatternIdx != -1) {
-                patterns[prevPatternIdx] += "|"
-                patterns[prevPatternIdx] += item
-
-                if (item.isEmpty() || item.substring(item.length - 1) != "\\") {
-                    prevPatternIdx = -1
-                }
-                continue
-            }
-
             if (item.isNotEmpty()) {
                 if (item[0] != '-') {
-                    if (patterns[0].isNotEmpty()) {
-                        patterns[0] += "|"
-                    }
-
-                    if (2 < item.length && item[0] == '#' && item[1].isDigit()) {
-                        patterns[0] += item.substring(2)
-                    }
-                    else {
-                        patterns[0] += item
-                    }
-
-                    if (item.substring(item.length - 1) == "\\") {
-                        prevPatternIdx = 0
-                    }
+                    patterns.first.add(item)
                 } else {
-                    if (patterns[1].isNotEmpty()) {
-                        patterns[1] += "|"
-                    }
-
-                    if (3 < item.length && item[1] == '#' && item[2].isDigit()) {
-                        patterns[1] += item.substring(3)
-                    }
-                    else {
-                        patterns[1] += item.substring(1)
-                    }
-
-                    if (item.substring(item.length - 1) == "\\") {
-                        prevPatternIdx = 1
-                    }
+                    patterns.second.add(item.substring(1))
                 }
             }
         }
 
-        return patterns
+        val seenItems = mutableSetOf<String>()
+        val duplicatedItems = mutableSetOf<String>()
+        patterns.first.forEach { item ->
+            val seenItem = if (item.length > 2 && item[0] == '#' && item[1].isDigit()) {
+                item.substring(2)
+            }
+            else {
+                item
+            }
+
+            if (!seenItems.add(seenItem)) {
+                duplicatedItems.add(seenItem)
+            }
+        }
+
+        val incldues = patterns.first.map { item ->
+            val seenItem = if (item.length > 2 && item[0] == '#' && item[1].isDigit()) {
+                item.substring(2)
+            }
+            else {
+                item
+            }
+
+            if (!duplicatedItems.add(seenItem)) "$item <b>[duplicated]</b>" else item
+        }
+
+        seenItems.clear()
+        duplicatedItems.clear()
+        patterns.second.forEach { item ->
+            val seenItem = if (item.length > 2 && item[0] == '#' && item[1].isDigit()) {
+                item.substring(2)
+            }
+            else {
+                item
+            }
+
+            if (!seenItems.add(seenItem)) {
+                duplicatedItems.add(seenItem)
+            }
+        }
+
+        val excludes = patterns.second.map { item ->
+            val seenItem = if (item.length > 2 && item[0] == '#' && item[1].isDigit()) {
+                item.substring(2)
+            }
+            else {
+                item
+            }
+
+            if (!duplicatedItems.add(seenItem)) "$item <b>[duplicated]</b>" else item
+        }
+        return Pair(incldues, excludes)
     }
 
     fun updateTooltip() {
@@ -381,15 +396,22 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
         }
         else {
             val patterns = parsePattern(mEditorComponent.text)
-            var includeStr = patterns[0]
-            var excludeStr = patterns[1]
+            var includeStr = patterns.first.joinToString("<br>")
+            var excludeStr = patterns.second.joinToString("<br>")
 
+            Utils.printlnLog("TEST TEST updateTooltip $includeStr, $excludeStr")
+            var tooltip = "<html><b>$toolTipText</b><br><br>"
             if (includeStr.isNotEmpty()) {
                 includeStr = includeStr.replace("&#09", "&amp;#09")
                 includeStr = includeStr.replace("\t", "&#09;")
                 includeStr = includeStr.replace("&nbsp", "&amp;nbsp")
                 includeStr = includeStr.replace(" ", "&nbsp;")
                 includeStr = includeStr.replace("|", "<font color=#303030><b>|</b></font>")
+                if (MainUI.IsFlatLaf && !MainUI.IsFlatLightLaf) {
+                    tooltip += "<font><b>INCLUDE : </b></font><br><font color=#7070C0>$includeStr</font><br>"
+                } else {
+                    tooltip += "<font><b>INCLUDE : </b></font><br><font color=#0000FF>$includeStr</font><br>"
+                }
             }
 
             if (excludeStr.isNotEmpty()) {
@@ -398,16 +420,13 @@ class FilterComboBox(mode: Mode, useColorTag: Boolean) : JComboBox<String>() {
                 excludeStr = excludeStr.replace("&nbsp", "&amp;nbsp")
                 excludeStr = excludeStr.replace(" ", "&nbsp;")
                 excludeStr = excludeStr.replace("|", "<font color=#303030><b>|</b></font>")
+                if (MainUI.IsFlatLaf && !MainUI.IsFlatLightLaf) {
+                    tooltip += "<font><b>EXCLUDE : </b></font><br><font color=#C07070>$excludeStr</font><br>"
+                } else {
+                    tooltip += "<font><b>EXCLUDE : </b></font><br><font color=#FF0000>$excludeStr</font><br>"
+                }
             }
 
-            var tooltip = "<html><b>$toolTipText</b><br>"
-            if (MainUI.IsFlatLaf && !MainUI.IsFlatLightLaf) {
-                tooltip += "<font>INCLUDE : </font>\"<font size=5 color=#7070C0>$includeStr</font>\"<br>"
-                tooltip += "<font>EXCLUDE : </font>\"<font size=5 color=#C07070>$excludeStr</font>\"<br>"
-            } else {
-                tooltip += "<font>INCLUDE : </font>\"<font size=5 color=#0000FF>$includeStr</font>\"<br>"
-                tooltip += "<font>EXCLUDE : </font>\"<font size=5 color=#FF0000>$excludeStr</font>\"<br>"
-            }
             tooltip += "</html>"
             mEditorComponent.toolTipText = tooltip
         }
