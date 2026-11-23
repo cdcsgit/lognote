@@ -50,7 +50,7 @@ class VStatusPanel(logTable: LogTable) : JPanel() {
         }
         for (row in 0 until mLogTable.rowCount) {
             val num = mLogTable.getValueAt(row, 0).toString().trim().toInt()
-            if (mBookmarkManager.mBookmarks.contains(num)) {
+            if (mBookmarkManager.isBookmark(num)) {
                 g?.fillRect(0, row * height / mLogTable.rowCount, width, 1)
             }
         }

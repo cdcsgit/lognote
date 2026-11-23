@@ -229,11 +229,11 @@ class AgingTestManager private constructor() {
                 return mResultDialogImpl!!
             }
 
-        private val mLogList = mutableListOf<String>()
+        private val mLogList = ArrayDeque<String>()
 
         fun addLog(log: String) {
             if (mLogList.size > MAX_RESULT_LOG) {
-                mLogList.removeAt(0)
+                mLogList.removeFirst()
             }
             mLogList.add(log)
         }

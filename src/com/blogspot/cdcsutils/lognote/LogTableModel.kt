@@ -553,7 +553,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
             mBookmarkManager.clear()
         }
 
-        val bufferedReader = BufferedReader(FileReader(mLogFile!!))
+        val bufferedReader = BufferedReader(InputStreamReader(FileInputStream(mLogFile!!), Charsets.UTF_8))
         var line: String?
 
         line = bufferedReader.readLine()
@@ -1146,7 +1146,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                 val logItems: MutableList<LogItem> = mutableListOf()
                 if (mBookmarkMode) {
                     for (item in mBaseModel!!.mLogItems) {
-                        if (mBookmarkManager.mBookmarks.contains(item.mNum.toInt())) {
+                        if (mBookmarkManager.isBookmark(item.mNum.toInt())) {
                             logItems.add(item)
                         }
                     }
@@ -1238,7 +1238,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                             }
                         }
 
-                        if (isShow || mBookmarkManager.mBookmarks.contains(item.mNum.toInt())) {
+                        if (isShow || mBookmarkManager.isBookmark(item.mNum.toInt())) {
                             logItems.add(item)
                         }
                     }
@@ -1263,7 +1263,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
     private var mFollowThread:Thread? = null
     private var mRecvThread:Thread? = null
 
-    private var mFileWriter:FileWriter? = null
+    private var mFileWriter:Writer? = null
     private var mIsPause = false
 
     fun isScanning(): Boolean {
@@ -1326,19 +1326,21 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                     }
 
                     mBaseModel!!.mLogItems.add(filterItem.mItem)
-                    if (filterItem.mIsShow || mBookmarkManager.mBookmarks.contains(filterItem.mItem.mNum.toInt())) {
+                    if (filterItem.mIsShow || mBookmarkManager.isBookmark(filterItem.mItem.mNum.toInt())) {
                         mLogItems.add(filterItem.mItem)
                     }
                 }
                 if (isRemoveItem) {
-                    while (mBaseModel!!.mLogItems.count() > mScrollback) {
-                        mBaseModel!!.mLogItems.removeAt(0)
-                        baseRemovedCount++
+                    val baseExcess = mBaseModel!!.mLogItems.size - mScrollback
+                    if (baseExcess > 0) {
+                        mBaseModel!!.mLogItems.subList(0, baseExcess).clear()
+                        baseRemovedCount += baseExcess
                     }
 
-                    while (mLogItems.count() > mScrollback) {
-                        mLogItems.removeAt(0)
-                        removedCount++
+                    val excess = mLogItems.size - mScrollback
+                    if (excess > 0) {
+                        mLogItems.subList(0, excess).clear()
+                        removedCount += excess
                     }
                     fireLogTableDataChanged(removedCount)
                     removedCount = 0
@@ -1397,7 +1399,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                 }
 
                 var currLogFile: File? = mLogFile
-                var bufferedReader = BufferedReader(InputStreamReader(mLogCmdManager.mProcessLogcat!!.inputStream))
+                var bufferedReader = BufferedReader(InputStreamReader(mLogCmdManager.mProcessLogcat!!.inputStream, Charsets.UTF_8))
                 var line: String?
                 var saveNum = 0
                 var startNum = 0
@@ -1419,7 +1421,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                                     mLogCmdManager.restartLogcat()
                                     if (mLogCmdManager.mProcessLogcat?.inputStream != null) {
                                         bufferedReader =
-                                            BufferedReader(InputStreamReader(mLogCmdManager.mProcessLogcat?.inputStream!!))
+                                            BufferedReader(InputStreamReader(mLogCmdManager.mProcessLogcat?.inputStream!!, Charsets.UTF_8))
                                     } else {
                                         Utils.printlnLog("startScan : inputStream is Null, set empty reader")
                                         bufferedReader = BufferedReader(StringReader(""))
@@ -1444,7 +1446,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                                 }
 
                                 if (mFileWriter == null) {
-                                    mFileWriter = FileWriter(mLogFile)
+                                    mFileWriter = BufferedWriter(OutputStreamWriter(FileOutputStream(mLogFile), Charsets.UTF_8))
                                 }
                                 mFileWriter?.write(line + "\n")
                                 saveNum++

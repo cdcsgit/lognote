@@ -28,8 +28,9 @@ class BookmarkManager private constructor(){
         mEventListeners.add(listener)
     }
 
+    // mBookmarks is kept sorted (addBookmark sorts, remove/clear keep order), so binary search is safe.
     fun isBookmark(bookmark:Int): Boolean {
-        return mBookmarks.contains(bookmark)
+        return mBookmarks.binarySearch(bookmark) >= 0
     }
 
     fun updateBookmark(bookmark:Int) {

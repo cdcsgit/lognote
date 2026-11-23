@@ -110,16 +110,22 @@ class FormatManager private constructor() {
     }
 
     companion object {
+        // Compiling a Regex for every log line is expensive; separators are few, so cache them.
+        private val mSeparatorRegexCache = java.util.concurrent.ConcurrentHashMap<String, Regex>()
+        private fun separatorRegex(separator: String): Regex {
+            return mSeparatorRegexCache.getOrPut(separator) { Regex(separator) }
+        }
+
         fun splitLog(line: String, tokenCount: Int, separator: String, separatorList: List<String>?): List<String> {
             if (separatorList == null) {
-                return line.split(Regex(separator), tokenCount)
+                return line.split(separatorRegex(separator), tokenCount)
             }
             else {
                 var remainingLine = line
                 val splitedLine: MutableList<String> = mutableListOf()
                 var tmpSplited: List<String>
                 for (item in separatorList) {
-                    tmpSplited = remainingLine.split(Regex(item), 2)
+                    tmpSplited = remainingLine.split(separatorRegex(item), 2)
                     splitedLine.add(tmpSplited[0])
                     if (tmpSplited.size > 1) {
                         remainingLine = tmpSplited[1]
