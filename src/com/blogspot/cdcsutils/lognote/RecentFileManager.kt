@@ -98,7 +98,8 @@ class RecentFileManager private constructor() {
                 val tokenFilterMap= mutableMapOf<String, String>()
                 val tokenCheckMap= mutableMapOf<String, Boolean>()
                 for (tokIdx in 0 until AppConstants.MAX_TOKEN_COUNT) {
-                    if (tokens[idx].mToken.isNotEmpty()) {
+                    // was tokens[idx] (recent-file index): crashed with 4+ recent files
+                    if (tokIdx < tokens.size && tokens[tokIdx].mToken.isNotEmpty()) {
                         val key = "${formatName}_${tokens[tokIdx].mToken}"
                         tokenFilterMap[key] = item.mTokenFilter[tokIdx]
                         tokenCheckMap[key] = item.mTokenCheck[tokIdx]

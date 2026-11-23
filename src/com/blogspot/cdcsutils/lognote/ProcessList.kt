@@ -19,6 +19,14 @@ class ProcessList private constructor() {
     private val mProcessMap: MutableMap<String, ProcessItem> = mutableMapOf()
     private var mUpdatedTime: Long = 0
 
+    // pid -> process known for the current log source (live session, or opened/followed file).
+    // Filled from 'ps' results, "Start proc" / am_proc_start log lines and saved "<log>.pnames" side files.
+    // Unlike mProcessMap it is not cleared on every 'ps' refresh, so it can be saved next to the log file.
+    private val mKnownProcesses = java.util.concurrent.ConcurrentHashMap<String, ProcessItem>()
+    @Volatile private var mKnownDirty = false
+    private var mLastSavedPath: String? = null
+    private var mLastSavedTime: Long = 0
+
     companion object {
         private val mInstance: ProcessList = ProcessList()
 
@@ -29,13 +37,18 @@ class ProcessList private constructor() {
         const val MAX_UPDATE_TIME_SEC = 600 // sec
         const val DEFAULT_UPDATE_TIME = 10000 // msec
         var UpdateTime = DEFAULT_UPDATE_TIME
+
+        const val PNAMES_EXT = ".pnames"
+        private const val PNAMES_SAVE_INTERVAL = 5000 // msec
+        private val START_PROC_REGEX = Regex("Start proc (\\d+):([^\\s/]+)")
+        private val AM_PROC_START_REGEX = Regex("am_proc_start: \\[\\d+,(\\d+),\\d+,([^,\\]]+)")
     }
 
     fun getProcess(pid: String): ProcessItem? {
         if (MainUI.CurrentMethod != MainUI.METHOD_ADB) {
-            return null
+            return mKnownProcesses[pid]
         }
-        val item = mProcessMap[pid]
+        val item = mProcessMap[pid] ?: mKnownProcesses[pid]
         if (item != null) {
             return item
         }
@@ -51,9 +64,16 @@ class ProcessList private constructor() {
 
     fun getProcessName(pid: String): String? {
         if (MainUI.CurrentMethod != MainUI.METHOD_ADB) {
-            return null
+            return mKnownProcesses[pid]?.mProcessName
         }
         var item = mProcessMap[pid]
+        if (item != null) {
+            if (!mKnownProcesses.containsKey(pid)) {
+                addKnown(item)  // remember every pid seen in the live log, for the .pnames side file
+            }
+            return item.mProcessName
+        }
+        item = mKnownProcesses[pid]
         if (item != null) {
             return item.mProcessName
         }
@@ -74,6 +94,107 @@ class ProcessList private constructor() {
 
     fun add(processItem: ProcessItem) {
         mProcessMap[processItem.mPid] = processItem
+        addKnown(processItem)
+    }
+
+    private fun addKnown(processItem: ProcessItem) {
+        val prev = mKnownProcesses.put(processItem.mPid, processItem)
+        if (prev == null || prev.mProcessName != processItem.mProcessName) {
+            mKnownDirty = true
+        }
+    }
+
+    fun hasKnownProcesses(): Boolean {
+        return mKnownProcesses.isNotEmpty()
+    }
+
+    fun resetKnownProcesses() {
+        mKnownProcesses.clear()
+        mKnownDirty = false
+        mLastSavedPath = null
+        mLastSavedTime = 0
+    }
+
+    // Copy the current 'ps' result into the known list (start of a live session, and before saving it)
+    fun mergeCurrentProcesses() {
+        try {
+            for (item in ArrayList(mProcessMap.values)) {
+                if (!mKnownProcesses.containsKey(item.mPid)) {
+                    addKnown(item)
+                }
+            }
+        } catch (e: ConcurrentModificationException) {
+            Utils.printlnLog("mergeCurrentProcesses : process list is being updated, skip")
+        }
+    }
+
+    // Learn pid -> name from ActivityManager "Start proc 1234:com.foo/u0a12 ..." or events "am_proc_start: [0,1234,10012,com.foo,...]"
+    fun learnFromLogLine(line: String) {
+        val match: MatchResult? = when {
+            line.contains("Start proc ") -> START_PROC_REGEX.find(line)
+            line.contains("am_proc_start") -> AM_PROC_START_REGEX.find(line)
+            else -> null
+        }
+        if (match != null) {
+            addKnown(ProcessItem(match.groupValues[1], match.groupValues[2], ""))
+        }
+    }
+
+    // Load "<logPath>.pnames" (written while the log was captured live) so an opened file can show process names
+    fun loadKnownProcesses(logPath: String, isAppend: Boolean) {
+        if (!isAppend) {
+            resetKnownProcesses()
+        }
+        val file = java.io.File(logPath.trim() + PNAMES_EXT)
+        if (!file.isFile) {
+            Utils.printlnLog("loadKnownProcesses : no process name file - ${file.absolutePath}")
+            return
+        }
+        try {
+            file.forEachLine(Charsets.UTF_8) { line ->
+                if (line.isNotBlank() && !line.startsWith("#")) {
+                    val items = line.split("\t")
+                    if (items.size >= 2 && items[0].isNotBlank() && items[1].isNotBlank()) {
+                        mKnownProcesses[items[0]] = ProcessItem(items[0], items[1], items.getOrElse(2) { "" })
+                    }
+                }
+            }
+            mKnownDirty = false
+            Utils.printlnLog("loadKnownProcesses : ${mKnownProcesses.size} processes from ${file.absolutePath}")
+        } catch (e: Exception) {
+            Utils.printlnLog("loadKnownProcesses : failed - ${e.message}")
+        }
+    }
+
+    // Write "<logFile>.pnames" next to a log file being saved; throttled unless force is set
+    fun saveKnownProcesses(logFile: java.io.File?, force: Boolean) {
+        if (logFile == null) {
+            return
+        }
+        if (force && MainUI.CurrentMethod == MainUI.METHOD_ADB) {
+            mergeCurrentProcesses()
+        }
+        if (mKnownProcesses.isEmpty()) {
+            return
+        }
+        val path = logFile.absolutePath
+        val now = System.currentTimeMillis()
+        if (!force && path == mLastSavedPath && (!mKnownDirty || now < mLastSavedTime + PNAMES_SAVE_INTERVAL)) {
+            return
+        }
+        try {
+            java.io.File(path + PNAMES_EXT).bufferedWriter(Charsets.UTF_8).use { writer ->
+                writer.write("# LogNote process names for ${logFile.name} (pid<TAB>name<TAB>user)\n")
+                for (item in mKnownProcesses.values.sortedBy { it.mPid.toIntOrNull() ?: Int.MAX_VALUE }) {
+                    writer.write("${item.mPid}\t${item.mProcessName}\t${item.mUser}\n")
+                }
+            }
+            mKnownDirty = false
+            mLastSavedPath = path
+            mLastSavedTime = now
+        } catch (e: Exception) {
+            Utils.printlnLog("saveKnownProcesses : failed - ${e.message}")
+        }
     }
 
     private fun updateProcesses(): Boolean {

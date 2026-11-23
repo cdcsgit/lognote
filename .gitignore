@@ -1,3 +1,10 @@
 # Default ignored files
 /out
 /config.xml
+
+# Gradle
+.gradle/
+build/
+LogNote_*.txt
+LogNote_*.txt.pnames
+lognote*.json
