@@ -10,6 +10,45 @@ class Main {
         const val VERSION: String = "1.2"
         const val NAME: String = "LogNote"
 
+        // Diagnostic (off by default, enable with -Dlognote.lagdetect=true):
+        // when the UI thread does not respond for LAG_MS, print what it is doing, to find the cause of UI lag.
+        private const val LAG_MS = 200L
+        private fun startLagDetector() {
+            val watchdog = Thread {
+                var edt: Thread? = null
+                SwingUtilities.invokeAndWait { edt = Thread.currentThread() }
+                var lastReport = 0L
+                while (true) {
+                    val done = java.util.concurrent.atomic.AtomicBoolean(false)
+                    val start = System.currentTimeMillis()
+                    SwingUtilities.invokeLater { done.set(true) }
+                    Thread.sleep(LAG_MS)
+                    if (!done.get()) {
+                        val stack = edt?.stackTrace ?: emptyArray()
+                        while (!done.get()) {
+                            Thread.sleep(20)
+                        }
+                        val blocked = System.currentTimeMillis() - start
+                        val now = System.currentTimeMillis()
+                        if (now - lastReport > 1000) {  // at most one report per second
+                            lastReport = now
+                            val sb = StringBuilder("LAG: UI thread blocked ${blocked} ms, it was doing:\n")
+                            for (frame in stack.take(40)) {
+                                sb.append("        at ").append(frame).append('\n')
+                            }
+                            Utils.printlnLog(sb.toString())
+                        }
+                    } else {
+                        Thread.sleep(100)
+                    }
+                }
+            }
+            watchdog.isDaemon = true
+            watchdog.name = "LagDetector"
+            watchdog.start()
+            Utils.printlnLog("Lag detector enabled (${LAG_MS} ms)")
+        }
+
         @JvmStatic
         fun main(args: Array<String>) {
             when {
@@ -47,6 +86,10 @@ class Main {
                  JFrame.setDefaultLookAndFeelDecorated(true)
                  JDialog.setDefaultLookAndFeelDecorated(true)
              }
+
+            if (System.getProperty("lognote.lagdetect") == "true") {
+                startLagDetector()
+            }
 
             SwingUtilities.invokeLater {
                 val mainUI = MainUI.getInstance()
