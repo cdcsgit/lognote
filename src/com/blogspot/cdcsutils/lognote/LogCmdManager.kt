@@ -291,7 +291,7 @@ class LogCmdManager private constructor(){
                             thread.interrupt()
                         }
                     } catch (ex: InterruptedException) {
-                        Utils.printlnLog("get process join : InterruptedException, throw exception")
+                        Utils.printlnLog("get process list cancelled (stopping)")
                         throw ex
                     }
 

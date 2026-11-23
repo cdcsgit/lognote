@@ -1261,11 +1261,38 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
         val mIsShow = isShow
     }
 
-    private var mScanThread:Thread? = null
+    @Volatile private var mScanThread:Thread? = null
     private var mFollowThread:Thread? = null
     private var mRecvThread:Thread? = null
 
-    private var mFileWriter:Writer? = null
+    @Volatile private var mFileWriter:Writer? = null
+    private val mFileWriterLock = Any()
+
+    // Flush and close the live log file exactly once. Stop (UI thread) and the scan thread can both
+    // get here at the same time; whoever takes the writer first closes it, the other does nothing.
+    private fun closeFileWriter() {
+        val writer = synchronized(mFileWriterLock) {
+            val w = mFileWriter
+            mFileWriter = null
+            w
+        } ?: return
+        try {
+            writer.flush()
+        } catch (e: IOException) {
+            Utils.printlnLog("closeFileWriter : flush failed - ${e.message}")
+        }
+        try {
+            writer.close()
+        } catch (e: IOException) {
+            Utils.printlnLog("closeFileWriter : close failed - ${e.message}")
+        }
+    }
+
+    // True when the scan thread is ending because Stop/restart interrupted or replaced it, not because of a real error
+    private fun isScanStopping(e: Throwable): Boolean {
+        return e is InterruptedException || e.cause is InterruptedException
+                || Thread.currentThread().isInterrupted || mScanThread !== Thread.currentThread()
+    }
     private var mIsPause = false
 
     fun isScanning(): Boolean {
@@ -1396,10 +1423,12 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                         ProcessList.getInstance().getProcessName("0")
                     }
                 } catch (e: Exception) {
-                    Utils.printlnLog("startScan thread stop - getProcessName : ${e.stackTraceToString()}")
-
-                    mFileWriter?.close()
-                    mFileWriter = null
+                    if (isScanStopping(e)) {
+                        Utils.printlnLog("startScan thread stopped (while getting process list)")
+                    } else {
+                        Utils.printlnLog("startScan thread stop - getProcessName : ${e.stackTraceToString()}")
+                    }
+                    closeFileWriter()
                     return@run
                 }
 
@@ -1440,19 +1469,19 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                             while (line != null) {
                                 if (currLogFile != mLogFile) {
                                     ProcessList.getInstance().saveKnownProcesses(currLogFile, true)
-                                    try {
-                                        mFileWriter?.flush()
-                                    } catch (e: IOException) {
-                                        e.printStackTrace()
-                                    }
-                                    mFileWriter?.close()
-                                    mFileWriter = null
+                                    closeFileWriter()
                                     currLogFile = mLogFile
                                     saveNum = 0
                                 }
 
                                 if (mFileWriter == null) {
-                                    mFileWriter = BufferedWriter(OutputStreamWriter(FileOutputStream(mLogFile), Charsets.UTF_8))
+                                    synchronized(mFileWriterLock) {
+                                        // Stop already closed the file: end quietly instead of reopening (and truncating) it
+                                        if (mScanThread !== Thread.currentThread()) {
+                                            throw InterruptedException("scan stopped")
+                                        }
+                                        mFileWriter = BufferedWriter(OutputStreamWriter(FileOutputStream(mLogFile, true), Charsets.UTF_8))
+                                    }
                                 }
                                 mFileWriter?.write(line + "\n")
                                 saveNum++
@@ -1477,20 +1506,15 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                             ProcessList.getInstance().saveKnownProcesses(currLogFile, false)
                         }
                     } catch (e: Exception) {
-                        Utils.printlnLog("startScan thread stop")
-                        Utils.printlnLog("stack trace : ${e.stackTraceToString()}")
-
-                        if (e !is InterruptedException) {
+                        if (isScanStopping(e)) {
+                            Utils.printlnLog("startScan thread stopped")
+                        } else {
+                            Utils.printlnLog("startScan thread stop - error")
+                            Utils.printlnLog("stack trace : ${e.stackTraceToString()}")
                             JOptionPane.showMessageDialog(mMainUI, e.message, "Error", JOptionPane.ERROR_MESSAGE)
                         }
 
-                        try {
-                            mFileWriter?.flush()
-                        } catch (e: IOException) {
-                            e.printStackTrace()
-                        }
-                        mFileWriter?.close()
-                        mFileWriter = null
+                        closeFileWriter()
                         return@run
                     }
                 }
@@ -1515,14 +1539,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
         mScanThread = null
         if (mFileWriter != null) {
             ProcessList.getInstance().saveKnownProcesses(mLogFile, true)
-            try {
-                mFileWriter?.flush()
-            } catch(e:IOException) {
-                e.printStackTrace()
-            }
-            mFileWriter?.close()
-            mFileWriter?.close()
-            mFileWriter = null
+            closeFileWriter()
         }
         return
     }
