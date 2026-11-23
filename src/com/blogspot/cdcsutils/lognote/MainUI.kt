@@ -91,6 +91,7 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
     private lateinit var mItemFileSaveFull: JMenuItem
     private lateinit var mItemFileSaveFiltered: JMenuItem
     private var mFileSaveDir: String = ""
+    private lateinit var mItemFileClose: JMenuItem
     private lateinit var mItemFileExit: JMenuItem
     private lateinit var mMenuView: JMenu
     private lateinit var mItemToolWindows: JMenu
@@ -554,6 +555,13 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         mItemFileAppendFiles = JMenuItem(Strings.APPEND_FILES)
         mItemFileAppendFiles.addActionListener(mActionHandler)
         mMenuFile.add(mItemFileAppendFiles)
+
+        mItemFileClose = JMenuItem(Strings.CLOSE).apply {
+            accelerator = KeyStroke.getKeyStroke(KeyEvent.VK_W, InputEvent.CTRL_DOWN_MASK)
+            addActionListener { closeFile() }
+        }
+        mMenuFile.add(mItemFileClose)
+        mMenuFile.addMenuListener(MenuHandler())
 
         mMenuFile.addSeparator()
 
@@ -2207,6 +2215,36 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
         }
     }
 
+    // Close is allowed only when nothing is being received live (adb/cmd logcat running or file follow active).
+    private fun isLiveLogging(): Boolean {
+        return mFilteredLogPanel.mTableModel.isScanning() || mFilteredLogPanel.mTableModel.isFollowing()
+    }
+
+    private fun canCloseFile(): Boolean {
+        return CurrentMethod != METHOD_NONE && !isLiveLogging()
+    }
+
+    fun closeFile() {
+        if (!canCloseFile()) {
+            Utils.printlnLog("closeFile : ignored (method = $CurrentMethod, live = ${isLiveLogging()})")
+            Toolkit.getDefaultToolkit().beep()
+            return
+        }
+
+        // Keep filters/bookmarks of the opened file in the recent list, same as opening another file
+        saveRecentFile()
+
+        mFilteredLogPanel.mTableModel.clearItems()  // clears the full view and bookmarks too
+        mRecentFileManager.mOpenList.clear()
+        setCurrentMethod(METHOD_NONE)
+        setVisibleFollowBtn(false)
+
+        mStatusTF.text = Strings.NONE
+        mStatusMethod.background = UIManager.getColor("Label.background")
+        title = Main.NAME
+        repaint()
+    }
+
     fun isRestartAdbLogcat(): Boolean {
         return mRetryLogCmdToggle.isSelected
     }
@@ -3415,12 +3453,19 @@ class MainUI private constructor() : JFrame(), FormatManager.FormatEventListener
             if (e?.source == mItemFileOpenRecents) {
                 updateRecentFiles()
             }
+            else if (e?.source == mMenuFile) {
+                mItemFileClose.isEnabled = canCloseFile()
+            }
             else if (e?.source == mMenuView) {
                 mItemTrigger.state = mAgingTestManager.mTriggerPanel.isVisible
             }
         }
 
         override fun menuDeselected(e: MenuEvent?) {
+            if (e?.source == mMenuFile) {
+                // Re-enable so the Ctrl+W shortcut always reaches closeFile(), which checks the state itself
+                mItemFileClose.isEnabled = true
+            }
         }
 
         override fun menuCanceled(e: MenuEvent?) {
