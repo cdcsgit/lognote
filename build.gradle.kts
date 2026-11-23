@@ -1,7 +1,7 @@
 // Optional Gradle build so LogNote can be built from the command line / CI without IntelliJ.
 // Usage: gradle fatJar   ->  build/libs/LogNote.jar
 plugins {
-    kotlin("jvm") version "2.0.21"
+    kotlin("jvm") version "2.2.21"
 }
 
 repositories {
