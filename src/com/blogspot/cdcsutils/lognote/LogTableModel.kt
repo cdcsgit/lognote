@@ -1002,7 +1002,9 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
 
         val textSplited = FormatManager.splitLog(logLine, mTokenCount, mSeparator, mSeparatorList)
         if (textSplited.size > mTokenNthMax) {
-            level = if (mFilterLevel == LEVEL_NONE) {
+            // Detect the level for colouring even when the level filter is "None" (the filter only hides lines;
+            // before, "None" also turned off detection, so live logs - parsed by the filtered view - were all black)
+            level = if (mSeparator.isEmpty() || mLevelIdx < 0 || mLevelIdx >= textSplited.size) {
                 LEVEL_NONE
             } else {
                 mLevelMap[textSplited[mLevelIdx]] ?: LEVEL_NONE
