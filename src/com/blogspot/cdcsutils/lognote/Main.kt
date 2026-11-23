@@ -51,6 +51,13 @@ class Main {
 
         @JvmStatic
         fun main(args: Array<String>) {
+            // Windows: Java's Direct3D drawing can stall for seconds while scrolling (seen on Java 8 after some
+            // use, until restart). Use the plain software pipeline unless the user set sun.java2d.d3d explicitly.
+            // Must run before any AWT/Swing class is initialized.
+            if (SystemInfo.isWindows && System.getProperty("sun.java2d.d3d") == null) {
+                System.setProperty("sun.java2d.d3d", "false")
+            }
+
             when {
                 SystemInfo.isWindows -> Utils.printlnLog("Current OS: Windows (${SystemInfo.osVersion})")
                 SystemInfo.isMacOS -> Utils.printlnLog("Current OS: macOS (${SystemInfo.osVersion})")
