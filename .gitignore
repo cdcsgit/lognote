@@ -5,3 +5,6 @@
 # Gradle
 .gradle/
 build/
+LogNote_*.txt
+LogNote_*.txt.pnames
+lognote*.json
