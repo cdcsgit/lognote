@@ -557,7 +557,9 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
         var line: String?
 
         line = bufferedReader.readLine()
+        val processList = ProcessList.getInstance()
         while (line != null) {
+            processList.learnFromLogLine(line)
             mLogItems.add(makeLogItem(num, line))
             num++
             line = bufferedReader.readLine()
@@ -1279,6 +1281,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
         val logFilterItems: MutableList<LogFilterItem> = mutableListOf()
         synchronized(this) {
             for (tempLine in logLines) {
+                ProcessList.getInstance().learnFromLogLine(tempLine)
                 item = makeLogItem(num, tempLine)
                 isShow = true
 
@@ -1357,6 +1360,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
         if (mLogFile == null) {
             return
         }
+        ProcessList.getInstance().resetKnownProcesses()
 
         if (SwingUtilities.isEventDispatchThread()) {
             mScanThread?.interrupt()
@@ -1434,6 +1438,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                         if (!mIsPause) {
                             while (line != null) {
                                 if (currLogFile != mLogFile) {
+                                    ProcessList.getInstance().saveKnownProcesses(currLogFile, true)
                                     try {
                                         mFileWriter?.flush()
                                     } catch (e: IOException) {
@@ -1467,6 +1472,9 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
                         }
 
                         startNum = updateLogItems(logLines, startNum)
+                        if (mFileWriter != null) {
+                            ProcessList.getInstance().saveKnownProcesses(currLogFile, false)
+                        }
                     } catch (e: Exception) {
                         Utils.printlnLog("startScan thread stop")
                         Utils.printlnLog("stack trace : ${e.stackTraceToString()}")
@@ -1505,6 +1513,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
         mRecvThread = null
         mScanThread = null
         if (mFileWriter != null) {
+            ProcessList.getInstance().saveKnownProcesses(mLogFile, true)
             try {
                 mFileWriter?.flush()
             } catch(e:IOException) {
