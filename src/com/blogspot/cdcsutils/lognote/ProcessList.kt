@@ -115,6 +115,19 @@ class ProcessList private constructor() {
         mLastSavedTime = 0
     }
 
+    // Copy the current 'ps' result into the known list (start of a live session, and before saving it)
+    fun mergeCurrentProcesses() {
+        try {
+            for (item in ArrayList(mProcessMap.values)) {
+                if (!mKnownProcesses.containsKey(item.mPid)) {
+                    addKnown(item)
+                }
+            }
+        } catch (e: ConcurrentModificationException) {
+            Utils.printlnLog("mergeCurrentProcesses : process list is being updated, skip")
+        }
+    }
+
     // Learn pid -> name from ActivityManager "Start proc 1234:com.foo/u0a12 ..." or events "am_proc_start: [0,1234,10012,com.foo,...]"
     fun learnFromLogLine(line: String) {
         val match: MatchResult? = when {
@@ -155,7 +168,13 @@ class ProcessList private constructor() {
 
     // Write "<logFile>.pnames" next to a log file being saved; throttled unless force is set
     fun saveKnownProcesses(logFile: java.io.File?, force: Boolean) {
-        if (logFile == null || mKnownProcesses.isEmpty()) {
+        if (logFile == null) {
+            return
+        }
+        if (force && MainUI.CurrentMethod == MainUI.METHOD_ADB) {
+            mergeCurrentProcesses()
+        }
+        if (mKnownProcesses.isEmpty()) {
             return
         }
         val path = logFile.absolutePath

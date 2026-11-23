@@ -1361,6 +1361,7 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
             return
         }
         ProcessList.getInstance().resetKnownProcesses()
+        ProcessList.getInstance().mergeCurrentProcesses()
 
         if (SwingUtilities.isEventDispatchThread()) {
             mScanThread?.interrupt()
