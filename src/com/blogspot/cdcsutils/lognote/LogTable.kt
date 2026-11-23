@@ -300,8 +300,7 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
 
             foreground = mTableModel.getFgColor(row)
 
-            val numValue = mTableModel.getValueAt(row, 0)
-            val num = numValue.toString().trim().toInt()
+            val num = mTableModel.getLineNum(row)
             if (mBookmarkManager.isBookmark(num)) {
                 if (isRowSelected(row)) {
                     background = mTableColor.mBookmarkSelectedBG
@@ -387,8 +386,7 @@ open class LogTable(tableModel:LogTableModel) : JTable(tableModel){
                 label = super.getTableCellRendererComponent(table, newValue, isSelected, hasFocus, row, col) as JLabel
             }
 
-            val numValue = mTableModel.getValueAt(row, 0)
-            val num = numValue.toString().trim().toInt()
+            val num = mTableModel.getLineNum(row)
             if (mBookmarkManager.isBookmark(num)) {
                 if (isRowSelected(row)) {
                     background = mTableColor.mBookmarkSelectedBG

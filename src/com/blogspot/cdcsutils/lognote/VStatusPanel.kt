@@ -48,10 +48,15 @@ class VStatusPanel(logTable: LogTable) : JPanel() {
         else {
             g?.color = Color(0x000000)
         }
-        for (row in 0 until mLogTable.rowCount) {
-            val num = mLogTable.getValueAt(row, 0).toString().trim().toInt()
-            if (mBookmarkManager.isBookmark(num)) {
-                g?.fillRect(0, row * height / mLogTable.rowCount, width, 1)
+        // Mark bookmarked rows: look up each bookmark's row instead of scanning every row on every repaint
+        // (this panel repaints on each scroll step; scanning 100k rows made mouse-wheel scrolling laggy)
+        val rowCount = mLogTable.rowCount
+        if (rowCount > 0) {
+            for (bookmark in mBookmarkManager.mBookmarks) {
+                val row = mLogTable.mTableModel.findRowByLineNum(bookmark)
+                if (row >= 0) {
+                    g?.fillRect(0, (row.toLong() * height / rowCount).toInt(), width, 1)
+                }
             }
         }
 

@@ -1783,6 +1783,27 @@ open class LogTableModel(mainUI: MainUI, baseModel: LogTableModel?) : AbstractTa
         }
     }
 
+    // Line number of a row without building the display string (used by renderers while scrolling)
+    fun getLineNum(row: Int): Int {
+        return if (row >= 0 && row < mLogItems.size) mLogItems[row].mNum.toIntOrNull() ?: -1 else -1
+    }
+
+    // Row showing the given line number, or -1. Rows are always in ascending line-number order.
+    fun findRowByLineNum(num: Int): Int {
+        var low = 0
+        var high = mLogItems.size - 1
+        while (low <= high) {
+            val mid = (low + high) ushr 1
+            val midNum = mLogItems[mid].mNum.toIntOrNull() ?: return -1
+            when {
+                midNum < num -> low = mid + 1
+                midNum > num -> high = mid - 1
+                else -> return mid
+            }
+        }
+        return -1
+    }
+
     fun getValuePid(row: Int): String {
         return if (row >= 0 && row < mLogItems.size) {
             if (mSortedPidTokIdx >= 0) {
